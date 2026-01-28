@@ -1,0 +1,221 @@
+---
+title: Installation
+description: Set up your development environment for Varity
+---
+
+import { Steps, Tabs, TabItem, Aside, Card, CardGrid } from '@astrojs/starlight/components';
+
+# Installation
+
+Get your development environment ready for building with Varity.
+
+## System Requirements
+
+- **Node.js** 18.0 or later
+- **Python** 3.8 or later (for CLI)
+- **npm**, **pnpm**, or **yarn**
+- A modern browser (Chrome, Firefox, Safari, Edge)
+
+## Install Packages
+
+<Steps>
+
+1. **Install the core packages**
+
+   <Tabs>
+     <TabItem label="npm">
+       ```bash
+       npm install @varity/sdk @varity/ui-kit @varity/types
+       ```
+     </TabItem>
+     <TabItem label="pnpm">
+       ```bash
+       pnpm add @varity/sdk @varity/ui-kit @varity/types
+       ```
+     </TabItem>
+     <TabItem label="yarn">
+       ```bash
+       yarn add @varity/sdk @varity/ui-kit @varity/types
+       ```
+     </TabItem>
+   </Tabs>
+
+2. **Install the CLI**
+
+   ```bash
+   pip install varitykit
+   ```
+
+   Or with pipx (recommended for CLI tools):
+
+   ```bash
+   pipx install varitykit
+   ```
+
+3. **Verify installation**
+
+   ```bash
+   varitykit doctor
+   ```
+
+   You should see output like:
+
+   ```
+   ✓ Python version: 3.11.0
+   ✓ Node.js version: 20.0.0
+   ✓ npm version: 10.0.0
+   ✓ All checks passed!
+   ```
+
+</Steps>
+
+## Package Overview
+
+<CardGrid>
+  <Card title="@varity/sdk">
+    Core SDK with chain configuration, thirdweb clients, storage, and blockchain services.
+
+    ```bash
+    npm install @varity/sdk
+    ```
+  </Card>
+  <Card title="@varity/ui-kit">
+    React components for authentication, wallets, payments, and dashboards.
+
+    ```bash
+    npm install @varity/ui-kit
+    ```
+  </Card>
+  <Card title="@varity/types">
+    TypeScript type definitions for all Varity interfaces.
+
+    ```bash
+    npm install @varity/types
+    ```
+  </Card>
+  <Card title="varitykit">
+    Command-line tool for deploying and managing apps.
+
+    ```bash
+    pip install varitykit
+    ```
+  </Card>
+</CardGrid>
+
+## Environment Setup
+
+Create a `.env.local` file in your project root:
+
+```bash title=".env.local"
+# Varity App ID (get from developer portal or use dev credentials)
+NEXT_PUBLIC_VARITY_APP_ID=your-app-id
+
+# thirdweb Client ID (get from thirdweb.com/dashboard)
+NEXT_PUBLIC_THIRDWEB_CLIENT_ID=your-client-id
+```
+
+<Aside type="tip" title="Development Credentials">
+For quick development, Varity provides shared development credentials. These work out of the box but should be replaced before production.
+
+The SDK will automatically use development credentials if none are provided.
+</Aside>
+
+## Framework Setup
+
+### Next.js (App Router)
+
+```tsx title="app/layout.tsx"
+import { PrivyStack } from '@varity/ui-kit';
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <body>
+        <PrivyStack appId={process.env.NEXT_PUBLIC_VARITY_APP_ID}>
+          {children}
+        </PrivyStack>
+      </body>
+    </html>
+  );
+}
+```
+
+### React (Vite)
+
+```tsx title="src/main.tsx"
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { PrivyStack } from '@varity/ui-kit';
+import App from './App';
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <PrivyStack appId={import.meta.env.VITE_VARITY_APP_ID}>
+      <App />
+    </PrivyStack>
+  </React.StrictMode>
+);
+```
+
+## Verify Setup
+
+Create a simple test component:
+
+```tsx title="components/TestConnection.tsx"
+import { usePrivy } from '@varity/ui-kit';
+
+export function TestConnection() {
+  const { ready, authenticated } = usePrivy();
+
+  if (!ready) {
+    return <p>Loading...</p>;
+  }
+
+  return (
+    <div>
+      <p>Varity is connected!</p>
+      <p>Authenticated: {authenticated ? 'Yes' : 'No'}</p>
+    </div>
+  );
+}
+```
+
+If you see "Varity is connected!", you're ready to build.
+
+## Next Steps
+
+- [Quick Start](/getting-started/quickstart) - Deploy your first app
+- [Authentication](/build/auth/quickstart) - Add login to your app
+- [CLI Reference](/cli/overview) - Learn the CLI commands
+
+## Troubleshooting
+
+### "Module not found" errors
+
+Make sure you've installed all packages:
+
+```bash
+npm install @varity/sdk @varity/ui-kit @varity/types
+```
+
+### CLI not found
+
+Make sure Python is in your PATH and try:
+
+```bash
+python -m pip install varitykit
+```
+
+### TypeScript errors
+
+Make sure you're using TypeScript 5.0 or later:
+
+```bash
+npm install typescript@latest
+```
+
+For more help, see [Troubleshooting](/resources/troubleshooting) or join our [Discord](https://discord.gg/Uhjx6yhJ).

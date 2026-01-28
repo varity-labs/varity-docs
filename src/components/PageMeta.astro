@@ -1,0 +1,130 @@
+---
+/**
+ * PageMeta Component
+ * Displays author attribution, last updated date, and version info
+ * Based on research: trust signals build credibility (E-E-A-T)
+ */
+interface Props {
+  author?: string;
+  authorRole?: string;
+  lastUpdated?: string;
+  version?: string;
+  stability?: 'stable' | 'beta' | 'alpha' | 'experimental';
+}
+
+const {
+  author,
+  authorRole,
+  lastUpdated,
+  version,
+  stability = 'stable'
+} = Astro.props;
+
+const stabilityColors = {
+  stable: 'var(--color-success)',
+  beta: 'var(--color-info)',
+  alpha: 'var(--color-warning)',
+  experimental: 'var(--color-danger)'
+};
+
+const stabilityBg = {
+  stable: 'rgba(34, 197, 94, 0.1)',
+  beta: 'rgba(59, 130, 246, 0.1)',
+  alpha: 'rgba(245, 158, 11, 0.1)',
+  experimental: 'rgba(239, 68, 68, 0.1)'
+};
+---
+
+<div class="page-meta">
+  {author && (
+    <div class="meta-item author">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
+        <circle cx="12" cy="7" r="4"/>
+      </svg>
+      <span class="meta-label">
+        <strong>{author}</strong>
+        {authorRole && <span class="author-role">{authorRole}</span>}
+      </span>
+    </div>
+  )}
+
+  {lastUpdated && (
+    <div class="meta-item updated">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <polyline points="12 6 12 12 16 14"/>
+      </svg>
+      <span class="meta-label">Updated {lastUpdated}</span>
+    </div>
+  )}
+
+  {version && (
+    <div class="meta-item version">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+      </svg>
+      <span
+        class="version-badge"
+        style={`color: ${stabilityColors[stability]}; background: ${stabilityBg[stability]};`}
+      >
+        v{version} ({stability})
+      </span>
+    </div>
+  )}
+</div>
+
+<style>
+  .page-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+    padding: var(--space-4) 0;
+    margin-bottom: var(--space-6);
+    border-bottom: 1px solid var(--border-secondary);
+    font-size: 0.875rem;
+  }
+
+  .meta-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--text-tertiary);
+  }
+
+  .meta-item svg {
+    flex-shrink: 0;
+    opacity: 0.7;
+  }
+
+  .meta-label strong {
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+
+  .author-role {
+    color: var(--text-muted);
+    margin-left: var(--space-1);
+  }
+
+  .author-role::before {
+    content: '·';
+    margin-right: var(--space-1);
+  }
+
+  .version-badge {
+    padding: 0.15em 0.5em;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  @media (max-width: 48rem) {
+    .page-meta {
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+  }
+</style>

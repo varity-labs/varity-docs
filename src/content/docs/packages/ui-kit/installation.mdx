@@ -1,0 +1,231 @@
+---
+title: "@varity/ui-kit Installation"
+description: "Install and configure the Varity UI Kit for your React project"
+---
+
+import { Tabs, TabItem, Steps, Aside } from '@astrojs/starlight/components';
+
+# Installation
+
+Get the Varity UI Kit installed in your React project.
+
+## Install Packages
+
+<Tabs>
+  <TabItem label="npm">
+    ```bash
+    npm install @varity/ui-kit @varity/sdk
+    ```
+  </TabItem>
+  <TabItem label="pnpm">
+    ```bash
+    pnpm add @varity/ui-kit @varity/sdk
+    ```
+  </TabItem>
+  <TabItem label="yarn">
+    ```bash
+    yarn add @varity/ui-kit @varity/sdk
+    ```
+  </TabItem>
+</Tabs>
+
+## Peer Dependencies
+
+The UI Kit requires these peer dependencies:
+
+```json
+{
+  "react": "^18.0.0",
+  "react-dom": "^18.0.0",
+  "@privy-io/react-auth": "^1.0.0",
+  "@tanstack/react-query": "^5.0.0",
+  "thirdweb": "^5.0.0"
+}
+```
+
+Install any missing dependencies:
+
+```bash
+npm install react react-dom @privy-io/react-auth @tanstack/react-query thirdweb
+```
+
+## Environment Variables
+
+Set up these environment variables:
+
+```bash title=".env.local"
+# Privy App ID - get from https://dashboard.privy.io
+NEXT_PUBLIC_PRIVY_APP_ID=your_privy_app_id
+
+# thirdweb Client ID - get from https://thirdweb.com/dashboard
+NEXT_PUBLIC_THIRDWEB_CLIENT_ID=your_thirdweb_client_id
+```
+
+<Aside type="tip">
+**Development Mode:** Varity provides shared development credentials that work automatically. Just skip the environment variables and the UI Kit will use development defaults.
+</Aside>
+
+## Basic Setup
+
+<Steps>
+
+1. **Wrap your app with PrivyStack**
+
+   ```tsx title="app/layout.tsx"
+   import { PrivyStack } from '@varity/ui-kit';
+
+   export default function RootLayout({ children }) {
+     return (
+       <html>
+         <body>
+           <PrivyStack appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID}>
+             {children}
+           </PrivyStack>
+         </body>
+       </html>
+     );
+   }
+   ```
+
+2. **Add a login button**
+
+   ```tsx title="components/Header.tsx"
+   import { PrivyLoginButton, usePrivy } from '@varity/ui-kit';
+
+   export function Header() {
+     const { authenticated, logout } = usePrivy();
+
+     return (
+       <header>
+         {authenticated ? (
+           <button onClick={logout}>Sign Out</button>
+         ) : (
+           <PrivyLoginButton />
+         )}
+       </header>
+     );
+   }
+   ```
+
+3. **Protect routes**
+
+   ```tsx title="app/dashboard/page.tsx"
+   import { PrivyProtectedRoute } from '@varity/ui-kit';
+
+   export default function DashboardPage() {
+     return (
+       <PrivyProtectedRoute>
+         <Dashboard />
+       </PrivyProtectedRoute>
+     );
+   }
+   ```
+
+</Steps>
+
+## Framework Setup
+
+### Next.js (App Router)
+
+```tsx title="app/layout.tsx"
+import { PrivyStack } from '@varity/ui-kit';
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <body>
+        <PrivyStack appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID}>
+          {children}
+        </PrivyStack>
+      </body>
+    </html>
+  );
+}
+```
+
+### React (Vite)
+
+```tsx title="src/main.tsx"
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { PrivyStack } from '@varity/ui-kit';
+import App from './App';
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <PrivyStack appId={import.meta.env.VITE_PRIVY_APP_ID}>
+      <App />
+    </PrivyStack>
+  </React.StrictMode>
+);
+```
+
+### Create React App
+
+```tsx title="src/index.tsx"
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { PrivyStack } from '@varity/ui-kit';
+import App from './App';
+
+const root = ReactDOM.createRoot(
+  document.getElementById('root') as HTMLElement
+);
+
+root.render(
+  <React.StrictMode>
+    <PrivyStack appId={process.env.REACT_APP_PRIVY_APP_ID}>
+      <App />
+    </PrivyStack>
+  </React.StrictMode>
+);
+```
+
+## Configuration Options
+
+`PrivyStack` accepts these configuration options:
+
+```tsx
+<PrivyStack
+  // Required (or use dev defaults)
+  appId="your-privy-app-id"
+  thirdwebClientId="your-thirdweb-client-id"
+
+  // Login methods to show
+  loginMethods={['email', 'google', 'twitter', 'discord']}
+
+  // Appearance customization
+  appearance={{
+    theme: 'light', // or 'dark'
+    accentColor: '#2563EB',
+    logo: '/logo.png',
+  }}
+
+  // Callback when wallet address changes
+  onAddressChange={(address) => console.log('Address:', address)}
+>
+  {children}
+</PrivyStack>
+```
+
+## TypeScript Support
+
+The UI Kit is fully typed. Import types as needed:
+
+```typescript
+import type {
+  PrivyStackProps,
+  PrivyLoginButtonProps,
+  OnrampWidgetProps,
+} from '@varity/ui-kit';
+```
+
+## Next Steps
+
+- [Components Reference](/packages/ui-kit/components) - All components with examples
+- [Hooks Reference](/packages/ui-kit/hooks) - Available hooks and usage
+- [Authentication Quick Start](/build/auth/quickstart) - Complete auth guide

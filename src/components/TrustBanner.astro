@@ -1,0 +1,111 @@
+---
+/**
+ * TrustBanner Component
+ * Displays trust signals at the top of the docs
+ * Based on research: social proof and credibility indicators
+ */
+interface Props {
+  showStats?: boolean;
+}
+
+const { showStats = true } = Astro.props;
+
+// These would ideally come from an API/database
+const stats = {
+  developers: '5,000+',
+  uptime: '99.9%',
+  avgDeployTime: '8 min',
+  costSavings: '70-85%'
+};
+---
+
+<div class="trust-banner">
+  <div class="trust-items">
+    <div class="trust-item">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        <polyline points="9 12 12 15 16 10"/>
+      </svg>
+      <span>Open Source (MIT)</span>
+    </div>
+
+    <div class="trust-item">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <polyline points="12 6 12 12 16 14"/>
+      </svg>
+      <span>{stats.uptime} Uptime</span>
+    </div>
+
+    <div class="trust-item">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+      <span>{stats.developers} Developers</span>
+    </div>
+
+    {showStats && (
+      <div class="trust-item highlight">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="1" x2="12" y2="23"/>
+          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+        </svg>
+        <span>{stats.costSavings} Cost Savings vs AWS</span>
+      </div>
+    )}
+  </div>
+</div>
+
+<style>
+  .trust-banner {
+    background: linear-gradient(180deg, rgba(20, 184, 166, 0.05) 0%, transparent 100%);
+    border-bottom: 1px solid var(--border-secondary);
+    padding: var(--space-3) var(--space-4);
+    margin-bottom: var(--space-6);
+  }
+
+  .trust-items {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-6);
+    max-width: var(--sl-content-width);
+    margin: 0 auto;
+  }
+
+  .trust-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+  }
+
+  .trust-item svg {
+    color: var(--color-brand);
+    flex-shrink: 0;
+  }
+
+  .trust-item.highlight {
+    color: var(--color-brand);
+    font-weight: 500;
+  }
+
+  .trust-item.highlight svg {
+    color: var(--color-brand-light);
+  }
+
+  @media (max-width: 48rem) {
+    .trust-items {
+      gap: var(--space-4);
+    }
+
+    .trust-item {
+      font-size: 0.75rem;
+    }
+  }
+</style>

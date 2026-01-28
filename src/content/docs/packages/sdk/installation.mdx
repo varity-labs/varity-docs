@@ -1,0 +1,157 @@
+---
+title: "@varity/sdk Installation"
+description: "Install and configure the Varity SDK for your project"
+---
+
+import { Tabs, TabItem, Steps, Aside } from '@astrojs/starlight/components';
+
+# Installation
+
+Get the Varity SDK installed and configured in your project.
+
+## Install the Package
+
+<Tabs>
+  <TabItem label="npm">
+    ```bash
+    npm install @varity/sdk
+    ```
+  </TabItem>
+  <TabItem label="pnpm">
+    ```bash
+    pnpm add @varity/sdk
+    ```
+  </TabItem>
+  <TabItem label="yarn">
+    ```bash
+    yarn add @varity/sdk
+    ```
+  </TabItem>
+</Tabs>
+
+## Peer Dependencies
+
+The SDK has the following peer dependencies:
+
+```json
+{
+  "thirdweb": "^5.0.0"
+}
+```
+
+Install them if not already present:
+
+```bash
+npm install thirdweb
+```
+
+## Quick Setup
+
+<Steps>
+
+1. **Import and initialize the SDK**
+
+   ```typescript
+   import { createVaritySDK } from '@varity/sdk';
+
+   const sdk = createVaritySDK({
+     network: 'arbitrum-l3-testnet',
+   });
+   ```
+
+2. **Connect to the network**
+
+   ```typescript
+   await sdk.connect();
+   ```
+
+3. **Start using SDK features**
+
+   ```typescript
+   // Upload a file
+   const result = await sdk.storage.upload(fileData);
+
+   // Get analytics
+   const kpis = await sdk.analytics.getKPIs({ period: 'current_month' });
+   ```
+
+</Steps>
+
+## Environment Variables
+
+For production use, set up these environment variables:
+
+```bash title=".env"
+# thirdweb Client ID (required)
+THIRDWEB_CLIENT_ID=your_client_id
+
+# Optional: Override default RPC
+VARITY_RPC_URL=https://rpc-varity-testnet-rroe52pwjp.t.conduit.xyz
+```
+
+<Aside type="tip">
+**Development Mode:** The SDK includes shared development credentials that work automatically. Replace them with your own keys before going to production.
+</Aside>
+
+## Development Credentials
+
+For quick prototyping, the SDK provides shared development credentials:
+
+```typescript
+import { VARITY_DEV_CREDENTIALS, resolveCredentials } from '@varity/sdk';
+
+// Auto-resolves to dev credentials if none provided
+const credentials = resolveCredentials({
+  privyAppId: process.env.PRIVY_APP_ID,
+  thirdwebClientId: process.env.THIRDWEB_CLIENT_ID,
+});
+
+// Check if using dev credentials
+import { isUsingDevCredentials } from '@varity/sdk';
+
+if (isUsingDevCredentials()) {
+  console.log('Using shared development credentials');
+}
+```
+
+<Aside type="caution">
+**Production Warning:** Never use shared development credentials in production. Replace them with your own API keys.
+</Aside>
+
+## TypeScript Configuration
+
+The SDK is written in TypeScript. Recommended `tsconfig.json` settings:
+
+```json title="tsconfig.json"
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "esModuleInterop": true
+  }
+}
+```
+
+## Bundle Size
+
+The SDK supports tree-shaking. Import only what you need:
+
+```typescript
+// Good - only imports what's needed
+import { createVaritySDK, varityL3Testnet } from '@varity/sdk';
+
+// Avoid - imports entire package
+import * as VaritySDK from '@varity/sdk';
+```
+
+Approximate bundle sizes:
+- Full SDK: ~50KB gzipped
+- Core only: ~20KB gzipped
+
+## Next Steps
+
+- [Configuration Reference](/packages/sdk/configuration) - All configuration options
+- [Chain Support](/packages/sdk/chains) - Working with Varity L3
+- [Quick Start](/getting-started/quickstart) - Build your first app

@@ -1,0 +1,125 @@
+---
+title: Introduction to Varity
+description: Build real-world apps on decentralized infrastructure. Deploy in 60 seconds with zero blockchain knowledge required.
+---
+
+import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
+import PageMeta from '../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="January 28, 2026"
+  version="1.2.3"
+  stability="stable"
+/>
+
+# Welcome to Varity
+
+Varity is the easiest way to build and deploy real-world applications on decentralized infrastructure. **No blockchain knowledge required.**
+
+```bash
+npm install @varity/sdk @varity/ui-kit
+varitykit deploy
+```
+
+**That's it.** Your app is now running on decentralized infrastructure with:
+- Authentication (email, social, wallet)
+- File storage (IPFS)
+- Payments (credit card on-ramp)
+- Gasless transactions (users never pay fees)
+
+## What Makes Varity Different?
+
+### For Web2 Developers
+
+If you've built apps with React, Next.js, or any modern framework - **you already know how to use Varity**.
+
+- **No crypto wallets** - Users login with email or social accounts
+- **No gas fees** - All transaction costs are handled automatically
+- **No blockchain jargon** - Just familiar APIs and components
+- **70-85% cheaper** than AWS, GCP, or Azure
+
+### Seamless User Experience
+
+Your users will never know the app is running on blockchain technology:
+
+- Login with email or Google (no wallet popups)
+- Pay with credit card (no crypto purchases)
+- Instant transactions (no confirmation screens)
+- Works exactly like any other web app
+
+## Core Packages
+
+<CardGrid>
+  <Card title="@varity/sdk" icon="rocket">
+    Core SDK with authentication, storage, payments, and chain configuration.
+    [View Package →](/packages/sdk/overview)
+  </Card>
+  <Card title="@varity/ui-kit" icon="puzzle">
+    React components for login, wallets, on-ramp, and dashboards.
+    [View Package →](/packages/ui-kit/overview)
+  </Card>
+  <Card title="@varity/types" icon="document">
+    TypeScript type definitions for all Varity interfaces.
+    [View Package →](/packages/types/overview)
+  </Card>
+  <Card title="VarietyKit CLI" icon="terminal">
+    Command-line tool for deploying and managing your apps.
+    [View CLI →](/cli/overview)
+  </Card>
+</CardGrid>
+
+## Quick Example
+
+Here's how simple it is to add authentication to your React app:
+
+```tsx
+import { PrivyStack, PrivyLoginButton } from '@varity/ui-kit';
+
+function App() {
+  return (
+    <PrivyStack appId={process.env.VARITY_APP_ID}>
+      <PrivyLoginButton />
+      <YourApp />
+    </PrivyStack>
+  );
+}
+```
+
+Users can now login with:
+- Email (magic link)
+- Google, Twitter, Discord
+- Any crypto wallet (optional)
+
+## Current Status
+
+:::note[Testnet Only]
+Varity L3 is currently in **testnet** mode. Mainnet launch is coming soon after MVP validation.
+:::
+
+**What's Available Now:**
+- Varity L3 Testnet (Chain ID: 33529)
+- Authentication with Privy
+- File storage with IPFS
+- Credit card payments with thirdweb Pay
+- Gasless transactions with ERC-4337
+
+**Coming Soon:**
+- Akash compute hosting (dynamic apps)
+- Mainnet deployment
+- Additional blockchains
+
+## Next Steps
+
+<LinkCard
+  title="Quick Start"
+  description="Deploy your first app in 5 minutes"
+  href="/getting-started/quickstart"
+/>
+
+<LinkCard
+  title="Installation"
+  description="Set up your development environment"
+  href="/getting-started/installation"
+/>

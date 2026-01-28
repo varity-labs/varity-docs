@@ -1,0 +1,234 @@
+---
+title: Retrieving Files
+description: Download and display files from storage
+---
+
+import { Steps, Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+
+# Retrieving Files
+
+Access your stored files via fast CDN gateways.
+
+## Get Gateway URL
+
+Convert a storage URI to an accessible URL:
+
+```tsx
+import { createStorageClient, StorageClient } from '@varity/sdk';
+
+// From instance
+const url = storage.getGatewayUrl('ipfs://QmXxx...');
+// https://gateway.thirdweb.com/ipfs/QmXxx...
+
+// Static method
+const url = StorageClient.resolveUri('ipfs://QmXxx...');
+```
+
+## Display Images
+
+Display uploaded images in your app:
+
+```tsx title="components/StoredImage.tsx"
+import { storage } from '@/lib/storage';
+
+export function StoredImage({ uri }) {
+  const imageUrl = storage.getGatewayUrl(uri);
+
+  return (
+    <img
+      src={imageUrl}
+      alt="Stored image"
+      loading="lazy"
+    />
+  );
+}
+```
+
+## Optimized Images
+
+Get resized and optimized images for faster loading:
+
+```tsx
+// Resize to specific dimensions
+const thumbnailUrl = storage.getGatewayUrl(uri, {
+  width: 200,
+  height: 200,
+});
+
+// High quality for detail view
+const fullUrl = storage.getGatewayUrl(uri, {
+  width: 1200,
+  quality: 90,
+});
+
+// WebP format for smaller file sizes
+const webpUrl = storage.getGatewayUrl(uri, {
+  width: 800,
+  format: 'webp',
+  quality: 80,
+});
+```
+
+### Image Options
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `width` | number | Target width (maintains aspect ratio) |
+| `height` | number | Target height (maintains aspect ratio) |
+| `quality` | number | Image quality (1-100) |
+| `format` | string | Output format: `webp`, `jpeg`, `png`, `avif` |
+
+## Download JSON
+
+Retrieve and parse JSON data:
+
+```tsx
+const userData = await storage.downloadJSON('ipfs://QmXxx...');
+
+console.log('Name:', userData.name);
+console.log('Email:', userData.email);
+```
+
+### With TypeScript
+
+Type your downloaded data:
+
+```tsx
+interface UserData {
+  name: string;
+  email: string;
+  preferences: {
+    theme: 'light' | 'dark';
+    notifications: boolean;
+  };
+}
+
+const userData = await storage.downloadJSON<UserData>(uri);
+```
+
+## Download Files
+
+Download raw file data:
+
+```tsx
+const response = await storage.downloadFile('ipfs://QmXxx...');
+
+// Get as blob
+const blob = await response.blob();
+
+// Get as text
+const text = await response.text();
+
+// Get as array buffer
+const buffer = await response.arrayBuffer();
+```
+
+## Image Gallery Example
+
+Complete gallery component with optimized loading:
+
+```tsx title="components/ImageGallery.tsx"
+import { useState } from 'react';
+import { storage } from '@/lib/storage';
+
+export function ImageGallery({ imageUris }) {
+  const [selected, setSelected] = useState(null);
+
+  return (
+    <div>
+      {/* Thumbnail grid */}
+      <div className="grid grid-cols-4 gap-2">
+        {imageUris.map((uri, index) => (
+          <img
+            key={index}
+            src={storage.getGatewayUrl(uri, {
+              width: 200,
+              height: 200,
+              format: 'webp',
+            })}
+            alt={`Image ${index + 1}`}
+            onClick={() => setSelected(uri)}
+            className="cursor-pointer rounded"
+          />
+        ))}
+      </div>
+
+      {/* Full size modal */}
+      {selected && (
+        <div
+          className="fixed inset-0 bg-black/80 flex items-center justify-center"
+          onClick={() => setSelected(null)}
+        >
+          <img
+            src={storage.getGatewayUrl(selected, {
+              width: 1200,
+              quality: 90,
+            })}
+            alt="Full size"
+            className="max-w-full max-h-full"
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+## NFT Metadata Display
+
+Display NFT data from stored metadata:
+
+```tsx title="components/NFTCard.tsx"
+import { useState, useEffect } from 'react';
+import { storage } from '@/lib/storage';
+
+export function NFTCard({ metadataUri }) {
+  const [metadata, setMetadata] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadMetadata() {
+      try {
+        const data = await storage.downloadJSON(metadataUri);
+        setMetadata(data);
+      } catch (error) {
+        console.error('Failed to load metadata:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadMetadata();
+  }, [metadataUri]);
+
+  if (loading) return <div>Loading...</div>;
+  if (!metadata) return <div>Failed to load</div>;
+
+  return (
+    <div className="rounded-xl overflow-hidden shadow-lg">
+      <img
+        src={storage.getGatewayUrl(metadata.image, { width: 400 })}
+        alt={metadata.name}
+      />
+      <div className="p-4">
+        <h3 className="font-bold">{metadata.name}</h3>
+        <p className="text-gray-600">{metadata.description}</p>
+
+        {metadata.attributes && (
+          <div className="mt-2 flex flex-wrap gap-2">
+            {metadata.attributes.map((attr, i) => (
+              <span key={i} className="bg-gray-100 px-2 py-1 rounded text-sm">
+                {attr.trait_type}: {attr.value}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+```
+
+## Next Steps
+
+- [Payments Quick Start](/build/payments/quickstart) - Accept payments
+- [Authentication Quick Start](/build/auth/quickstart) - Set up login

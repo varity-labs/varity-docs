@@ -1,0 +1,291 @@
+---
+title: "Troubleshooting"
+description: "Common issues and solutions for Varity development"
+---
+
+import { Aside, Steps } from '@astrojs/starlight/components';
+
+# Troubleshooting
+
+Solutions to common issues when building with Varity.
+
+## Installation Issues
+
+### "command not found: varitykit"
+
+The CLI is not installed or not in your PATH.
+
+<Steps>
+
+1. Install the CLI:
+   ```bash
+   pip install varitykit
+   ```
+
+2. Verify installation:
+   ```bash
+   varitykit --version
+   ```
+
+3. If still not found, check your Python path:
+   ```bash
+   python -m varitykit --version
+   ```
+
+</Steps>
+
+### "ModuleNotFoundError: No module named 'varitykit'"
+
+Python dependencies are missing.
+
+```bash
+pip install --upgrade varitykit
+```
+
+### Package installation fails
+
+If npm package installation fails:
+
+```bash
+# Clear npm cache
+npm cache clean --force
+
+# Delete node_modules and reinstall
+rm -rf node_modules package-lock.json
+npm install
+```
+
+## Deployment Issues
+
+### "THIRDWEB_CLIENT_ID not set"
+
+Create a `.env` file with your thirdweb credentials:
+
+```bash title=".env"
+THIRDWEB_CLIENT_ID=your_client_id
+```
+
+Get your Client ID from [thirdweb Dashboard](https://thirdweb.com/dashboard).
+
+### "Build failed"
+
+<Steps>
+
+1. Verify your build works locally:
+   ```bash
+   npm run build
+   ```
+
+2. Check for TypeScript errors:
+   ```bash
+   npx tsc --noEmit
+   ```
+
+3. Ensure all dependencies are installed:
+   ```bash
+   npm install
+   ```
+
+</Steps>
+
+### "IPFS upload failed"
+
+Possible causes and solutions:
+
+| Cause | Solution |
+|-------|----------|
+| Invalid Client ID | Verify `THIRDWEB_CLIENT_ID` in your `.env` |
+| Network timeout | Try again - temporary network issue |
+| Large files | Split into smaller chunks |
+| Rate limiting | Wait a few minutes and retry |
+
+## Authentication Issues
+
+### "PrivyStack: appId is required"
+
+Set your Privy App ID in environment variables:
+
+```bash title=".env.local"
+NEXT_PUBLIC_PRIVY_APP_ID=your_app_id
+```
+
+Or use Varity development credentials (the SDK will use defaults if none provided).
+
+### Login button not appearing
+
+<Steps>
+
+1. Verify `PrivyStack` wraps your application:
+   ```tsx
+   <PrivyStack appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID}>
+     <App />
+   </PrivyStack>
+   ```
+
+2. Check browser console for errors
+
+3. Ensure environment variables are loaded (restart dev server)
+
+</Steps>
+
+### "Domain not allowed" error
+
+Your domain must be allowed in your Privy dashboard:
+
+1. Go to [Privy Dashboard](https://dashboard.privy.io)
+2. Select your app
+3. Add your domain under "Allowed Domains"
+4. Include `localhost` for local development
+
+### Session not persisting
+
+<Aside type="tip">
+Sessions are stored in localStorage. Private browsing or clearing storage will log users out.
+</Aside>
+
+Check that:
+- `PrivyStack` is at the root of your app
+- You're not accidentally clearing localStorage
+- Cookies are enabled in the browser
+
+## Build Issues
+
+### TypeScript errors in Varity packages
+
+Ensure you're using compatible TypeScript version:
+
+```json title="package.json"
+{
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
+```
+
+### "Cannot find module '@varity/sdk'"
+
+<Steps>
+
+1. Install packages:
+   ```bash
+   npm install @varity/sdk @varity/ui-kit @varity/types
+   ```
+
+2. Check package.json includes the dependencies
+
+3. Clear and reinstall:
+   ```bash
+   rm -rf node_modules
+   npm install
+   ```
+
+</Steps>
+
+### "React version mismatch"
+
+Varity UI Kit requires React 18+:
+
+```json title="package.json"
+{
+  "dependencies": {
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  }
+}
+```
+
+## Runtime Issues
+
+### "Network request failed"
+
+Check network connectivity:
+
+```bash
+# Test Varity L3 RPC
+curl https://rpc-varity-testnet-rroe52pwjp.t.conduit.xyz \
+  -X POST \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":1}'
+```
+
+Expected response: `{"jsonrpc":"2.0","id":1,"result":"0x82e9"}`
+
+### "Transaction failed"
+
+Common causes:
+
+| Error | Solution |
+|-------|----------|
+| Insufficient funds | Transactions are gasless - contact support |
+| Contract not found | Verify contract address is correct |
+| Invalid parameters | Check function arguments |
+
+### Slow performance
+
+<Steps>
+
+1. Enable production mode:
+   ```bash
+   npm run build && npm start
+   ```
+
+2. Check bundle size:
+   ```bash
+   npm run analyze
+   ```
+
+3. Verify you're using tree-shaking:
+   ```typescript
+   // Good - tree-shakeable
+   import { PrivyStack } from '@varity/ui-kit';
+
+   // Avoid - imports entire package
+   import * as VarityUI from '@varity/ui-kit';
+   ```
+
+</Steps>
+
+## CLI Issues
+
+### "varitykit doctor" shows failures
+
+Run doctor to diagnose:
+
+```bash
+varitykit doctor
+```
+
+Common failures and fixes:
+
+| Check | Fix |
+|-------|-----|
+| Environment variables | Create `.env` file with required vars |
+| Network connectivity | Check internet connection |
+| Project structure | Ensure `package.json` exists |
+| Dependencies | Run `npm install` |
+
+### Deployment history not showing
+
+Deployments are stored locally. Check:
+
+```bash
+ls ~/.varitykit/deployments/
+```
+
+If empty, no deployments have been made from this machine.
+
+## Getting More Help
+
+If you're still stuck:
+
+1. **Search existing issues**: [GitHub Issues](https://github.com/varity-labs/varity-sdk/issues)
+
+2. **Ask the community**: [Discord](https://discord.gg/Uhjx6yhJ)
+
+3. **Open a new issue** with:
+   - Error message (full stack trace)
+   - Steps to reproduce
+   - `varitykit doctor` output
+   - OS and Node.js version
+
+4. **Email support**: [support@varity.so](mailto:support@varity.so)

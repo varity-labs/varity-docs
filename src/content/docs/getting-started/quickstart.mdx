@@ -1,0 +1,215 @@
+---
+title: Quick Start
+description: Deploy your first Varity app in 5 minutes
+---
+
+import { Steps, Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+import PageMeta from '../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="January 28, 2026"
+  version="1.2.3"
+  stability="stable"
+/>
+
+# Quick Start
+
+Get your first Varity app running in 5 minutes.
+
+## Prerequisites
+
+- Node.js 18 or later
+- npm, pnpm, or yarn
+- A React/Next.js project (or use our starter template)
+
+## Installation
+
+<Steps>
+
+1. **Install the Varity packages**
+
+   <Tabs>
+     <TabItem label="npm">
+       ```bash
+       npm install @varity/sdk @varity/ui-kit @varity/types
+       ```
+     </TabItem>
+     <TabItem label="pnpm">
+       ```bash
+       pnpm add @varity/sdk @varity/ui-kit @varity/types
+       ```
+     </TabItem>
+     <TabItem label="yarn">
+       ```bash
+       yarn add @varity/sdk @varity/ui-kit @varity/types
+       ```
+     </TabItem>
+   </Tabs>
+
+2. **Install the CLI**
+
+   ```bash
+   pip install varitykit
+   ```
+
+3. **Verify installation**
+
+   ```bash
+   varitykit doctor
+   ```
+
+   You should see all checks passing.
+
+</Steps>
+
+## Add Authentication
+
+The fastest way to add authentication is with `PrivyStack`:
+
+```tsx title="app/layout.tsx"
+import { PrivyStack } from '@varity/ui-kit';
+
+export default function RootLayout({ children }) {
+  return (
+    <html>
+      <body>
+        <PrivyStack appId={process.env.NEXT_PUBLIC_VARITY_APP_ID}>
+          {children}
+        </PrivyStack>
+      </body>
+    </html>
+  );
+}
+```
+
+<Aside type="tip">
+**Using development credentials?** Varity provides shared development credentials so you can start building immediately without signing up. See [Installation](/getting-started/installation) for details.
+</Aside>
+
+## Add a Login Button
+
+```tsx title="components/LoginButton.tsx"
+import { PrivyLoginButton, usePrivy } from '@varity/ui-kit';
+
+export function LoginButton() {
+  const { user, authenticated, logout } = usePrivy();
+
+  if (authenticated) {
+    return (
+      <div>
+        <p>Welcome, {user?.email?.address || 'User'}!</p>
+        <button onClick={logout}>Logout</button>
+      </div>
+    );
+  }
+
+  return <PrivyLoginButton />;
+}
+```
+
+Your users can now login with:
+- Email (magic link - no password)
+- Google, Twitter, Discord, GitHub
+- Any crypto wallet (optional)
+
+## Deploy Your App
+
+<Steps>
+
+1. **Build your app**
+
+   ```bash
+   npm run build
+   ```
+
+2. **Deploy to Varity L3**
+
+   ```bash
+   varitykit deploy --hosting ipfs
+   ```
+
+3. **View your live app**
+
+   Your app is now live at the URL shown in the terminal.
+
+</Steps>
+
+## What Just Happened?
+
+When you deployed, Varity:
+
+1. **Built your app** into static files
+2. **Uploaded to IPFS** for decentralized hosting
+3. **Registered on Varity L3** for discoverability
+4. **Set up gasless transactions** so users never pay fees
+
+All of this happens in about 60 seconds.
+
+## Next Steps
+
+Now that your app is running, you can:
+
+- [Add file storage](/build/storage/quickstart) - Upload and retrieve files
+- [Add payments](/build/payments/quickstart) - Accept credit card payments
+- [Submit to App Store](/deploy/varity-l3) - List your app for users to discover
+
+---
+
+## Full Example
+
+Here's a complete example with authentication, protected routes, and user profile:
+
+```tsx title="app/page.tsx"
+'use client';
+
+import {
+  PrivyStack,
+  PrivyLoginButton,
+  PrivyProtectedRoute,
+  PrivyUserProfile,
+  usePrivy,
+} from '@varity/ui-kit';
+
+function Dashboard() {
+  const { user } = usePrivy();
+
+  return (
+    <div>
+      <h1>Welcome to Your Dashboard</h1>
+      <PrivyUserProfile />
+      <p>Email: {user?.email?.address}</p>
+    </div>
+  );
+}
+
+function Home() {
+  return (
+    <div>
+      <h1>My Varity App</h1>
+      <PrivyLoginButton />
+
+      <PrivyProtectedRoute>
+        <Dashboard />
+      </PrivyProtectedRoute>
+    </div>
+  );
+}
+
+export default function App() {
+  return (
+    <PrivyStack appId={process.env.NEXT_PUBLIC_VARITY_APP_ID}>
+      <Home />
+    </PrivyStack>
+  );
+}
+```
+
+This gives you:
+- Login/logout functionality
+- Protected routes that require authentication
+- User profile display
+- Session management
+
+All without writing any authentication logic yourself.

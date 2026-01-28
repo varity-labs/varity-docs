@@ -1,0 +1,177 @@
+---
+title: Uploading Files
+description: Upload files, images, and data to decentralized storage
+---
+
+import { Steps, Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+
+# Uploading Files
+
+Upload any type of file to decentralized storage with automatic redundancy and CDN delivery.
+
+## Basic File Upload
+
+Upload a file from a file input:
+
+```tsx
+import { createStorageClient } from '@varity/sdk';
+import { createThirdwebClient } from 'thirdweb';
+
+const client = createThirdwebClient({
+  clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID,
+});
+const storage = createStorageClient({ client });
+
+// Get file from input
+const fileInput = document.querySelector('input[type="file"]');
+const file = fileInput.files[0];
+
+// Upload
+const result = await storage.uploadFile(file);
+
+console.log('URI:', result.uri);
+console.log('Gateway URL:', result.gatewayUrl);
+console.log('Size:', result.size, 'bytes');
+```
+
+## Upload Result
+
+Every upload returns:
+
+```tsx
+interface ThirdwebUploadResult {
+  uri: string;           // ipfs://Qm... or ar://...
+  gatewayUrl: string;    // https://gateway.thirdweb.com/ipfs/Qm...
+  provider: 'ipfs' | 'arweave';
+  size: number;          // File size in bytes
+  timestamp: Date;       // Upload time
+}
+```
+
+## Upload JSON Data
+
+Store structured data:
+
+```tsx
+const userData = {
+  name: 'John Doe',
+  email: 'john@example.com',
+  preferences: {
+    theme: 'dark',
+    notifications: true,
+  },
+};
+
+const result = await storage.uploadJSON(userData);
+console.log('Data URL:', result.gatewayUrl);
+```
+
+## Upload NFT Metadata
+
+For NFT applications, use the metadata upload method:
+
+```tsx
+// First upload the image
+const imageResult = await storage.uploadFile(imageFile);
+
+// Then upload metadata with the image URI
+const metadataResult = await storage.uploadMetadata({
+  name: 'My NFT #1',
+  description: 'A unique digital collectible',
+  image: imageResult.uri,
+  attributes: [
+    { trait_type: 'Color', value: 'Blue' },
+    { trait_type: 'Size', value: 'Large' },
+  ],
+});
+
+console.log('Token URI:', metadataResult.uri);
+```
+
+## Batch Upload
+
+Upload multiple files at once:
+
+```tsx
+const files = [file1, file2, file3];
+
+const result = await storage.uploadBatch(
+  files.map(file => ({ data: file }))
+);
+
+console.log('Total files:', result.results.length);
+
+result.results.forEach((r, index) => {
+  console.log(`File ${index + 1}: ${r.gatewayUrl}`);
+});
+```
+
+## Upload from Blob
+
+Create and upload data programmatically:
+
+```tsx
+// Text file
+const textBlob = new Blob(['Hello, World!'], { type: 'text/plain' });
+const textResult = await storage.uploadFile(textBlob);
+
+// JSON file
+const jsonBlob = new Blob(
+  [JSON.stringify({ hello: 'world' })],
+  { type: 'application/json' }
+);
+const jsonResult = await storage.uploadFile(jsonBlob);
+
+// Canvas to image
+const canvas = document.querySelector('canvas');
+canvas.toBlob(async (blob) => {
+  const imageResult = await storage.uploadFile(blob);
+  console.log('Canvas uploaded:', imageResult.gatewayUrl);
+}, 'image/png');
+```
+
+## Storage Providers
+
+By default, files are uploaded to IPFS. You can specify Arweave for permanent storage:
+
+```tsx
+const storage = createStorageClient({
+  client,
+  provider: 'arweave',
+});
+```
+
+| Provider | Description | Best For |
+|----------|-------------|----------|
+| `ipfs` | Fast, pinned storage (default) | Most use cases |
+| `arweave` | Permanent, immutable | NFTs, important documents |
+
+<Aside type="tip">
+**Automatic pinning** - IPFS uploads are automatically pinned by thirdweb's infrastructure. Your files won't disappear.
+</Aside>
+
+## Error Handling
+
+Handle upload errors gracefully:
+
+```tsx
+async function safeUpload(file) {
+  try {
+    const result = await storage.uploadFile(file);
+    return { success: true, result };
+  } catch (error) {
+    if (error.message.includes('File too large')) {
+      return { success: false, error: 'File exceeds size limit' };
+    }
+    if (error.message.includes('Network')) {
+      return { success: false, error: 'Network error. Please try again.' };
+    }
+    return { success: false, error: 'Upload failed. Please try again.' };
+  }
+}
+```
+
+## Next Steps
+
+- [Retrieve Files](/build/storage/retrieve) - Download and display files
+- [Payments Quick Start](/build/payments/quickstart) - Accept payments

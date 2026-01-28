@@ -1,0 +1,214 @@
+---
+title: "CLI Installation"
+description: "Install and configure the VarietyKit CLI"
+---
+
+import { Tabs, TabItem, Steps, Aside } from '@astrojs/starlight/components';
+
+# CLI Installation
+
+Get the VarietyKit CLI installed on your system.
+
+## Install with pip
+
+<Tabs>
+  <TabItem label="pip">
+    ```bash
+    pip install varitykit
+    ```
+  </TabItem>
+  <TabItem label="pipx (Recommended)">
+    ```bash
+    pipx install varitykit
+    ```
+  </TabItem>
+  <TabItem label="From Source">
+    ```bash
+    git clone https://github.com/varity-labs/varity-sdk.git
+    cd varity-sdk/cli
+    pip install -e .
+    ```
+  </TabItem>
+</Tabs>
+
+<Aside type="tip">
+**pipx** is recommended for CLI tools because it installs packages in isolated environments, avoiding dependency conflicts.
+</Aside>
+
+## Verify Installation
+
+```bash
+varitykit --version
+```
+
+You should see output like:
+
+```
+varitykit 1.0.0
+```
+
+## Run Diagnostics
+
+Check that your environment is properly configured:
+
+```bash
+varitykit doctor
+```
+
+Expected output:
+
+```
+✓ Python version: 3.11.0 (>= 3.8 required)
+✓ Node.js version: 20.0.0 (>= 18 required)
+✓ npm version: 10.0.0
+✓ Docker: Running
+✓ THIRDWEB_CLIENT_ID: Set
+✓ All checks passed!
+```
+
+## Requirements
+
+### Required
+
+| Requirement | Minimum | Recommended |
+|-------------|---------|-------------|
+| Python | 3.8 | 3.11+ |
+| Node.js | 18.0 | 20.0+ |
+| npm/pnpm/yarn | Any | Latest |
+
+### Optional
+
+| Requirement | Needed For |
+|-------------|------------|
+| Docker | Local development network |
+| Akash CLI | Akash deployments |
+
+## Environment Setup
+
+<Steps>
+
+1. **Create a .env file** in your project root:
+
+   ```bash title=".env"
+   # Required for IPFS deployments
+   THIRDWEB_CLIENT_ID=your_client_id
+
+   # Required for Akash deployments
+   AKASH_WALLET_KEY=your_wallet_key
+
+   # Optional: for contract deployments
+   WALLET_PRIVATE_KEY=your_private_key
+   ```
+
+2. **Get your thirdweb Client ID**:
+
+   - Go to [thirdweb Dashboard](https://thirdweb.com/dashboard)
+   - Create or select a project
+   - Copy your Client ID
+
+3. **Verify environment variables**:
+
+   ```bash
+   varitykit doctor
+   ```
+
+</Steps>
+
+## Shell Completions
+
+Enable tab completion for your shell:
+
+<Tabs>
+  <TabItem label="Bash">
+    ```bash
+    varitykit completions bash >> ~/.bashrc
+    source ~/.bashrc
+    ```
+  </TabItem>
+  <TabItem label="Zsh">
+    ```bash
+    varitykit completions zsh >> ~/.zshrc
+    source ~/.zshrc
+    ```
+  </TabItem>
+  <TabItem label="Fish">
+    ```bash
+    varitykit completions fish > ~/.config/fish/completions/varitykit.fish
+    ```
+  </TabItem>
+</Tabs>
+
+## Troubleshooting
+
+### "command not found: varitykit"
+
+The CLI is not in your PATH. Try:
+
+```bash
+# Option 1: Use python -m
+python -m varitykit --version
+
+# Option 2: Add to PATH
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+### "ModuleNotFoundError"
+
+Python dependencies are missing:
+
+```bash
+pip install --upgrade varitykit
+```
+
+### "Docker not found"
+
+Docker is required for the localnet command:
+
+```bash
+# macOS
+brew install --cask docker
+
+# Ubuntu
+sudo apt install docker.io
+
+# Windows
+# Download from docker.com
+```
+
+### Permission denied
+
+On Linux/macOS, you may need to run:
+
+```bash
+pip install --user varitykit
+```
+
+Or use a virtual environment:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install varitykit
+```
+
+## Updating
+
+Update to the latest version:
+
+```bash
+pip install --upgrade varitykit
+```
+
+## Uninstalling
+
+Remove the CLI:
+
+```bash
+pip uninstall varitykit
+```
+
+## Next Steps
+
+- [Run diagnostics](/cli/commands/doctor) - Verify your setup
+- [Initialize a project](/cli/commands/init) - Create a new project
+- [Deploy your app](/cli/commands/deploy) - Go to production

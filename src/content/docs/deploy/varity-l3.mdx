@@ -1,0 +1,192 @@
+---
+title: "Deploy to Varity L3"
+description: "Deploy your application to Varity's decentralized infrastructure"
+sidebar:
+  badge:
+    text: Testnet
+    variant: note
+---
+
+import { Tabs, TabItem, Steps, Aside, Card, CardGrid } from '@astrojs/starlight/components';
+
+# Deploy to Varity L3
+
+Deploy your application to Varity L3, our Arbitrum-based Layer 3 network optimized for applications.
+
+<Aside type="note">
+**Testnet Mode** - Varity L3 is currently running on testnet. Mainnet launch will follow MVP validation.
+</Aside>
+
+## Network Details
+
+| Property | Value |
+|----------|-------|
+| **Chain ID** | 33529 |
+| **RPC URL** | `https://rpc-varity-testnet-rroe52pwjp.t.conduit.xyz` |
+| **Explorer** | `https://explorer-varity-testnet-rroe52pwjp.t.conduit.xyz` |
+| **Native Token** | Bridged USDC (6 decimals) |
+| **Gas Fees** | Sponsored (free for users) |
+
+## Deployment Options
+
+<CardGrid>
+  <Card title="IPFS (Static)" icon="document">
+    Static websites, SPAs, documentation. Free hosting via IPFS/Filecoin.
+  </Card>
+  <Card title="Akash (Dynamic)" icon="rocket">
+    Full-stack apps, APIs, databases. Container-based compute (coming soon).
+  </Card>
+</CardGrid>
+
+## Quick Deploy
+
+<Steps>
+
+1. **Install the CLI**
+
+   ```bash
+   pip install varitykit
+   ```
+
+2. **Build your project**
+
+   ```bash
+   npm run build
+   ```
+
+3. **Deploy to IPFS**
+
+   ```bash
+   varitykit app deploy --hosting ipfs
+   ```
+
+4. **View your live app**
+
+   Your app is now live at the URL shown in the terminal.
+
+</Steps>
+
+## What Happens During Deployment
+
+When you run `varitykit app deploy`:
+
+1. **Project Detection** - Detects your framework (Next.js, React, Vue, etc.)
+2. **Build** - Runs your build command (`npm run build`)
+3. **Upload** - Uploads to IPFS (static) or deploys to Akash (dynamic)
+4. **Register** - Registers your app on Varity L3
+5. **Gas Sponsorship** - Enables gasless transactions for your users
+
+All transaction fees are sponsored by Varity, so your users never pay network fees.
+
+## Environment Variables
+
+Before deploying, ensure these environment variables are set:
+
+<Tabs>
+  <TabItem label="IPFS Deployment">
+    ```bash title=".env"
+    # Required for IPFS deployment
+    THIRDWEB_CLIENT_ID=your_client_id
+    ```
+  </TabItem>
+  <TabItem label="Akash Deployment">
+    ```bash title=".env"
+    # Required for Akash deployment
+    AKASH_WALLET_KEY=your_wallet_key
+    THIRDWEB_CLIENT_ID=your_client_id
+    ```
+  </TabItem>
+</Tabs>
+
+See [Environment Variables](/deploy/env-variables) for the complete list.
+
+## Deployed Contracts
+
+Pre-deployed contracts available on Varity L3:
+
+| Contract | Address | Purpose |
+|----------|---------|---------|
+| **TemplateMarketplace** | `0x769250dac29817081f38CfBa597Ef2485F3a94e8` | 70/30 Revenue Split |
+| **TemplateRegistry** | `0xEbD8C516c05BD2b76b5CDd56530b3Dd9f8b3D748` | Template metadata |
+| **VarityAppRegistry** | `0x52d4f28ebe20fad743bbef9daa61bfe3ce91eb74` | App Store submissions |
+| **SimplifiedPaymaster** | `0xeF467aef91d4e626C7e56967779069bEF22c4453` | Gas sponsorship |
+| **VarityWalletFactory** | `0x85AB92708CB4d921f5c2BdCCd7f2D0813a380f71` | Smart wallets |
+
+## Submit to App Store
+
+Submit your app for listing in the Varity App Store:
+
+```bash
+varitykit app deploy --hosting ipfs --submit-to-store
+```
+
+This will:
+1. Deploy your app to IPFS
+2. Register on Varity L3
+3. Submit to the App Store for review
+
+## Revenue Split
+
+When users purchase your app or pay for subscriptions:
+
+- **70%** goes to you (the developer)
+- **30%** goes to the Varity platform
+
+This is handled automatically by the TemplateMarketplace contract.
+
+## Verify Your Deployment
+
+After deployment, verify on the Varity Explorer:
+
+1. Go to [Varity Explorer](https://explorer-varity-testnet-rroe52pwjp.t.conduit.xyz)
+2. Search for your deployment ID or app address
+3. View transaction history and app metadata
+
+## Rollback
+
+Revert to a previous deployment:
+
+```bash
+varitykit app rollback deploy-1737491000
+```
+
+## List Deployments
+
+View all your deployments:
+
+```bash
+varitykit app list
+```
+
+## Troubleshooting
+
+### "Deployment failed: THIRDWEB_CLIENT_ID not set"
+
+Create a `.env` file with your thirdweb credentials:
+
+```bash title=".env"
+THIRDWEB_CLIENT_ID=your_client_id
+```
+
+### "Build failed"
+
+1. Verify your build works locally:
+   ```bash
+   npm run build
+   ```
+
+2. Check the build output directory exists
+
+### "Registration failed"
+
+Check network connectivity:
+
+```bash
+varitykit doctor
+```
+
+## Next Steps
+
+- [Configure environment variables](/deploy/env-variables)
+- [Set up custom domains](/deploy/custom-domains)
+- [CLI Reference](/cli/overview)

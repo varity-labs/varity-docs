@@ -1,0 +1,185 @@
+---
+title: Social Login
+description: Add Google, Twitter, Discord, and GitHub login to your app
+---
+
+import { Steps, Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+
+# Social Login
+
+Let users sign in with accounts they already have. No new passwords, no email verification - just one click.
+
+## Supported Providers
+
+| Provider | Login Method |
+|----------|--------------|
+| Google | `google` |
+| Twitter/X | `twitter` |
+| Discord | `discord` |
+| GitHub | `github` |
+| Apple | `apple` |
+
+## Quick Setup
+
+<Steps>
+
+1. **Configure login methods**
+
+   ```tsx title="app/layout.tsx"
+   import { PrivyStack } from '@varity/ui-kit';
+
+   export default function RootLayout({ children }) {
+     return (
+       <html>
+         <body>
+           <PrivyStack
+             loginMethods={['email', 'google', 'twitter', 'discord']}
+           >
+             {children}
+           </PrivyStack>
+         </body>
+       </html>
+     );
+   }
+   ```
+
+2. **Add the login button**
+
+   The `PrivyLoginButton` automatically shows all configured providers:
+
+   ```tsx title="components/LoginButton.tsx"
+   import { PrivyLoginButton } from '@varity/ui-kit';
+
+   export function LoginButton() {
+     return <PrivyLoginButton />;
+   }
+   ```
+
+</Steps>
+
+Users will see a modal with options for email and all configured social providers.
+
+<Aside type="tip">
+**Development mode** - Social logins work without any configuration during development. You only need to set up OAuth apps for production deployment.
+</Aside>
+
+## Accessing User Data
+
+After social login, user data is available through `usePrivy`:
+
+```tsx title="components/UserInfo.tsx"
+import { usePrivy } from '@varity/ui-kit';
+
+export function UserInfo() {
+  const { user } = usePrivy();
+
+  if (!user) return null;
+
+  // Email from social provider
+  const email = user.email?.address;
+
+  // Google-specific data
+  const google = user.google;
+  if (google) {
+    console.log('Google email:', google.email);
+    console.log('Google name:', google.name);
+  }
+
+  // Twitter-specific data
+  const twitter = user.twitter;
+  if (twitter) {
+    console.log('Twitter handle:', twitter.username);
+  }
+
+  // Discord-specific data
+  const discord = user.discord;
+  if (discord) {
+    console.log('Discord username:', discord.username);
+  }
+
+  return (
+    <div>
+      <p>Email: {email}</p>
+      {twitter && <p>Twitter: @{twitter.username}</p>}
+    </div>
+  );
+}
+```
+
+## Customizing the Login Modal
+
+Customize the appearance of the login modal:
+
+```tsx title="app/layout.tsx"
+<PrivyStack
+  loginMethods={['email', 'google', 'twitter']}
+  appearance={{
+    theme: 'light',
+    accentColor: '#4F46E5',
+    logo: '/logo.png'
+  }}
+>
+  {children}
+</PrivyStack>
+```
+
+### Theme Options
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `theme` | `'light'` or `'dark'` | Color theme |
+| `accentColor` | Hex color | Primary brand color |
+| `logo` | URL string | Your app logo |
+
+## Social-Only Mode
+
+To disable email login and only allow social providers:
+
+```tsx title="app/layout.tsx"
+<PrivyStack
+  loginMethods={['google', 'twitter', 'discord']}
+>
+  {children}
+</PrivyStack>
+```
+
+## Best Practices
+
+### Choose the Right Providers
+
+Pick providers your users actually use:
+
+| App Type | Recommended Providers |
+|----------|----------------------|
+| Consumer app | Google, Apple |
+| Developer tools | GitHub, Google |
+| Gaming/Community | Discord, Twitter |
+
+### Handle Login Errors
+
+```tsx title="components/LoginWithErrorHandling.tsx"
+import { PrivyLoginButton } from '@varity/ui-kit';
+import { toast } from 'react-hot-toast';
+
+export function LoginWithErrorHandling() {
+  return (
+    <PrivyLoginButton
+      onSuccess={(user) => {
+        toast.success(`Welcome, ${user.email?.address || 'User'}!`);
+      }}
+      onError={(error) => {
+        if (error.message.includes('popup_closed')) {
+          toast.error('Login cancelled');
+        } else {
+          toast.error('Login failed. Please try again.');
+        }
+      }}
+    />
+  );
+}
+```
+
+## Next Steps
+
+- [Email Login](/build/auth/email-login) - Add passwordless email login
+- [Payments Quick Start](/build/payments/quickstart) - Accept payments

@@ -1,0 +1,222 @@
+---
+title: "varitykit init"
+description: "Create a new project from a template"
+---
+
+import { Tabs, TabItem, Steps, Aside } from '@astrojs/starlight/components';
+
+# varitykit init
+
+Create a new Varity project from an industry-specific template.
+
+## Usage
+
+```bash
+varitykit init [PROJECT_NAME] [OPTIONS]
+```
+
+## Quick Start
+
+```bash
+# Interactive mode
+varitykit init
+
+# With project name
+varitykit init my-app
+
+# With template
+varitykit init my-app --template generic
+```
+
+## Available Templates
+
+| Template | Description | Best For |
+|----------|-------------|----------|
+| `generic` | General-purpose dashboard | Most applications |
+| `finance` | Financial services template | Fintech, banking |
+| `healthcare` | Healthcare template | Medical apps, patient portals |
+| `retail` | Retail/e-commerce template | Online stores, marketplaces |
+| `iso-merchant` | ISO merchant services | Payment processing |
+
+## Options
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--template` | `generic` | Template to use |
+| `--skip-install` | `false` | Skip `npm install` |
+| `--skip-git` | `false` | Skip git initialization |
+| `--typescript` | `true` | Use TypeScript |
+| `--package-manager` | `npm` | npm, pnpm, or yarn |
+
+## Interactive Mode
+
+Running without arguments starts interactive mode:
+
+```bash
+$ varitykit init
+
+? Project name: my-app
+? Select a template: generic
+? Package manager: npm
+? Initialize git repository? Yes
+
+Creating project...
+✓ Created project directory
+✓ Copied template files
+✓ Installed dependencies
+✓ Initialized git repository
+
+Your project is ready!
+
+Next steps:
+  cd my-app
+  npm run dev
+```
+
+## Project Structure
+
+The generated project includes:
+
+```
+my-app/
+├── .env.local.example    # Environment variables template
+├── .gitignore
+├── package.json
+├── tsconfig.json
+├── next.config.mjs
+├── src/
+│   ├── app/
+│   │   ├── layout.tsx    # Root layout with PrivyStack
+│   │   ├── page.tsx      # Home page
+│   │   └── dashboard/
+│   │       └── page.tsx  # Protected dashboard
+│   ├── components/
+│   │   ├── Header.tsx
+│   │   └── LoginButton.tsx
+│   └── lib/
+│       └── varity.ts     # Varity SDK setup
+└── public/
+    └── logo.svg
+```
+
+## What's Included
+
+Every template includes:
+
+- **Authentication** - PrivyStack pre-configured
+- **Protected Routes** - PrivyProtectedRoute examples
+- **Environment Variables** - `.env.local.example` with all variables
+- **TypeScript** - Full type support
+- **Styling** - Tailwind CSS configured
+- **Deployment Ready** - Works with `varitykit app deploy`
+
+## Template-Specific Features
+
+### Generic Template
+
+Basic dashboard with:
+- User authentication
+- Dashboard layout
+- Profile management
+
+### Finance Template
+
+Includes:
+- Transaction history
+- Balance displays
+- Payment forms
+- Compliance components
+
+### Healthcare Template
+
+Includes:
+- Patient management
+- Appointment scheduling
+- Medical records display
+- HIPAA-ready components
+
+### Retail Template
+
+Includes:
+- Product listings
+- Shopping cart
+- Checkout flow
+- Order management
+
+## Environment Setup
+
+After initialization, set up your environment:
+
+<Steps>
+
+1. **Copy the example environment file**
+
+   ```bash
+   cp .env.local.example .env.local
+   ```
+
+2. **Add your credentials**
+
+   ```bash title=".env.local"
+   NEXT_PUBLIC_PRIVY_APP_ID=your_privy_app_id
+   NEXT_PUBLIC_THIRDWEB_CLIENT_ID=your_thirdweb_client_id
+   ```
+
+3. **Start development server**
+
+   ```bash
+   npm run dev
+   ```
+
+</Steps>
+
+<Aside type="tip">
+**Development Mode:** Templates work without credentials using shared development defaults. Add your own keys before going to production.
+</Aside>
+
+## Custom Templates
+
+Create your own template:
+
+```bash
+# Save current project as template
+varitykit template save my-template
+
+# Use custom template
+varitykit init new-project --template my-template
+
+# List available templates
+varitykit template list
+```
+
+## Troubleshooting
+
+### "Template not found"
+
+List available templates:
+
+```bash
+varitykit template list
+```
+
+### "npm install failed"
+
+Try with a different package manager:
+
+```bash
+varitykit init my-app --package-manager pnpm
+```
+
+Or skip install and do it manually:
+
+```bash
+varitykit init my-app --skip-install
+cd my-app
+npm install
+```
+
+## Next Steps
+
+- [Run your app locally](/getting-started/quickstart)
+- [Add authentication](/build/auth/quickstart)
+- [Deploy to production](/cli/commands/deploy)

@@ -1,0 +1,194 @@
+---
+title: "Payments Quick Start"
+description: "Accept payments in your app"
+---
+
+import { Steps, Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+
+# Payments Quick Start
+
+Accept credit card payments from your users. They pay with their card, you receive funds.
+
+## What You Get
+
+- Credit card payments (Visa, Mastercard, Amex)
+- Apple Pay and Google Pay
+- No crypto knowledge required for users
+- Automatic currency conversion
+- Compliant payment processing
+
+Users see a familiar checkout experience - no crypto jargon, no complicated steps.
+
+## Installation
+
+<Tabs>
+  <TabItem label="npm">
+    ```bash
+    npm install @varity/ui-kit @varity/sdk
+    ```
+  </TabItem>
+  <TabItem label="pnpm">
+    ```bash
+    pnpm add @varity/ui-kit @varity/sdk
+    ```
+  </TabItem>
+  <TabItem label="yarn">
+    ```bash
+    yarn add @varity/ui-kit @varity/sdk
+    ```
+  </TabItem>
+</Tabs>
+
+## Quick Setup
+
+<Steps>
+
+1. **Add the payment button**
+
+   ```tsx title="components/BuyButton.tsx"
+   import { BuyUSDCButton } from '@varity/ui-kit';
+
+   export function BuyButton({ walletAddress }) {
+     return (
+       <BuyUSDCButton
+         walletAddress={walletAddress}
+         amount={10}  // $10 USD
+         clientId={process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID}
+         onSuccess={(tx) => {
+           console.log('Payment complete!', tx);
+         }}
+       />
+     );
+   }
+   ```
+
+2. **Users click and pay**
+
+   When users click the button, a secure payment modal opens where they can:
+   - Enter card details
+   - Use Apple Pay or Google Pay
+   - Complete KYC if required (for larger amounts)
+
+3. **You receive funds**
+
+   After payment, USDC is deposited to the specified wallet address.
+
+</Steps>
+
+## Full Payment Widget
+
+For more control, use the `OnrampWidget`:
+
+```tsx title="components/PaymentPage.tsx"
+import { OnrampWidget } from '@varity/ui-kit';
+
+export function PaymentPage({ userWallet }) {
+  return (
+    <OnrampWidget
+      walletAddress={userWallet}
+      clientId={process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID}
+      defaultAmount={100}
+      minAmount={10}
+      maxAmount={10000}
+      showHistory={true}
+      theme="light"
+      onComplete={(purchase) => {
+        console.log('Purchase complete:', purchase.id);
+        console.log('Amount:', purchase.amount);
+        console.log('Status:', purchase.status);
+      }}
+      onError={(error) => {
+        console.error('Payment failed:', error);
+      }}
+    />
+  );
+}
+```
+
+## Payment Flow
+
+Here's what users experience:
+
+1. **Click "Buy" button** - Opens payment modal
+2. **Enter amount** - Choose how much to add
+3. **Choose payment method** - Card, Apple Pay, or Google Pay
+4. **Complete payment** - Secure 3D verification if needed
+5. **Funds arrive** - USDC deposited to wallet (usually 1-3 minutes)
+
+<Aside type="tip">
+**No crypto required** - Users pay in their local currency (USD, EUR, etc.) using familiar payment methods. The conversion to USDC happens automatically.
+</Aside>
+
+## Components
+
+### BuyUSDCButton
+
+Simple button that opens payment modal:
+
+```tsx
+<BuyUSDCButton
+  walletAddress="0x..."      // Required - where to send funds
+  clientId="..."             // Required - your thirdweb client ID
+  amount={50}                // Optional - default amount
+  buttonText="Add Funds"     // Optional - button label
+  className="custom-button"  // Optional - custom styles
+  onSuccess={(tx) => {}}     // Optional - success callback
+  onError={(error) => {}}    // Optional - error callback
+/>
+```
+
+### OnrampWidget
+
+Full embedded payment widget:
+
+```tsx
+<OnrampWidget
+  walletAddress="0x..."      // Required
+  clientId="..."             // Required
+  defaultAmount={100}        // Optional
+  minAmount={10}             // Optional
+  maxAmount={10000}          // Optional
+  showHistory={true}         // Optional - show purchase history
+  theme="light"              // Optional - 'light' or 'dark'
+  onComplete={(purchase) => {}}
+  onError={(error) => {}}
+/>
+```
+
+## Payment Methods
+
+| Method | Availability |
+|--------|--------------|
+| Credit/Debit Card | All users |
+| Apple Pay | iOS/macOS users |
+| Google Pay | Android/Chrome users |
+| Bank Transfer | Select regions |
+
+## KYC Requirements
+
+For regulatory compliance:
+
+| Amount | KYC Required |
+|--------|--------------|
+| Under $200 | Usually not required |
+| $200 - $1000 | Basic verification |
+| Over $1000 | Full verification |
+
+KYC is handled automatically within the payment modal.
+
+## Testing Payments
+
+During development, use test card numbers:
+
+| Card Number | Result |
+|-------------|--------|
+| 4242 4242 4242 4242 | Success |
+| 4000 0000 0000 9995 | Declined |
+| 4000 0000 0000 0002 | 3D Secure required |
+
+Use any future expiry date and any 3-digit CVC.
+
+## Next Steps
+
+- [Credit Card Guide](/build/payments/credit-card) - Detailed payment setup
+- [Gasless Transactions](/build/payments/gasless) - Users never pay fees

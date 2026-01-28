@@ -1,0 +1,152 @@
+---
+title: "Authentication Quick Start"
+description: "Add login to your app in 5 minutes"
+---
+
+import { Steps, Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+
+# Authentication Quick Start
+
+Add email, social, and wallet login to your app. Users can sign in without installing browser extensions or understanding cryptocurrency.
+
+## What You Get
+
+- **Email login** - Magic link, no passwords
+- **Social login** - Google, Twitter, Discord, GitHub
+- **Wallet login** - MetaMask, Coinbase (optional)
+- **Automatic accounts** - Smart wallets created automatically
+- **Session management** - Handled for you
+
+## Installation
+
+<Tabs>
+  <TabItem label="npm">
+    ```bash
+    npm install @varity/ui-kit @varity/sdk
+    ```
+  </TabItem>
+  <TabItem label="pnpm">
+    ```bash
+    pnpm add @varity/ui-kit @varity/sdk
+    ```
+  </TabItem>
+  <TabItem label="yarn">
+    ```bash
+    yarn add @varity/ui-kit @varity/sdk
+    ```
+  </TabItem>
+</Tabs>
+
+## Setup
+
+<Steps>
+
+1. **Wrap your app with PrivyStack**
+
+   ```tsx title="app/layout.tsx"
+   import { PrivyStack } from '@varity/ui-kit';
+
+   export default function RootLayout({ children }) {
+     return (
+       <html>
+         <body>
+           <PrivyStack appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID}>
+             {children}
+           </PrivyStack>
+         </body>
+       </html>
+     );
+   }
+   ```
+
+2. **Add a login button**
+
+   ```tsx title="components/Header.tsx"
+   import { PrivyLoginButton, usePrivy } from '@varity/ui-kit';
+
+   export function Header() {
+     const { authenticated, logout } = usePrivy();
+
+     return (
+       <header>
+         {authenticated ? (
+           <button onClick={logout}>Sign Out</button>
+         ) : (
+           <PrivyLoginButton />
+         )}
+       </header>
+     );
+   }
+   ```
+
+3. **Protect routes**
+
+   ```tsx title="app/dashboard/page.tsx"
+   import { PrivyProtectedRoute } from '@varity/ui-kit';
+
+   export default function DashboardPage() {
+     return (
+       <PrivyProtectedRoute>
+         <Dashboard />
+       </PrivyProtectedRoute>
+     );
+   }
+   ```
+
+</Steps>
+
+That's it. Users can now sign in with email or social accounts.
+
+## How It Works
+
+1. **User clicks "Sign In"** - Opens modal with login options
+2. **User authenticates** - Email code, Google, Twitter, etc.
+3. **Account created** - Smart wallet generated automatically
+4. **Session started** - User is logged in and ready
+
+Users never see wallet addresses or transaction confirmations unless you choose to show them.
+
+<Aside type="tip">
+**No API keys needed for development.** PrivyStack uses shared development credentials automatically. Add your own keys before production.
+</Aside>
+
+## Access User Data
+
+```tsx
+import { usePrivy } from '@varity/ui-kit';
+
+function Profile() {
+  const { user, authenticated } = usePrivy();
+
+  if (!authenticated) {
+    return <p>Please sign in</p>;
+  }
+
+  return (
+    <div>
+      <p>Email: {user?.email?.address}</p>
+      <p>Wallet: {user?.wallet?.address}</p>
+      <p>Auth method: {user?.linkedAccounts?.[0]?.type}</p>
+    </div>
+  );
+}
+```
+
+## User Object
+
+The `user` object contains:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `id` | `string` | Unique user ID |
+| `email` | `object` | Email address if provided |
+| `wallet` | `object` | Auto-generated wallet |
+| `linkedAccounts` | `array` | All linked accounts |
+| `createdAt` | `Date` | Account creation date |
+
+## Next Steps
+
+- [Email Login](/build/auth/email-login) - Deep dive into email auth
+- [Social Login](/build/auth/social-login) - Google, Twitter, Discord
+- [Wallet Login](/build/auth/wallet) - Optional crypto wallet support
+- [Protected Routes](/packages/ui-kit/components#privyprotectedroute) - Route protection

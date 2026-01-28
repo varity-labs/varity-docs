@@ -1,0 +1,212 @@
+---
+title: "Glossary"
+description: "Terms and concepts used in Varity documentation"
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+# Glossary
+
+A guide to terms used in Varity documentation, translated for developers familiar with traditional web development.
+
+<Aside type="tip">
+Varity abstracts most blockchain concepts. You rarely need to understand the underlying technology - but this glossary helps if you encounter unfamiliar terms.
+</Aside>
+
+## Core Concepts
+
+### App Store (Varity App Store)
+
+The marketplace where users discover and install Varity applications. Similar to the Apple App Store or Google Play, but for web applications.
+
+**Key points:**
+- Submit your app with `varitykit app deploy --submit-to-store`
+- 70/30 revenue split (you keep 70%)
+- View at [store.varity.so](https://store.varity.so)
+
+### Chain ID
+
+A unique identifier for a network. Varity L3's Chain ID is **33529**.
+
+**Web2 equivalent:** Like a region code or environment identifier (production, staging, etc.)
+
+### CID (Content Identifier)
+
+A unique fingerprint for content stored on IPFS. Any change to the content produces a different CID.
+
+**Web2 equivalent:** Like a content hash or version hash. Think of it as a URL that's based on the content itself.
+
+```
+Example CID: bafybeihdwdcefgh4dqkjv67uzcmw7ojee6xedzdetojuzjevtenxquvyku
+```
+
+### Gasless Transactions
+
+Transactions where the user doesn't pay network fees. Varity sponsors all fees, so users never need tokens.
+
+**Web2 equivalent:** Free API calls - the platform covers the infrastructure cost.
+
+### Smart Account (Smart Wallet)
+
+An advanced user account with programmable features. Created automatically when users sign up.
+
+**Web2 equivalent:** User account with enhanced security features (2FA, spending limits, session management).
+
+### Varity L3
+
+The network where Varity apps are registered. "L3" means Layer 3 - a fast network optimized for applications.
+
+**Web2 equivalent:** Varity's production infrastructure. You deploy here like you'd deploy to AWS.
+
+## Hosting Terms
+
+### IPFS (InterPlanetary File System)
+
+A distributed file storage network. Files are stored across multiple nodes worldwide.
+
+**Web2 equivalent:** A global CDN that's not controlled by any single company. Like S3 + CloudFront, but decentralized.
+
+**Use case:** Static websites, images, documents
+
+### Akash Network
+
+A decentralized cloud computing marketplace. Providers compete to run your application.
+
+**Web2 equivalent:** Like AWS EC2 or Heroku, but you're choosing from multiple competing providers.
+
+**Use case:** Dynamic applications, APIs, databases
+
+### DePIN (Decentralized Physical Infrastructure Network)
+
+A network of distributed compute resources. Akash is a DePIN.
+
+**Web2 equivalent:** Multi-cloud architecture where resources come from independent providers.
+
+## Authentication Terms
+
+### Magic Link
+
+A passwordless login method. Users click a link sent to their email.
+
+**Web2 equivalent:** Same as "magic link" in Auth0, Slack, or Medium.
+
+### Privy
+
+The authentication service used by Varity. Provides email, social, and wallet login.
+
+**Web2 equivalent:** Like Auth0 or Firebase Auth, but with additional login options.
+
+### Session
+
+A temporary authentication state. Created when users log in, expired when they log out.
+
+**Web2 equivalent:** Standard browser session, stored in localStorage.
+
+## Development Terms
+
+### thirdweb
+
+The infrastructure provider for blockchain interactions. Handles storage, transactions, and more.
+
+**Web2 equivalent:** Like Firebase or Supabase - a backend-as-a-service for apps.
+
+### Client ID
+
+A public identifier for your thirdweb project. Used for API calls.
+
+**Web2 equivalent:** Like an API key or project ID in Firebase/Google Cloud.
+
+### SDK (Software Development Kit)
+
+The `@varity/sdk` package that provides all Varity functionality.
+
+```bash
+npm install @varity/sdk
+```
+
+### UI Kit
+
+The `@varity/ui-kit` package with pre-built React components.
+
+```bash
+npm install @varity/ui-kit
+```
+
+## Deployment Terms
+
+### Build Artifacts
+
+The compiled output of your application (e.g., the `dist/` or `build/` folder).
+
+### Deployment ID
+
+A unique identifier for each deployment:
+
+```
+deploy-1737492000
+```
+
+Use this to track, rollback, or reference deployments.
+
+### Manifest
+
+A JSON file describing your deployment:
+
+```json
+{
+  "deployment_id": "deploy-1737492000",
+  "network": "varity",
+  "hosting": "ipfs",
+  "cid": "bafybei..."
+}
+```
+
+### Rollback
+
+Reverting to a previous deployment version.
+
+```bash
+varitykit app rollback deploy-1737492000
+```
+
+## Financial Terms
+
+### Revenue Split
+
+How revenue is divided between you and the platform:
+- **70%** to developer
+- **30%** to Varity
+
+### USDC
+
+The currency used on Varity L3. It's a stablecoin pegged to the US dollar.
+
+**Web2 equivalent:** Just think of it as USD. $1 USDC = $1 USD.
+
+<Aside type="note">
+USDC on Varity uses 6 decimal places (not 18 like some cryptocurrencies).
+
+$1.00 = 1,000,000 units
+$0.01 = 10,000 units
+</Aside>
+
+## Term Translations
+
+Quick reference for blockchain-to-web2 translations:
+
+| Blockchain Term | Web2 Equivalent |
+|-----------------|-----------------|
+| Smart contract | Backend API / serverless function |
+| Wallet | User account |
+| Gas fees | Transaction costs (free on Varity) |
+| On-chain | Deployed / Hosted |
+| Decentralized | Distributed / Multi-region |
+| Token | In-app currency |
+| Mint | Create |
+| Burn | Delete |
+| Block | Batch of operations |
+| Node | Server |
+
+<Aside type="tip">
+When reading Varity docs, you can usually replace blockchain terms with their Web2 equivalents and the meaning stays the same.
+</Aside>

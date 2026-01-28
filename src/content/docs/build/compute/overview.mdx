@@ -1,0 +1,107 @@
+---
+title: "Compute Overview"
+description: "Run server-side code and backend services"
+sidebar:
+  badge:
+    text: Coming Soon
+    variant: caution
+---
+
+import { Aside, Card, CardGrid } from '@astrojs/starlight/components';
+
+# Compute
+
+<Aside type="caution">
+**Coming Soon** - Compute features are under active development and will be available before MVP launch.
+</Aside>
+
+Run backend services, scheduled jobs, and server-side code on decentralized infrastructure.
+
+## What's Coming
+
+### Decentralized Compute (Akash Network)
+
+Deploy containers and backend services:
+
+- **Container hosting** - Run any Docker container
+- **Auto-scaling** - Scale based on demand
+- **Global distribution** - Deploy close to users
+- **70-85% cheaper** - Compared to traditional cloud
+
+### Use Cases
+
+<CardGrid>
+  <Card title="API Backends" icon="server">
+    Run Express, FastAPI, or any backend framework
+  </Card>
+  <Card title="Scheduled Jobs" icon="seti:clock">
+    Cron jobs, data processing, reports
+  </Card>
+  <Card title="AI/ML Workloads" icon="star">
+    Run inference, training, embeddings
+  </Card>
+  <Card title="Databases" icon="seti:db">
+    Host PostgreSQL, Redis, MongoDB
+  </Card>
+</CardGrid>
+
+## Current Status
+
+| Feature | Status |
+|---------|--------|
+| Static hosting (IPFS) | Available |
+| Dynamic hosting (Akash) | Coming Soon |
+| Serverless functions | Planned |
+| Scheduled jobs | Planned |
+| GPU compute | Planned |
+
+## Early Access
+
+Want early access to compute features? Deploy with:
+
+```bash
+varitykit app deploy --hosting akash
+```
+
+<Aside type="note">
+The `--hosting akash` flag is available in the CLI but compute features are still being finalized.
+</Aside>
+
+## Architecture Preview
+
+When compute launches, you'll be able to:
+
+```bash
+# Deploy a Next.js app with backend
+varitykit app deploy --hosting akash
+
+# Deploy with custom resources
+varitykit app deploy --hosting akash --cpu 2 --memory 2Gi --storage 5Gi
+
+# Deploy and submit to App Store
+varitykit app deploy --hosting akash --submit-to-store
+```
+
+## Cost Comparison
+
+| Workload | AWS | Varity (Akash) | Savings |
+|----------|-----|----------------|---------|
+| Small API | $50/mo | ~$15/mo | 70% |
+| Medium app | $200/mo | ~$50/mo | 75% |
+| AI workload | $500/mo | ~$100/mo | 80% |
+
+*Estimates based on typical usage patterns*
+
+## Available Now
+
+While compute is coming soon, you can already:
+
+- [Deploy static sites](/deploy/varity-l3) - IPFS hosting is live
+- [Set up authentication](/build/auth/quickstart) - Full auth available
+- [Add payments](/build/payments/quickstart) - Payment processing works
+- [Use storage](/build/storage/quickstart) - File storage ready
+
+## Next Steps
+
+- [Deploy to IPFS](/deploy/varity-l3) - Deploy static apps now
+- [CLI Overview](/cli/overview) - Available CLI commands

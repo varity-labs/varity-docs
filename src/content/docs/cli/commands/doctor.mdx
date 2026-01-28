@@ -1,0 +1,169 @@
+---
+title: "varitykit doctor"
+description: "Validate your development environment"
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+# varitykit doctor
+
+Validates your development environment and reports any issues.
+
+## Usage
+
+```bash
+varitykit doctor [OPTIONS]
+```
+
+## What It Checks
+
+The doctor command performs 20+ checks:
+
+### System Requirements
+
+| Check | Requirement |
+|-------|-------------|
+| Python version | >= 3.8 |
+| Node.js version | >= 18.0 |
+| npm version | Any |
+| Docker | Running (optional) |
+
+### Environment Variables
+
+| Variable | Status |
+|----------|--------|
+| `THIRDWEB_CLIENT_ID` | Required for IPFS deployments |
+| `AKASH_WALLET_KEY` | Required for Akash deployments |
+| `WALLET_PRIVATE_KEY` | Required for contract deployments |
+
+### Network Connectivity
+
+- Varity L3 RPC connection
+- thirdweb API access
+- IPFS gateway access
+
+### Project Structure
+
+- `package.json` exists
+- Build script defined
+- Dependencies installed
+
+## Example Output
+
+```
+$ varitykit doctor
+
+Checking system requirements...
+  ✓ Python version: 3.11.0 (>= 3.8 required)
+  ✓ Node.js version: 20.0.0 (>= 18 required)
+  ✓ npm version: 10.0.0
+  ✓ Docker: Running
+
+Checking environment variables...
+  ✓ THIRDWEB_CLIENT_ID: Set
+  ✗ AKASH_WALLET_KEY: Not set (required for Akash deployments)
+  ✗ WALLET_PRIVATE_KEY: Not set (required for contract deployments)
+
+Checking network connectivity...
+  ✓ Varity L3 RPC: Connected
+  ✓ thirdweb API: Accessible
+  ✓ IPFS Gateway: Accessible
+
+Checking project structure...
+  ✓ package.json: Found
+  ✓ Build script: npm run build
+  ✓ Dependencies: Installed
+
+Summary:
+  ✓ 10 checks passed
+  ✗ 2 checks failed
+
+Some features may not work:
+  - Akash deployments require AKASH_WALLET_KEY
+  - Contract deployments require WALLET_PRIVATE_KEY
+
+Run with --verbose for more details.
+```
+
+## Options
+
+| Option | Description |
+|--------|-------------|
+| `--verbose` | Show detailed output for each check |
+| `--json` | Output results as JSON |
+| `--fix` | Attempt to fix common issues |
+
+## Exit Codes
+
+| Code | Meaning |
+|------|---------|
+| 0 | All checks passed |
+| 1 | Some checks failed |
+| 2 | Critical failure (cannot proceed) |
+
+## Fixing Common Issues
+
+### Missing Node.js
+
+```bash
+# macOS
+brew install node
+
+# Ubuntu
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt install -y nodejs
+
+# Windows
+# Download from nodejs.org
+```
+
+### Missing Environment Variables
+
+Create a `.env` file in your project root:
+
+```bash title=".env"
+THIRDWEB_CLIENT_ID=your_client_id
+AKASH_WALLET_KEY=your_wallet_key
+WALLET_PRIVATE_KEY=your_private_key
+```
+
+### Docker Not Running
+
+```bash
+# macOS/Windows
+# Open Docker Desktop
+
+# Linux
+sudo systemctl start docker
+```
+
+<Aside type="tip">
+Run `varitykit doctor --fix` to automatically fix common issues like missing directories or configuration files.
+</Aside>
+
+## JSON Output
+
+For CI/CD integration:
+
+```bash
+varitykit doctor --json
+```
+
+Output:
+
+```json
+{
+  "passed": 10,
+  "failed": 2,
+  "checks": [
+    {"name": "python_version", "status": "pass", "value": "3.11.0"},
+    {"name": "node_version", "status": "pass", "value": "20.0.0"},
+    {"name": "akash_wallet_key", "status": "fail", "message": "Not set"}
+  ]
+}
+```
+
+## Next Steps
+
+- [Initialize a project](/cli/commands/init) - Create a new project
+- [Deploy your app](/cli/commands/deploy) - Go to production

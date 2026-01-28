@@ -1,0 +1,29 @@
+{
+  "name": "varity-docs",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "Documentation for Varity - Build real-world apps on decentralized infrastructure",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/varity-labs/varity-docs.git"
+  },
+  "author": "Varity Labs",
+  "license": "MIT",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "lint": "astro check"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "^0.37.4",
+    "astro": "^5.6.1",
+    "sharp": "^0.34.2"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.10.0",
+    "typescript": "^5.7.0"
+  }
+}

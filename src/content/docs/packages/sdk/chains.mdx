@@ -1,0 +1,164 @@
+---
+title: "Chain Support"
+description: "Working with Varity L3 and supported networks"
+---
+
+import { Aside, Card, CardGrid } from '@astrojs/starlight/components';
+
+# Chain Support
+
+Varity SDK supports multiple networks, with Varity L3 as the primary deployment target.
+
+## Varity L3 Testnet
+
+The main network for Varity applications.
+
+| Property | Value |
+|----------|-------|
+| **Chain ID** | 33529 |
+| **RPC URL** | `https://rpc-varity-testnet-rroe52pwjp.t.conduit.xyz` |
+| **Explorer** | `https://explorer-varity-testnet-rroe52pwjp.t.conduit.xyz` |
+| **Native Token** | Bridged USDC |
+| **Decimals** | 6 (not 18!) |
+
+<Aside type="caution">
+**Important:** USDC on Varity L3 uses **6 decimals**, not 18 like ETH. Always use the `formatUSDC` and `parseUSDC` helpers to avoid calculation errors.
+</Aside>
+
+## Chain Configuration
+
+### thirdweb Format
+
+```typescript
+import { varityL3Testnet } from '@varity/sdk';
+
+// Use with thirdweb client
+const client = createThirdwebClient({ clientId: '...' });
+const contract = getContract({
+  client,
+  chain: varityL3Testnet,
+  address: '0x...',
+});
+```
+
+### Wagmi Format
+
+```typescript
+import { varityL3Wagmi } from '@varity/sdk';
+
+// Use with wagmi config
+const config = createConfig({
+  chains: [varityL3Wagmi],
+  // ...
+});
+```
+
+## USDC Handling
+
+USDC on Varity L3 uses 6 decimals. Use the helpers to avoid errors:
+
+```typescript
+import { formatUSDC, parseUSDC, USDC_DECIMALS } from '@varity/sdk';
+
+// Convert human-readable to raw (for transactions)
+const amount = parseUSDC("10.50");
+// Returns: 10500000n (bigint)
+
+// Convert raw to human-readable (for display)
+const display = formatUSDC(10500000n);
+// Returns: { raw: 10500000n, formatted: "10.50 USDC", value: 10.5, decimals: 6 }
+
+// The decimal constant
+console.log(USDC_DECIMALS); // 6
+```
+
+## Deployed Contracts
+
+Pre-deployed contracts on Varity L3 Testnet:
+
+| Contract | Address | Purpose |
+|----------|---------|---------|
+| **TemplateMarketplace** | `0x769250dac29817081f38CfBa597Ef2485F3a94e8` | 70/30 Revenue Split |
+| **TemplateRegistry** | `0xEbD8C516c05BD2b76b5CDd56530b3Dd9f8b3D748` | Template metadata |
+| **VarityAppRegistry** | `0x52d4f28ebe20fad743bbef9daa61bfe3ce91eb74` | App Store submissions |
+| **SimplifiedPaymaster** | `0xeF467aef91d4e626C7e56967779069bEF22c4453` | Gas sponsorship |
+| **VarityWalletFactory** | `0x85AB92708CB4d921f5c2BdCCd7f2D0813a380f71` | Smart wallets |
+
+### Accessing Contract Addresses
+
+```typescript
+import { VARITY_CONTRACTS, getVarityContractAddress } from '@varity/sdk';
+
+// Get all contracts
+console.log(VARITY_CONTRACTS);
+
+// Get specific contract
+const marketplace = getVarityContractAddress('TemplateMarketplace');
+```
+
+## Revenue Split
+
+The platform uses a 70/30 revenue split:
+
+```typescript
+import { REVENUE_SPLIT } from '@varity/sdk';
+
+console.log(REVENUE_SPLIT);
+// { developer: 70, platform: 30 }
+```
+
+When users purchase your app:
+- **70%** goes to you (the developer)
+- **30%** goes to the Varity platform
+
+## Supported Networks
+
+| Network | Chain ID | Status |
+|---------|----------|--------|
+| Varity L3 Testnet | 33529 | Active |
+| Arbitrum Sepolia | 421614 | For testing |
+| Varity L3 Mainnet | TBD | Coming post-MVP |
+
+## Network Configuration
+
+```typescript
+import { getNetworkConfig, NETWORK_CONFIGS } from '@varity/sdk';
+
+// Get config by name
+const testnetConfig = getNetworkConfig('arbitrum-l3-testnet');
+
+// All available configs
+console.log(Object.keys(NETWORK_CONFIGS));
+// ['arbitrum-sepolia', 'arbitrum-l3-testnet', 'arbitrum-l3-mainnet']
+```
+
+## Adding to MetaMask
+
+Users can add Varity L3 to MetaMask using this configuration:
+
+```javascript
+await window.ethereum.request({
+  method: 'wallet_addEthereumChain',
+  params: [{
+    chainId: '0x82E9', // 33529 in hex
+    chainName: 'Varity L3 Testnet',
+    nativeCurrency: {
+      name: 'USDC',
+      symbol: 'USDC',
+      decimals: 6,
+    },
+    rpcUrls: ['https://rpc-varity-testnet-rroe52pwjp.t.conduit.xyz'],
+    blockExplorerUrls: ['https://explorer-varity-testnet-rroe52pwjp.t.conduit.xyz'],
+  }],
+});
+```
+
+<Aside type="tip">
+**Gasless by default:** Users on Varity L3 don't pay gas fees. The platform sponsors all transaction costs.
+</Aside>
+
+## Next Steps
+
+- [SDK Overview](/packages/sdk/overview) - Full SDK capabilities
+- [Deploy to Varity L3](/deploy/varity-l3) - Deploy your app
+- [Gasless Transactions](/build/payments/gasless) - How gas sponsorship works

@@ -1,0 +1,149 @@
+# Varity SDK Documentation for LLMs
+# Version: 1.2.3 | Last Updated: January 28, 2026
+# This file is optimized for AI assistants to understand Varity SDK
+
+## Overview
+Varity is a Web3 development platform that lets developers build and deploy decentralized applications without blockchain knowledge. It provides 70-85% cost savings compared to AWS.
+
+## Core Concepts
+
+### Varity L3
+- Arbitrum Orbit rollup optimized for app deployment
+- Chain ID: 33529
+- RPC: https://rpc-varity-testnet-rroe52pwjp.t.conduit.xyz
+- Explorer: https://explorer-varity-testnet-rroe52pwjp.t.conduit.xyz
+- Native Token: Bridged USDC (6 decimals, NOT 18)
+
+### Smart Contracts
+- TemplateMarketplace: 0x769250dac29817081f38CfBa597Ef2485F3a94e8 (70/30 revenue split)
+- TemplateRegistry: 0xEbD8C516c05BD2b76b5CDd56530b3Dd9f8b3D748
+- VarityAppRegistry: 0x52d4f28ebe20fad743bbef9daa61bfe3ce91eb74
+- SimplifiedPaymaster: 0xeF467aef91d4e626C7e56967779069bEF22c4453
+- VarityWalletFactory: 0x85AB92708CB4d921f5c2BdCCd7f2D0813a380f71
+
+## SDK Packages
+
+### @varity/sdk
+Core SDK for authentication, storage, payments, and chain configuration.
+
+Installation:
+```bash
+npm install @varity/sdk
+```
+
+Key exports:
+- createVarityClient() - Initialize the SDK
+- createStorageClient() - IPFS/Arweave storage
+- varityL3Chain - Chain configuration
+
+### @varity/ui-kit
+React components for building Varity apps.
+
+Installation:
+```bash
+npm install @varity/ui-kit
+```
+
+Key components:
+- PrivyStack - Authentication provider wrapper
+- PrivyLoginButton - Login/logout button
+- PrivyProtectedRoute - Route protection
+- SmartWalletProvider - ERC-4337 smart wallets
+- BuyUSDCButton - Credit card on-ramp
+- OnrampWidget - Full payment widget
+
+### @varity/types
+TypeScript type definitions.
+
+Installation:
+```bash
+npm install @varity/types
+```
+
+## Quick Start Pattern
+
+```tsx
+import { PrivyStack, PrivyLoginButton } from '@varity/ui-kit';
+
+function App() {
+  return (
+    <PrivyStack appId={process.env.NEXT_PUBLIC_VARITY_APP_ID}>
+      <PrivyLoginButton />
+      <YourApp />
+    </PrivyStack>
+  );
+}
+```
+
+## CLI Commands
+
+Install CLI:
+```bash
+pip install varitykit
+```
+
+Commands:
+- varitykit doctor - Check environment setup
+- varitykit init - Initialize new project
+- varitykit deploy --hosting ipfs - Deploy static app
+- varitykit deploy --hosting akash - Deploy dynamic app
+
+## Authentication Methods
+- Email (magic link, no password)
+- Social: Google, Twitter, Discord, GitHub
+- Wallet: MetaMask, WalletConnect, Coinbase Wallet
+
+## Storage Options
+- IPFS: Fast, pinned storage (default)
+- Arweave: Permanent, immutable storage
+
+## Payments
+- Credit card on-ramp via thirdweb Pay
+- Gasless transactions via ERC-4337
+- Users never see crypto or pay gas fees
+
+## Revenue Model
+- 70% to developer
+- 30% to Varity platform
+
+## Common Patterns
+
+### File Upload
+```tsx
+const storage = createStorageClient({ client });
+const result = await storage.uploadFile(file);
+// result.uri = 'ipfs://Qm...'
+// result.gatewayUrl = 'https://gateway.thirdweb.com/ipfs/Qm...'
+```
+
+### Protected Routes
+```tsx
+<PrivyProtectedRoute>
+  <Dashboard />
+</PrivyProtectedRoute>
+```
+
+### Smart Wallet
+```tsx
+<SmartWalletProvider>
+  {/* Users get gasless transactions */}
+</SmartWalletProvider>
+```
+
+## Error Handling
+
+Common errors:
+- "Insufficient USDC" - User needs to add funds
+- "Invalid wallet address" - Check address format (0x + 40 hex chars)
+- "Network mismatch" - Switch to Varity L3 (Chain ID 33529)
+
+## Documentation URLs
+- Full docs: https://docs.varity.so
+- SDK reference: https://docs.varity.so/packages/sdk/overview
+- UI Kit reference: https://docs.varity.so/packages/ui-kit/overview
+- CLI reference: https://docs.varity.so/cli/overview
+
+## Support
+- GitHub: https://github.com/varity-labs/varity-sdk
+- Discord: https://discord.gg/Uhjx6yhJ
+- Twitter: https://x.com/VarityHQ

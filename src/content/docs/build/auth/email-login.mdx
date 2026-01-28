@@ -1,0 +1,204 @@
+---
+title: Email Login
+description: Passwordless email authentication with magic links
+---
+
+import { Steps, Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+
+# Email Login
+
+Add passwordless email login to your app. Users receive a magic link - no passwords to remember, no password resets to handle.
+
+## How It Works
+
+1. User enters their email address
+2. They receive a magic link via email
+3. Clicking the link logs them in
+4. Session is maintained across page refreshes
+
+No password storage, no forgotten password flows, no security vulnerabilities from weak passwords.
+
+## Quick Setup
+
+<Steps>
+
+1. **Add PrivyStack to your app**
+
+   ```tsx title="app/layout.tsx"
+   import { PrivyStack } from '@varity/ui-kit';
+
+   export default function RootLayout({ children }) {
+     return (
+       <html>
+         <body>
+           <PrivyStack loginMethods={['email']}>
+             {children}
+           </PrivyStack>
+         </body>
+       </html>
+     );
+   }
+   ```
+
+2. **Add the login button**
+
+   ```tsx title="components/LoginButton.tsx"
+   import { PrivyLoginButton } from '@varity/ui-kit';
+
+   export function LoginButton() {
+     return (
+       <PrivyLoginButton>
+         Sign in with Email
+       </PrivyLoginButton>
+     );
+   }
+   ```
+
+</Steps>
+
+## Custom Login Button
+
+Build your own login button using the `usePrivy` hook:
+
+```tsx title="components/CustomEmailLogin.tsx"
+import { usePrivy, useLogin } from '@varity/ui-kit';
+
+export function CustomEmailLogin() {
+  const { ready, authenticated } = usePrivy();
+  const { login } = useLogin();
+
+  if (!ready) {
+    return <button disabled>Loading...</button>;
+  }
+
+  if (authenticated) {
+    return <span>Already logged in</span>;
+  }
+
+  return (
+    <button
+      onClick={login}
+      className="bg-blue-600 text-white px-4 py-2 rounded-lg"
+    >
+      Continue with Email
+    </button>
+  );
+}
+```
+
+## Accessing User Email
+
+After login, access the user's email from the `user` object:
+
+```tsx title="components/UserProfile.tsx"
+import { usePrivy } from '@varity/ui-kit';
+
+export function UserProfile() {
+  const { user } = usePrivy();
+
+  if (!user) return null;
+
+  return (
+    <div>
+      <p>Email: {user.email?.address}</p>
+      <p>Verified: {user.email?.verified ? 'Yes' : 'No'}</p>
+    </div>
+  );
+}
+```
+
+## Email Login Flow
+
+The typical user experience:
+
+```
+1. User clicks "Sign in with Email"
+2. Modal appears asking for email address
+3. User enters email and clicks "Continue"
+4. Magic link email is sent (arrives in ~5 seconds)
+5. User clicks link in email
+6. User is logged in and redirected back to your app
+```
+
+<Aside type="tip">
+**Testing email login** - During development, magic links work with any email address. In production, you may want to enable email verification to prevent spam signups.
+</Aside>
+
+## Handling Login Success
+
+Execute custom logic when a user successfully logs in:
+
+```tsx title="components/LoginWithCallback.tsx"
+import { PrivyLoginButton } from '@varity/ui-kit';
+
+export function LoginWithCallback() {
+  const handleSuccess = (user) => {
+    // Track login analytics
+    analytics.track('user_logged_in', {
+      email: user.email?.address,
+      method: 'email',
+    });
+
+    // Redirect to dashboard
+    router.push('/dashboard');
+  };
+
+  const handleError = (error) => {
+    console.error('Login failed:', error);
+    toast.error('Login failed. Please try again.');
+  };
+
+  return (
+    <PrivyLoginButton
+      onSuccess={handleSuccess}
+      onError={handleError}
+    >
+      Sign in with Email
+    </PrivyLoginButton>
+  );
+}
+```
+
+## Protected Content
+
+Only show content to logged-in users:
+
+```tsx title="pages/dashboard.tsx"
+import { PrivyProtectedRoute, usePrivy } from '@varity/ui-kit';
+
+function DashboardContent() {
+  const { user } = usePrivy();
+
+  return (
+    <div>
+      <h1>Welcome, {user?.email?.address}!</h1>
+      <p>This is your private dashboard.</p>
+    </div>
+  );
+}
+
+export default function Dashboard() {
+  return (
+    <PrivyProtectedRoute>
+      <DashboardContent />
+    </PrivyProtectedRoute>
+  );
+}
+```
+
+## Email-Only Mode
+
+To only allow email login (no social or wallet):
+
+```tsx title="app/layout.tsx"
+<PrivyStack loginMethods={['email']}>
+  {children}
+</PrivyStack>
+```
+
+This simplifies the login modal to only show an email input field.
+
+## Next Steps
+
+- [Social Login](/build/auth/social-login) - Add Google, Twitter, Discord
+- [Storage Quick Start](/build/storage/quickstart) - Upload and store files

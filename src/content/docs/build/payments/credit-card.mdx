@@ -1,0 +1,217 @@
+---
+title: Credit Card Payments
+description: Accept credit card payments from users
+---
+
+import { Steps, Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+
+# Credit Card Payments
+
+Let users add funds using their credit or debit card. The payment flow is familiar - just like any e-commerce checkout.
+
+## How It Works
+
+1. User clicks "Buy" or "Add Funds"
+2. Secure payment modal opens
+3. User enters card details (or uses Apple/Google Pay)
+4. Payment is processed by a licensed provider
+5. USDC is deposited to the app
+
+Users never need to know about cryptocurrency. They just pay with their card.
+
+## Basic Setup
+
+```tsx title="components/AddFundsButton.tsx"
+import { BuyUSDCButton } from '@varity/ui-kit';
+import { usePrivy } from '@varity/ui-kit';
+
+export function AddFundsButton() {
+  const { user } = usePrivy();
+  const walletAddress = user?.wallet?.address;
+
+  if (!walletAddress) {
+    return <p>Please log in to add funds</p>;
+  }
+
+  return (
+    <BuyUSDCButton
+      walletAddress={walletAddress}
+      clientId={process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID}
+      amount={50}
+      buttonText="Add $50"
+      onSuccess={(tx) => {
+        toast.success('Funds added successfully!');
+      }}
+    />
+  );
+}
+```
+
+## Full Checkout Page
+
+For a complete payment page:
+
+```tsx title="pages/checkout.tsx"
+import { OnrampWidget } from '@varity/ui-kit';
+import { usePrivy } from '@varity/ui-kit';
+import { useRouter } from 'next/navigation';
+
+export default function CheckoutPage() {
+  const { user, authenticated } = usePrivy();
+  const router = useRouter();
+
+  if (!authenticated) {
+    router.push('/login');
+    return null;
+  }
+
+  return (
+    <div className="max-w-md mx-auto py-8">
+      <h1 className="text-2xl font-bold mb-6">Add Funds</h1>
+
+      <OnrampWidget
+        walletAddress={user.wallet.address}
+        clientId={process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID}
+        defaultAmount={100}
+        theme="light"
+        onComplete={(purchase) => {
+          if (purchase.status === 'completed') {
+            router.push('/dashboard?funded=true');
+          }
+        }}
+      />
+    </div>
+  );
+}
+```
+
+## Payment Amounts
+
+Control min and max payment amounts:
+
+```tsx
+<OnrampWidget
+  walletAddress={walletAddress}
+  clientId={clientId}
+  defaultAmount={50}
+  minAmount={5}
+  maxAmount={500}
+/>
+```
+
+## Preset Amounts
+
+Show preset amount buttons:
+
+```tsx title="components/QuickBuy.tsx"
+import { useState } from 'react';
+import { BuyUSDCButton } from '@varity/ui-kit';
+
+const PRESET_AMOUNTS = [10, 25, 50, 100];
+
+export function QuickBuy({ walletAddress, clientId }) {
+  const [selectedAmount, setSelectedAmount] = useState(25);
+
+  return (
+    <div>
+      <div className="flex gap-2 mb-4">
+        {PRESET_AMOUNTS.map((amount) => (
+          <button
+            key={amount}
+            onClick={() => setSelectedAmount(amount)}
+            className={`px-4 py-2 rounded ${
+              selectedAmount === amount
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-100'
+            }`}
+          >
+            ${amount}
+          </button>
+        ))}
+      </div>
+
+      <BuyUSDCButton
+        walletAddress={walletAddress}
+        clientId={clientId}
+        amount={selectedAmount}
+        buttonText={`Buy $${selectedAmount}`}
+      />
+    </div>
+  );
+}
+```
+
+## Supported Cards
+
+| Card Type | Supported |
+|-----------|-----------|
+| Visa | Yes |
+| Mastercard | Yes |
+| American Express | Yes |
+| Discover | Yes |
+
+## Apple Pay and Google Pay
+
+These are automatically enabled when available:
+
+- **Apple Pay** - Shows on iOS devices and macOS Safari
+- **Google Pay** - Shows on Android and Chrome
+
+No additional configuration needed.
+
+## Handling Errors
+
+Common error scenarios:
+
+```tsx
+<OnrampWidget
+  walletAddress={walletAddress}
+  clientId={clientId}
+  onError={(error) => {
+    if (error.message.includes('declined')) {
+      toast.error('Card declined. Please try a different card.');
+      return;
+    }
+
+    if (error.message.includes('authentication')) {
+      toast.error('Card verification failed. Please try again.');
+      return;
+    }
+
+    toast.error('Payment failed. Please try again.');
+  }}
+/>
+```
+
+## Purchase History
+
+Show past purchases:
+
+```tsx
+<OnrampWidget
+  walletAddress={walletAddress}
+  clientId={clientId}
+  showHistory={true}
+/>
+```
+
+## Dark Mode
+
+Use dark theme:
+
+```tsx
+<OnrampWidget
+  walletAddress={walletAddress}
+  clientId={clientId}
+  theme="dark"
+/>
+```
+
+<Aside type="tip">
+**Processing time** - Most payments complete within 1-3 minutes. Bank transfers may take longer.
+</Aside>
+
+## Next Steps
+
+- [Gasless Transactions](/build/payments/gasless) - Users never pay fees
+- [Authentication Quick Start](/build/auth/quickstart) - Set up user accounts

@@ -1,0 +1,139 @@
+---
+title: "VarietyKit CLI Overview"
+description: "The command-line interface for building and deploying applications on Varity"
+---
+
+import { Tabs, TabItem, Card, CardGrid, Steps, Aside } from '@astrojs/starlight/components';
+
+# VarietyKit CLI
+
+VarietyKit is a Python-based CLI that helps you build, test, and deploy applications to decentralized infrastructure. If you've used tools like Vercel CLI, Netlify CLI, or Firebase CLI, you'll feel right at home.
+
+## What You Can Do
+
+<CardGrid>
+  <Card title="Initialize Projects" icon="document">
+    Scaffold new projects from industry-specific templates with AI-powered configuration.
+  </Card>
+  <Card title="Deploy Applications" icon="rocket">
+    Deploy static sites to IPFS or dynamic apps with compute resources.
+  </Card>
+  <Card title="Test Locally" icon="laptop">
+    Run a local development network with all services for testing.
+  </Card>
+  <Card title="Validate Setup" icon="approve-check">
+    Run diagnostics to ensure your development environment is ready.
+  </Card>
+</CardGrid>
+
+## Commands at a Glance
+
+| Command | Description |
+|---------|-------------|
+| `varitykit doctor` | Validate your development environment |
+| `varitykit init` | Create a new project from a template |
+| `varitykit app deploy` | Deploy your application |
+| `varitykit localnet` | Manage local development network |
+| `varitykit deploy` | Deploy smart contracts |
+
+## Quick Start
+
+```bash
+# Install the CLI
+pip install varitykit
+
+# Check your environment
+varitykit doctor
+
+# Create a new project
+varitykit init my-app
+
+# Deploy to IPFS (static sites)
+varitykit app deploy --hosting ipfs
+
+# Deploy to Akash (dynamic apps with compute)
+varitykit app deploy --hosting akash
+```
+
+## Global Options
+
+All commands support these global options:
+
+```bash
+varitykit [OPTIONS] COMMAND [ARGS]...
+
+Options:
+  --version        Show the CLI version
+  -v, --verbose    Enable verbose output
+  --debug          Enable debug output
+  --json           Output in JSON format
+  --help           Show help message
+```
+
+## Requirements
+
+- **Python**: 3.8 or higher
+- **Docker**: 20.10 or higher (for localnet)
+- **Node.js**: 18+ (for building JavaScript projects)
+
+<Aside type="tip">
+Run `varitykit doctor` to automatically check all requirements and get installation guidance for missing dependencies.
+</Aside>
+
+## Environment Variables
+
+The CLI uses these environment variables for various features:
+
+| Variable | Required For | Description |
+|----------|--------------|-------------|
+| `THIRDWEB_CLIENT_ID` | IPFS deployment | Your thirdweb project client ID |
+| `AKASH_WALLET_KEY` | Akash deployment | Wallet key for Akash deployments |
+| `WALLET_PRIVATE_KEY` | Contract deployment | Private key for signing transactions |
+
+## Hosting Options
+
+### IPFS (Static Sites)
+
+Deploy static websites and single-page applications:
+
+```bash
+varitykit app deploy --hosting ipfs
+```
+
+- **Best for**: Marketing sites, documentation, SPAs
+- **Cost**: Free (sponsored by Varity)
+- **Speed**: Global CDN distribution
+
+### Akash (Dynamic Apps)
+
+Deploy full-stack applications with backend:
+
+```bash
+varitykit app deploy --hosting akash --cpu 1 --memory 512Mi --storage 1Gi
+```
+
+- **Best for**: APIs, databases, server-side rendering
+- **Cost**: Pay for compute resources
+- **Features**: Containers, scaling, persistence
+
+<Aside type="note">
+Akash deployment is under active development and will be fully available before MVP launch.
+</Aside>
+
+## Supported Frameworks
+
+| Framework | Static (IPFS) | Dynamic (Akash) |
+|-----------|---------------|-----------------|
+| Next.js 13+ | Yes | Yes |
+| React (Vite) | Yes | Yes |
+| React (CRA) | Yes | Yes |
+| Vue 3+ | Yes | Yes |
+| Node.js | No | Yes |
+| Python | No | Yes |
+
+## Next Steps
+
+- [Install the CLI](/cli/installation) - Installation guide
+- [Run diagnostics](/cli/commands/doctor) - Check your setup
+- [Create your first project](/cli/commands/init) - Scaffold a project
+- [Deploy your application](/cli/commands/deploy) - Deploy to production

@@ -1,0 +1,205 @@
+---
+title: "@varity/sdk Overview"
+description: "Backend SDK for building apps on Varity L3 - authentication, storage, analytics, and more"
+---
+
+import { Tabs, TabItem, Aside, Card, CardGrid, Badge } from '@astrojs/starlight/components';
+
+# @varity/sdk
+
+The Varity SDK provides everything you need to build backend services for your Varity applications. It abstracts away the complexity of blockchain interactions so you can focus on building your product.
+
+<Badge text="v2.0.0-alpha.1" variant="note" />
+
+## What's Included
+
+<CardGrid>
+  <Card title="Authentication" icon="user">
+    Login, access control, and role management
+  </Card>
+  <Card title="Storage" icon="document">
+    File uploads to decentralized storage (IPFS/Filecoin)
+  </Card>
+  <Card title="Analytics" icon="graph">
+    KPIs, trends, leaderboards, and growth metrics
+  </Card>
+  <Card title="Contracts" icon="puzzle">
+    Pre-deployed smart contract interactions
+  </Card>
+</CardGrid>
+
+## Quick Example
+
+```typescript
+import { createVaritySDK, varityL3Testnet } from '@varity/sdk';
+
+// Initialize the SDK
+const sdk = createVaritySDK({
+  network: 'arbitrum-l3-testnet', // Varity L3
+});
+
+// Connect to the network
+await sdk.connect();
+
+// Use capability modules
+const kpis = await sdk.analytics.getKPIs({ period: 'current_month' });
+const stored = await sdk.storage.upload(fileData);
+```
+
+## Core Exports
+
+The SDK exports several categories of functionality.
+
+### SDK Core
+
+| Export | Description |
+|--------|-------------|
+| `VaritySDK` | Main SDK class |
+| `createVaritySDK` | Factory function to create SDK instance |
+| `getNetworkConfig` | Get network configuration by name |
+| `NETWORK_CONFIGS` | All supported network configurations |
+
+### Chain Configuration
+
+| Export | Description |
+|--------|-------------|
+| `varityL3Testnet` | Varity L3 chain config (thirdweb format) |
+| `varityL3Wagmi` | Varity L3 chain config (wagmi format) |
+| `USDC_DECIMALS` | USDC decimal places (6) |
+| `formatUSDC` | Format bigint to USDC string |
+| `parseUSDC` | Parse USDC string to bigint |
+
+### Contract Addresses
+
+| Export | Description |
+|--------|-------------|
+| `VARITY_CONTRACTS` | All deployed contract addresses |
+| `VARITY_L3_CHAIN_ID` | Chain ID (33529) |
+| `REVENUE_SPLIT` | Revenue split percentages |
+| `getVarityContractAddress` | Get contract address by name |
+
+### Development Credentials
+
+| Export | Description |
+|--------|-------------|
+| `VARITY_DEV_CREDENTIALS` | Shared dev credentials for quick start |
+| `resolveCredentials` | Resolve with fallback to dev credentials |
+| `isUsingDevCredentials` | Check if using shared credentials |
+
+## Capability Modules
+
+The SDK provides 13 capability modules that work across all application types.
+
+| Module | Purpose |
+|--------|---------|
+| `sdk.auth` | Authentication and access control |
+| `sdk.storage` | File storage (IPFS/Filecoin) |
+| `sdk.s3` | S3-compatible storage (optional) |
+| `sdk.compute` | AI/LLM queries |
+| `sdk.zk` | Zero-knowledge proofs |
+| `sdk.contracts` | Smart contract interactions |
+| `sdk.oracle` | Price feeds and external data |
+| `sdk.analytics` | KPIs, trends, growth metrics |
+| `sdk.notifications` | Email, push, webhook notifications |
+| `sdk.export` | CSV, JSON, PDF exports |
+| `sdk.cache` | In-memory caching |
+| `sdk.monitoring` | Health checks and metrics |
+| `sdk.forecasting` | Predictive analytics |
+| `sdk.webhooks` | Webhook management |
+
+## thirdweb Integration
+
+The SDK includes complete thirdweb v5 integration.
+
+| Client | Purpose |
+|--------|---------|
+| `EngineClient` | Production transaction management |
+| `NebulaClient` | AI-powered blockchain interactions |
+| `StorageClient` | IPFS/Arweave storage |
+| `BridgeClient` | Cross-chain transfers |
+| `GatewayClient` | RPC infrastructure |
+| `x402Client` | API monetization |
+
+```typescript
+import { createEngineClient } from '@varity/sdk';
+
+const engine = createEngineClient({
+  engineUrl: process.env.THIRDWEB_ENGINE_URL,
+  accessToken: process.env.THIRDWEB_ACCESS_TOKEN,
+  backendWallet: process.env.BACKEND_WALLET_ADDRESS,
+});
+
+// Send transaction
+const result = await engine.sendTransaction({
+  chainId: 33529,
+  to: contractAddress,
+  data: txData,
+});
+```
+
+<Aside type="tip">
+**thirdweb v5 uses function-based APIs**, not class-based. If you're migrating from v4, see the [thirdweb migration guide](https://portal.thirdweb.com/typescript/v5/migrate).
+</Aside>
+
+## Type Exports
+
+The SDK exports comprehensive TypeScript types.
+
+### Configuration Types
+
+```typescript
+import type {
+  VaritySDKConfig,
+  Network,
+  NetworkConfig,
+  ContractAddresses,
+  CredentialConfig,
+} from '@varity/sdk';
+```
+
+### Chain Types
+
+```typescript
+import type {
+  ChainSelection,
+  ChainMetadata,
+  VarityContractName,
+} from '@varity/sdk';
+```
+
+### Module Types
+
+```typescript
+import type {
+  // Analytics
+  KPISummary,
+  TrendResult,
+  LeaderboardResult,
+
+  // Storage
+  UploadResult,
+  StorageOptions,
+
+  // Notifications
+  NotificationResult,
+  AlertRule,
+
+  // Webhooks
+  Webhook,
+  DeliveryLog,
+} from '@varity/sdk';
+```
+
+## Version
+
+```typescript
+import { VERSION, SDK_VERSION } from '@varity/sdk';
+
+console.log(VERSION); // '2.0.0-alpha.1'
+```
+
+## Next Steps
+
+- [Installation Guide](/packages/sdk/installation) - Install and set up the SDK
+- [Configuration Reference](/packages/sdk/configuration) - All configuration options
+- [Chain Support](/packages/sdk/chains) - Working with Varity L3

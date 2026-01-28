@@ -1,0 +1,349 @@
+---
+title: "Components Reference"
+description: "Complete reference for all @varity/ui-kit React components"
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+# Components Reference
+
+All React components exported by `@varity/ui-kit`.
+
+## Providers
+
+### PrivyStack
+
+All-in-one provider that sets up authentication, wallet management, and chain configuration.
+
+```tsx
+import { PrivyStack } from '@varity/ui-kit';
+
+<PrivyStack
+  appId="your-privy-app-id"
+  thirdwebClientId="your-thirdweb-client-id"
+  loginMethods={['email', 'google', 'wallet']}
+  appearance={{
+    theme: 'light',
+    accentColor: '#2563EB',
+    logo: '/logo.png',
+  }}
+  onAddressChange={(address) => console.log(address)}
+>
+  {children}
+</PrivyStack>
+```
+
+**Props:**
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `appId` | `string` | Dev default | Privy App ID |
+| `thirdwebClientId` | `string` | Dev default | thirdweb Client ID |
+| `chains` | `Chain[]` | `[varityL3Testnet]` | Supported chains |
+| `loginMethods` | `string[]` | `['email', 'google', 'wallet']` | Login options |
+| `appearance` | `object` | Light theme | UI customization |
+| `onAddressChange` | `function` | - | Wallet address callback |
+
+### SmartWalletProvider
+
+Provides ERC-4337 smart wallet functionality with gasless transactions.
+
+```tsx
+import { SmartWalletProvider } from '@varity/ui-kit';
+import { createThirdwebClient } from 'thirdweb';
+import { varityL3Testnet } from '@varity/sdk';
+
+const client = createThirdwebClient({ clientId: '...' });
+
+<SmartWalletProvider
+  config={{
+    client,
+    chain: varityL3Testnet,
+    gasless: { enabled: true },
+  }}
+>
+  {children}
+</SmartWalletProvider>
+```
+
+## Authentication Components
+
+### PrivyLoginButton
+
+Pre-built login button that opens the authentication modal.
+
+```tsx
+import { PrivyLoginButton } from '@varity/ui-kit';
+
+// Basic usage
+<PrivyLoginButton />
+
+// With custom text
+<PrivyLoginButton>Sign In to Continue</PrivyLoginButton>
+
+// With callbacks
+<PrivyLoginButton
+  onSuccess={() => router.push('/dashboard')}
+  onError={(error) => toast.error(error.message)}
+  className="btn-primary"
+/>
+```
+
+**Props:**
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `children` | `ReactNode` | "Sign In" | Button text |
+| `onSuccess` | `function` | - | Called on successful login |
+| `onError` | `function` | - | Called on login error |
+| `className` | `string` | - | CSS class name |
+
+### PrivyUserProfile
+
+Displays user information with optional logout button.
+
+```tsx
+import { PrivyUserProfile } from '@varity/ui-kit';
+
+<PrivyUserProfile showLogoutButton />
+
+// With custom logout handler
+<PrivyUserProfile
+  showLogoutButton
+  onLogout={() => {
+    clearCache();
+    router.push('/');
+  }}
+/>
+```
+
+**Props:**
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `showLogoutButton` | `boolean` | `false` | Show logout button |
+| `onLogout` | `function` | - | Custom logout handler |
+| `className` | `string` | - | CSS class name |
+
+**Displays:**
+- Account type (Email, Google, Twitter, etc.)
+- Email or username
+- Wallet address (shortened)
+- Join date
+
+### PrivyProtectedRoute
+
+Shows content only to authenticated users.
+
+```tsx
+import { PrivyProtectedRoute } from '@varity/ui-kit';
+
+// Basic usage - shows login prompt when not authenticated
+<PrivyProtectedRoute>
+  <Dashboard />
+</PrivyProtectedRoute>
+
+// With custom fallback
+<PrivyProtectedRoute
+  fallback={<CustomLoginPage />}
+  loadingComponent={<CustomSpinner />}
+>
+  <Dashboard />
+</PrivyProtectedRoute>
+```
+
+**Props:**
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `children` | `ReactNode` | - | Protected content |
+| `fallback` | `ReactNode` | Login prompt | Shown when not authenticated |
+| `loadingComponent` | `ReactNode` | Spinner | Shown while loading |
+
+### PrivyReadyGate
+
+Prevents blank screen during Privy initialization (5-15 seconds).
+
+```tsx
+import { PrivyReadyGate } from '@varity/ui-kit';
+
+<PrivyReadyGate
+  timeout={10000}
+  initializingScreen={<SplashScreen />}
+  timeoutScreen={<ConnectionError />}
+>
+  {children}
+</PrivyReadyGate>
+```
+
+**Props:**
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `timeout` | `number` | `10000` | Timeout in milliseconds |
+| `initializingScreen` | `ReactNode` | Loading spinner | Shown during init |
+| `timeoutScreen` | `ReactNode` | Error message | Shown on timeout |
+
+## Payment Components
+
+### OnrampWidget
+
+Full payment widget for buying USDC with credit card.
+
+```tsx
+import { OnrampWidget } from '@varity/ui-kit';
+
+<OnrampWidget
+  walletAddress="0x..."
+  clientId={process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID}
+  defaultAmount={100}
+  minAmount={10}
+  maxAmount={10000}
+  showHistory={true}
+  theme="light"
+  onComplete={(purchase) => {
+    console.log('Purchased:', purchase.amount);
+  }}
+  onError={(error) => {
+    console.error('Failed:', error);
+  }}
+/>
+```
+
+**Props:**
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `walletAddress` | `string` | Required | Recipient address |
+| `clientId` | `string` | Required | thirdweb Client ID |
+| `defaultAmount` | `number` | `100` | Pre-filled amount |
+| `minAmount` | `number` | `10` | Minimum amount |
+| `maxAmount` | `number` | `10000` | Maximum amount |
+| `showHistory` | `boolean` | `false` | Show purchase history |
+| `theme` | `'light' \| 'dark'` | `'light'` | Color theme |
+| `onComplete` | `function` | - | Success callback |
+| `onError` | `function` | - | Error callback |
+
+### BuyUSDCButton
+
+Simple button that opens payment modal.
+
+```tsx
+import { BuyUSDCButton } from '@varity/ui-kit';
+
+<BuyUSDCButton
+  walletAddress="0x..."
+  clientId="..."
+  amount={50}
+  buttonText="Add $50"
+  onSuccess={(tx) => toast.success('Funds added!')}
+  onError={(error) => toast.error(error.message)}
+/>
+```
+
+**Props:**
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `walletAddress` | `string` | Required | Recipient address |
+| `clientId` | `string` | Required | thirdweb Client ID |
+| `amount` | `number` | `100` | Purchase amount |
+| `buttonText` | `string` | "Buy USDC" | Button label |
+| `className` | `string` | - | CSS class name |
+| `onSuccess` | `function` | - | Success callback |
+| `onError` | `function` | - | Error callback |
+
+## Wallet Components
+
+### SmartWalletConnectButton
+
+Button to connect or display smart wallet.
+
+```tsx
+import { SmartWalletConnectButton } from '@varity/ui-kit';
+
+<SmartWalletConnectButton
+  onConnect={(address) => console.log('Connected:', address)}
+  onError={(error) => console.error(error)}
+/>
+```
+
+**Props:**
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `onConnect` | `function` | Called when wallet connects |
+| `onError` | `function` | Called on connection error |
+
+### GaslessBadge
+
+Shows green "Gasless" badge when gasless transactions are enabled.
+
+```tsx
+import { GaslessBadge } from '@varity/ui-kit';
+
+<GaslessBadge />
+```
+
+<Aside type="tip">
+Use `GaslessBadge` to reassure users they won't pay transaction fees.
+</Aside>
+
+## Complete Example
+
+```tsx
+import {
+  PrivyStack,
+  PrivyLoginButton,
+  PrivyUserProfile,
+  PrivyProtectedRoute,
+  OnrampWidget,
+  GaslessBadge,
+  usePrivy,
+} from '@varity/ui-kit';
+
+function App() {
+  return (
+    <PrivyStack appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID}>
+      <Header />
+      <main>
+        <PrivyProtectedRoute>
+          <Dashboard />
+        </PrivyProtectedRoute>
+      </main>
+    </PrivyStack>
+  );
+}
+
+function Header() {
+  const { authenticated } = usePrivy();
+
+  return (
+    <header className="flex justify-between p-4">
+      <h1>My App</h1>
+      {authenticated ? <PrivyUserProfile showLogoutButton /> : <PrivyLoginButton />}
+    </header>
+  );
+}
+
+function Dashboard() {
+  const { user } = usePrivy();
+
+  return (
+    <div>
+      <h2>Welcome, {user?.email?.address}</h2>
+      <GaslessBadge />
+      <OnrampWidget
+        walletAddress={user?.wallet?.address}
+        clientId={process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID}
+      />
+    </div>
+  );
+}
+```
+
+## Next Steps
+
+- [Hooks Reference](/packages/ui-kit/hooks) - Available hooks
+- [Authentication Guide](/build/auth/quickstart) - Complete auth setup
+- [Payments Guide](/build/payments/quickstart) - Accept payments

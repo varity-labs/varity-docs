@@ -1,0 +1,254 @@
+---
+title: "Storage Quick Start"
+description: "Upload and retrieve files with decentralized storage"
+---
+
+import { Steps, Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+
+# Storage Quick Start
+
+Upload files to decentralized storage (IPFS/Filecoin). Files are distributed globally and accessible via permanent URLs.
+
+## What You Get
+
+- **Decentralized storage** - Files stored across multiple nodes
+- **Permanent URLs** - Content-addressed links that never break
+- **Global CDN** - Fast access worldwide
+- **No vendor lock-in** - Standard IPFS protocol
+
+## Installation
+
+<Tabs>
+  <TabItem label="npm">
+    ```bash
+    npm install @varity/sdk thirdweb
+    ```
+  </TabItem>
+  <TabItem label="pnpm">
+    ```bash
+    pnpm add @varity/sdk thirdweb
+    ```
+  </TabItem>
+  <TabItem label="yarn">
+    ```bash
+    yarn add @varity/sdk thirdweb
+    ```
+  </TabItem>
+</Tabs>
+
+## Setup
+
+```typescript
+import { createThirdwebClient } from 'thirdweb';
+import { upload, download } from 'thirdweb/storage';
+
+const client = createThirdwebClient({
+  clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID,
+});
+```
+
+## Upload a File
+
+<Steps>
+
+1. **Get the file from user input**
+
+   ```tsx
+   function FileUpload() {
+     const handleUpload = async (e) => {
+       const file = e.target.files[0];
+       // Upload in next step
+     };
+
+     return <input type="file" onChange={handleUpload} />;
+   }
+   ```
+
+2. **Upload to IPFS**
+
+   ```tsx
+   import { upload } from 'thirdweb/storage';
+
+   const handleUpload = async (e) => {
+     const file = e.target.files[0];
+
+     const uri = await upload({
+       client,
+       files: [file],
+     });
+
+     console.log('Uploaded to:', uri);
+     // ipfs://bafybei...
+   };
+   ```
+
+3. **Get a gateway URL for access**
+
+   ```tsx
+   // Convert IPFS URI to gateway URL
+   const gatewayUrl = uri.replace(
+     'ipfs://',
+     'https://ipfs.thirdwebcdn.com/ipfs/'
+   );
+   ```
+
+</Steps>
+
+## Download a File
+
+```typescript
+import { download } from 'thirdweb/storage';
+
+// Download by URI
+const response = await download({
+  client,
+  uri: 'ipfs://bafybei...',
+});
+
+// Get the data
+const blob = await response.blob();
+const text = await response.text();
+const json = await response.json();
+```
+
+## Complete Example
+
+```tsx
+import { createThirdwebClient } from 'thirdweb';
+import { upload, download } from 'thirdweb/storage';
+import { useState } from 'react';
+
+const client = createThirdwebClient({
+  clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID,
+});
+
+function FileManager() {
+  const [uri, setUri] = useState('');
+  const [uploading, setUploading] = useState(false);
+
+  const handleUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const result = await upload({
+        client,
+        files: [file],
+      });
+      setUri(result);
+    } catch (error) {
+      console.error('Upload failed:', error);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const getGatewayUrl = (ipfsUri) => {
+    return ipfsUri.replace('ipfs://', 'https://ipfs.thirdwebcdn.com/ipfs/');
+  };
+
+  return (
+    <div>
+      <input type="file" onChange={handleUpload} disabled={uploading} />
+      {uploading && <p>Uploading...</p>}
+      {uri && (
+        <div>
+          <p>IPFS URI: {uri}</p>
+          <a href={getGatewayUrl(uri)} target="_blank">
+            View File
+          </a>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+## Upload JSON Metadata
+
+```typescript
+const metadata = {
+  name: 'My Item',
+  description: 'A cool item',
+  image: 'ipfs://bafybei...', // Reference to image
+  attributes: [
+    { trait_type: 'Color', value: 'Blue' },
+  ],
+};
+
+const uri = await upload({
+  client,
+  files: [metadata],
+});
+```
+
+## Upload Multiple Files
+
+```typescript
+const files = [file1, file2, file3];
+
+const uris = await upload({
+  client,
+  files: files,
+});
+
+// Returns array of URIs
+console.log(uris);
+// ['ipfs://bafybei...', 'ipfs://bafybei...', 'ipfs://bafybei...']
+```
+
+<Aside type="tip">
+**Batch uploads** are more efficient than uploading files one at a time.
+</Aside>
+
+## Storage Costs
+
+- **Development**: Free with shared credentials
+- **Production**: Based on storage used via thirdweb
+
+## Best Practices
+
+### Optimize Images
+
+Compress images before upload:
+
+```typescript
+// Use a library like browser-image-compression
+import imageCompression from 'browser-image-compression';
+
+const compressedFile = await imageCompression(file, {
+  maxSizeMB: 1,
+  maxWidthOrHeight: 1920,
+});
+
+await upload({ client, files: [compressedFile] });
+```
+
+### Show Upload Progress
+
+```tsx
+const [progress, setProgress] = useState(0);
+
+// thirdweb doesn't have built-in progress,
+// but you can show file size for estimation
+const sizeInMB = (file.size / 1024 / 1024).toFixed(2);
+```
+
+### Cache Results
+
+Store URIs for quick access:
+
+```tsx
+// Save to localStorage
+localStorage.setItem('userAvatar', uri);
+
+// Retrieve later
+const savedUri = localStorage.getItem('userAvatar');
+```
+
+## Next Steps
+
+- [Upload Guide](/build/storage/upload) - Advanced upload options
+- [Retrieve Guide](/build/storage/retrieve) - Download and display files
+- [SDK Reference](/packages/sdk/overview) - Full SDK documentation

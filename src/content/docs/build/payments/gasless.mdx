@@ -1,0 +1,255 @@
+---
+title: "Gasless Transactions"
+description: "Users never pay transaction fees"
+---
+
+import { Steps, Aside } from '@astrojs/starlight/components';
+
+# Gasless Transactions
+
+Your users never pay transaction fees. Varity sponsors all transaction costs, so the app experience is seamless.
+
+## How It Works
+
+Traditional apps make users pay fees for every action. With Varity:
+
+1. User performs an action (buy, transfer, update)
+2. Varity's paymaster sponsors the transaction fee
+3. Transaction completes
+4. User sees success - no fee prompt, no extra steps
+
+Users don't even know they're using a decentralized app.
+
+<Aside type="tip">
+**No crypto wallets needed** - Combined with email login, your users never see wallet prompts, seed phrases, or fee confirmations. It just works.
+</Aside>
+
+## Setup
+
+<Steps>
+
+1. **Wrap with PrivyStack**
+
+   Gasless transactions are enabled by default:
+
+   ```tsx title="app/layout.tsx"
+   import { PrivyStack } from '@varity/ui-kit';
+
+   export default function RootLayout({ children }) {
+     return (
+       <html>
+         <body>
+           <PrivyStack>
+             {children}
+           </PrivyStack>
+         </body>
+       </html>
+     );
+   }
+   ```
+
+2. **Transactions are automatically gasless**
+
+   When users perform actions, fees are sponsored automatically.
+
+</Steps>
+
+## Smart Wallet Provider
+
+For more control, use `SmartWalletProvider` directly:
+
+```tsx title="app/layout.tsx"
+import { SmartWalletProvider } from '@varity/ui-kit';
+import { createThirdwebClient } from 'thirdweb';
+import { varityL3Testnet } from '@varity/sdk';
+
+const client = createThirdwebClient({
+  clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID,
+});
+
+export default function App({ children }) {
+  return (
+    <SmartWalletProvider
+      config={{
+        client,
+        chain: varityL3Testnet,
+        gasless: {
+          enabled: true,
+        },
+      }}
+    >
+      {children}
+    </SmartWalletProvider>
+  );
+}
+```
+
+## Using Smart Wallet
+
+Access smart wallet functionality with `useSmartWallet`:
+
+```tsx title="components/SendButton.tsx"
+import { useSmartWallet } from '@varity/ui-kit';
+
+export function SendButton() {
+  const { sendTransaction, isGasless, isConnected } = useSmartWallet();
+
+  const handleSend = async () => {
+    const txHash = await sendTransaction({
+      to: '0x...',
+      data: '0x...',
+      value: '0',
+    });
+
+    console.log('Transaction sent:', txHash);
+  };
+
+  if (!isConnected) {
+    return <p>Please connect wallet</p>;
+  }
+
+  return (
+    <div>
+      <button onClick={handleSend}>
+        Send Transaction
+      </button>
+      {isGasless && (
+        <span className="text-green-600 text-sm">
+          No fees - gasless enabled
+        </span>
+      )}
+    </div>
+  );
+}
+```
+
+## Gasless Badge
+
+Show users that transactions are free:
+
+```tsx
+import { GaslessBadge } from '@varity/ui-kit';
+
+export function TransactionInfo() {
+  return (
+    <div>
+      <h3>Send Payment</h3>
+      <GaslessBadge />  {/* Shows "Gasless" badge when enabled */}
+    </div>
+  );
+}
+```
+
+## Batch Transactions
+
+Send multiple operations in one transaction:
+
+```tsx
+import { useSmartWallet } from '@varity/ui-kit';
+
+function BatchOperations() {
+  const { sendBatchTransaction } = useSmartWallet();
+
+  const handleBatch = async () => {
+    const txHash = await sendBatchTransaction([
+      { to: '0x...', data: '0x...', value: '0' },
+      { to: '0x...', data: '0x...', value: '0' },
+      { to: '0x...', data: '0x...', value: '0' },
+    ]);
+
+    console.log('All operations completed in one transaction:', txHash);
+  };
+
+  return (
+    <button onClick={handleBatch}>
+      Execute All
+    </button>
+  );
+}
+```
+
+<Aside type="tip">
+**Batch benefits** - Batch transactions are faster (one confirmation instead of many) and use less total resources.
+</Aside>
+
+## How Gasless Sponsorship Works
+
+Behind the scenes:
+
+1. **User initiates action** - Clicks button in your app
+2. **Transaction prepared** - Smart wallet encodes the operation
+3. **Bundler submission** - Transaction sent to bundler network
+4. **Paymaster approval** - Varity's paymaster agrees to pay fee
+5. **Execution** - Transaction executes on-chain
+6. **Confirmation** - User sees success
+
+All of this happens in seconds, completely invisible to users.
+
+## Smart Wallet Features
+
+| Feature | Description |
+|---------|-------------|
+| Gasless | Transaction fees paid by Varity |
+| Batch | Multiple operations in one transaction |
+| Auto-deploy | Wallet created on first use |
+| Account abstraction | No private keys for users to manage |
+
+## Transaction Status
+
+Check wallet and deployment status:
+
+```tsx
+import { useSmartWallet } from '@varity/ui-kit';
+
+function WalletStatus() {
+  const { isConnected, isGasless, isDeployed, getAddress } = useSmartWallet();
+
+  return (
+    <div>
+      <p>Connected: {isConnected ? 'Yes' : 'No'}</p>
+      <p>Gasless: {isGasless ? 'Enabled' : 'Disabled'}</p>
+      <p>Wallet Deployed: {isDeployed ? 'Yes' : 'Not yet'}</p>
+      {isConnected && <p>Address: {getAddress()}</p>}
+    </div>
+  );
+}
+```
+
+## Error Handling
+
+Handle transaction errors:
+
+```tsx
+async function safeSend() {
+  try {
+    const txHash = await sendTransaction({
+      to: recipient,
+      data: callData,
+    });
+    toast.success('Transaction successful!');
+    return txHash;
+  } catch (error) {
+    if (error.message.includes('rejected')) {
+      toast.error('Transaction rejected');
+    } else if (error.message.includes('insufficient')) {
+      toast.error('Insufficient balance');
+    } else {
+      toast.error('Transaction failed');
+    }
+    throw error;
+  }
+}
+```
+
+## Billing
+
+- **Development**: Free (using shared dev credentials)
+- **Production**: Usage-based billing through your Varity account
+
+See your gas usage in the Varity dashboard.
+
+## Next Steps
+
+- [Credit Card Payments](/build/payments/credit-card) - Users buy with card
+- [Storage Quick Start](/build/storage/quickstart) - Upload files
+- [Authentication Quick Start](/build/auth/quickstart) - Set up login
