@@ -88,3 +88,4 @@ src/content/docs/
 ## License
 
 MIT © [Varity Labs](https://varity.so)
+
