@@ -3,6 +3,9 @@
   "type": "module",
   "version": "1.0.0",
   "description": "Documentation for Varity - Build real-world apps on decentralized infrastructure",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/varity-labs/varity-docs.git"
