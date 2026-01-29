@@ -1,0 +1,63 @@
+---
+title: Create Wallet
+description: Create smart wallets for your users
+---
+
+# Create Wallet
+
+Create ERC-4337 smart wallets for your users with customizable options.
+
+## Basic wallet creation
+
+Wallets are created automatically when users authenticate:
+
+```typescript
+import { useSmartWallet } from '@varity/ui-kit';
+
+function CreateWalletButton() {
+  const { createWallet, wallet, isLoading } = useSmartWallet();
+
+  if (wallet) {
+    return <p>Wallet: {wallet.address}</p>;
+  }
+
+  return (
+    <button onClick={createWallet} disabled={isLoading}>
+      {isLoading ? 'Creating...' : 'Create Wallet'}
+    </button>
+  );
+}
+```
+
+## Wallet options
+
+Configure wallet behavior:
+
+```typescript
+const { createWallet } = useSmartWallet({
+  // Auto-create wallet on auth
+  autoCreate: true,
+
+  // Chain to deploy wallet on
+  chainId: 33529, // Varity L3
+});
+```
+
+## Check wallet status
+
+```typescript
+const { wallet, isDeployed, isLoading, error } = useSmartWallet();
+
+if (error) {
+  console.error('Wallet error:', error);
+}
+
+if (isDeployed) {
+  console.log('Wallet deployed at:', wallet.address);
+}
+```
+
+## Next steps
+
+- [Session Keys](/build/wallets/session-keys) — Enable batch transactions
+- [Gasless Transactions](/build/payments/gasless) — Sponsor gas for users

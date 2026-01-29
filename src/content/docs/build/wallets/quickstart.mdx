@@ -1,0 +1,108 @@
+---
+title: Smart Wallets Quick Start
+description: Add embedded smart wallets to your app in 5 minutes
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+# Smart Wallets Quick Start
+
+Give your users embedded smart wallets with gasless transactions.
+
+:::tip[Why Smart Wallets?]
+- Users don't need MetaMask or any wallet app
+- You sponsor gas fees (users pay nothing)
+- Better UX than traditional wallets
+:::
+
+## Prerequisites
+
+- A Varity project with authentication set up
+- Node.js 18 or later
+
+## Installation
+
+<Tabs>
+  <TabItem label="npm">
+    ```bash
+    npm install @varity/ui-kit
+    ```
+  </TabItem>
+  <TabItem label="yarn">
+    ```bash
+    yarn add @varity/ui-kit
+    ```
+  </TabItem>
+  <TabItem label="pnpm">
+    ```bash
+    pnpm add @varity/ui-kit
+    ```
+  </TabItem>
+</Tabs>
+
+## Step 1: Add the SmartWalletProvider
+
+Wrap your app with `SmartWalletProvider`:
+
+```typescript title="src/App.tsx"
+import { VarityProvider, SmartWalletProvider } from '@varity/ui-kit';
+
+function App() {
+  return (
+    <VarityProvider appId={process.env.VARITY_APP_ID!}>
+      <SmartWalletProvider>
+        <YourApp />
+      </SmartWalletProvider>
+    </VarityProvider>
+  );
+}
+```
+
+## Step 2: Use the wallet hook
+
+Access the smart wallet in your components:
+
+```typescript title="src/components/WalletInfo.tsx"
+import { useSmartWallet } from '@varity/ui-kit';
+
+function WalletInfo() {
+  const { wallet, address, isLoading } = useSmartWallet();
+
+  if (isLoading) return <p>Loading wallet...</p>;
+
+  return (
+    <div>
+      <p>Wallet address: {address}</p>
+    </div>
+  );
+}
+```
+
+## Step 3: Send gasless transactions
+
+Users can transact without paying gas:
+
+```typescript title="src/components/SendTransaction.tsx"
+import { useSmartWallet } from '@varity/ui-kit';
+
+function SendTransaction() {
+  const { sendTransaction } = useSmartWallet();
+
+  const handleSend = async () => {
+    const tx = await sendTransaction({
+      to: '0x...',
+      value: '0',
+      data: '0x...',
+    });
+    console.log('Transaction hash:', tx.hash);
+  };
+
+  return <button onClick={handleSend}>Send Transaction</button>;
+}
+```
+
+## Next steps
+
+- [Create Wallet](/build/wallets/create-wallet) — Customize wallet creation
+- [Session Keys](/build/wallets/session-keys) — Enable batch transactions
+- [Gasless Transactions](/build/payments/gasless) — Configure gas sponsorship

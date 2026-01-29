@@ -9,7 +9,7 @@ export default defineConfig({
     starlight({
       title: "Varity Docs",
       description:
-        "Build real-world apps on decentralized infrastructure. Deploy in 60 seconds with zero blockchain knowledge required.",
+        "Deploy apps to decentralized infrastructure with one command. 70-85% cheaper than AWS.",
       logo: {
         src: "./src/assets/varity-logo.svg",
         replacesTitle: false,
@@ -40,7 +40,7 @@ export default defineConfig({
           tag: "meta",
           attrs: {
             name: "theme-color",
-            content: "#030712",
+            content: "#0f0f0f",
           },
         },
         {
@@ -58,8 +58,45 @@ export default defineConfig({
           label: "Getting Started",
           items: [
             { label: "Introduction", slug: "getting-started/introduction" },
-            { label: "Quick Start", slug: "getting-started/quickstart" },
             { label: "Installation", slug: "getting-started/installation" },
+            {
+              label: "Quick Start",
+              slug: "getting-started/quickstart",
+              badge: { text: "Recommended", variant: "success" },
+            },
+          ],
+        },
+
+        // ===== PACKAGES =====
+        {
+          label: "Packages",
+          items: [
+            {
+              label: "@varity/sdk",
+              collapsed: false,
+              items: [
+                { label: "Overview", slug: "packages/sdk/overview" },
+                { label: "Installation", slug: "packages/sdk/installation" },
+                { label: "Chain Configuration", slug: "packages/sdk/chains" },
+              ],
+            },
+            {
+              label: "@varity/ui-kit",
+              collapsed: false,
+              items: [
+                { label: "Overview", slug: "packages/ui-kit/overview" },
+                { label: "Installation", slug: "packages/ui-kit/installation" },
+                { label: "Components", slug: "packages/ui-kit/components" },
+                { label: "Hooks", slug: "packages/ui-kit/hooks" },
+              ],
+            },
+            {
+              label: "@varity/types",
+              collapsed: true,
+              items: [
+                { label: "Overview", slug: "packages/types/overview" },
+              ],
+            },
           ],
         },
 
@@ -67,50 +104,91 @@ export default defineConfig({
         {
           label: "Build Your App",
           items: [
+            // ----- AUTHENTICATION -----
             {
               label: "Authentication",
+              collapsed: false,
               items: [
                 {
-                  label: "Quick Start",
+                  label: "Quick Start (Privy)",
                   slug: "build/auth/quickstart",
-                  badge: { text: "Start Here", variant: "success" },
+                  badge: { text: "Recommended", variant: "success" },
                 },
                 { label: "Email Login", slug: "build/auth/email-login" },
                 { label: "Social Login", slug: "build/auth/social-login" },
               ],
             },
+
+            // ----- FILE STORAGE -----
             {
               label: "File Storage",
+              collapsed: false,
               items: [
                 {
-                  label: "Quick Start",
+                  label: "Quick Start (thirdweb)",
                   slug: "build/storage/quickstart",
-                  badge: { text: "Start Here", variant: "success" },
+                  badge: { text: "Recommended", variant: "success" },
                 },
-                { label: "Uploading Files", slug: "build/storage/upload" },
-                { label: "Retrieving Files", slug: "build/storage/retrieve" },
+                { label: "Upload Files", slug: "build/storage/upload" },
+                { label: "Retrieve Files", slug: "build/storage/retrieve" },
               ],
             },
+
+            // ----- PAYMENTS -----
             {
               label: "Payments",
+              collapsed: false,
+              items: [
+                {
+                  label: "Quick Start (thirdweb Pay)",
+                  slug: "build/payments/quickstart",
+                  badge: { text: "Recommended", variant: "success" },
+                },
+                { label: "Credit Card On-ramp", slug: "build/payments/credit-card" },
+                { label: "Gasless Transactions", slug: "build/payments/gasless" },
+              ],
+            },
+
+            // ----- SMART WALLETS -----
+            {
+              label: "Smart Wallets",
+              collapsed: false,
               items: [
                 {
                   label: "Quick Start",
-                  slug: "build/payments/quickstart",
-                  badge: { text: "Start Here", variant: "success" },
+                  slug: "build/wallets/quickstart",
+                  badge: { text: "Recommended", variant: "success" },
                 },
-                { label: "Credit Card", slug: "build/payments/credit-card" },
-                {
-                  label: "Gasless Transactions",
-                  slug: "build/payments/gasless",
-                },
+                { label: "Create Wallet", slug: "build/wallets/create-wallet" },
+                { label: "Session Keys", slug: "build/wallets/session-keys" },
               ],
             },
+
+            // ----- COMPUTE (COMING SOON) -----
             {
               label: "Compute & Hosting",
               badge: { text: "Coming Soon", variant: "caution" },
+              collapsed: true,
               items: [
                 { label: "Overview", slug: "build/compute/overview" },
+              ],
+            },
+          ],
+        },
+
+        // ===== CLI =====
+        {
+          label: "CLI",
+          items: [
+            { label: "Overview", slug: "cli/overview" },
+            { label: "Installation", slug: "cli/installation" },
+            {
+              label: "Commands",
+              collapsed: false,
+              items: [
+                { label: "doctor", slug: "cli/commands/doctor" },
+                { label: "init", slug: "cli/commands/init" },
+                { label: "deploy", slug: "cli/commands/deploy" },
               ],
             },
           ],
@@ -121,61 +199,11 @@ export default defineConfig({
           label: "Deploy",
           items: [
             {
-              label: "Deploy to Varity L3",
+              label: "Varity L3",
               slug: "deploy/varity-l3",
               badge: { text: "Testnet", variant: "note" },
             },
             { label: "Environment Variables", slug: "deploy/env-variables" },
-          ],
-        },
-
-        // ===== SDK PACKAGES =====
-        {
-          label: "SDK Packages",
-          items: [
-            {
-              label: "@varity/sdk",
-              items: [
-                { label: "Overview", slug: "packages/sdk/overview" },
-                { label: "Installation", slug: "packages/sdk/installation" },
-                { label: "Chain Support", slug: "packages/sdk/chains" },
-              ],
-            },
-            {
-              label: "@varity/ui-kit",
-              items: [
-                { label: "Overview", slug: "packages/ui-kit/overview" },
-                {
-                  label: "Installation",
-                  slug: "packages/ui-kit/installation",
-                },
-                { label: "Components", slug: "packages/ui-kit/components" },
-                { label: "Hooks", slug: "packages/ui-kit/hooks" },
-              ],
-            },
-            {
-              label: "@varity/types",
-              items: [
-                { label: "Overview", slug: "packages/types/overview" },
-              ],
-            },
-          ],
-        },
-
-        // ===== CLI REFERENCE =====
-        {
-          label: "CLI Reference",
-          items: [
-            { label: "Overview", slug: "cli/overview" },
-            { label: "Installation", slug: "cli/installation" },
-            {
-              label: "Commands",
-              items: [
-                { label: "doctor", slug: "cli/commands/doctor" },
-                { label: "init", slug: "cli/commands/init" },
-                { label: "deploy", slug: "cli/commands/deploy" },
-              ],
-            },
           ],
         },
 
@@ -184,8 +212,8 @@ export default defineConfig({
           label: "Resources",
           items: [
             { label: "FAQ", slug: "resources/faq" },
-            { label: "Troubleshooting", slug: "resources/troubleshooting" },
             { label: "Glossary", slug: "resources/glossary" },
+            { label: "Troubleshooting", slug: "resources/troubleshooting" },
           ],
         },
       ],
