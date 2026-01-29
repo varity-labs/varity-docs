@@ -5,6 +5,7 @@ import starlight from "@astrojs/starlight";
 // https://astro.build/config
 export default defineConfig({
   site: "https://docs.varity.so",
+  output: "static",
   image: {
     // Use passthrough service to avoid sharp dependency issues on hosting platforms
     service: { entrypoint: 'astro/assets/services/noop' }
