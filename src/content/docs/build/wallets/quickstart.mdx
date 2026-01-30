@@ -9,7 +9,7 @@ import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 Give your users embedded smart wallets with gasless transactions.
 
-:::tip[Why Smart Wallets?]
+:::tip[Why smart wallets?]
 - Users don't need MetaMask or any wallet app
 - You sponsor gas fees (users pay nothing)
 - Better UX than traditional wallets
@@ -45,15 +45,29 @@ Give your users embedded smart wallets with gasless transactions.
 Wrap your app with `SmartWalletProvider`:
 
 ```typescript title="src/App.tsx"
-import { VarityProvider, SmartWalletProvider } from '@varity/ui-kit';
+// IMPORTANT: Use thirdweb v5 function-based API (NOT v4 class-based)
+import { PrivyStack, SmartWalletProvider } from '@varity/ui-kit';
+import { createThirdwebClient } from 'thirdweb';
+import { varityL3Testnet } from '@varity/sdk';
+
+// Create thirdweb client for smart wallet operations
+const client = createThirdwebClient({
+  clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID,
+});
 
 function App() {
   return (
-    <VarityProvider appId={process.env.VARITY_APP_ID!}>
-      <SmartWalletProvider>
+    <PrivyStack appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID}>
+      <SmartWalletProvider
+        config={{
+          client,
+          chain: varityL3Testnet, // Varity L3 testnet (Chain ID 33529)
+          gasless: { enabled: true }, // Users never pay gas fees
+        }}
+      >
         <YourApp />
       </SmartWalletProvider>
-    </VarityProvider>
+    </PrivyStack>
   );
 }
 ```
@@ -66,13 +80,14 @@ Access the smart wallet in your components:
 import { useSmartWallet } from '@varity/ui-kit';
 
 function WalletInfo() {
-  const { wallet, address, isLoading } = useSmartWallet();
+  const { account, getAddress, isConnected, isGasless } = useSmartWallet();
 
-  if (isLoading) return <p>Loading wallet...</p>;
+  if (!isConnected) return <p>Connecting wallet...</p>;
 
   return (
     <div>
-      <p>Wallet address: {address}</p>
+      <p>Wallet address: {getAddress()}</p>
+      <p>Gasless: {isGasless ? 'Enabled' : 'Disabled'}</p>
     </div>
   );
 }
@@ -86,20 +101,39 @@ Users can transact without paying gas:
 import { useSmartWallet } from '@varity/ui-kit';
 
 function SendTransaction() {
-  const { sendTransaction } = useSmartWallet();
+  const { sendTransaction, isGasless, isConnected } = useSmartWallet();
 
   const handleSend = async () => {
-    const tx = await sendTransaction({
-      to: '0x...',
-      value: '0',
-      data: '0x...',
+    if (!isConnected) {
+      console.error('Wallet not connected');
+      return;
+    }
+
+    // Send gasless transaction on Varity L3 testnet (Chain ID 33529)
+    const txHash = await sendTransaction({
+      to: '0x...', // Recipient address
+      value: '0',  // Amount in wei
+      data: '0x...', // Encoded transaction data
     });
-    console.log('Transaction hash:', tx.hash);
+
+    console.log('Transaction hash:', txHash);
+    console.log('User paid no gas fees:', isGasless);
   };
 
-  return <button onClick={handleSend}>Send Transaction</button>;
+  return (
+    <div>
+      <button onClick={handleSend} disabled={!isConnected}>
+        Send Transaction
+      </button>
+      {isGasless && <p className="text-green-600">Gasless enabled</p>}
+    </div>
+  );
 }
 ```
+
+:::note[Testnet Only]
+All transactions are on Varity L3 testnet (Chain ID 33529). Mainnet launch coming post-MVP.
+:::
 
 ## Next steps
 

@@ -5,8 +5,6 @@ description: "Install and configure the Varity SDK for your project"
 
 import { Tabs, TabItem, Steps, Aside } from '@astrojs/starlight/components';
 
-# Installation
-
 Get the Varity SDK installed and configured in your project.
 
 ## Install the Package
@@ -90,7 +88,7 @@ VARITY_RPC_URL=https://rpc-varity-testnet-rroe52pwjp.t.conduit.xyz
 ```
 
 <Aside type="tip">
-**Development Mode:** The SDK includes shared development credentials that work automatically. Replace them with your own keys before going to production.
+**Development Mode:** The SDK includes shared development credentials that work automatically. Replace them with your own keys before deploying to production.
 </Aside>
 
 ## Development Credentials
@@ -136,13 +134,13 @@ The SDK is written in TypeScript. Recommended `tsconfig.json` settings:
 
 ## Bundle Size
 
-The SDK supports tree-shaking. Import only what you need:
+The SDK supports tree-shaking. Import only what you need.
 
 ```typescript
-// Good - only imports what's needed
+// Good - imports only what's needed
 import { createVaritySDK, varityL3Testnet } from '@varity/sdk';
 
-// Avoid - imports entire package
+// Avoid - imports the entire package
 import * as VaritySDK from '@varity/sdk';
 ```
 
@@ -152,6 +150,12 @@ Approximate bundle sizes:
 
 ## Next Steps
 
-- [Configuration Reference](/packages/sdk/configuration) - All configuration options
 - [Chain Support](/packages/sdk/chains) - Working with Varity L3
+- [SDK Overview](/packages/sdk/overview) - Full SDK capabilities
 - [Quick Start](/getting-started/quickstart) - Build your first app
+
+## Related Resources
+
+- [@varity/ui-kit](/packages/ui-kit/overview) - React components
+- [Authentication Guide](/build/auth/quickstart) - Add login
+- [Deploy to Varity L3](/deploy/varity-l3) - Ship to production

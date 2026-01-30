@@ -5,8 +5,6 @@ description: "Add login to your app in 5 minutes"
 
 import { Steps, Tabs, TabItem, Aside } from '@astrojs/starlight/components';
 
-# Authentication Quick Start
-
 Add email, social, and wallet login to your app. Users can sign in without installing browser extensions or understanding cryptocurrency.
 
 ## What You Get
@@ -50,6 +48,10 @@ Add email, social, and wallet login to your app. Users can sign in without insta
      return (
        <html>
          <body>
+           {/*
+             PrivyStack uses shared dev credentials by default.
+             Add your own appId for production.
+           */}
            <PrivyStack appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID}>
              {children}
            </PrivyStack>
@@ -148,5 +150,5 @@ The `user` object contains:
 
 - [Email Login](/build/auth/email-login) - Deep dive into email auth
 - [Social Login](/build/auth/social-login) - Google, Twitter, Discord
-- [Wallet Login](/build/auth/wallet) - Optional crypto wallet support
 - [Protected Routes](/packages/ui-kit/components#privyprotectedroute) - Route protection
+- [Storage Guide](/build/storage/quickstart) - Upload and retrieve files

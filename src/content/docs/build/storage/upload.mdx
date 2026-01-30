@@ -14,37 +14,49 @@ Upload any type of file to decentralized storage with automatic redundancy and C
 Upload a file from a file input:
 
 ```tsx
-import { createStorageClient } from '@varity/sdk';
+// IMPORTANT: Use thirdweb v5 function-based API (NOT v4 class-based)
 import { createThirdwebClient } from 'thirdweb';
+import { upload } from 'thirdweb/storage';
 
+// Create thirdweb client for storage operations
 const client = createThirdwebClient({
   clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID,
 });
-const storage = createStorageClient({ client });
 
 // Get file from input
 const fileInput = document.querySelector('input[type="file"]');
 const file = fileInput.files[0];
 
-// Upload
-const result = await storage.uploadFile(file);
+// Upload to IPFS using thirdweb v5
+const uri = await upload({
+  client,
+  files: [file],
+});
 
-console.log('URI:', result.uri);
-console.log('Gateway URL:', result.gatewayUrl);
-console.log('Size:', result.size, 'bytes');
+console.log('IPFS URI:', uri);
+// Returns: ipfs://bafybei... (IPFS content identifier)
+
+// Convert to gateway URL for browser access
+const gatewayUrl = uri.replace('ipfs://', 'https://ipfs.thirdwebcdn.com/ipfs/');
+console.log('Gateway URL:', gatewayUrl);
 ```
 
 ## Upload Result
 
-Every upload returns:
+thirdweb v5 upload returns an IPFS URI string:
 
 ```tsx
-interface ThirdwebUploadResult {
-  uri: string;           // ipfs://Qm... or ar://...
-  gatewayUrl: string;    // https://gateway.thirdweb.com/ipfs/Qm...
-  provider: 'ipfs' | 'arweave';
-  size: number;          // File size in bytes
-  timestamp: Date;       // Upload time
+// Upload returns a string URI
+const uri = await upload({ client, files: [file] });
+// Returns: "ipfs://bafybei..."
+
+// For multiple files, returns array of URIs
+const uris = await upload({ client, files: [file1, file2, file3] });
+// Returns: ["ipfs://bafybei...", "ipfs://bafybei...", "ipfs://bafybei..."]
+
+// Convert URI to gateway URL for display/access
+function getGatewayUrl(ipfsUri: string): string {
+  return ipfsUri.replace('ipfs://', 'https://ipfs.thirdwebcdn.com/ipfs/');
 }
 ```
 
@@ -62,30 +74,47 @@ const userData = {
   },
 };
 
-const result = await storage.uploadJSON(userData);
-console.log('Data URL:', result.gatewayUrl);
+// Upload JSON data as a file
+const uri = await upload({
+  client,
+  files: [userData], // thirdweb v5 automatically converts objects to JSON
+});
+
+console.log('IPFS URI:', uri);
+// Convert to gateway URL for access
+const gatewayUrl = uri.replace('ipfs://', 'https://ipfs.thirdwebcdn.com/ipfs/');
+console.log('Data URL:', gatewayUrl);
 ```
 
 ## Upload NFT Metadata
 
-For NFT applications, use the metadata upload method:
+For NFT applications, upload image first, then metadata:
 
 ```tsx
-// First upload the image
-const imageResult = await storage.uploadFile(imageFile);
+// Step 1: Upload the image file
+const imageUri = await upload({
+  client,
+  files: [imageFile],
+});
 
-// Then upload metadata with the image URI
-const metadataResult = await storage.uploadMetadata({
+// Step 2: Upload metadata with the image URI
+const metadata = {
   name: 'My NFT #1',
   description: 'A unique digital collectible',
-  image: imageResult.uri,
+  image: imageUri, // Reference to uploaded image
   attributes: [
     { trait_type: 'Color', value: 'Blue' },
     { trait_type: 'Size', value: 'Large' },
   ],
+};
+
+const metadataUri = await upload({
+  client,
+  files: [metadata],
 });
 
-console.log('Token URI:', metadataResult.uri);
+console.log('Token URI:', metadataUri);
+// This URI can be used as the tokenURI in your NFT contract
 ```
 
 ## Batch Upload
@@ -95,14 +124,18 @@ Upload multiple files at once:
 ```tsx
 const files = [file1, file2, file3];
 
-const result = await storage.uploadBatch(
-  files.map(file => ({ data: file }))
-);
+// Upload multiple files in one call
+const uris = await upload({
+  client,
+  files: files,
+});
 
-console.log('Total files:', result.results.length);
+console.log('Total files uploaded:', uris.length);
 
-result.results.forEach((r, index) => {
-  console.log(`File ${index + 1}: ${r.gatewayUrl}`);
+// Process each uploaded file
+uris.forEach((uri, index) => {
+  const gatewayUrl = uri.replace('ipfs://', 'https://ipfs.thirdwebcdn.com/ipfs/');
+  console.log(`File ${index + 1}: ${gatewayUrl}`);
 });
 ```
 
@@ -111,61 +144,65 @@ result.results.forEach((r, index) => {
 Create and upload data programmatically:
 
 ```tsx
-// Text file
+// Text file from Blob
 const textBlob = new Blob(['Hello, World!'], { type: 'text/plain' });
-const textResult = await storage.uploadFile(textBlob);
+const textUri = await upload({ client, files: [textBlob] });
 
-// JSON file
-const jsonBlob = new Blob(
-  [JSON.stringify({ hello: 'world' })],
-  { type: 'application/json' }
-);
-const jsonResult = await storage.uploadFile(jsonBlob);
+// JSON data (can pass object directly)
+const jsonData = { hello: 'world' };
+const jsonUri = await upload({ client, files: [jsonData] });
 
 // Canvas to image
 const canvas = document.querySelector('canvas');
 canvas.toBlob(async (blob) => {
-  const imageResult = await storage.uploadFile(blob);
-  console.log('Canvas uploaded:', imageResult.gatewayUrl);
+  const imageUri = await upload({ client, files: [blob] });
+  const gatewayUrl = imageUri.replace('ipfs://', 'https://ipfs.thirdwebcdn.com/ipfs/');
+  console.log('Canvas uploaded:', gatewayUrl);
 }, 'image/png');
 ```
 
-## Storage Providers
+## Storage Provider
 
-By default, files are uploaded to IPFS. You can specify Arweave for permanent storage:
+thirdweb v5 uploads to IPFS by default with automatic pinning:
 
 ```tsx
-const storage = createStorageClient({
-  client,
-  provider: 'arweave',
-});
+// All uploads go to IPFS
+const uri = await upload({ client, files: [file] });
+// Returns: ipfs://bafybei...
 ```
-
-| Provider | Description | Best For |
-|----------|-------------|----------|
-| `ipfs` | Fast, pinned storage (default) | Most use cases |
-| `arweave` | Permanent, immutable | NFTs, important documents |
 
 <Aside type="tip">
 **Automatic pinning** - IPFS uploads are automatically pinned by thirdweb's infrastructure. Your files won't disappear.
 </Aside>
+
+**Why IPFS?**
+- Fast, distributed storage
+- Content-addressed (files never break)
+- Automatic redundancy across multiple nodes
+- Perfect for most use cases including NFTs
 
 ## Error Handling
 
 Handle upload errors gracefully:
 
 ```tsx
-async function safeUpload(file) {
+async function safeUpload(file: File) {
   try {
-    const result = await storage.uploadFile(file);
-    return { success: true, result };
+    const uri = await upload({ client, files: [file] });
+    return { success: true, uri };
   } catch (error) {
-    if (error.message.includes('File too large')) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+
+    if (message.includes('File too large')) {
       return { success: false, error: 'File exceeds size limit' };
     }
-    if (error.message.includes('Network')) {
+    if (message.includes('Network') || message.includes('fetch')) {
       return { success: false, error: 'Network error. Please try again.' };
     }
+    if (message.includes('client')) {
+      return { success: false, error: 'Invalid client ID. Check your configuration.' };
+    }
+
     return { success: false, error: 'Upload failed. Please try again.' };
   }
 }

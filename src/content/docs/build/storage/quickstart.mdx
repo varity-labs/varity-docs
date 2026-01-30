@@ -5,8 +5,6 @@ description: "Upload and retrieve files with decentralized storage"
 
 import { Steps, Tabs, TabItem, Aside } from '@astrojs/starlight/components';
 
-# Storage Quick Start
-
 Upload files to decentralized storage (IPFS/Filecoin). Files are distributed globally and accessible via permanent URLs.
 
 ## What You Get
@@ -39,9 +37,11 @@ Upload files to decentralized storage (IPFS/Filecoin). Files are distributed glo
 ## Setup
 
 ```typescript
+// IMPORTANT: Use thirdweb v5 function-based API (NOT v4 class-based)
 import { createThirdwebClient } from 'thirdweb';
 import { upload, download } from 'thirdweb/storage';
 
+// Create thirdweb client for storage operations
 const client = createThirdwebClient({
   clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID,
 });
@@ -72,13 +72,14 @@ const client = createThirdwebClient({
    const handleUpload = async (e) => {
      const file = e.target.files[0];
 
+     // Upload to IPFS using thirdweb v5 storage
      const uri = await upload({
-       client,
-       files: [file],
+       client, // thirdweb client created earlier
+       files: [file], // Array of files to upload
      });
 
      console.log('Uploaded to:', uri);
-     // ipfs://bafybei...
+     // Returns: ipfs://bafybei... (IPFS URI)
    };
    ```
 
@@ -99,25 +100,27 @@ const client = createThirdwebClient({
 ```typescript
 import { download } from 'thirdweb/storage';
 
-// Download by URI
+// Download by IPFS URI using thirdweb v5 storage
 const response = await download({
-  client,
-  uri: 'ipfs://bafybei...',
+  client, // thirdweb client created earlier
+  uri: 'ipfs://bafybei...', // IPFS URI to download
 });
 
-// Get the data
-const blob = await response.blob();
-const text = await response.text();
-const json = await response.json();
+// Get the data in different formats
+const blob = await response.blob(); // For images, videos, etc.
+const text = await response.text(); // For text files
+const json = await response.json(); // For JSON files
 ```
 
 ## Complete Example
 
 ```tsx
+// IMPORTANT: Use thirdweb v5 function-based API (NOT v4 class-based)
 import { createThirdwebClient } from 'thirdweb';
 import { upload, download } from 'thirdweb/storage';
 import { useState } from 'react';
 
+// Create thirdweb client for storage operations
 const client = createThirdwebClient({
   clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID,
 });
@@ -132,11 +135,12 @@ function FileManager() {
 
     setUploading(true);
     try {
+      // Upload to IPFS using thirdweb v5
       const result = await upload({
         client,
         files: [file],
       });
-      setUri(result);
+      setUri(result); // Save IPFS URI (ipfs://bafybei...)
     } catch (error) {
       console.error('Upload failed:', error);
     } finally {
@@ -144,6 +148,7 @@ function FileManager() {
     }
   };
 
+  // Convert IPFS URI to gateway URL for browser access
   const getGatewayUrl = (ipfsUri) => {
     return ipfsUri.replace('ipfs://', 'https://ipfs.thirdwebcdn.com/ipfs/');
   };

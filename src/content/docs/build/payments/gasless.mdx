@@ -7,7 +7,7 @@ import { Steps, Aside } from '@astrojs/starlight/components';
 
 # Gasless Transactions
 
-Your users never pay transaction fees. Varity sponsors all transaction costs, so the app experience is seamless.
+Your users never pay transaction fees. Varity sponsors all transaction costs for a seamless app experience.
 
 ## How It Works
 
@@ -21,7 +21,7 @@ Traditional apps make users pay fees for every action. With Varity:
 Users don't even know they're using a decentralized app.
 
 <Aside type="tip">
-**No crypto wallets needed** - Combined with email login, your users never see wallet prompts, seed phrases, or fee confirmations. It just works.
+**No crypto wallets needed:** Combined with email login, your users never see wallet prompts, seed phrases, or fee confirmations. It just works.
 </Aside>
 
 ## Setup
@@ -59,10 +59,12 @@ Users don't even know they're using a decentralized app.
 For more control, use `SmartWalletProvider` directly:
 
 ```tsx title="app/layout.tsx"
+// IMPORTANT: Use thirdweb v5 function-based API (NOT v4 class-based)
 import { SmartWalletProvider } from '@varity/ui-kit';
 import { createThirdwebClient } from 'thirdweb';
 import { varityL3Testnet } from '@varity/sdk';
 
+// Create thirdweb client for smart wallet operations
 const client = createThirdwebClient({
   clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID,
 });
@@ -72,9 +74,9 @@ export default function App({ children }) {
     <SmartWalletProvider
       config={{
         client,
-        chain: varityL3Testnet,
+        chain: varityL3Testnet, // Varity L3 testnet (Chain ID 33529)
         gasless: {
-          enabled: true,
+          enabled: true, // Enable gasless transactions (users pay no fees)
         },
       }}
     >

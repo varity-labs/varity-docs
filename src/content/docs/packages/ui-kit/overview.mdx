@@ -5,16 +5,14 @@ description: "React component library for authentication, payments, and account 
 
 import { Card, CardGrid, Aside } from '@astrojs/starlight/components';
 
-# @varity/ui-kit
-
 A React component library that handles authentication, payments, and account management so you can focus on building your application.
 
 ## What It Does
 
-- **Authentication** - Email, Google, Twitter, Discord, GitHub login - no wallet popups
-- **Payments** - Buy USDC with credit card, Apple Pay, or Google Pay
-- **Account Management** - Automatic account creation and session handling
-- **Zero Gas Fees** - Users never pay transaction fees
+- **Authentication:** Email, Google, Twitter, Discord, and GitHub login with no wallet popups
+- **Payments:** Buy USDC with credit card, Apple Pay, or Google Pay
+- **Account Management:** Automatic account creation and session handling
+- **Zero Gas Fees:** Users never pay transaction fees
 
 <Aside type="tip">
 Users sign in with email or social accounts. They never need to install browser extensions or understand cryptocurrency.
@@ -61,10 +59,10 @@ That's it. Users can now sign in with email or social accounts.
 ## How Authentication Works
 
 1. User clicks "Sign In"
-2. Modal appears with email/social options
+2. Modal appears with email and social options
 3. User enters email (receives code) or clicks social login
 4. Account is created automatically
-5. User is authenticated - ready to use your app
+5. User is authenticated and ready to use your app
 
 ```tsx
 import { usePrivy } from '@varity/ui-kit';

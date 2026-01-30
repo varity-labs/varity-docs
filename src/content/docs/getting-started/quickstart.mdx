@@ -75,7 +75,11 @@ export default function RootLayout({ children }) {
   return (
     <html>
       <body>
-        <PrivyStack appId={process.env.NEXT_PUBLIC_VARITY_APP_ID}>
+        {/*
+          PrivyStack uses shared dev credentials by default.
+          Add your own appId and thirdwebClientId for production.
+        */}
+        <PrivyStack appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID}>
           {children}
         </PrivyStack>
       </body>
@@ -109,8 +113,8 @@ export function LoginButton() {
 }
 ```
 
-Your users can now login with:
-- Email (magic link - no password)
+Your users can now log in with:
+- Email (magic link, no password required)
 - Google, Twitter, Discord, GitHub
 - Any crypto wallet (optional)
 
@@ -127,7 +131,7 @@ Your users can now login with:
 2. **Deploy to Varity L3**
 
    ```bash
-   varitykit deploy --hosting ipfs
+   varitykit app deploy --hosting ipfs
    ```
 
 3. **View your live app**
@@ -199,7 +203,8 @@ function Home() {
 
 export default function App() {
   return (
-    <PrivyStack appId={process.env.NEXT_PUBLIC_VARITY_APP_ID}>
+    // PrivyStack uses shared dev credentials by default (no appId needed for development)
+    <PrivyStack appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID}>
       <Home />
     </PrivyStack>
   );

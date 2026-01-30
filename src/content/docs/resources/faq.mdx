@@ -3,9 +3,6 @@ title: "FAQ"
 description: "Frequently asked questions about Varity"
 ---
 
-
-# Frequently Asked Questions
-
 Common questions from developers new to Varity.
 
 ## General
@@ -38,7 +35,7 @@ Yes. Varity uses:
 ### What frameworks are supported?
 
 - Next.js 13+ (App Router)
-- React (Vite, Create React App)
+- React (Vite or Create React App)
 - Vue 3+
 - Node.js backends
 - Any static site generator
@@ -48,14 +45,14 @@ Yes. Varity uses:
 ### How do I deploy my app?
 
 ```bash
-# Install CLI
+# Install the CLI
 pip install varitykit
 
 # Deploy
 varitykit app deploy --hosting ipfs
 ```
 
-See [Quick Start](/getting-started/quickstart) for the full guide.
+See the [Quick Start](/getting-started/quickstart) guide for full details.
 
 ### What's the difference between IPFS and Akash hosting?
 
@@ -88,7 +85,7 @@ This creates a new deployment with your previous configuration.
 Users can log in with:
 - Email (magic link - no password needed)
 - Google, Twitter, Discord, GitHub
-- Crypto wallets (optional)
+- Cryptocurrency wallets (optional)
 
 No blockchain knowledge required for users.
 
@@ -140,16 +137,16 @@ This is similar to Apple App Store or Google Play.
 
 ### What is Varity L3?
 
-Varity L3 is the network where your app is registered. It's:
-- **Chain ID**: 33529
+Varity L3 is an Arbitrum Orbit rollup where your app is registered. It's:
+- **Chain ID**: `33529`
 - **Fast**: Sub-second confirmations
 - **Cheap**: Fractions of a cent per transaction
 - **Gasless**: Users never pay fees
 
-### Do I need to know blockchain/crypto?
+### Do I need to know about blockchain or cryptocurrency?
 
 **No.** Varity abstracts all blockchain complexity:
-- Users log in with email (not crypto wallets)
+- Users log in with email (not cryptocurrency wallets)
 - No gas fees or tokens to manage
 - Standard JavaScript/TypeScript SDK
 - Familiar React components

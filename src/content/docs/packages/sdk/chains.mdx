@@ -5,17 +5,15 @@ description: "Working with Varity L3 and supported networks"
 
 import { Aside } from '@astrojs/starlight/components';
 
-# Chain Support
-
 Varity SDK supports multiple networks, with Varity L3 as the primary deployment target.
 
-## Varity L3 Testnet
+## Varity L3 testnet
 
 The main network for Varity applications.
 
 | Property | Value |
 |----------|-------|
-| **Chain ID** | 33529 |
+| **Chain ID** | `33529` |
 | **RPC URL** | `https://rpc-varity-testnet-rroe52pwjp.t.conduit.xyz` |
 | **Explorer** | `https://explorer-varity-testnet-rroe52pwjp.t.conduit.xyz` |
 | **Native Token** | Bridged USDC |
@@ -30,15 +28,26 @@ The main network for Varity applications.
 ### thirdweb Format
 
 ```typescript
+// IMPORTANT: Use thirdweb v5 function-based API (NOT v4 class-based)
+import { createThirdwebClient, getContract } from 'thirdweb';
 import { varityL3Testnet } from '@varity/sdk';
 
-// Use with thirdweb client
-const client = createThirdwebClient({ clientId: '...' });
+// Step 1: Create thirdweb client (required for all thirdweb operations)
+const client = createThirdwebClient({
+  clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID,
+});
+
+// Step 2: Get a contract instance on Varity L3 testnet
 const contract = getContract({
   client,
-  chain: varityL3Testnet,
-  address: '0x...',
+  chain: varityL3Testnet, // Varity L3 testnet (Chain ID 33529)
+  address: '0x769250dac29817081f38CfBa597Ef2485F3a94e8', // Example: TemplateMarketplace
 });
+
+// Step 3: Now you can interact with the contract using thirdweb v5 functions
+// Example: Read contract data
+// import { readContract } from 'thirdweb';
+// const data = await readContract({ contract, method: "..." });
 ```
 
 ### Wagmi Format
@@ -74,7 +83,7 @@ console.log(USDC_DECIMALS); // 6
 
 ## Deployed Contracts
 
-Pre-deployed contracts on Varity L3 Testnet:
+Pre-deployed contracts on Varity L3 testnet:
 
 | Contract | Address | Purpose |
 |----------|---------|---------|
@@ -104,18 +113,18 @@ The platform uses a 70/30 revenue split:
 import { REVENUE_SPLIT } from '@varity/sdk';
 
 console.log(REVENUE_SPLIT);
-// { developer: 70, platform: 30 }
+// { DEVELOPER_PERCENT: 70, PLATFORM_PERCENT: 30 }
 ```
 
 When users purchase your app:
-- **70%** goes to you (the developer)
-- **30%** goes to the Varity platform
+- **70%** goes to you (the developer) - `REVENUE_SPLIT.DEVELOPER_PERCENT`
+- **30%** goes to the Varity platform - `REVENUE_SPLIT.PLATFORM_PERCENT`
 
 ## Supported Networks
 
 | Network | Chain ID | Status |
 |---------|----------|--------|
-| Varity L3 Testnet | 33529 | Active |
+| Varity L3 testnet | 33529 | Active |
 | Arbitrum Sepolia | 421614 | For testing |
 | Varity L3 Mainnet | TBD | Coming post-MVP |
 
@@ -134,24 +143,36 @@ console.log(Object.keys(NETWORK_CONFIGS));
 
 ## Adding to MetaMask
 
-Users can add Varity L3 to MetaMask using this configuration:
+Users can add Varity L3 testnet to MetaMask:
 
 ```javascript
-await window.ethereum.request({
-  method: 'wallet_addEthereumChain',
-  params: [{
-    chainId: '0x82E9', // 33529 in hex
-    chainName: 'Varity L3 Testnet',
-    nativeCurrency: {
-      name: 'USDC',
-      symbol: 'USDC',
-      decimals: 6,
-    },
-    rpcUrls: ['https://rpc-varity-testnet-rroe52pwjp.t.conduit.xyz'],
-    blockExplorerUrls: ['https://explorer-varity-testnet-rroe52pwjp.t.conduit.xyz'],
-  }],
-});
+// Add Varity L3 testnet to MetaMask
+async function addVarityL3ToMetaMask() {
+  try {
+    await window.ethereum.request({
+      method: 'wallet_addEthereumChain',
+      params: [{
+        chainId: '0x82E9', // 33529 in hex (Varity L3 testnet)
+        chainName: 'Varity L3 Testnet',
+        nativeCurrency: {
+          name: 'USDC',
+          symbol: 'USDC',
+          decimals: 6, // IMPORTANT: 6 decimals, NOT 18!
+        },
+        rpcUrls: ['https://rpc-varity-testnet-rroe52pwjp.t.conduit.xyz'],
+        blockExplorerUrls: ['https://explorer-varity-testnet-rroe52pwjp.t.conduit.xyz'],
+      }],
+    });
+    console.log('Varity L3 testnet added to MetaMask');
+  } catch (error) {
+    console.error('Failed to add network:', error);
+  }
+}
 ```
+
+<Aside type="caution">
+**Important:** USDC on Varity L3 uses **6 decimals**, not 18 like ETH. Always use `formatUSDC` and `parseUSDC` helpers to avoid calculation errors.
+</Aside>
 
 <Aside type="tip">
 **Gasless by default:** Users on Varity L3 don't pay gas fees. The platform sponsors all transaction costs.

@@ -5,9 +5,7 @@ description: "Backend SDK for building apps on Varity L3 - authentication, stora
 
 import { Aside, Card, CardGrid, Badge } from '@astrojs/starlight/components';
 
-# @varity/sdk
-
-The Varity SDK provides everything you need to build backend services for your Varity applications. It abstracts away the complexity of blockchain interactions so you can focus on building your product.
+The Varity SDK provides everything you need to build backend services for your Varity applications. It abstracts the complexity of blockchain interactions so you can focus on building your product.
 
 <Badge text="v2.0.0-alpha.1" variant="note" />
 
@@ -33,9 +31,9 @@ The Varity SDK provides everything you need to build backend services for your V
 ```typescript
 import { createVaritySDK, varityL3Testnet } from '@varity/sdk';
 
-// Initialize the SDK
+// Initialize the SDK for Varity L3 testnet
 const sdk = createVaritySDK({
-  network: 'arbitrum-l3-testnet', // Varity L3
+  network: 'arbitrum-l3-testnet', // Varity L3 (Chain ID 33529)
 });
 
 // Connect to the network
@@ -121,6 +119,7 @@ The SDK includes complete thirdweb v5 integration.
 | `x402Client` | API monetization |
 
 ```typescript
+// IMPORTANT: Use thirdweb v5 Engine for production transaction management
 import { createEngineClient } from '@varity/sdk';
 
 const engine = createEngineClient({
@@ -129,16 +128,16 @@ const engine = createEngineClient({
   backendWallet: process.env.BACKEND_WALLET_ADDRESS,
 });
 
-// Send transaction
+// Send transaction to Varity L3 testnet
 const result = await engine.sendTransaction({
-  chainId: 33529,
+  chainId: 33529, // Varity L3 testnet
   to: contractAddress,
   data: txData,
 });
 ```
 
 <Aside type="tip">
-**thirdweb v5 uses function-based APIs**, not class-based. If you're migrating from v4, see the [thirdweb migration guide](https://portal.thirdweb.com/typescript/v5/migrate).
+thirdweb v5 uses function-based APIs, not class-based. If you're migrating from v4, see the [thirdweb migration guide](https://portal.thirdweb.com/typescript/v5/migrate).
 </Aside>
 
 ## Type Exports
@@ -198,8 +197,91 @@ import { VERSION, SDK_VERSION } from '@varity/sdk';
 console.log(VERSION); // '2.0.0-alpha.1'
 ```
 
+## Complete Working Example
+
+Here's a full example showing proper thirdweb v5 usage with contract interaction on Varity L3 testnet:
+
+```typescript
+// IMPORTANT: Use thirdweb v5 function-based API (NOT v4 class-based)
+import { createThirdwebClient, getContract, readContract, prepareContractCall } from 'thirdweb';
+import { varityL3Testnet, VARITY_CONTRACTS, formatUSDC, parseUSDC } from '@varity/sdk';
+
+// Step 1: Create thirdweb client (required for all operations)
+const client = createThirdwebClient({
+  clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID,
+});
+
+// Step 2: Get contract instance on Varity L3 testnet (Chain ID 33529)
+const marketplaceContract = getContract({
+  client,
+  chain: varityL3Testnet,
+  address: VARITY_CONTRACTS.TemplateMarketplace, // 0x769250dac29817081f38CfBa597Ef2485F3a94e8
+});
+
+// Step 3: Read contract data (no transaction needed)
+async function getTemplatePrice(templateId: string) {
+  const priceRaw = await readContract({
+    contract: marketplaceContract,
+    method: 'function getPrice(uint256) view returns (uint256)',
+    params: [BigInt(templateId)],
+  });
+
+  // Format USDC (6 decimals, NOT 18!)
+  const priceFormatted = formatUSDC(priceRaw);
+  console.log(`Template price: ${priceFormatted.formatted}`);
+
+  return priceFormatted;
+}
+
+// Step 4: Prepare transaction (will be sent via wallet)
+async function purchaseTemplate(templateId: string, priceUSD: string) {
+  // Parse USDC amount (6 decimals)
+  const amount = parseUSDC(priceUSD);
+
+  // Prepare contract call
+  const transaction = prepareContractCall({
+    contract: marketplaceContract,
+    method: 'function purchase(uint256, uint256) payable',
+    params: [BigInt(templateId), amount],
+  });
+
+  // This transaction will be gasless on Varity L3 testnet
+  // Users pay no transaction fees - sponsored by Varity platform
+  return transaction;
+}
+
+// Example usage
+async function example() {
+  // Read template price
+  const price = await getTemplatePrice('1');
+
+  // Prepare purchase transaction
+  const tx = await purchaseTemplate('1', '10.00');
+
+  console.log('Transaction prepared - gasless on Varity L3 testnet');
+  console.log('Revenue split: 70% to developer, 30% to Varity platform');
+}
+```
+
+<Aside type="note">
+**Testnet Only** - This example uses Varity L3 testnet (Chain ID 33529). Mainnet launch coming post-MVP validation.
+</Aside>
+
 ## Next Steps
 
-- [Installation Guide](/packages/sdk/installation) - Install and set up the SDK
-- [Configuration Reference](/packages/sdk/configuration) - All configuration options
-- [Chain Support](/packages/sdk/chains) - Working with Varity L3
+<CardGrid>
+  <Card title="Installation" icon="rocket">
+    Get the SDK installed and configured in your project.
+    [View Guide →](/packages/sdk/installation)
+  </Card>
+  <Card title="Chain Support" icon="seti:config">
+    Learn about Varity L3 and working with chains.
+    [View Guide →](/packages/sdk/chains)
+  </Card>
+</CardGrid>
+
+## Related Resources
+
+- [Quick Start](/getting-started/quickstart) - Build your first app
+- [@varity/ui-kit](/packages/ui-kit/overview) - React components
+- [Deploy to Varity L3](/deploy/varity-l3) - Ship to production

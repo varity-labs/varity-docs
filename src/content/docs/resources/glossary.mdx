@@ -5,12 +5,10 @@ description: "Terms and concepts used in Varity documentation"
 
 import { Aside } from '@astrojs/starlight/components';
 
-# Glossary
-
 A guide to terms used in Varity documentation, translated for developers familiar with traditional web development.
 
 <Aside type="tip">
-Varity abstracts most blockchain concepts. You rarely need to understand the underlying technology - but this glossary helps if you encounter unfamiliar terms.
+Varity abstracts most blockchain concepts. You rarely need to understand the underlying technology, but this glossary helps if you encounter unfamiliar terms.
 </Aside>
 
 ## Core Concepts
@@ -22,11 +20,11 @@ The marketplace where users discover and install Varity applications. Similar to
 **Key points:**
 - Submit your app with `varitykit app deploy --submit-to-store`
 - 70/30 revenue split (you keep 70%)
-- View at [store.varity.so](https://store.varity.so)
+- View the store at [store.varity.so](https://store.varity.so)
 
 ### Chain ID
 
-A unique identifier for a network. Varity L3's Chain ID is **33529**.
+A unique identifier for a network. Varity L3's Chain ID is `33529`.
 
 **Web2 equivalent:** Like a region code or environment identifier (production, staging, etc.)
 
@@ -34,7 +32,7 @@ A unique identifier for a network. Varity L3's Chain ID is **33529**.
 
 A unique fingerprint for content stored on IPFS. Any change to the content produces a different CID.
 
-**Web2 equivalent:** Like a content hash or version hash. Think of it as a URL that's based on the content itself.
+**Web2 equivalent:** Like a content hash or version hash. Think of it as a URL based on the content itself.
 
 ```
 Example CID: bafybeihdwdcefgh4dqkjv67uzcmw7ojee6xedzdetojuzjevtenxquvyku
@@ -46,7 +44,7 @@ Transactions where the user doesn't pay network fees. Varity sponsors all fees, 
 
 **Web2 equivalent:** Free API calls - the platform covers the infrastructure cost.
 
-### Smart Account (Smart Wallet)
+### smart wallet (Smart Account)
 
 An advanced user account with programmable features. Created automatically when users sign up.
 
@@ -54,7 +52,7 @@ An advanced user account with programmable features. Created automatically when 
 
 ### Varity L3
 
-The network where Varity apps are registered. "L3" means Layer 3 - a fast network optimized for applications.
+The Arbitrum Orbit rollup where Varity apps are registered. "L3" means Layer 3 - a fast network optimized for applications.
 
 **Web2 equivalent:** Varity's production infrastructure. You deploy here like you'd deploy to AWS.
 
@@ -98,7 +96,7 @@ The authentication service used by Varity. Provides email, social, and wallet lo
 
 ### Session
 
-A temporary authentication state. Created when users log in, expired when they log out.
+A temporary authentication state. Created when users log in, and expired when they log out.
 
 **Web2 equivalent:** Standard browser session, stored in localStorage.
 

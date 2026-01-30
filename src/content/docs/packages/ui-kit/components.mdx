@@ -5,8 +5,6 @@ description: "Complete reference for all @varity/ui-kit React components"
 
 import { Aside } from '@astrojs/starlight/components';
 
-# Components Reference
-
 All React components exported by `@varity/ui-kit`.
 
 ## Providers
@@ -49,17 +47,21 @@ import { PrivyStack } from '@varity/ui-kit';
 Provides ERC-4337 smart wallet functionality with gasless transactions.
 
 ```tsx
+// IMPORTANT: Use thirdweb v5 function-based API (NOT v4 class-based)
 import { SmartWalletProvider } from '@varity/ui-kit';
 import { createThirdwebClient } from 'thirdweb';
 import { varityL3Testnet } from '@varity/sdk';
 
-const client = createThirdwebClient({ clientId: '...' });
+// Create thirdweb client (required for all smart wallet operations)
+const client = createThirdwebClient({
+  clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID,
+});
 
 <SmartWalletProvider
   config={{
     client,
-    chain: varityL3Testnet,
-    gasless: { enabled: true },
+    chain: varityL3Testnet, // Varity L3 testnet (Chain ID 33529)
+    gasless: { enabled: true }, // Users never pay gas fees
   }}
 >
   {children}
@@ -162,7 +164,7 @@ import { PrivyProtectedRoute } from '@varity/ui-kit';
 
 ### PrivyReadyGate
 
-Prevents blank screen during Privy initialization (5-15 seconds).
+Prevents a blank screen during Privy initialization (5-15 seconds).
 
 ```tsx
 import { PrivyReadyGate } from '@varity/ui-kit';
@@ -188,7 +190,7 @@ import { PrivyReadyGate } from '@varity/ui-kit';
 
 ### OnrampWidget
 
-Full payment widget for buying USDC with credit card.
+Full payment widget for buying USDC with a credit card.
 
 ```tsx
 import { OnrampWidget } from '@varity/ui-kit';

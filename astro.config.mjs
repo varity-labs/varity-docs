@@ -82,7 +82,7 @@ export default defineConfig({
               items: [
                 { label: "Overview", slug: "packages/sdk/overview" },
                 { label: "Installation", slug: "packages/sdk/installation" },
-                { label: "Chain Configuration", slug: "packages/sdk/chains" },
+                { label: "Chain Support", slug: "packages/sdk/chains" },
               ],
             },
             {
@@ -91,8 +91,8 @@ export default defineConfig({
               items: [
                 { label: "Overview", slug: "packages/ui-kit/overview" },
                 { label: "Installation", slug: "packages/ui-kit/installation" },
-                { label: "Components", slug: "packages/ui-kit/components" },
-                { label: "Hooks", slug: "packages/ui-kit/hooks" },
+                { label: "Components Reference", slug: "packages/ui-kit/components" },
+                { label: "Hooks Reference", slug: "packages/ui-kit/hooks" },
               ],
             },
             {
