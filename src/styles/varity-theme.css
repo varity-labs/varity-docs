@@ -110,13 +110,7 @@
   --font-semibold: 600;
   --font-bold: 700;
 
-}
 
-/* ========================================
-   SECTION 3: STARLIGHT CSS CUSTOM PROPERTIES
-   Override Starlight's --sl-* variables
-   ======================================== */
-:root {
   /* ----- TYPOGRAPHY ----- */
   --sl-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
              'Helvetica Neue', Arial, sans-serif, 'Apple Color Emoji',
@@ -179,18 +173,16 @@
   --sl-content-width: 52rem;
   --sl-sidebar-width: 16rem;
   --sl-content-pad-x: 1.5rem;
-}
 
-/* ========================================
-   SECTION 4: SEMANTIC TEXT COLORS
-   Named tokens for text hierarchy
-   ======================================== */
-:root {
   --text-primary: var(--gray-50);
   --text-secondary: var(--gray-400);
   --text-tertiary: var(--gray-500);
   --text-muted: var(--gray-600);
 }
+
+
+
+
 
 /* ========================================
    SECTION 5: BASE TYPOGRAPHY
@@ -270,24 +262,10 @@ p {
   max-width: 70ch; /* Optimal reading width */
 }
 
-/* Lead paragraph style (for intros) */
-.lead,
-p.lead {
-  font-size: var(--text-lg);
-  line-height: var(--leading-relaxed);
-  color: var(--text-secondary);
-}
-
 /* Small text */
-small,
-.text-small {
+small {
   font-size: var(--text-sm);
   line-height: var(--leading-normal);
-}
-
-/* Muted text */
-.text-muted {
-  color: var(--text-muted);
 }
 
 /* ----- LINKS ----- */
