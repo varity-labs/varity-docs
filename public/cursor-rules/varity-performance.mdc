@@ -1,0 +1,560 @@
+---
+description: Performance optimization patterns for Varity applications
+alwaysApply: false
+---
+
+# Performance Optimization for Varity Apps
+
+You are an expert in optimizing Varity applications for speed and efficiency.
+
+## Core Principles
+
+1. **Minimize bundle size** - Only import what you need
+2. **Optimize images and assets** - Compress before uploading
+3. **Use code splitting** - Lazy load components
+4. **Cache strategically** - Reduce redundant requests
+5. **Monitor performance** - Measure and improve
+
+## Bundle Size Optimization
+
+### Tree-Shaking with Named Imports
+
+```typescript
+// ❌ BAD - Imports entire library
+import * as Varity from '@varity/sdk'
+
+// ✅ GOOD - Only imports what you need
+import { createClient } from '@varity/sdk'
+import { createStorageClient } from '@varity/sdk/storage'
+```
+
+### Dynamic Imports (Code Splitting)
+
+```typescript
+// For large components
+const Dashboard = dynamic(() => import('./Dashboard'), {
+  loading: () => <LoadingSpinner />,
+})
+
+// For third-party libraries
+const handleExport = async () => {
+  const { exportToPDF } = await import('jspdf')
+  exportToPDF(data)
+}
+```
+
+### Remove Unused Dependencies
+
+```bash
+# Analyze bundle size
+npx webpack-bundle-analyzer
+
+# Remove unused packages
+npm uninstall unused-package
+
+# Check for duplicate dependencies
+npx npm-check-duplicates
+```
+
+## Image Optimization
+
+### Compress Before Upload
+
+```typescript
+import imageCompression from 'browser-image-compression'
+
+async function optimizeAndUpload(file: File): Promise<UploadResult> {
+  // Compress image
+  const options = {
+    maxSizeMB: 1,
+    maxWidthOrHeight: 1920,
+    useWebWorker: true,
+  }
+
+  const compressedFile = await imageCompression(file, options)
+
+  // Upload compressed file
+  return await storage.uploadFile(compressedFile)
+}
+```
+
+### Use Next.js Image Component
+
+```tsx
+import Image from 'next/image'
+
+// ❌ BAD - No optimization
+<img src={gatewayUrl} alt="Uploaded image" />
+
+// ✅ GOOD - Optimized, lazy-loaded
+<Image
+  src={gatewayUrl}
+  alt="Uploaded image"
+  width={800}
+  height={600}
+  loading="lazy"
+  placeholder="blur"
+  blurDataURL="data:image/jpeg;base64,..."
+/>
+```
+
+### Generate Thumbnails
+
+```typescript
+async function uploadWithThumbnails(file: File) {
+  // Upload original
+  const original = await storage.uploadFile(file)
+
+  // Generate and upload thumbnail
+  const thumbnail = await createThumbnail(file, 200, 200)
+  const thumbResult = await storage.uploadFile(thumbnail)
+
+  // Generate and upload medium size
+  const medium = await createThumbnail(file, 800, 800)
+  const mediumResult = await storage.uploadFile(medium)
+
+  return {
+    original: original.uri,
+    medium: mediumResult.uri,
+    thumbnail: thumbResult.uri,
+  }
+}
+
+// Use thumbnail for lists, original for detail view
+<img src={thumbnailUrl} />  // Fast load in gallery
+<img src={originalUrl} />   // High quality in modal
+```
+
+## Caching Strategies
+
+### Cache API Responses
+
+```typescript
+// In-memory cache
+const cache = new Map<string, { data: any; timestamp: number }>()
+
+async function getCachedData<T>(
+  key: string,
+  fetcher: () => Promise<T>,
+  ttl: number = 60000  // 1 minute
+): Promise<T> {
+  const cached = cache.get(key)
+
+  if (cached && Date.now() - cached.timestamp < ttl) {
+    return cached.data
+  }
+
+  const data = await fetcher()
+  cache.set(key, { data, timestamp: Date.now() })
+
+  return data
+}
+
+// Usage
+const files = await getCachedData(
+  'my-files',
+  () => fetchFiles(),
+  300000  // 5 minutes
+)
+```
+
+### React Query for Server State
+
+```typescript
+import { useQuery } from '@tanstack/react-query'
+
+function useFiles() {
+  return useQuery({
+    queryKey: ['files'],
+    queryFn: fetchFiles,
+    staleTime: 5 * 60 * 1000,  // 5 minutes
+    gcTime: 10 * 60 * 1000,    // 10 minutes
+  })
+}
+
+// Automatic caching, refetching, and background updates
+function FileList() {
+  const { data, isLoading, error } = useFiles()
+
+  if (isLoading) return <LoadingSpinner />
+  if (error) return <ErrorMessage />
+
+  return <FileGrid files={data} />
+}
+```
+
+### Service Worker Caching
+
+```javascript
+// service-worker.js
+self.addEventListener('fetch', (event) => {
+  if (event.request.url.includes('gateway.thirdweb.com')) {
+    event.respondWith(
+      caches.match(event.request).then((response) => {
+        return response || fetch(event.request).then((response) => {
+          return caches.open('varity-cache').then((cache) => {
+            cache.put(event.request, response.clone())
+            return response
+          })
+        })
+      })
+    )
+  }
+})
+```
+
+## Request Optimization
+
+### Batch Multiple Uploads
+
+```typescript
+async function batchUpload(files: File[]): Promise<UploadResult[]> {
+  // Upload in parallel (max 3 concurrent)
+  const BATCH_SIZE = 3
+  const results: UploadResult[] = []
+
+  for (let i = 0; i < files.length; i += BATCH_SIZE) {
+    const batch = files.slice(i, i + BATCH_SIZE)
+    const batchResults = await Promise.all(
+      batch.map(file => storage.uploadFile(file))
+    )
+    results.push(...batchResults)
+  }
+
+  return results
+}
+```
+
+### Debounce Search Queries
+
+```typescript
+import { useDebouncedCallback } from 'use-debounce'
+
+function SearchFiles() {
+  const [query, setQuery] = useState('')
+
+  const debouncedSearch = useDebouncedCallback(
+    async (searchQuery: string) => {
+      const results = await searchFiles(searchQuery)
+      setResults(results)
+    },
+    300  // Wait 300ms after user stops typing
+  )
+
+  return (
+    <input
+      value={query}
+      onChange={(e) => {
+        setQuery(e.target.value)
+        debouncedSearch(e.target.value)
+      }}
+    />
+  )
+}
+```
+
+### Prefetch Critical Data
+
+```typescript
+// Prefetch on hover
+<Link
+  href="/dashboard"
+  onMouseEnter={() => {
+    // Prefetch data for dashboard
+    queryClient.prefetchQuery({
+      queryKey: ['dashboard'],
+      queryFn: fetchDashboardData,
+    })
+  }}
+>
+  Dashboard
+</Link>
+```
+
+## Lazy Loading
+
+### Lazy Load Components
+
+```typescript
+import dynamic from 'next/dynamic'
+
+// Lazy load heavy components
+const FileViewer = dynamic(() => import('./FileViewer'), {
+  loading: () => <Skeleton />,
+  ssr: false,  // Don't render on server
+})
+
+const Analytics = dynamic(() => import('./Analytics'), {
+  loading: () => <LoadingSpinner />,
+})
+```
+
+### Intersection Observer for Images
+
+```tsx
+import { useInView } from 'react-intersection-observer'
+
+function LazyImage({ src, alt }: { src: string; alt: string }) {
+  const { ref, inView } = useInView({
+    triggerOnce: true,
+    threshold: 0.1,
+  })
+
+  return (
+    <div ref={ref}>
+      {inView ? (
+        <img src={src} alt={alt} />
+      ) : (
+        <div className="placeholder" />
+      )}
+    </div>
+  )
+}
+```
+
+## Runtime Performance
+
+### Memoization
+
+```tsx
+import { useMemo, useCallback } from 'react'
+
+function FileList({ files }: { files: FileMetadata[] }) {
+  // Expensive computation - memoize
+  const sortedFiles = useMemo(() => {
+    return files.sort((a, b) =>
+      b.uploadedAt.getTime() - a.uploadedAt.getTime()
+    )
+  }, [files])
+
+  // Callback - memoize to prevent re-renders
+  const handleDelete = useCallback((id: string) => {
+    deleteFile(id)
+  }, [])
+
+  return (
+    <div>
+      {sortedFiles.map(file => (
+        <FileCard
+          key={file.id}
+          file={file}
+          onDelete={handleDelete}
+        />
+      ))}
+    </div>
+  )
+}
+```
+
+### Virtual Scrolling for Large Lists
+
+```tsx
+import { useVirtualizer } from '@tanstack/react-virtual'
+
+function VirtualFileList({ files }: { files: FileMetadata[] }) {
+  const parentRef = useRef<HTMLDivElement>(null)
+
+  const virtualizer = useVirtualizer({
+    count: files.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 100,
+  })
+
+  return (
+    <div ref={parentRef} style={{ height: '600px', overflow: 'auto' }}>
+      <div style={{ height: `${virtualizer.getTotalSize()}px` }}>
+        {virtualizer.getVirtualItems().map((item) => (
+          <div
+            key={item.key}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: `${item.size}px`,
+              transform: `translateY(${item.start}px)`,
+            }}
+          >
+            <FileCard file={files[item.index]} />
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+```
+
+## Build Optimization
+
+### Next.js Configuration
+
+```javascript
+// next.config.js
+module.exports = {
+  // Minimize bundle
+  swcMinify: true,
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
+
+  // Image optimization
+  images: {
+    domains: ['gateway.thirdweb.com'],
+    formats: ['image/avif', 'image/webp'],
+  },
+
+  // Output file tracing
+  output: 'standalone',
+
+  // Experimental features
+  experimental: {
+    optimizeCss: true,
+    optimizePackageImports: ['@varity/sdk', '@varity/ui-kit'],
+  },
+}
+```
+
+### Webpack Bundle Analyzer
+
+```bash
+# Install
+npm install --save-dev @next/bundle-analyzer
+
+# Enable in next.config.js
+const withBundleAnalyzer = require('@next/bundle-analyzer')({
+  enabled: process.env.ANALYZE === 'true',
+})
+
+module.exports = withBundleAnalyzer({
+  // ... your config
+})
+
+# Run analysis
+ANALYZE=true npm run build
+```
+
+## Monitoring Performance
+
+### Web Vitals
+
+```tsx
+// app/layout.tsx
+import { SpeedInsights } from '@vercel/speed-insights/next'
+
+export default function RootLayout({ children }) {
+  return (
+    <html>
+      <body>
+        {children}
+        <SpeedInsights />
+      </body>
+    </html>
+  )
+}
+```
+
+### Custom Performance Tracking
+
+```typescript
+// utils/performance.ts
+export function measurePerformance(name: string, fn: () => void) {
+  const start = performance.now()
+  fn()
+  const end = performance.now()
+
+  console.log(`${name}: ${end - start}ms`)
+
+  // Send to analytics
+  if (typeof window !== 'undefined' && (window as any).gtag) {
+    (window as any).gtag('event', 'timing_complete', {
+      name,
+      value: Math.round(end - start),
+      event_category: 'Performance',
+    })
+  }
+}
+
+// Usage
+measurePerformance('file-upload', async () => {
+  await storage.uploadFile(file)
+})
+```
+
+## Anti-Patterns (NEVER DO THIS)
+
+### ❌ Loading entire SDK
+```typescript
+// WRONG - Large bundle
+import * as Varity from '@varity/sdk'
+```
+
+### ✅ Use named imports
+```typescript
+// CORRECT - Tree-shakeable
+import { createClient } from '@varity/sdk'
+```
+
+---
+
+### ❌ Uploading uncompressed images
+```typescript
+// WRONG - Slow upload, large storage
+await storage.uploadFile(hugeImageFile)
+```
+
+### ✅ Compress first
+```typescript
+// CORRECT - Fast upload, small storage
+const compressed = await compressImage(file)
+await storage.uploadFile(compressed)
+```
+
+---
+
+### ❌ No caching
+```typescript
+// WRONG - Fetches every time
+function FileList() {
+  const [files, setFiles] = useState([])
+  useEffect(() => {
+    fetchFiles().then(setFiles)
+  }, [])
+}
+```
+
+### ✅ Use React Query
+```typescript
+// CORRECT - Automatic caching
+function FileList() {
+  const { data: files } = useQuery({
+    queryKey: ['files'],
+    queryFn: fetchFiles,
+  })
+}
+```
+
+## Performance Checklist
+
+- [ ] Bundle size < 200KB gzipped
+- [ ] Images compressed and optimized
+- [ ] Code splitting for routes
+- [ ] Lazy loading for heavy components
+- [ ] Caching strategy implemented
+- [ ] No unnecessary re-renders
+- [ ] Virtual scrolling for long lists
+- [ ] Web Vitals monitored
+- [ ] Lighthouse score > 90
+
+## Optimization Workflow
+
+1. **Measure**: Use Lighthouse, Web Vitals
+2. **Identify**: Find bottlenecks (bundle size, images, etc.)
+3. **Optimize**: Apply relevant patterns
+4. **Verify**: Measure again to confirm improvement
+5. **Monitor**: Track performance over time
+
+## Remember
+
+Performance optimization is an ongoing process. Measure first, optimize
+based on data, and always verify improvements. These patterns ensure
+your Varity app is fast and efficient.

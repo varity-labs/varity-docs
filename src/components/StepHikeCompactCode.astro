@@ -1,0 +1,39 @@
+---
+/**
+ * StepHikeCompact.Code Component
+ *
+ * Code block section within a step.
+ * Wraps code examples shown in the step.
+ */
+---
+
+<div class="step-code">
+  <slot />
+</div>
+
+<style>
+  .step-code {
+    margin-top: var(--space-3);
+  }
+
+  .step-code > :first-child {
+    margin-top: 0;
+  }
+
+  .step-code > :last-child {
+    margin-bottom: 0;
+  }
+
+  /* Ensure code blocks inside steps have proper styling */
+  .step-code :global(pre) {
+    margin: 0;
+  }
+
+  .step-code :global(.expressive-code) {
+    margin: 0;
+  }
+
+  .step-code :global(.varity-code-block) {
+    margin: 0;
+  }
+</style>

@@ -1,31 +1,32 @@
 ---
-title: "@varity/ui-kit Overview"
+title: "@varity-labs/ui-kit Overview"
 description: "React component library for authentication, payments, and account management"
 ---
 
 import { Card, CardGrid, Aside } from '@astrojs/starlight/components';
+import Accordion from '../../../../components/Accordion.astro';
 
 A React component library that handles authentication, payments, and account management so you can focus on building your application.
 
 ## What It Does
 
 - **Authentication:** Email, Google, Twitter, Discord, and GitHub login with no wallet popups
-- **Payments:** Buy USDC with credit card, Apple Pay, or Google Pay
+- **Payments:** Accept payments through the App Store and in-app widgets
 - **Account Management:** Automatic account creation and session handling
-- **Zero Gas Fees:** Users never pay transaction fees
+- **Free Operations:** Users never pay usage fees
 
 <Aside type="tip">
-Users sign in with email or social accounts. They never need to install browser extensions or understand cryptocurrency.
+Users sign in with email or social accounts. They never need to install browser extensions or any special setup.
 </Aside>
 
 ## Quick Start
 
 ```bash
-npm install @varity/ui-kit @varity/sdk
+npm install @varity-labs/ui-kit @varity-labs/sdk
 ```
 
 ```tsx
-import { PrivyStack, PrivyLoginButton } from '@varity/ui-kit';
+import { PrivyStack, PrivyLoginButton } from '@varity-labs/ui-kit';
 
 function App() {
   return (
@@ -48,8 +49,8 @@ That's it. Users can now sign in with email or social accounts.
   <Card title="PrivyLoginButton" icon="user">
     Pre-built login button that opens the authentication modal. Supports email, Google, Twitter, Discord, and more.
   </Card>
-  <Card title="OnrampWidget" icon="document">
-    Full payment widget for buying USDC with credit card, Apple Pay, or Google Pay.
+  <Card title="PaymentWidget" icon="document">
+    Payment widget for in-app purchases and upgrades (post-beta).
   </Card>
   <Card title="PrivyProtectedRoute" icon="approve-check">
     Wrapper that shows content only to authenticated users. Shows login prompt otherwise.
@@ -65,7 +66,7 @@ That's it. Users can now sign in with email or social accounts.
 5. User is authenticated and ready to use your app
 
 ```tsx
-import { usePrivy } from '@varity/ui-kit';
+import { usePrivy } from '@varity-labs/ui-kit';
 
 function Dashboard() {
   const { authenticated, user, logout } = usePrivy();
@@ -89,11 +90,11 @@ When a user signs in with email or social login:
 
 | Behind the Scenes | What User Sees |
 |-------------------|----------------|
-| Smart wallet created | "Signed in successfully" |
-| Wallet linked to account | User profile with email |
-| Ready for transactions | Can use your app immediately |
+| Smart account created | "Signed in successfully" |
+| Account linked to profile | User profile with email |
+| Ready for operations | Can use your app immediately |
 
-Users never see wallet addresses, private keys, or transaction confirmations unless you choose to show them.
+Users never see technical details or extra prompts unless you choose to show them.
 
 ## Package Exports
 
@@ -104,8 +105,6 @@ Users never see wallet addresses, private keys, or transaction confirmations unl
 | `PrivyStack` | All-in-one provider (recommended) |
 | `VarityPrivyProvider` | Privy authentication with Wagmi |
 | `VarityDashboardProvider` | Dashboard-specific provider setup |
-| `WalletSyncProvider` | Syncs Privy wallets with thirdweb |
-| `SmartWalletProvider` | ERC-4337 gasless transactions |
 
 ### Components
 
@@ -115,22 +114,16 @@ Users never see wallet addresses, private keys, or transaction confirmations unl
 | `PrivyUserProfile` | Display user info with logout |
 | `PrivyProtectedRoute` | Auth-gated content wrapper |
 | `PrivyReadyGate` | Loading state during initialization |
-| `OnrampWidget` | Full USDC purchase widget |
-| `BuyUSDCButton` | Simple buy USDC button |
-| `SmartWalletConnectButton` | Smart wallet connection |
-| `GaslessBadge` | Shows gasless transaction status |
+| `PaymentWidget` | In-app payment widget (post-beta) |
+| `PaymentGate` | Subscription/tier gate (post-beta) |
 
 ### Hooks
 
 | Export | Description |
 |--------|-------------|
 | `usePrivy` | Core Privy authentication (re-exported) |
-| `useWallets` | Access connected wallets (re-exported) |
 | `useLogin` | Trigger login programmatically |
 | `useLogout` | Trigger logout programmatically |
-| `useWalletSync` | Unified wallet state |
-| `useWalletAuth` | Session-based wallet auth |
-| `useSmartWallet` | Smart wallet operations |
 
 ### Utilities
 
@@ -138,8 +131,42 @@ Users never see wallet addresses, private keys, or transaction confirmations unl
 |--------|-------------|
 | `formatUSDC` | Format USDC amounts for display |
 | `parseUSDC` | Parse user input to USDC units |
-| `formatAddress` | Shorten wallet addresses |
-| `varityL3Testnet` | Varity L3 chain config |
+| `formatAddress` | Shorten account addresses |
+
+<Accordion title="Advanced: Infrastructure Exports">
+
+These exports provide lower-level access for advanced use cases:
+
+### Providers
+
+| Export | Description |
+|--------|-------------|
+| `WalletSyncProvider` | Syncs Privy accounts with infrastructure |
+| `SmartWalletProvider` | Smart account with free operations |
+
+### Components
+
+| Export | Description |
+|--------|-------------|
+| `SmartWalletConnectButton` | Smart account connection |
+| `GaslessBadge` | Shows free operations status |
+
+### Hooks
+
+| Export | Description |
+|--------|-------------|
+| `useWallets` | Access connected accounts |
+| `useWalletSync` | Unified account state |
+| `useWalletAuth` | Session-based account auth |
+| `useSmartWallet` | Smart account operations |
+
+### Utilities
+
+| Export | Description |
+|--------|-------------|
+| `varityL3Testnet` | Varity infrastructure config |
+
+</Accordion>
 
 ## Production Example
 
@@ -149,14 +176,13 @@ import {
   PrivyLoginButton,
   PrivyUserProfile,
   PrivyProtectedRoute,
-  useWalletSync,
-} from '@varity/ui-kit';
+  usePrivy,
+} from '@varity-labs/ui-kit';
 
 function App() {
   return (
     <PrivyStack
       appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID}
-      thirdwebClientId={process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID}
       loginMethods={['email', 'google']}
       appearance={{
         theme: 'light',
@@ -175,11 +201,11 @@ function App() {
 }
 
 function Header() {
-  const { isAuthenticated, address } = useWalletSync();
+  const { authenticated } = usePrivy();
 
   return (
     <header>
-      {isAuthenticated ? (
+      {authenticated ? (
         <PrivyUserProfile showLogoutButton />
       ) : (
         <PrivyLoginButton>Sign In</PrivyLoginButton>

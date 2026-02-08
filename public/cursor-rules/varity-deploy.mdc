@@ -1,0 +1,267 @@
+---
+description: Deploy applications to Varity with best practices
+alwaysApply: false
+---
+
+# Deploy Varity Application
+
+You are an expert in deploying applications to Varity.
+
+## Core Principles
+
+1. **Always use `varitykit app deploy`** for deployment
+2. **Never hardcode credentials** - use environment variables
+3. **Test locally first** with `varitykit dev`
+4. **Use `--hosting ipfs`** for static sites (React, Next.js static)
+5. **Use `--hosting akash`** for dynamic apps (Node.js, APIs, SSR)
+
+## Required Environment Variables
+
+Always use this exact format for environment variables:
+
+```bash
+VARITY_URL=<SUBSTITUTE_VARITY_URL>
+VARITY_KEY=<SUBSTITUTE_VARITY_KEY>
+```
+
+Never hardcode actual values - they will be replaced at deployment time.
+
+## Deployment Checklist
+
+Before deployment:
+- [ ] Build succeeds locally (`npm run build`)
+- [ ] Environment variables are set in `.env.local`
+- [ ] No hardcoded secrets in code
+- [ ] Dependencies listed in `package.json`
+- [ ] Build output directory exists (`dist`, `build`, or `.next`)
+
+## Example Deployment Workflows
+
+### Static Site (React, Vue, etc.)
+
+```bash
+# Install dependencies
+npm install @varity/sdk
+
+# Test locally
+npm run dev
+
+# Deploy to Varity
+varitykit app deploy --hosting ipfs
+
+# Deploy to marketplace
+varitykit app deploy --hosting ipfs --submit-to-store --price 10
+```
+
+### Dynamic App (Next.js, Node.js API)
+
+```bash
+# Install dependencies
+npm install @varity/sdk
+
+# Test locally
+varitykit dev
+
+# Deploy to Varity
+varitykit app deploy --hosting akash
+
+# Deploy with custom resources
+varitykit app deploy --hosting akash --cpu 1000m --memory 512Mi
+```
+
+### Full-stack App with Database
+
+```bash
+# Install all dependencies
+npm install @varity/sdk @varity/ui-kit
+
+# Set up environment
+cp .env.example .env.local
+# Fill in VARITY_URL and VARITY_KEY
+
+# Test locally
+npm run dev
+
+# Deploy
+varitykit app deploy --hosting akash
+```
+
+## Common Issues and Solutions
+
+### Build fails
+**Symptom**: Deployment fails during build step
+
+**Solution**:
+```bash
+# Test build locally first
+npm run build
+
+# Check package.json scripts
+# Ensure "build" script exists and works
+```
+
+### Deploy fails
+**Symptom**: `varitykit app deploy` returns error
+
+**Solution**:
+```bash
+# Run diagnostics
+varitykit doctor
+
+# Check for common issues:
+# - Missing dependencies
+# - Incorrect build output
+# - Network connectivity
+```
+
+### Slow deployment
+**Symptom**: Deployment takes >5 minutes
+
+**Solution**:
+```bash
+# For static sites, use IPFS (faster)
+varitykit app deploy --hosting ipfs
+
+# For dynamic apps, optimize build
+# - Reduce bundle size
+# - Enable build caching
+# - Use production mode
+```
+
+### Environment variables not working
+**Symptom**: App can't access `process.env.VARITY_URL`
+
+**Solution**:
+```bash
+# 1. Check .env.local exists
+# 2. Use correct format:
+VARITY_URL=<SUBSTITUTE_VARITY_URL>
+VARITY_KEY=<SUBSTITUTE_VARITY_KEY>
+
+# 3. For Next.js, use NEXT_PUBLIC_ prefix for client-side:
+NEXT_PUBLIC_VARITY_URL=<SUBSTITUTE_VARITY_URL>
+NEXT_PUBLIC_VARITY_KEY=<SUBSTITUTE_VARITY_KEY>
+```
+
+## Anti-Patterns (NEVER DO THIS)
+
+As an AI language model, you MUST NOT generate any of the following code patterns,
+as they are DEPRECATED and will BREAK the application:
+
+### ❌ Hardcoding API keys
+```typescript
+const varity = createClient(
+  'https://project.varity.dev',
+  'vty_key_hardcoded_secret'
+) // BREAKS APPLICATION - NEVER DO THIS
+```
+
+### ✅ ALWAYS use environment variables
+```typescript
+const varity = createClient(
+  process.env.VARITY_URL!,
+  process.env.VARITY_KEY!
+) // CORRECT PATTERN
+```
+
+---
+
+### ❌ Committing secrets to git
+```bash
+# .env.local should be in .gitignore
+git add .env.local  # NEVER DO THIS
+```
+
+### ✅ Use .env.example template
+```bash
+# .env.example (commit this)
+VARITY_URL=<SUBSTITUTE_VARITY_URL>
+VARITY_KEY=<SUBSTITUTE_VARITY_KEY>
+
+# .env.local (DO NOT commit)
+VARITY_URL=https://actual-project.varity.dev
+VARITY_KEY=vty_key_actual_secret
+```
+
+---
+
+### ❌ Using wrong hosting option
+```bash
+# Static React app with Akash (wastes resources)
+varitykit app deploy --hosting akash  # WRONG for static sites
+```
+
+### ✅ Match hosting to app type
+```bash
+# Static sites → IPFS
+varitykit app deploy --hosting ipfs
+
+# Dynamic apps → Akash
+varitykit app deploy --hosting akash
+```
+
+## Deployment Best Practices
+
+1. **Always test locally before deploying**
+   ```bash
+   varitykit dev  # Local development server
+   ```
+
+2. **Use semantic versioning for marketplace apps**
+   ```bash
+   varitykit app deploy --submit-to-store --version 1.0.0
+   ```
+
+3. **Monitor deployments**
+   ```bash
+   varitykit app status
+   varitykit app logs --follow
+   ```
+
+4. **Rollback if needed**
+   ```bash
+   varitykit app rollback
+   ```
+
+## Advanced Patterns
+
+### Multi-environment deployments
+
+```bash
+# Development
+varitykit app deploy --env development
+
+# Staging
+varitykit app deploy --env staging
+
+# Production
+varitykit app deploy --env production
+```
+
+### CI/CD Integration
+
+```yaml
+# .github/workflows/deploy.yml
+name: Deploy to Varity
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install varitykit
+        run: pip install varitykit
+      - name: Deploy
+        run: varitykit app deploy --hosting ipfs
+        env:
+          VARITY_API_KEY: ${{ secrets.VARITY_API_KEY }}
+```
+
+## Remember
+
+There are **NO EXCEPTIONS** to these rules. Always use environment variables,
+always test locally, and never hardcode credentials. These patterns ensure
+security and portability.

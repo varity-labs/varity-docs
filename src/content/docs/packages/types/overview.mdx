@@ -1,5 +1,5 @@
 ---
-title: "@varity/types Overview"
+title: "@varity-labs/types Overview"
 description: "TypeScript type definitions for building type-safe applications with Varity"
 ---
 
@@ -12,23 +12,23 @@ TypeScript type definitions that power the entire Varity SDK ecosystem. These ty
 <Tabs>
   <TabItem label="npm">
     ```bash
-    npm install @varity/types
+    npm install @varity-labs/types
     ```
   </TabItem>
   <TabItem label="pnpm">
     ```bash
-    pnpm add @varity/types
+    pnpm add @varity-labs/types
     ```
   </TabItem>
   <TabItem label="yarn">
     ```bash
-    yarn add @varity/types
+    yarn add @varity-labs/types
     ```
   </TabItem>
 </Tabs>
 
 <Aside type="note">
-**Already using @varity/sdk?** The types package is included as a dependency. You only need to install it separately if you want types without the full SDK.
+**Already using @varity-labs/sdk?** The types package is included as a dependency. You only need to install it separately if you want types without the full SDK.
 </Aside>
 
 ## What's Included
@@ -64,7 +64,7 @@ import type {
   Nullable,         // T | null
   Optional,         // T | undefined
   DeepPartial,      // Make all nested properties optional
-} from '@varity/types';
+} from '@varity-labs/types';
 ```
 
 ### API Response Types
@@ -78,7 +78,7 @@ import type {
   PaginatedResponse,  // Paginated list results
   AuthToken,          // JWT/session tokens
   UserProfile,        // User account data
-} from '@varity/types';
+} from '@varity-labs/types';
 ```
 
 ### Storage Types
@@ -91,13 +91,13 @@ import type {
   StorageResult,      // Upload result with URL
   StorageItem,        // File listing item
   StorageMetrics,     // Usage statistics
-} from '@varity/types';
+} from '@varity-labs/types';
 
 import {
   StorageBackend,     // filecoin-ipfs, s3-compatible, etc.
   StorageTier,        // hot, warm, cold, glacier
   StorageLayer,       // varity-internal, industry-rag, customer-data
-} from '@varity/types';
+} from '@varity-labs/types';
 ```
 
 ### Authentication Types
@@ -109,13 +109,13 @@ import type {
   AccessKey,          // API key credentials
   Permission,         // Resource permissions
   Session,            // User session data
-} from '@varity/types';
+} from '@varity-labs/types';
 
 import {
   AuthProvider,       // aws-signature-v4, gcs-oauth2, web3-wallet
   PermissionEffect,   // allow, deny
   Action,             // storage:GetObject, admin:ViewMetrics, etc.
-} from '@varity/types';
+} from '@varity-labs/types';
 ```
 
 ### Varity L3 Chain Types
@@ -128,14 +128,14 @@ import type {
   VarityWalletConfig,       // Wallet setup options
   VarityDeploymentResult,   // Contract deployment result
   USDCAmount,               // USDC with 6 decimals
-} from '@varity/types';
+} from '@varity-labs/types';
 
 import {
   VARITY_L3_TESTNET,  // Chain constants
   USDC_DECIMALS,      // Always 6
   formatUSDC,         // Convert raw to readable
   parseUSDC,          // Convert readable to raw
-} from '@varity/types';
+} from '@varity-labs/types';
 ```
 
 ## USDC Amount Handling
@@ -145,7 +145,7 @@ import {
 </Aside>
 
 ```typescript
-import { formatUSDC, parseUSDC, USDC_DECIMALS } from '@varity/types';
+import { formatUSDC, parseUSDC, USDC_DECIMALS } from '@varity-labs/types';
 
 // Convert human-readable to raw (for transactions)
 const amount = parseUSDC("10.50");
@@ -164,7 +164,7 @@ const scale = 10 ** USDC_DECIMALS; // 1,000,000
 Type-safe error handling in catch blocks:
 
 ```typescript
-import { toError, getErrorMessage, isErrorWithMessage } from '@varity/types';
+import { toError, getErrorMessage, isErrorWithMessage } from '@varity-labs/types';
 
 try {
   await riskyOperation();
@@ -192,7 +192,7 @@ import {
   isSIWEMessage,
   isAWSSignatureV4Credentials,
   isGCSServiceAccount,
-} from '@varity/types';
+} from '@varity-labs/types';
 
 // Validate configuration at runtime
 if (isVarityChain(config)) {
@@ -210,17 +210,17 @@ if (isSIWEMessage(payload)) {
 ## Package Constants
 
 ```typescript
-import { VERSION, PACKAGE_NAME, SUPPORTED_STORAGE_BACKENDS } from '@varity/types';
+import { VERSION, PACKAGE_NAME, SUPPORTED_STORAGE_BACKENDS } from '@varity-labs/types';
 
 console.log(VERSION);  // "1.0.0"
-console.log(PACKAGE_NAME);  // "@varity/types"
+console.log(PACKAGE_NAME);  // "@varity-labs/types"
 console.log(SUPPORTED_STORAGE_BACKENDS);
 // ["filecoin-ipfs", "celestia", "s3-compatible", "gcs-compatible", "multi-tier"]
 ```
 
 ## Next Steps
 
-- [@varity/sdk Overview](/packages/sdk/overview) - Use types with the full SDK
-- [@varity/ui-kit Overview](/packages/ui-kit/overview) - UI components with TypeScript
+- [@varity-labs/sdk Overview](/packages/sdk/overview) - Use types with the full SDK
+- [@varity-labs/ui-kit Overview](/packages/ui-kit/overview) - UI components with TypeScript
 - [Storage Guide](/build/storage/quickstart) - Upload and manage files
 - [Chain Support](/packages/sdk/chains) - Working with Varity L3

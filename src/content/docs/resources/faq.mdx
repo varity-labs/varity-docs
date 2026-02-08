@@ -10,9 +10,9 @@ Common questions from developers new to Varity.
 ### What is Varity?
 
 Varity is an application deployment platform that provides:
-- **Decentralized hosting** - Your app runs on distributed infrastructure, not a single server
+- **Secure hosting** - Your app runs on distributed infrastructure
 - **Built-in authentication** - Email, Google, Twitter login out of the box
-- **Zero transaction fees** - Users never pay network fees
+- **Zero usage fees** - Users never pay operational fees
 - **70-85% cost savings** compared to AWS and traditional cloud
 
 ### How is Varity different from AWS/Vercel/Netlify?
@@ -49,19 +49,18 @@ Yes. Varity uses:
 pip install varitykit
 
 # Deploy
-varitykit app deploy --hosting ipfs
+varitykit app deploy
 ```
 
 See the [Quick Start](/getting-started/quickstart) guide for full details.
 
-### What's the difference between IPFS and Akash hosting?
+### What hosting options are available?
 
-| IPFS | Akash |
-|------|-------|
-| Static websites | Dynamic applications |
+| Static | Dynamic (Coming Soon) |
+|--------|----------------------|
+| Static websites | Full-stack applications |
 | Marketing pages, docs | Apps with backend logic |
 | Free | Pay for compute resources |
-| "Website" link on App Store | "Launch App" link on App Store |
 
 ### Can I rollback a deployment?
 
@@ -75,26 +74,24 @@ This creates a new deployment with your previous configuration.
 
 ### Where is my app hosted?
 
-- **IPFS deployments**: Distributed across IPFS nodes worldwide via thirdweb Storage
-- **Akash deployments**: Decentralized compute providers on the Akash Network
+Your app is hosted on Varity's secure, distributed infrastructure with global CDN delivery. Files are replicated across multiple regions for reliability.
 
 ## Authentication
 
 ### How do users log in?
 
 Users can log in with:
-- Email (magic link - no password needed)
+- Email (magic link -- no password needed)
 - Google, Twitter, Discord, GitHub
-- Cryptocurrency wallets (optional)
 
-No blockchain knowledge required for users.
+No special knowledge required for users.
 
 ### Do I need to set up authentication myself?
 
 No. Add `PrivyStack` to your app and authentication works automatically:
 
 ```tsx
-import { PrivyStack } from '@varity/ui-kit';
+import { PrivyStack } from '@varity-labs/ui-kit';
 
 <PrivyStack appId={process.env.NEXT_PUBLIC_VARITY_APP_ID}>
   {children}
@@ -110,63 +107,55 @@ import { PrivyStack } from '@varity/ui-kit';
 
 All data is accessible via the `usePrivy()` hook.
 
-## Costs & Pricing
+## Costs and Pricing
 
 ### How much does Varity cost?
 
-During testnet, Varity is **free to use**.
+During beta, Varity is **free to use**.
 
-After mainnet launch:
-- **Static hosting (IPFS)**: Free
-- **Dynamic hosting (Akash)**: Based on compute resources used
-- **App Store listing**: Platform takes 30% of app revenue
+After production launch:
+- **Static hosting**: Free
+- **Dynamic hosting**: Based on compute resources used
+- **App Store listing**: Platform takes 10% of app revenue
 
-### Do my users pay transaction fees?
+### Do my users pay usage fees?
 
-**No.** All network fees are sponsored by Varity. Users never see or pay transaction costs.
+**No.** All operational fees are sponsored by Varity. Users never see or pay operational costs.
 
-### How does the 70/30 revenue split work?
+### How does the 90/10 revenue split work?
 
 When users purchase your app or pay for subscriptions:
-- **70%** goes to you (the developer)
-- **30%** goes to the Varity platform
+- **90%** goes to you (the developer)
+- **10%** goes to the Varity platform
 
-This is similar to Apple App Store or Google Play.
+This is better than Apple App Store (70/30) or Google Play (70/30).
 
 ## Technical
 
-### What is Varity L3?
+### Do I need any special infrastructure knowledge?
 
-Varity L3 is an Arbitrum Orbit rollup where your app is registered. It's:
-- **Chain ID**: `33529`
-- **Fast**: Sub-second confirmations
-- **Cheap**: Fractions of a cent per transaction
-- **Gasless**: Users never pay fees
-
-### Do I need to know about blockchain or cryptocurrency?
-
-**No.** Varity abstracts all blockchain complexity:
-- Users log in with email (not cryptocurrency wallets)
-- No gas fees or tokens to manage
+**No.** Varity abstracts all infrastructure complexity:
+- Users log in with email (standard login flow)
+- No usage fees or tokens to manage
 - Standard JavaScript/TypeScript SDK
 - Familiar React components
 
-The blockchain is infrastructure - you don't interact with it directly.
+The infrastructure is invisible -- you do not interact with it directly.
 
 ### Can I use my existing database?
 
-Yes. Varity doesn't replace your database. You can:
+Yes. Varity does not replace your database. You can:
 - Use any database (PostgreSQL, MongoDB, etc.)
 - Host your database anywhere
 - Connect via standard database drivers
 
-Varity handles hosting, auth, and payments - not data storage.
+Varity also provides a built-in database module via `@varity-labs/sdk`. See the [Database Quick Start](/build/databases/quickstart).
 
-### What's the SDK size?
+### What are the SDK package sizes?
 
-- `@varity/sdk`: ~50KB gzipped
-- `@varity/ui-kit`: ~120KB gzipped
-- `@varity/types`: ~5KB gzipped
+- `@varity-labs/sdk`: ~50KB gzipped
+- `@varity-labs/ui-kit`: ~120KB gzipped
+- `@varity-labs/types`: ~5KB gzipped
 
 All packages support tree-shaking for smaller bundles.
 
@@ -175,17 +164,16 @@ All packages support tree-shaking for smaller bundles.
 ### My deployment failed
 
 1. Run `varitykit doctor` to check your setup
-2. Ensure `THIRDWEB_CLIENT_ID` is set
-3. Check your build works locally: `npm run build`
-4. See [Troubleshooting](/resources/troubleshooting) for more help
+2. Check your build works locally: `npm run build`
+3. See [Troubleshooting](/resources/troubleshooting) for more help
 
-### Authentication isn't working
+### Authentication is not working
 
-1. Verify `NEXT_PUBLIC_PRIVY_APP_ID` is set
-2. Check your domain is allowed in Privy dashboard
-3. Ensure `PrivyStack` wraps your app
+1. Ensure `PrivyStack` wraps your app
+2. Check browser console for errors
+3. Contact [support@varity.so](mailto:support@varity.so) if your domain needs to be allowed
 
-### I can't find my deployment
+### I cannot find my deployment
 
 ```bash
 # List all deployments

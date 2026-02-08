@@ -1,6 +1,6 @@
 ---
 title: Introduction to Varity
-description: Build real-world apps on decentralized infrastructure. Deploy in 60 seconds with zero blockchain knowledge required.
+description: Build, deploy, and monetize real-world apps. 70-85% cheaper than AWS. Deploy in 60 seconds.
 ---
 
 import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
@@ -9,71 +9,71 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="January 28, 2026"
+  lastUpdated="February 7, 2026"
   version="1.2.3"
   stability="stable"
 />
 
-Varity is the easiest way to build and deploy real-world applications on decentralized infrastructure. **No blockchain knowledge required.**
+Varity is the easiest way to build, deploy, and monetize real-world applications. **No special infrastructure knowledge required.**
 
 ```bash
-npm install @varity/sdk @varity/ui-kit
+npm install @varity-labs/sdk @varity-labs/ui-kit
 varitykit deploy
 ```
 
-**That's it.** Your app is now running on decentralized infrastructure with:
-- Authentication (email, social, wallet)
-- File storage (IPFS)
-- Payments (credit card on-ramp)
-- Gasless transactions (users never pay fees)
+**That's it.** Your app is now running with:
+- Authentication (email, social login)
+- File storage (secure, globally distributed)
+- Payments (App Store monetization)
+- Free operations (users never pay usage fees)
 
 ## What Makes Varity Different?
 
-### For Web2 Developers
+### For Developers
 
-If you've built apps with React, Next.js, or any modern framework, you **already know how to use Varity**.
+If you have built apps with React, Next.js, or any modern framework, you **already know how to use Varity**.
 
-- **No crypto wallets** - Users login with email or social accounts
-- **No gas fees** - All transaction costs are handled automatically
-- **No blockchain jargon** - Just familiar APIs and components
+- **Familiar login** - Users log in with email or social accounts
+- **No usage fees** - All operational costs are handled automatically
+- **Standard APIs** - Just familiar TypeScript APIs and React components
 - **70-85% cheaper** than AWS, GCP, or Azure
 
 ### Seamless User Experience
 
-Your users will never know the app runs on blockchain technology.
+Your users experience a normal web app.
 
-- Login with email or Google (no wallet popups)
-- Pay with credit card (no crypto purchases)
-- Instant transactions (no confirmation screens)
+- Login with email or Google (no extra prompts)
+- Pay with credit card (standard checkout)
+- Instant operations (no confirmation screens)
 - Works exactly like any other web app
 
 ## Core Packages
 
 <CardGrid>
-  <Card title="@varity/sdk" icon="rocket">
-    Core SDK with authentication, storage, payments, and chain configuration.
-    [View Package →](/packages/sdk/overview)
+  <Card title="@varity-labs/sdk" icon="rocket">
+    Core SDK with authentication, storage, payments, and configuration.
+    [View Package](/packages/sdk/overview)
   </Card>
-  <Card title="@varity/ui-kit" icon="puzzle">
-    React components for login, wallets, on-ramp, and dashboards.
-    [View Package →](/packages/ui-kit/overview)
+  <Card title="@varity-labs/ui-kit" icon="puzzle">
+    React components for login, accounts, payments, and dashboards.
+    [View Package](/packages/ui-kit/overview)
   </Card>
-  <Card title="@varity/types" icon="document">
+  <Card title="@varity-labs/types" icon="document">
     TypeScript type definitions for all Varity interfaces.
-    [View Package →](/packages/types/overview)
+    [View Package](/packages/types/overview)
   </Card>
   <Card title="VarietyKit CLI" icon="terminal">
     Command-line tool for deploying and managing your apps.
-    [View CLI →](/cli/overview)
+    [View CLI](/cli/overview)
   </Card>
 </CardGrid>
 
 ## Quick Example
 
-Here's how simple it is to add authentication to your React app:
+Here is how simple it is to add authentication to your React app:
 
 ```tsx
-import { PrivyStack, PrivyLoginButton } from '@varity/ui-kit';
+import { PrivyStack, PrivyLoginButton } from '@varity-labs/ui-kit';
 
 function App() {
   return (
@@ -88,25 +88,24 @@ function App() {
 Users can now log in with:
 - Email (magic link)
 - Google, Twitter, Discord
-- Any crypto wallet (optional)
+- GitHub
 
 ## Current Status
 
-:::note[Testnet Only]
-Varity L3 testnet is currently active. Mainnet launch is coming soon after MVP validation.
+:::note[Beta]
+Varity is currently in beta. Production launch is coming soon.
 :::
 
-**What's Available Now:**
-- Varity L3 testnet (Chain ID: `33529`)
-- Authentication with Privy
-- File storage with IPFS
-- Credit card payments with thirdweb Pay
-- Gasless transactions with ERC-4337
+**Available now:**
+- Authentication with Privy (email, social login)
+- File storage (secure, globally distributed)
+- Free operations (users never pay usage fees)
+- App Store submission and listing
 
-**Coming Soon:**
-- Akash Network compute hosting (dynamic apps)
-- Mainnet deployment
-- Additional blockchains
+**Coming soon:**
+- Credit card payments (post-beta)
+- Dynamic app hosting
+- Production environment
 
 ## Next Steps
 

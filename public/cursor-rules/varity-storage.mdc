@@ -1,0 +1,466 @@
+---
+description: Configure Varity storage for file uploads and downloads
+alwaysApply: false
+---
+
+# Configure Varity Storage
+
+You are an expert in implementing secure file storage with Varity.
+
+## Core Principles
+
+1. **Use createStorageClient() for all file operations**
+2. **Choose IPFS for fast, pinned storage** (default)
+3. **Choose Arweave for permanent, immutable storage**
+4. **Always validate file types and sizes**
+5. **Use encryption for sensitive files**
+
+## Storage Options
+
+| Feature | IPFS | Arweave |
+|---------|------|---------|
+| **Speed** | Fast (< 1s) | Moderate (2-5s) |
+| **Cost** | Low | Higher (one-time) |
+| **Permanence** | Pinned | Permanent |
+| **Mutability** | Replaceable | Immutable |
+| **Best for** | App assets, user uploads | Archives, legal docs |
+
+## Quick Setup
+
+### Step 1: Install SDK
+
+```bash
+npm install @varity/sdk
+```
+
+### Step 2: Initialize storage client
+
+```typescript
+import { createClient } from '@varity/sdk'
+import { createStorageClient } from '@varity/sdk/storage'
+
+const client = createClient({
+  url: process.env.VARITY_URL!,
+  key: process.env.VARITY_KEY!,
+})
+
+const storage = createStorageClient({ client })
+```
+
+### Step 3: Upload files
+
+```typescript
+// Upload single file
+const file = new File(['content'], 'document.pdf', { type: 'application/pdf' })
+const result = await storage.uploadFile(file)
+
+console.log(result.uri)  // ipfs://Qm...
+console.log(result.gatewayUrl)  // https://gateway.thirdweb.com/ipfs/Qm...
+```
+
+### Step 4: Download files
+
+```typescript
+// Download by URI
+const data = await storage.download(result.uri)
+
+// Or by gateway URL
+const response = await fetch(result.gatewayUrl)
+const blob = await response.blob()
+```
+
+## Upload Patterns
+
+### Single File Upload
+
+```typescript
+const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const file = event.target.files?.[0]
+  if (!file) return
+
+  try {
+    const result = await storage.uploadFile(file)
+    console.log('Uploaded:', result.uri)
+  } catch (error) {
+    console.error('Upload failed:', error)
+  }
+}
+```
+
+### Multiple Files Upload
+
+```typescript
+const handleMultipleUpload = async (files: File[]) => {
+  const uploads = await Promise.all(
+    files.map(file => storage.uploadFile(file))
+  )
+
+  const uris = uploads.map(result => result.uri)
+  console.log('All uploaded:', uris)
+}
+```
+
+### Upload with Progress
+
+```typescript
+const uploadWithProgress = async (file: File) => {
+  const result = await storage.uploadFile(file, {
+    onProgress: (progress) => {
+      console.log(`Upload progress: ${progress}%`)
+      setUploadProgress(progress)
+    }
+  })
+
+  return result
+}
+```
+
+### Upload to Arweave (Permanent)
+
+```typescript
+const result = await storage.uploadFile(file, {
+  provider: 'arweave'  // Permanent, immutable storage
+})
+
+console.log(result.uri)  // ar://...
+```
+
+## Download Patterns
+
+### Download as Blob
+
+```typescript
+const blob = await storage.download(uri)
+const url = URL.createObjectURL(blob)
+
+// Use in <img> or download
+<img src={url} alt="Downloaded file" />
+```
+
+### Download as JSON
+
+```typescript
+const data = await storage.download(uri, { format: 'json' })
+console.log(data)  // Parsed JSON object
+```
+
+### Download as Text
+
+```typescript
+const text = await storage.download(uri, { format: 'text' })
+console.log(text)  // String content
+```
+
+### Streaming Large Files
+
+```typescript
+const stream = await storage.downloadStream(uri)
+const reader = stream.getReader()
+
+while (true) {
+  const { done, value } = await reader.read()
+  if (done) break
+  // Process chunk
+  processChunk(value)
+}
+```
+
+## File Validation
+
+### Validate file type
+
+```typescript
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'application/pdf']
+
+const validateFile = (file: File): boolean => {
+  if (!ALLOWED_TYPES.includes(file.type)) {
+    throw new Error(`Invalid file type: ${file.type}`)
+  }
+  return true
+}
+```
+
+### Validate file size
+
+```typescript
+const MAX_SIZE = 10 * 1024 * 1024  // 10MB
+
+const validateSize = (file: File): boolean => {
+  if (file.size > MAX_SIZE) {
+    throw new Error(`File too large: ${file.size} bytes`)
+  }
+  return true
+}
+```
+
+### Complete validation
+
+```typescript
+const validateUpload = (file: File) => {
+  // Type check
+  const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf']
+  if (!allowedTypes.includes(file.type)) {
+    throw new Error('Invalid file type')
+  }
+
+  // Size check
+  const maxSize = 10 * 1024 * 1024  // 10MB
+  if (file.size > maxSize) {
+    throw new Error('File too large')
+  }
+
+  // Name check
+  if (!file.name || file.name.length > 255) {
+    throw new Error('Invalid file name')
+  }
+
+  return true
+}
+```
+
+## Encryption
+
+### Upload encrypted file
+
+```typescript
+const result = await storage.uploadFile(file, {
+  encrypt: true,
+  encryptionKey: process.env.ENCRYPTION_KEY
+})
+
+// File is encrypted before upload
+// URI: ipfs://encrypted_Qm...
+```
+
+### Download encrypted file
+
+```typescript
+const blob = await storage.download(uri, {
+  decrypt: true,
+  encryptionKey: process.env.ENCRYPTION_KEY
+})
+
+// File is decrypted after download
+```
+
+### Generate encryption key
+
+```typescript
+import { generateEncryptionKey } from '@varity/sdk/crypto'
+
+const key = generateEncryptionKey()
+// Store securely (env variable, secrets manager)
+```
+
+## Advanced Patterns
+
+### Image Optimization
+
+```typescript
+const optimizeImage = async (file: File): Promise<File> => {
+  // Resize large images before upload
+  const maxWidth = 1920
+  const maxHeight = 1080
+
+  const image = await createImageBitmap(file)
+  const canvas = document.createElement('canvas')
+  const ctx = canvas.getContext('2d')!
+
+  // Calculate dimensions
+  let { width, height } = image
+  if (width > maxWidth || height > maxHeight) {
+    const ratio = Math.min(maxWidth / width, maxHeight / height)
+    width *= ratio
+    height *= ratio
+  }
+
+  canvas.width = width
+  canvas.height = height
+  ctx.drawImage(image, 0, 0, width, height)
+
+  // Convert to optimized file
+  const blob = await new Promise<Blob>((resolve) => {
+    canvas.toBlob((blob) => resolve(blob!), 'image/jpeg', 0.85)
+  })
+
+  return new File([blob], file.name, { type: 'image/jpeg' })
+}
+
+// Use before upload
+const optimized = await optimizeImage(originalFile)
+const result = await storage.uploadFile(optimized)
+```
+
+### Batch Upload with Retry
+
+```typescript
+const batchUpload = async (files: File[]) => {
+  const results = []
+
+  for (const file of files) {
+    let retries = 3
+    while (retries > 0) {
+      try {
+        const result = await storage.uploadFile(file)
+        results.push(result)
+        break
+      } catch (error) {
+        retries--
+        if (retries === 0) throw error
+        await new Promise(resolve => setTimeout(resolve, 1000))
+      }
+    }
+  }
+
+  return results
+}
+```
+
+### Generate Thumbnails
+
+```typescript
+const uploadWithThumbnail = async (imageFile: File) => {
+  // Upload original
+  const original = await storage.uploadFile(imageFile)
+
+  // Generate thumbnail
+  const thumbnail = await createThumbnail(imageFile, 200, 200)
+  const thumbResult = await storage.uploadFile(thumbnail)
+
+  return {
+    original: original.uri,
+    thumbnail: thumbResult.uri,
+  }
+}
+```
+
+## Anti-Patterns (NEVER DO THIS)
+
+### ❌ Uploading without validation
+```typescript
+// WRONG - No validation
+const result = await storage.uploadFile(file)
+```
+
+### ✅ ALWAYS validate first
+```typescript
+// CORRECT - Validate before upload
+validateFile(file)
+const result = await storage.uploadFile(file)
+```
+
+---
+
+### ❌ Storing credentials in uploaded files
+```typescript
+// WRONG - Exposing secrets
+const configFile = new File([JSON.stringify({
+  apiKey: 'secret_key',
+  password: 'password123'
+})], 'config.json')
+await storage.uploadFile(configFile)
+```
+
+### ✅ Use encryption for sensitive data
+```typescript
+// CORRECT - Encrypt sensitive data
+const result = await storage.uploadFile(configFile, {
+  encrypt: true,
+  encryptionKey: process.env.ENCRYPTION_KEY
+})
+```
+
+---
+
+### ❌ Not handling upload errors
+```typescript
+// WRONG - No error handling
+await storage.uploadFile(file)
+```
+
+### ✅ Proper error handling
+```typescript
+// CORRECT - Handle all cases
+try {
+  await storage.uploadFile(file)
+} catch (error) {
+  if (error.code === 'FILE_TOO_LARGE') {
+    showError('File is too large')
+  } else {
+    showError('Upload failed')
+  }
+}
+```
+
+## Complete Upload Component Example
+
+```tsx
+'use client'
+
+import { useState } from 'react'
+import { createStorageClient } from '@varity/sdk/storage'
+
+export function FileUploader() {
+  const [uploading, setUploading] = useState(false)
+  const [progress, setProgress] = useState(0)
+  const [result, setResult] = useState<string | null>(null)
+
+  const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    // Validate
+    if (file.size > 10 * 1024 * 1024) {
+      alert('File too large (max 10MB)')
+      return
+    }
+
+    setUploading(true)
+    setProgress(0)
+
+    try {
+      const storage = createStorageClient({ client })
+      const uploadResult = await storage.uploadFile(file, {
+        onProgress: setProgress
+      })
+
+      setResult(uploadResult.gatewayUrl)
+      alert('Upload successful!')
+    } catch (error) {
+      console.error('Upload failed:', error)
+      alert('Upload failed')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  return (
+    <div>
+      <input
+        type="file"
+        onChange={handleUpload}
+        disabled={uploading}
+      />
+      {uploading && <p>Uploading: {progress}%</p>}
+      {result && <img src={result} alt="Uploaded file" />}
+    </div>
+  )
+}
+```
+
+## Environment Variables
+
+```bash
+# Required
+VARITY_URL=<SUBSTITUTE_VARITY_URL>
+VARITY_KEY=<SUBSTITUTE_VARITY_KEY>
+
+# Optional (for encryption)
+ENCRYPTION_KEY=<SUBSTITUTE_ENCRYPTION_KEY>
+```
+
+## Remember
+
+Always validate files before upload, use encryption for sensitive data,
+and handle errors gracefully. These patterns ensure secure and reliable
+file storage.

@@ -1,0 +1,594 @@
+---
+description: TypeScript best practices for Varity SDK
+alwaysApply: false
+---
+
+# TypeScript Best Practices for Varity
+
+You are an expert in using TypeScript with the Varity SDK.
+
+## Core Principles
+
+1. **Use strict TypeScript mode** (`strict: true`)
+2. **Import types from `@varity/types`** for consistency
+3. **Define custom types for domain models**
+4. **Use type guards for runtime validation**
+5. **Leverage TypeScript for better developer experience**
+
+## TypeScript Configuration
+
+### Recommended tsconfig.json
+
+```json
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "jsx": "preserve",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "allowJs": true,
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "incremental": true,
+    "plugins": [{ "name": "next" }],
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules"]
+}
+```
+
+## Varity SDK Types
+
+### Import Types
+
+```typescript
+import type {
+  VarityClient,
+  StorageClient,
+  UploadResult,
+  VarityError,
+  User,
+  Session,
+} from '@varity/types'
+
+import type {
+  PrivyStackProps,
+  SmartWalletProviderProps,
+} from '@varity/ui-kit'
+```
+
+### Client Types
+
+```typescript
+// Varity client instance
+const client: VarityClient = createClient({
+  url: process.env.VARITY_URL!,
+  key: process.env.VARITY_KEY!,
+})
+
+// Storage client
+const storage: StorageClient = createStorageClient({ client })
+```
+
+### Upload Result Type
+
+```typescript
+interface UploadResult {
+  uri: string  // ipfs://Qm... or ar://...
+  gatewayUrl: string  // https://gateway.thirdweb.com/ipfs/...
+}
+
+const result: UploadResult = await storage.uploadFile(file)
+```
+
+### Error Type
+
+```typescript
+interface VarityError {
+  code: string
+  message: string
+  details?: Record<string, any>
+  timestamp: string
+}
+
+try {
+  await storage.uploadFile(file)
+} catch (error) {
+  const varityError = error as VarityError
+  console.error(varityError.code, varityError.message)
+}
+```
+
+## Custom Type Definitions
+
+### Domain Models
+
+```typescript
+// types/models.ts
+
+export interface FileMetadata {
+  id: string
+  name: string
+  size: number
+  type: string
+  uploadedAt: Date
+  uri: string
+  gatewayUrl: string
+}
+
+export interface UploadConfig {
+  encrypt?: boolean
+  provider?: 'ipfs' | 'arweave'
+  onProgress?: (progress: number) => void
+}
+
+export interface User {
+  id: string
+  email: string | null
+  wallet: string | null
+  createdAt: Date
+  role: 'user' | 'admin'
+}
+```
+
+### API Response Types
+
+```typescript
+// types/api.ts
+
+export interface ApiResponse<T> {
+  data: T | null
+  error: VarityError | null
+}
+
+export interface PaginatedResponse<T> {
+  data: T[]
+  pagination: {
+    page: number
+    limit: number
+    total: number
+    hasMore: boolean
+  }
+}
+
+// Usage
+const response: ApiResponse<UploadResult> = await uploadFile(file)
+
+if (response.error) {
+  console.error(response.error)
+} else {
+  console.log(response.data!.uri)
+}
+```
+
+### Component Props
+
+```typescript
+// components/FileUploader.tsx
+
+interface FileUploaderProps {
+  onUploadComplete: (result: UploadResult) => void
+  onUploadError: (error: VarityError) => void
+  maxSize?: number
+  allowedTypes?: string[]
+  encrypt?: boolean
+}
+
+export function FileUploader({
+  onUploadComplete,
+  onUploadError,
+  maxSize = 10 * 1024 * 1024,
+  allowedTypes = ['image/*', 'application/pdf'],
+  encrypt = false,
+}: FileUploaderProps) {
+  // Implementation
+}
+```
+
+## Type Guards
+
+### Runtime Type Validation
+
+```typescript
+// utils/typeGuards.ts
+
+export function isVarityError(error: unknown): error is VarityError {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    'message' in error &&
+    typeof (error as any).code === 'string' &&
+    typeof (error as any).message === 'string'
+  )
+}
+
+// Usage
+try {
+  await storage.uploadFile(file)
+} catch (error) {
+  if (isVarityError(error)) {
+    console.error('Varity error:', error.code, error.message)
+  } else {
+    console.error('Unexpected error:', error)
+  }
+}
+```
+
+### Narrowing Types
+
+```typescript
+export function isUploadResult(value: unknown): value is UploadResult {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'uri' in value &&
+    'gatewayUrl' in value &&
+    typeof (value as any).uri === 'string' &&
+    typeof (value as any).gatewayUrl === 'string'
+  )
+}
+
+// Usage
+const result = await storage.uploadFile(file)
+
+if (isUploadResult(result)) {
+  console.log('Valid upload:', result.uri)
+}
+```
+
+## Generic Types
+
+### Reusable Functions
+
+```typescript
+async function withRetry<T>(
+  fn: () => Promise<T>,
+  maxRetries: number = 3
+): Promise<T> {
+  let lastError: Error | null = null
+
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      return await fn()
+    } catch (error) {
+      lastError = error as Error
+      if (i < maxRetries - 1) {
+        await new Promise(resolve => setTimeout(resolve, 1000))
+      }
+    }
+  }
+
+  throw lastError
+}
+
+// Usage
+const result = await withRetry(() => storage.uploadFile(file))
+```
+
+### Generic API Client
+
+```typescript
+class ApiClient {
+  async request<T>(
+    endpoint: string,
+    options?: RequestInit
+  ): Promise<ApiResponse<T>> {
+    try {
+      const response = await fetch(endpoint, options)
+      const data = await response.json()
+
+      return {
+        data: data as T,
+        error: null,
+      }
+    } catch (error) {
+      return {
+        data: null,
+        error: error as VarityError,
+      }
+    }
+  }
+}
+
+// Usage
+const api = new ApiClient()
+const response = await api.request<UploadResult>('/api/upload')
+```
+
+## Advanced Patterns
+
+### Discriminated Unions
+
+```typescript
+type UploadState =
+  | { status: 'idle' }
+  | { status: 'uploading'; progress: number }
+  | { status: 'success'; result: UploadResult }
+  | { status: 'error'; error: VarityError }
+
+function getStatusMessage(state: UploadState): string {
+  switch (state.status) {
+    case 'idle':
+      return 'Ready to upload'
+    case 'uploading':
+      return `Uploading: ${state.progress}%`
+    case 'success':
+      return `Uploaded: ${state.result.uri}`
+    case 'error':
+      return `Error: ${state.error.message}`
+  }
+}
+```
+
+### Utility Types
+
+```typescript
+// Make all properties optional
+type PartialUploadConfig = Partial<UploadConfig>
+
+// Pick specific properties
+type UploadResultSummary = Pick<UploadResult, 'uri'>
+
+// Omit specific properties
+type UploadConfigWithoutCallbacks = Omit<UploadConfig, 'onProgress'>
+
+// Make properties required
+type RequiredUploadConfig = Required<UploadConfig>
+
+// Make properties readonly
+type ReadonlyUploadResult = Readonly<UploadResult>
+```
+
+### Template Literal Types
+
+```typescript
+type StorageProvider = 'ipfs' | 'arweave'
+type StorageURI = `${StorageProvider}://${string}`
+
+function parseStorageURI(uri: StorageURI): {
+  provider: StorageProvider
+  hash: string
+} {
+  const [provider, hash] = uri.split('://') as [StorageProvider, string]
+  return { provider, hash }
+}
+
+// Usage
+const uri: StorageURI = 'ipfs://Qm123'
+const { provider, hash } = parseStorageURI(uri)
+```
+
+## React with TypeScript
+
+### Typed useState
+
+```typescript
+const [uploadState, setUploadState] = useState<UploadState>({
+  status: 'idle'
+})
+
+const [files, setFiles] = useState<FileMetadata[]>([])
+
+const [error, setError] = useState<VarityError | null>(null)
+```
+
+### Typed useRef
+
+```typescript
+const fileInputRef = useRef<HTMLInputElement>(null)
+
+// Access with type safety
+const handleClick = () => {
+  fileInputRef.current?.click()
+}
+```
+
+### Typed Event Handlers
+
+```typescript
+const handleFileChange = (
+  event: React.ChangeEvent<HTMLInputElement>
+): void => {
+  const file = event.target.files?.[0]
+  if (file) {
+    uploadFile(file)
+  }
+}
+
+const handleSubmit = (
+  event: React.FormEvent<HTMLFormElement>
+): void => {
+  event.preventDefault()
+  // Handle form submission
+}
+```
+
+## Anti-Patterns (NEVER DO THIS)
+
+### ❌ Using `any` type
+```typescript
+// WRONG - Loses type safety
+const result: any = await storage.uploadFile(file)
+```
+
+### ✅ Use proper types
+```typescript
+// CORRECT - Type safe
+const result: UploadResult = await storage.uploadFile(file)
+```
+
+---
+
+### ❌ Type assertions without validation
+```typescript
+// WRONG - Unsafe
+const error = unknownError as VarityError
+console.log(error.code)  // Could crash
+```
+
+### ✅ Use type guards
+```typescript
+// CORRECT - Safe
+if (isVarityError(unknownError)) {
+  console.log(unknownError.code)
+}
+```
+
+---
+
+### ❌ Ignoring null/undefined
+```typescript
+// WRONG - Could be null
+const file = files[0]
+console.log(file.name)  // Could crash
+```
+
+### ✅ Handle null/undefined
+```typescript
+// CORRECT - Safe
+const file = files[0]
+if (file) {
+  console.log(file.name)
+}
+
+// Or use optional chaining
+console.log(files[0]?.name)
+```
+
+## Complete TypeScript Example
+
+```typescript
+// types.ts
+export interface FileMetadata {
+  id: string
+  name: string
+  size: number
+  type: string
+  uploadedAt: Date
+  uri: string
+  gatewayUrl: string
+}
+
+export type UploadState =
+  | { status: 'idle' }
+  | { status: 'uploading'; progress: number }
+  | { status: 'success'; result: UploadResult }
+  | { status: 'error'; error: VarityError }
+
+// FileUploader.tsx
+import { useState } from 'react'
+import { createStorageClient } from '@varity/sdk/storage'
+import type { UploadResult, VarityError } from '@varity/types'
+import type { FileMetadata, UploadState } from './types'
+
+interface FileUploaderProps {
+  onUploadComplete: (metadata: FileMetadata) => void
+  maxSize?: number
+}
+
+export function FileUploader({
+  onUploadComplete,
+  maxSize = 10 * 1024 * 1024,
+}: FileUploaderProps) {
+  const [state, setState] = useState<UploadState>({ status: 'idle' })
+
+  const handleUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ): Promise<void> => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    if (file.size > maxSize) {
+      setState({
+        status: 'error',
+        error: {
+          code: 'FILE_TOO_LARGE',
+          message: 'File exceeds size limit',
+          timestamp: new Date().toISOString(),
+        },
+      })
+      return
+    }
+
+    setState({ status: 'uploading', progress: 0 })
+
+    try {
+      const storage = createStorageClient({ client })
+      const result: UploadResult = await storage.uploadFile(file, {
+        onProgress: (progress: number) => {
+          setState({ status: 'uploading', progress })
+        },
+      })
+
+      const metadata: FileMetadata = {
+        id: crypto.randomUUID(),
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        uploadedAt: new Date(),
+        uri: result.uri,
+        gatewayUrl: result.gatewayUrl,
+      }
+
+      setState({ status: 'success', result })
+      onUploadComplete(metadata)
+    } catch (error) {
+      setState({
+        status: 'error',
+        error: error as VarityError,
+      })
+    }
+  }
+
+  return (
+    <div>
+      <input type="file" onChange={handleUpload} />
+
+      {state.status === 'uploading' && (
+        <p>Uploading: {state.progress}%</p>
+      )}
+
+      {state.status === 'success' && (
+        <p>Success: {state.result.uri}</p>
+      )}
+
+      {state.status === 'error' && (
+        <p>Error: {state.error.message}</p>
+      )}
+    </div>
+  )
+}
+```
+
+## Environment Variables Type Safety
+
+```typescript
+// env.d.ts
+declare global {
+  namespace NodeJS {
+    interface ProcessEnv {
+      VARITY_URL: string
+      VARITY_KEY: string
+      NEXT_PUBLIC_PRIVY_APP_ID: string
+      NODE_ENV: 'development' | 'production' | 'test'
+    }
+  }
+}
+
+export {}
+```
+
+## Remember
+
+TypeScript provides compile-time safety and better developer experience.
+Use strict mode, define proper types, and leverage TypeScript's features
+to catch bugs early. These patterns ensure type-safe, maintainable code.

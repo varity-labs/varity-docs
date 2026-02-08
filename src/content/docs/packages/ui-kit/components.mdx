@@ -1,31 +1,30 @@
 ---
 title: "Components Reference"
-description: "Complete reference for all @varity/ui-kit React components"
+description: "Complete reference for all @varity-labs/ui-kit React components"
 ---
 
 import { Aside } from '@astrojs/starlight/components';
+import Accordion from '../../../../components/Accordion.astro';
 
-All React components exported by `@varity/ui-kit`.
+All React components exported by `@varity-labs/ui-kit`.
 
 ## Providers
 
 ### PrivyStack
 
-All-in-one provider that sets up authentication, wallet management, and chain configuration.
+All-in-one provider that sets up authentication and account management. Wrap your app with this once.
 
 ```tsx
-import { PrivyStack } from '@varity/ui-kit';
+import { PrivyStack } from '@varity-labs/ui-kit';
 
 <PrivyStack
   appId="your-privy-app-id"
-  thirdwebClientId="your-thirdweb-client-id"
   loginMethods={['email', 'google', 'wallet']}
   appearance={{
     theme: 'light',
     accentColor: '#2563EB',
     logo: '/logo.png',
   }}
-  onAddressChange={(address) => console.log(address)}
 >
   {children}
 </PrivyStack>
@@ -36,37 +35,9 @@ import { PrivyStack } from '@varity/ui-kit';
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
 | `appId` | `string` | Dev default | Privy App ID |
-| `thirdwebClientId` | `string` | Dev default | thirdweb Client ID |
-| `chains` | `Chain[]` | `[varityL3Testnet]` | Supported chains |
 | `loginMethods` | `string[]` | `['email', 'google', 'wallet']` | Login options |
 | `appearance` | `object` | Light theme | UI customization |
-| `onAddressChange` | `function` | - | Wallet address callback |
-
-### SmartWalletProvider
-
-Provides ERC-4337 smart wallet functionality with gasless transactions.
-
-```tsx
-// IMPORTANT: Use thirdweb v5 function-based API (NOT v4 class-based)
-import { SmartWalletProvider } from '@varity/ui-kit';
-import { createThirdwebClient } from 'thirdweb';
-import { varityL3Testnet } from '@varity/sdk';
-
-// Create thirdweb client (required for all smart wallet operations)
-const client = createThirdwebClient({
-  clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID,
-});
-
-<SmartWalletProvider
-  config={{
-    client,
-    chain: varityL3Testnet, // Varity L3 testnet (Chain ID 33529)
-    gasless: { enabled: true }, // Users never pay gas fees
-  }}
->
-  {children}
-</SmartWalletProvider>
-```
+| `onAddressChange` | `function` | - | Account address callback |
 
 ## Authentication Components
 
@@ -75,7 +46,7 @@ const client = createThirdwebClient({
 Pre-built login button that opens the authentication modal.
 
 ```tsx
-import { PrivyLoginButton } from '@varity/ui-kit';
+import { PrivyLoginButton } from '@varity-labs/ui-kit';
 
 // Basic usage
 <PrivyLoginButton />
@@ -105,7 +76,7 @@ import { PrivyLoginButton } from '@varity/ui-kit';
 Displays user information with optional logout button.
 
 ```tsx
-import { PrivyUserProfile } from '@varity/ui-kit';
+import { PrivyUserProfile } from '@varity-labs/ui-kit';
 
 <PrivyUserProfile showLogoutButton />
 
@@ -130,7 +101,7 @@ import { PrivyUserProfile } from '@varity/ui-kit';
 **Displays:**
 - Account type (Email, Google, Twitter, etc.)
 - Email or username
-- Wallet address (shortened)
+- Account address (shortened)
 - Join date
 
 ### PrivyProtectedRoute
@@ -138,7 +109,7 @@ import { PrivyUserProfile } from '@varity/ui-kit';
 Shows content only to authenticated users.
 
 ```tsx
-import { PrivyProtectedRoute } from '@varity/ui-kit';
+import { PrivyProtectedRoute } from '@varity-labs/ui-kit';
 
 // Basic usage - shows login prompt when not authenticated
 <PrivyProtectedRoute>
@@ -164,10 +135,10 @@ import { PrivyProtectedRoute } from '@varity/ui-kit';
 
 ### PrivyReadyGate
 
-Prevents a blank screen during Privy initialization (5-15 seconds).
+Prevents a blank screen during initialization (5-15 seconds).
 
 ```tsx
-import { PrivyReadyGate } from '@varity/ui-kit';
+import { PrivyReadyGate } from '@varity-labs/ui-kit';
 
 <PrivyReadyGate
   timeout={10000}
@@ -188,23 +159,23 @@ import { PrivyReadyGate } from '@varity/ui-kit';
 
 ## Payment Components
 
-### OnrampWidget
+:::caution[Beta Limitation]
+Credit card payments are not available during beta. Apps can use the free tier. Paid tiers with credit card support will be available after production launch.
+:::
 
-Full payment widget for buying USDC with a credit card.
+### PaymentWidget
+
+In-app payment widget for purchases and upgrades (available post-beta).
 
 ```tsx
-import { OnrampWidget } from '@varity/ui-kit';
+import { PaymentWidget } from '@varity-labs/ui-kit';
 
-<OnrampWidget
-  walletAddress="0x..."
-  clientId={process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID}
-  defaultAmount={100}
-  minAmount={10}
-  maxAmount={10000}
-  showHistory={true}
-  theme="light"
-  onComplete={(purchase) => {
-    console.log('Purchased:', purchase.amount);
+<PaymentWidget
+  appId={process.env.NEXT_PUBLIC_VARITY_APP_ID}
+  amount={50}
+  buttonText="Upgrade to Pro"
+  onSuccess={(result) => {
+    console.log('Payment complete:', result);
   }}
   onError={(error) => {
     console.error('Failed:', error);
@@ -216,30 +187,25 @@ import { OnrampWidget } from '@varity/ui-kit';
 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
-| `walletAddress` | `string` | Required | Recipient address |
-| `clientId` | `string` | Required | thirdweb Client ID |
-| `defaultAmount` | `number` | `100` | Pre-filled amount |
-| `minAmount` | `number` | `10` | Minimum amount |
-| `maxAmount` | `number` | `10000` | Maximum amount |
-| `showHistory` | `boolean` | `false` | Show purchase history |
+| `appId` | `string` | Required | Varity App ID |
+| `amount` | `number` | `100` | Payment amount in USD |
+| `buttonText` | `string` | "Purchase" | Button label |
 | `theme` | `'light' \| 'dark'` | `'light'` | Color theme |
-| `onComplete` | `function` | - | Success callback |
+| `onSuccess` | `function` | - | Success callback |
 | `onError` | `function` | - | Error callback |
 
-### BuyUSDCButton
+### PaymentGate
 
-Simple button that opens payment modal.
+Subscription and tier gate for paywalled content (available post-beta).
 
 ```tsx
-import { BuyUSDCButton } from '@varity/ui-kit';
+import { PaymentGate } from '@varity-labs/ui-kit';
 
-<BuyUSDCButton
-  walletAddress="0x..."
-  clientId="..."
-  amount={50}
-  buttonText="Add $50"
-  onSuccess={(tx) => toast.success('Funds added!')}
-  onError={(error) => toast.error(error.message)}
+<PaymentGate
+  appId={process.env.NEXT_PUBLIC_VARITY_APP_ID}
+  tier="business"
+  amount={99}
+  onSuccess={() => console.log('Subscribed!')}
 />
 ```
 
@@ -247,49 +213,11 @@ import { BuyUSDCButton } from '@varity/ui-kit';
 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
-| `walletAddress` | `string` | Required | Recipient address |
-| `clientId` | `string` | Required | thirdweb Client ID |
-| `amount` | `number` | `100` | Purchase amount |
-| `buttonText` | `string` | "Buy USDC" | Button label |
-| `className` | `string` | - | CSS class name |
+| `appId` | `string` | Required | Varity App ID |
+| `tier` | `string` | Required | Subscription tier name |
+| `amount` | `number` | Required | Monthly price in USD |
 | `onSuccess` | `function` | - | Success callback |
 | `onError` | `function` | - | Error callback |
-
-## Wallet Components
-
-### SmartWalletConnectButton
-
-Button to connect or display smart wallet.
-
-```tsx
-import { SmartWalletConnectButton } from '@varity/ui-kit';
-
-<SmartWalletConnectButton
-  onConnect={(address) => console.log('Connected:', address)}
-  onError={(error) => console.error(error)}
-/>
-```
-
-**Props:**
-
-| Prop | Type | Description |
-|------|------|-------------|
-| `onConnect` | `function` | Called when wallet connects |
-| `onError` | `function` | Called on connection error |
-
-### GaslessBadge
-
-Shows green "Gasless" badge when gasless transactions are enabled.
-
-```tsx
-import { GaslessBadge } from '@varity/ui-kit';
-
-<GaslessBadge />
-```
-
-<Aside type="tip">
-Use `GaslessBadge` to reassure users they won't pay transaction fees.
-</Aside>
 
 ## Complete Example
 
@@ -299,10 +227,8 @@ import {
   PrivyLoginButton,
   PrivyUserProfile,
   PrivyProtectedRoute,
-  OnrampWidget,
-  GaslessBadge,
   usePrivy,
-} from '@varity/ui-kit';
+} from '@varity-labs/ui-kit';
 
 function App() {
   return (
@@ -334,15 +260,65 @@ function Dashboard() {
   return (
     <div>
       <h2>Welcome, {user?.email?.address}</h2>
-      <GaslessBadge />
-      <OnrampWidget
-        walletAddress={user?.wallet?.address}
-        clientId={process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID}
-      />
     </div>
   );
 }
 ```
+
+<Accordion title="Advanced: Smart Account Components">
+
+**Varity manages these credentials automatically. Only use this if you need custom configuration.**
+
+These components provide direct access to smart account functionality. Most apps don't need these — `PrivyStack` handles account creation automatically.
+
+### SmartWalletProvider
+
+Provides smart account functionality with free operations.
+
+```tsx
+import { SmartWalletProvider } from '@varity-labs/ui-kit';
+import { createThirdwebClient } from 'thirdweb';
+import { varityL3Testnet } from '@varity-labs/sdk';
+
+const client = createThirdwebClient({
+  clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID,
+});
+
+<SmartWalletProvider
+  config={{
+    client,
+    chain: varityL3Testnet,
+    gasless: { enabled: true },
+  }}
+>
+  {children}
+</SmartWalletProvider>
+```
+
+### SmartWalletConnectButton
+
+Button to connect or display smart account.
+
+```tsx
+import { SmartWalletConnectButton } from '@varity-labs/ui-kit';
+
+<SmartWalletConnectButton
+  onConnect={(address) => console.log('Connected:', address)}
+  onError={(error) => console.error(error)}
+/>
+```
+
+### GaslessBadge
+
+Shows green badge when free operations are enabled.
+
+```tsx
+import { GaslessBadge } from '@varity-labs/ui-kit';
+
+<GaslessBadge />
+```
+
+</Accordion>
 
 ## Next Steps
 

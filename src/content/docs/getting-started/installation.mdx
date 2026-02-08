@@ -23,17 +23,17 @@ Get your development environment ready for building with Varity.
    <Tabs>
      <TabItem label="npm">
        ```bash
-       npm install @varity/sdk @varity/ui-kit @varity/types
+       npm install @varity-labs/sdk @varity-labs/ui-kit @varity-labs/types
        ```
      </TabItem>
      <TabItem label="pnpm">
        ```bash
-       pnpm add @varity/sdk @varity/ui-kit @varity/types
+       pnpm add @varity-labs/sdk @varity-labs/ui-kit @varity-labs/types
        ```
      </TabItem>
      <TabItem label="yarn">
        ```bash
-       yarn add @varity/sdk @varity/ui-kit @varity/types
+       yarn add @varity-labs/sdk @varity-labs/ui-kit @varity-labs/types
        ```
      </TabItem>
    </Tabs>
@@ -70,25 +70,25 @@ Get your development environment ready for building with Varity.
 ## Package Overview
 
 <CardGrid>
-  <Card title="@varity/sdk">
-    Core SDK with chain configuration, thirdweb clients, storage, and blockchain services.
+  <Card title="@varity-labs/sdk">
+    Core SDK with configuration, storage, database, and backend services.
 
     ```bash
-    npm install @varity/sdk
+    npm install @varity-labs/sdk
     ```
   </Card>
-  <Card title="@varity/ui-kit">
-    React components for authentication, wallets, payments, and dashboards.
+  <Card title="@varity-labs/ui-kit">
+    React components for authentication, accounts, payments, and dashboards.
 
     ```bash
-    npm install @varity/ui-kit
+    npm install @varity-labs/ui-kit
     ```
   </Card>
-  <Card title="@varity/types">
+  <Card title="@varity-labs/types">
     TypeScript type definitions for all Varity interfaces.
 
     ```bash
-    npm install @varity/types
+    npm install @varity-labs/types
     ```
   </Card>
   <Card title="varitykit">
@@ -102,20 +102,10 @@ Get your development environment ready for building with Varity.
 
 ## Environment Setup
 
-Create a `.env.local` file in your project root:
+No environment variables needed to get started. Varity manages all credentials automatically.
 
-```bash title=".env.local"
-# Varity App ID (get from developer portal or use dev credentials)
-NEXT_PUBLIC_VARITY_APP_ID=your-app-id
-
-# thirdweb Client ID (get from thirdweb.com/dashboard)
-NEXT_PUBLIC_THIRDWEB_CLIENT_ID=your-client-id
-```
-
-<Aside type="tip" title="Development Credentials">
-For quick development, Varity provides shared development credentials. These work out of the box but should be replaced before production.
-
-The SDK will automatically use development credentials if none are provided.
+<Aside type="tip">
+The SDK uses shared development credentials by default. Just install the packages and start building. See [Managed Credentials](/deploy/managed-credentials) for details.
 </Aside>
 
 ## Framework Setup
@@ -123,7 +113,7 @@ The SDK will automatically use development credentials if none are provided.
 ### Next.js (App Router)
 
 ```tsx title="app/layout.tsx"
-import { PrivyStack } from '@varity/ui-kit';
+import { PrivyStack } from '@varity-labs/ui-kit';
 
 export default function RootLayout({
   children,
@@ -147,7 +137,7 @@ export default function RootLayout({
 ```tsx title="src/main.tsx"
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { PrivyStack } from '@varity/ui-kit';
+import { PrivyStack } from '@varity-labs/ui-kit';
 import App from './App';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -164,7 +154,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 Create a simple test component:
 
 ```tsx title="components/TestConnection.tsx"
-import { usePrivy } from '@varity/ui-kit';
+import { usePrivy } from '@varity-labs/ui-kit';
 
 export function TestConnection() {
   const { ready, authenticated } = usePrivy();
@@ -197,7 +187,7 @@ If you see "Varity is connected!", you're ready to build.
 Make sure you've installed all packages:
 
 ```bash
-npm install @varity/sdk @varity/ui-kit @varity/types
+npm install @varity-labs/sdk @varity-labs/ui-kit @varity-labs/types
 ```
 
 ### CLI not found

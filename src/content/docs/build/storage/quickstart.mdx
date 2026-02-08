@@ -1,35 +1,36 @@
 ---
-title: "Storage Quick Start"
-description: "Upload and retrieve files with decentralized storage"
+title: "File Storage Quick Start"
+description: "Upload and retrieve files with secure storage"
 ---
 
 import { Steps, Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+import Accordion from '../../../../components/Accordion.astro';
 
-Upload files to decentralized storage (IPFS/Filecoin). Files are distributed globally and accessible via permanent URLs.
+Upload files to secure, globally distributed storage. Files are replicated across multiple regions and accessible via permanent URLs.
 
 ## What You Get
 
-- **Decentralized storage** - Files stored across multiple nodes
+- **Secure storage** - Files stored across multiple servers
 - **Permanent URLs** - Content-addressed links that never break
 - **Global CDN** - Fast access worldwide
-- **No vendor lock-in** - Standard IPFS protocol
+- **No vendor lock-in** - Standard protocols
 
 ## Installation
 
 <Tabs>
   <TabItem label="npm">
     ```bash
-    npm install @varity/sdk thirdweb
+    npm install @varity-labs/sdk
     ```
   </TabItem>
   <TabItem label="pnpm">
     ```bash
-    pnpm add @varity/sdk thirdweb
+    pnpm add @varity-labs/sdk
     ```
   </TabItem>
   <TabItem label="yarn">
     ```bash
-    yarn add @varity/sdk thirdweb
+    yarn add @varity-labs/sdk
     ```
   </TabItem>
 </Tabs>
@@ -37,14 +38,14 @@ Upload files to decentralized storage (IPFS/Filecoin). Files are distributed glo
 ## Setup
 
 ```typescript
-// IMPORTANT: Use thirdweb v5 function-based API (NOT v4 class-based)
-import { createThirdwebClient } from 'thirdweb';
-import { upload, download } from 'thirdweb/storage';
+import { createVaritySDK } from '@varity-labs/sdk';
 
-// Create thirdweb client for storage operations
-const client = createThirdwebClient({
-  clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID,
+// Initialize the SDK
+const sdk = createVaritySDK({
+  network: 'arbitrum-l3-testnet',
 });
+
+await sdk.connect();
 ```
 
 ## Upload a File
@@ -64,33 +65,25 @@ const client = createThirdwebClient({
    }
    ```
 
-2. **Upload to IPFS**
+2. **Upload to secure storage**
 
    ```tsx
-   import { upload } from 'thirdweb/storage';
-
    const handleUpload = async (e) => {
      const file = e.target.files[0];
 
-     // Upload to IPFS using thirdweb v5 storage
-     const uri = await upload({
-       client, // thirdweb client created earlier
-       files: [file], // Array of files to upload
-     });
+     const result = await sdk.storage.upload(file);
 
-     console.log('Uploaded to:', uri);
-     // Returns: ipfs://bafybei... (IPFS URI)
+     console.log('Uploaded to:', result.url);
+     // Returns a permanent HTTPS URL
    };
    ```
 
-3. **Get a gateway URL for access**
+3. **Display the file**
 
    ```tsx
-   // Convert IPFS URI to gateway URL
-   const gatewayUrl = uri.replace(
-     'ipfs://',
-     'https://ipfs.thirdwebcdn.com/ipfs/'
-   );
+   // The URL is a standard HTTPS link — works in any browser
+   <img src={result.url} alt="Uploaded file" />
+   <a href={result.url} target="_blank">View File</a>
    ```
 
 </Steps>
@@ -98,13 +91,7 @@ const client = createThirdwebClient({
 ## Download a File
 
 ```typescript
-import { download } from 'thirdweb/storage';
-
-// Download by IPFS URI using thirdweb v5 storage
-const response = await download({
-  client, // thirdweb client created earlier
-  uri: 'ipfs://bafybei...', // IPFS URI to download
-});
+const response = await sdk.storage.download(fileUrl);
 
 // Get the data in different formats
 const blob = await response.blob(); // For images, videos, etc.
@@ -115,18 +102,15 @@ const json = await response.json(); // For JSON files
 ## Complete Example
 
 ```tsx
-// IMPORTANT: Use thirdweb v5 function-based API (NOT v4 class-based)
-import { createThirdwebClient } from 'thirdweb';
-import { upload, download } from 'thirdweb/storage';
+import { createVaritySDK } from '@varity-labs/sdk';
 import { useState } from 'react';
 
-// Create thirdweb client for storage operations
-const client = createThirdwebClient({
-  clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID,
+const sdk = createVaritySDK({
+  network: 'arbitrum-l3-testnet',
 });
 
 function FileManager() {
-  const [uri, setUri] = useState('');
+  const [fileUrl, setFileUrl] = useState('');
   const [uploading, setUploading] = useState(false);
 
   const handleUpload = async (e) => {
@@ -135,12 +119,8 @@ function FileManager() {
 
     setUploading(true);
     try {
-      // Upload to IPFS using thirdweb v5
-      const result = await upload({
-        client,
-        files: [file],
-      });
-      setUri(result); // Save IPFS URI (ipfs://bafybei...)
+      const result = await sdk.storage.upload(file);
+      setFileUrl(result.url);
     } catch (error) {
       console.error('Upload failed:', error);
     } finally {
@@ -148,19 +128,14 @@ function FileManager() {
     }
   };
 
-  // Convert IPFS URI to gateway URL for browser access
-  const getGatewayUrl = (ipfsUri) => {
-    return ipfsUri.replace('ipfs://', 'https://ipfs.thirdwebcdn.com/ipfs/');
-  };
-
   return (
     <div>
       <input type="file" onChange={handleUpload} disabled={uploading} />
       {uploading && <p>Uploading...</p>}
-      {uri && (
+      {fileUrl && (
         <div>
-          <p>IPFS URI: {uri}</p>
-          <a href={getGatewayUrl(uri)} target="_blank">
+          <p>File stored successfully</p>
+          <a href={fileUrl} target="_blank">
             View File
           </a>
         </div>
@@ -176,16 +151,13 @@ function FileManager() {
 const metadata = {
   name: 'My Item',
   description: 'A cool item',
-  image: 'ipfs://bafybei...', // Reference to image
   attributes: [
     { trait_type: 'Color', value: 'Blue' },
   ],
 };
 
-const uri = await upload({
-  client,
-  files: [metadata],
-});
+const result = await sdk.storage.upload(metadata);
+console.log('Metadata URL:', result.url);
 ```
 
 ## Upload Multiple Files
@@ -193,14 +165,10 @@ const uri = await upload({
 ```typescript
 const files = [file1, file2, file3];
 
-const uris = await upload({
-  client,
-  files: files,
-});
+const results = await sdk.storage.uploadBatch(files);
 
-// Returns array of URIs
-console.log(uris);
-// ['ipfs://bafybei...', 'ipfs://bafybei...', 'ipfs://bafybei...']
+// Returns array of URLs
+results.forEach(r => console.log(r.url));
 ```
 
 <Aside type="tip">
@@ -209,8 +177,8 @@ console.log(uris);
 
 ## Storage Costs
 
-- **Development**: Free with shared credentials
-- **Production**: Based on storage used via thirdweb
+- **Beta**: Free with shared credentials
+- **Production**: Based on storage used
 
 ## Best Practices
 
@@ -219,7 +187,6 @@ console.log(uris);
 Compress images before upload:
 
 ```typescript
-// Use a library like browser-image-compression
 import imageCompression from 'browser-image-compression';
 
 const compressedFile = await imageCompression(file, {
@@ -227,30 +194,57 @@ const compressedFile = await imageCompression(file, {
   maxWidthOrHeight: 1920,
 });
 
-await upload({ client, files: [compressedFile] });
-```
-
-### Show Upload Progress
-
-```tsx
-const [progress, setProgress] = useState(0);
-
-// thirdweb doesn't have built-in progress,
-// but you can show file size for estimation
-const sizeInMB = (file.size / 1024 / 1024).toFixed(2);
+await sdk.storage.upload(compressedFile);
 ```
 
 ### Cache Results
 
-Store URIs for quick access:
+Store URLs for quick access:
 
 ```tsx
 // Save to localStorage
-localStorage.setItem('userAvatar', uri);
+localStorage.setItem('userAvatar', fileUrl);
 
 // Retrieve later
-const savedUri = localStorage.getItem('userAvatar');
+const savedUrl = localStorage.getItem('userAvatar');
 ```
+
+<Accordion title="Advanced: Direct Storage API">
+
+**Varity manages these credentials automatically. Only use this if you need custom configuration.**
+
+For power users who need lower-level control, you can use the storage provider directly.
+
+```typescript
+import { createThirdwebClient } from 'thirdweb';
+import { upload, download } from 'thirdweb/storage';
+
+const client = createThirdwebClient({
+  clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID,
+});
+
+// Upload directly
+const uri = await upload({
+  client,
+  files: [file],
+});
+
+// Convert storage URI to HTTPS URL
+const fileUrl = uri.replace(
+  'ipfs://',
+  'https://ipfs.thirdwebcdn.com/ipfs/'
+);
+
+// Download directly
+const response = await download({
+  client,
+  uri: 'ipfs://bafybei...',
+});
+```
+
+This gives you direct access to the underlying storage protocol for advanced use cases like pinning, custom gateways, or cross-platform interoperability.
+
+</Accordion>
 
 ## Next Steps
 

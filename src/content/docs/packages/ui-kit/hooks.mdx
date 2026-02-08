@@ -1,9 +1,11 @@
 ---
 title: "Hooks Reference"
-description: "Complete reference for all @varity/ui-kit React hooks"
+description: "Complete reference for all @varity-labs/ui-kit React hooks"
 ---
 
-All React hooks exported by `@varity/ui-kit`.
+import Accordion from '../../../../components/Accordion.astro';
+
+All React hooks exported by `@varity-labs/ui-kit`.
 
 ## Authentication Hooks
 
@@ -12,7 +14,7 @@ All React hooks exported by `@varity/ui-kit`.
 Core authentication hook, re-exported from `@privy-io/react-auth`.
 
 ```tsx
-import { usePrivy } from '@varity/ui-kit';
+import { usePrivy } from '@varity-labs/ui-kit';
 
 function MyComponent() {
   const {
@@ -50,36 +52,12 @@ function MyComponent() {
 | `login` | `() => void` | Opens the login modal |
 | `logout` | `() => Promise<void>` | Logs the user out |
 
-### useWallets
-
-Access all connected wallets, re-exported from `@privy-io/react-auth`.
-
-```tsx
-import { useWallets } from '@varity/ui-kit';
-
-function WalletList() {
-  const { wallets, ready } = useWallets();
-
-  if (!ready) return <div>Loading wallets...</div>;
-
-  return (
-    <ul>
-      {wallets.map((wallet) => (
-        <li key={wallet.address}>
-          {wallet.walletClientType}: {wallet.address}
-        </li>
-      ))}
-    </ul>
-  );
-}
-```
-
 ### useLogin / useLogout
 
 Programmatic login and logout triggers.
 
 ```tsx
-import { useLogin, useLogout } from '@varity/ui-kit';
+import { useLogin, useLogout } from '@varity-labs/ui-kit';
 
 function AuthControls() {
   const { login } = useLogin({
@@ -100,242 +78,6 @@ function AuthControls() {
 }
 ```
 
-## Wallet Hooks
-
-### useWalletSync
-
-Unified wallet state from Privy and thirdweb.
-
-```tsx
-import { useWalletSync } from '@varity/ui-kit';
-
-function WalletStatus() {
-  const {
-    address,         // string | null - Wallet address
-    isLoading,       // boolean - Syncing in progress
-    isSynced,        // boolean - Sync complete
-    isAuthenticated, // boolean - User logged in
-    authMethod,      // string - 'email', 'google', 'wallet', etc.
-  } = useWalletSync();
-
-  if (isLoading) return <div>Syncing wallet...</div>;
-
-  if (!isAuthenticated) return <div>Not logged in</div>;
-
-  return (
-    <div>
-      <p>Address: {address}</p>
-      <p>Auth method: {authMethod}</p>
-    </div>
-  );
-}
-```
-
-**Returns:**
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `address` | `string \| null` | Active wallet address |
-| `isLoading` | `boolean` | Wallet sync in progress |
-| `isSynced` | `boolean` | Sync completed successfully |
-| `isAuthenticated` | `boolean` | User is logged in |
-| `authMethod` | `string` | Login method used |
-
-### useSmartWallet
-
-Smart wallet operations with gasless transactions.
-
-```tsx
-import { useSmartWallet } from '@varity/ui-kit';
-
-function SmartWalletDemo() {
-  const {
-    account,              // Smart wallet account
-    isConnected,          // boolean
-    isGasless,            // boolean - Gasless enabled
-    connect,              // () => Promise<void>
-    disconnect,           // () => void
-    sendTransaction,      // (tx) => Promise<string>
-    sendBatchTransaction, // (txs[]) => Promise<string>
-    getAddress,           // () => string
-    isDeployed,           // boolean - Wallet deployed on-chain
-    deployWallet,         // () => Promise<void>
-  } = useSmartWallet();
-
-  const handleSend = async () => {
-    const txHash = await sendTransaction({
-      to: '0x...',
-      data: '0x...',
-      value: '0',
-    });
-    console.log('Transaction:', txHash);
-  };
-
-  const handleBatch = async () => {
-    const txHash = await sendBatchTransaction([
-      { to: '0x...', data: '0x...', value: '0' },
-      { to: '0x...', data: '0x...', value: '0' },
-    ]);
-    console.log('Batch transaction:', txHash);
-  };
-
-  return (
-    <div>
-      <p>Connected: {isConnected ? 'Yes' : 'No'}</p>
-      <p>Gasless: {isGasless ? 'Enabled' : 'Disabled'}</p>
-      <p>Deployed: {isDeployed ? 'Yes' : 'No'}</p>
-      <button onClick={handleSend}>Send Transaction</button>
-      <button onClick={handleBatch}>Send Batch</button>
-    </div>
-  );
-}
-```
-
-### useWalletAuth
-
-Session-based wallet authentication with auto-refresh.
-
-```tsx
-import { useWalletAuth } from '@varity/ui-kit';
-
-function SessionDemo() {
-  const {
-    isAuthenticated,
-    sessionToken,
-    walletAddress,
-    isAuthenticating,
-    authError,
-    sessions,
-    login,
-    logout,
-    refreshSession,
-    getSessions,
-    logoutFromSession,
-    logoutFromAllDevices,
-    addWallet,
-    authFetch,
-  } = useWalletAuth({
-    apiBaseUrl: '/api',
-    autoLogin: true,
-    refreshIntervalMinutes: 5,
-    onSessionChange: (session) => console.log('Session:', session),
-    onAuthError: (error) => console.error('Auth error:', error),
-  });
-
-  // Make authenticated API calls
-  const fetchData = async () => {
-    const response = await authFetch('/api/protected-route');
-    return response.json();
-  };
-
-  return (
-    <div>
-      <p>Authenticated: {isAuthenticated ? 'Yes' : 'No'}</p>
-      <p>Address: {walletAddress}</p>
-      <button onClick={login}>Login</button>
-      <button onClick={logout}>Logout</button>
-      <button onClick={logoutFromAllDevices}>Logout All Devices</button>
-    </div>
-  );
-}
-```
-
-**Config Options:**
-
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `apiBaseUrl` | `string` | `''` | API base URL |
-| `autoLogin` | `boolean` | `true` | Auto-login on mount |
-| `refreshIntervalMinutes` | `number` | `5` | Token refresh interval |
-| `onSessionChange` | `function` | - | Session change callback |
-| `onAuthError` | `function` | - | Auth error callback |
-
-## Utility Hooks
-
-### useVarityWallet
-
-General wallet utilities.
-
-```tsx
-import { useVarityWallet } from '@varity/ui-kit';
-
-function WalletUtils() {
-  const { address, balance, isConnected, chain } = useVarityWallet();
-
-  return (
-    <div>
-      <p>Address: {address}</p>
-      <p>Balance: {balance}</p>
-      <p>Chain: {chain?.name}</p>
-    </div>
-  );
-}
-```
-
-### useUSDCFormat
-
-Format USDC amounts for display.
-
-```tsx
-import { useUSDCFormat } from '@varity/ui-kit';
-
-function PriceDisplay({ amountRaw }) {
-  const { format, parse } = useUSDCFormat();
-
-  // Format raw amount for display
-  const display = format(amountRaw); // "10.50 USDC"
-
-  // Parse user input to raw
-  const raw = parse("10.50"); // 10500000n
-
-  return <p>{display}</p>;
-}
-```
-
-### useAddressValidation
-
-Validate wallet addresses.
-
-```tsx
-import { useAddressValidation } from '@varity/ui-kit';
-
-function AddressInput() {
-  const { isValid, validate } = useAddressValidation();
-  const [address, setAddress] = useState('');
-
-  const handleChange = (e) => {
-    const value = e.target.value;
-    setAddress(value);
-    validate(value);
-  };
-
-  return (
-    <div>
-      <input value={address} onChange={handleChange} />
-      {address && !isValid && <p className="error">Invalid address</p>}
-    </div>
-  );
-}
-```
-
-### useBlockExplorer
-
-Get block explorer URLs.
-
-```tsx
-import { useBlockExplorer } from '@varity/ui-kit';
-
-function TransactionLink({ txHash }) {
-  const { getTxUrl, getAddressUrl } = useBlockExplorer();
-
-  return (
-    <a href={getTxUrl(txHash)} target="_blank">
-      View Transaction
-    </a>
-  );
-}
-```
-
 ## Dashboard Hooks
 
 ### useAnalytics
@@ -343,7 +85,7 @@ function TransactionLink({ txHash }) {
 Dashboard analytics data.
 
 ```tsx
-import { useAnalytics } from '@varity/ui-kit';
+import { useAnalytics } from '@varity-labs/ui-kit';
 
 function AnalyticsPanel() {
   const { data, isLoading, error, refetch } = useAnalytics({
@@ -367,7 +109,7 @@ function AnalyticsPanel() {
 Key performance indicators.
 
 ```tsx
-import { useKPI } from '@varity/ui-kit';
+import { useKPI } from '@varity-labs/ui-kit';
 
 function KPICard() {
   const { kpis, isLoading } = useKPI();
@@ -391,43 +133,226 @@ function KPICard() {
 ## Complete Example
 
 ```tsx
-import {
-  usePrivy,
-  useWalletSync,
-  useSmartWallet,
-} from '@varity/ui-kit';
+import { usePrivy, useAnalytics } from '@varity-labs/ui-kit';
 
 function Dashboard() {
   const { user, authenticated, logout } = usePrivy();
-  const { address, isAuthenticated } = useWalletSync();
-  const { isGasless, sendTransaction } = useSmartWallet();
+  const { data } = useAnalytics({ period: 'current_month' });
 
   if (!authenticated) {
     return <p>Please sign in</p>;
   }
 
-  const handlePurchase = async () => {
-    const txHash = await sendTransaction({
-      to: '0x...',
-      data: '0x...',
-    });
-    console.log('Purchase complete:', txHash);
-  };
-
   return (
     <div>
       <h1>Welcome, {user?.email?.address}</h1>
-      <p>Wallet: {address}</p>
-      <p>Gasless: {isGasless ? 'Yes' : 'No'}</p>
-      <button onClick={handlePurchase}>Make Purchase</button>
+      <p>Total Users: {data?.totalUsers}</p>
       <button onClick={logout}>Sign Out</button>
     </div>
   );
 }
 ```
 
+<Accordion title="Advanced: Account and Infrastructure Hooks">
+
+These hooks provide lower-level access to account state and infrastructure details. Most apps only need `usePrivy` for authentication.
+
+### useWallets
+
+Access all connected accounts, re-exported from `@privy-io/react-auth`.
+
+```tsx
+import { useWallets } from '@varity-labs/ui-kit';
+
+function AccountList() {
+  const { wallets, ready } = useWallets();
+
+  if (!ready) return <div>Loading accounts...</div>;
+
+  return (
+    <ul>
+      {wallets.map((wallet) => (
+        <li key={wallet.address}>
+          {wallet.walletClientType}: {wallet.address}
+        </li>
+      ))}
+    </ul>
+  );
+}
+```
+
+### useWalletSync
+
+Unified account state from authentication providers.
+
+```tsx
+import { useWalletSync } from '@varity-labs/ui-kit';
+
+function AccountStatus() {
+  const {
+    address,         // string | null - Account address
+    isLoading,       // boolean - Syncing in progress
+    isSynced,        // boolean - Sync complete
+    isAuthenticated, // boolean - User logged in
+    authMethod,      // string - 'email', 'google', 'wallet', etc.
+  } = useWalletSync();
+
+  return (
+    <div>
+      <p>Address: {address}</p>
+      <p>Auth method: {authMethod}</p>
+    </div>
+  );
+}
+```
+
+### useSmartWallet
+
+Smart account operations with free transactions.
+
+```tsx
+import { useSmartWallet } from '@varity-labs/ui-kit';
+
+function SmartAccountDemo() {
+  const {
+    account,              // Smart account
+    isConnected,          // boolean
+    isGasless,            // boolean - Free operations enabled
+    connect,              // () => Promise<void>
+    disconnect,           // () => void
+    sendTransaction,      // (tx) => Promise<string>
+    sendBatchTransaction, // (txs[]) => Promise<string>
+    getAddress,           // () => string
+    isDeployed,           // boolean - Account deployed
+    deployWallet,         // () => Promise<void>
+  } = useSmartWallet();
+
+  const handleSend = async () => {
+    const txHash = await sendTransaction({
+      to: '0x...',
+      data: '0x...',
+      value: '0',
+    });
+    console.log('Transaction:', txHash);
+  };
+
+  return (
+    <div>
+      <p>Connected: {isConnected ? 'Yes' : 'No'}</p>
+      <p>Free operations: {isGasless ? 'Enabled' : 'Disabled'}</p>
+      <button onClick={handleSend}>Send Transaction</button>
+    </div>
+  );
+}
+```
+
+### useWalletAuth
+
+Session-based account authentication with auto-refresh.
+
+```tsx
+import { useWalletAuth } from '@varity-labs/ui-kit';
+
+function SessionDemo() {
+  const {
+    isAuthenticated,
+    sessionToken,
+    walletAddress,
+    login,
+    logout,
+    refreshSession,
+    authFetch,
+  } = useWalletAuth({
+    apiBaseUrl: '/api',
+    autoLogin: true,
+    refreshIntervalMinutes: 5,
+  });
+
+  const fetchData = async () => {
+    const response = await authFetch('/api/protected-route');
+    return response.json();
+  };
+
+  return (
+    <div>
+      <p>Authenticated: {isAuthenticated ? 'Yes' : 'No'}</p>
+      <button onClick={login}>Login</button>
+      <button onClick={logout}>Logout</button>
+    </div>
+  );
+}
+```
+
+### useVarityWallet
+
+General account utilities.
+
+```tsx
+import { useVarityWallet } from '@varity-labs/ui-kit';
+
+function AccountUtils() {
+  const { address, balance, isConnected, chain } = useVarityWallet();
+
+  return (
+    <div>
+      <p>Address: {address}</p>
+      <p>Balance: {balance}</p>
+    </div>
+  );
+}
+```
+
+### useUSDCFormat
+
+Format USDC amounts for display.
+
+```tsx
+import { useUSDCFormat } from '@varity-labs/ui-kit';
+
+function PriceDisplay({ amountRaw }) {
+  const { format, parse } = useUSDCFormat();
+  const display = format(amountRaw); // "10.50 USDC"
+  return <p>{display}</p>;
+}
+```
+
+### useAddressValidation
+
+Validate account addresses.
+
+```tsx
+import { useAddressValidation } from '@varity-labs/ui-kit';
+
+function AddressInput() {
+  const { isValid, validate } = useAddressValidation();
+  const [address, setAddress] = useState('');
+
+  return (
+    <div>
+      <input value={address} onChange={(e) => { setAddress(e.target.value); validate(e.target.value); }} />
+      {address && !isValid && <p className="error">Invalid address</p>}
+    </div>
+  );
+}
+```
+
+### useBlockExplorer
+
+Get explorer URLs for transactions and addresses.
+
+```tsx
+import { useBlockExplorer } from '@varity-labs/ui-kit';
+
+function TransactionLink({ txHash }) {
+  const { getTxUrl, getAddressUrl } = useBlockExplorer();
+  return <a href={getTxUrl(txHash)} target="_blank">View Details</a>;
+}
+```
+
+</Accordion>
+
 ## Next Steps
 
 - [Components Reference](/packages/ui-kit/components) - All components
 - [Authentication Guide](/build/auth/quickstart) - Complete auth setup
-- [Gasless Transactions](/build/payments/gasless) - How gasless works
+- [Free Operations](/build/payments/gasless) - How free operations work

@@ -1,75 +1,21 @@
 ---
-title: "Chain Support"
-description: "Working with Varity L3 and supported networks"
+title: "Infrastructure Configuration"
+description: "Working with Varity's infrastructure and supported networks"
 ---
 
 import { Aside } from '@astrojs/starlight/components';
+import Accordion from '../../../../components/Accordion.astro';
 
-Varity SDK supports multiple networks, with Varity L3 as the primary deployment target.
-
-## Varity L3 testnet
-
-The main network for Varity applications.
-
-| Property | Value |
-|----------|-------|
-| **Chain ID** | `33529` |
-| **RPC URL** | `https://rpc-varity-testnet-rroe52pwjp.t.conduit.xyz` |
-| **Explorer** | `https://explorer-varity-testnet-rroe52pwjp.t.conduit.xyz` |
-| **Native Token** | Bridged USDC |
-| **Decimals** | 6 (not 18!) |
-
-<Aside type="caution">
-**Important:** USDC on Varity L3 uses **6 decimals**, not 18 like ETH. Always use the `formatUSDC` and `parseUSDC` helpers to avoid calculation errors.
-</Aside>
-
-## Chain Configuration
-
-### thirdweb Format
-
-```typescript
-// IMPORTANT: Use thirdweb v5 function-based API (NOT v4 class-based)
-import { createThirdwebClient, getContract } from 'thirdweb';
-import { varityL3Testnet } from '@varity/sdk';
-
-// Step 1: Create thirdweb client (required for all thirdweb operations)
-const client = createThirdwebClient({
-  clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID,
-});
-
-// Step 2: Get a contract instance on Varity L3 testnet
-const contract = getContract({
-  client,
-  chain: varityL3Testnet, // Varity L3 testnet (Chain ID 33529)
-  address: '0x769250dac29817081f38CfBa597Ef2485F3a94e8', // Example: TemplateMarketplace
-});
-
-// Step 3: Now you can interact with the contract using thirdweb v5 functions
-// Example: Read contract data
-// import { readContract } from 'thirdweb';
-// const data = await readContract({ contract, method: "..." });
-```
-
-### Wagmi Format
-
-```typescript
-import { varityL3Wagmi } from '@varity/sdk';
-
-// Use with wagmi config
-const config = createConfig({
-  chains: [varityL3Wagmi],
-  // ...
-});
-```
+Varity SDK handles all infrastructure configuration automatically. You rarely need to configure anything manually.
 
 ## USDC Handling
 
-USDC on Varity L3 uses 6 decimals. Use the helpers to avoid errors:
+USDC on Varity uses 6 decimals. Use the helpers to avoid errors:
 
 ```typescript
-import { formatUSDC, parseUSDC, USDC_DECIMALS } from '@varity/sdk';
+import { formatUSDC, parseUSDC, USDC_DECIMALS } from '@varity-labs/sdk';
 
-// Convert human-readable to raw (for transactions)
+// Convert human-readable to raw (for operations)
 const amount = parseUSDC("10.50");
 // Returns: 10500000n (bigint)
 
@@ -81,22 +27,14 @@ const display = formatUSDC(10500000n);
 console.log(USDC_DECIMALS); // 6
 ```
 
-## Deployed Contracts
+<Aside type="caution">
+**Important:** USDC on Varity uses **6 decimals**, not 18. Always use the `formatUSDC` and `parseUSDC` helpers to avoid calculation errors.
+</Aside>
 
-Pre-deployed contracts on Varity L3 testnet:
-
-| Contract | Address | Purpose |
-|----------|---------|---------|
-| **TemplateMarketplace** | `0x769250dac29817081f38CfBa597Ef2485F3a94e8` | 70/30 Revenue Split |
-| **TemplateRegistry** | `0xEbD8C516c05BD2b76b5CDd56530b3Dd9f8b3D748` | Template metadata |
-| **VarityAppRegistry** | `0x52d4f28ebe20fad743bbef9daa61bfe3ce91eb74` | App Store submissions |
-| **SimplifiedPaymaster** | `0xeF467aef91d4e626C7e56967779069bEF22c4453` | Gas sponsorship |
-| **VarityWalletFactory** | `0x85AB92708CB4d921f5c2BdCCd7f2D0813a380f71` | Smart wallets |
-
-### Accessing Contract Addresses
+## Accessing Contract Addresses
 
 ```typescript
-import { VARITY_CONTRACTS, getVarityContractAddress } from '@varity/sdk';
+import { VARITY_CONTRACTS, getVarityContractAddress } from '@varity-labs/sdk';
 
 // Get all contracts
 console.log(VARITY_CONTRACTS);
@@ -107,79 +45,96 @@ const marketplace = getVarityContractAddress('TemplateMarketplace');
 
 ## Revenue Split
 
-The platform uses a 70/30 revenue split:
+The platform uses a 90/10 revenue split:
 
 ```typescript
-import { REVENUE_SPLIT } from '@varity/sdk';
+import { REVENUE_SPLIT } from '@varity-labs/sdk';
 
 console.log(REVENUE_SPLIT);
-// { DEVELOPER_PERCENT: 70, PLATFORM_PERCENT: 30 }
+// { DEVELOPER_PERCENT: 90, PLATFORM_PERCENT: 10 }
 ```
 
 When users purchase your app:
-- **70%** goes to you (the developer) - `REVENUE_SPLIT.DEVELOPER_PERCENT`
-- **30%** goes to the Varity platform - `REVENUE_SPLIT.PLATFORM_PERCENT`
+- **90%** goes to you (the developer) - `REVENUE_SPLIT.DEVELOPER_PERCENT`
+- **10%** goes to the Varity platform - `REVENUE_SPLIT.PLATFORM_PERCENT`
+
+<Aside type="tip">
+**Free operations by default.** Users on Varity never pay usage fees. The platform sponsors all operational costs.
+</Aside>
+
+<Accordion title="Advanced: Network Details">
+
+**Varity manages these credentials automatically. Only use this if you need custom configuration.**
+
+## Varity Infrastructure
+
+| Property | Value |
+|----------|-------|
+| **Chain ID** | `33529` |
+| **RPC URL** | `https://rpc-varity-testnet-rroe52pwjp.t.conduit.xyz` |
+| **Explorer** | `https://explorer-varity-testnet-rroe52pwjp.t.conduit.xyz` |
+| **Native Token** | Bridged USDC |
+| **Decimals** | 6 (not 18!) |
+
+## Backend Contracts
+
+Pre-deployed on Varity's infrastructure:
+
+| Contract | Address | Purpose |
+|----------|---------|---------|
+| **TemplateMarketplace** | `0x58618dcD2A4109854441B74a28C1dA4E58d7AF44` | 90/10 Revenue Split |
+| **TemplateRegistry** | `0xE4062a3eF177C1A80C7f03874596EFa0D5b4FeD3` | Template metadata |
+| **VarityAppRegistry** | `0x52d4f28ebe20fad743bbef9daa61bfe3ce91eb74` | App Store submissions |
+| **SimplifiedPaymaster** | `0xeF467aef91d4e626C7e56967779069bEF22c4453` | Fee sponsorship |
+| **VarityWalletFactory** | `0x85AB92708CB4d921f5c2BdCCd7f2D0813a380f71` | Smart accounts |
 
 ## Supported Networks
 
 | Network | Chain ID | Status |
 |---------|----------|--------|
-| Varity L3 testnet | 33529 | Active |
-| Arbitrum Sepolia | 421614 | For testing |
-| Varity L3 Mainnet | TBD | Coming post-MVP |
+| Varity (Beta) | 33529 | Active |
+| Varity (Production) | TBD | Coming post-MVP |
 
 ## Network Configuration
 
 ```typescript
-import { getNetworkConfig, NETWORK_CONFIGS } from '@varity/sdk';
+import { getNetworkConfig, NETWORK_CONFIGS } from '@varity-labs/sdk';
 
-// Get config by name
-const testnetConfig = getNetworkConfig('arbitrum-l3-testnet');
-
-// All available configs
+const config = getNetworkConfig('arbitrum-l3-testnet');
 console.log(Object.keys(NETWORK_CONFIGS));
-// ['arbitrum-sepolia', 'arbitrum-l3-testnet', 'arbitrum-l3-mainnet']
 ```
 
-## Adding to MetaMask
+## Direct Chain Access
 
-Users can add Varity L3 testnet to MetaMask:
+```typescript
+import { createThirdwebClient, getContract } from 'thirdweb';
+import { varityL3Testnet } from '@varity-labs/sdk';
 
-```javascript
-// Add Varity L3 testnet to MetaMask
-async function addVarityL3ToMetaMask() {
-  try {
-    await window.ethereum.request({
-      method: 'wallet_addEthereumChain',
-      params: [{
-        chainId: '0x82E9', // 33529 in hex (Varity L3 testnet)
-        chainName: 'Varity L3 Testnet',
-        nativeCurrency: {
-          name: 'USDC',
-          symbol: 'USDC',
-          decimals: 6, // IMPORTANT: 6 decimals, NOT 18!
-        },
-        rpcUrls: ['https://rpc-varity-testnet-rroe52pwjp.t.conduit.xyz'],
-        blockExplorerUrls: ['https://explorer-varity-testnet-rroe52pwjp.t.conduit.xyz'],
-      }],
-    });
-    console.log('Varity L3 testnet added to MetaMask');
-  } catch (error) {
-    console.error('Failed to add network:', error);
-  }
-}
+const client = createThirdwebClient({
+  clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID,
+});
+
+const contract = getContract({
+  client,
+  chain: varityL3Testnet,
+  address: '0x58618dcD2A4109854441B74a28C1dA4E58d7AF44',
+});
 ```
 
-<Aside type="caution">
-**Important:** USDC on Varity L3 uses **6 decimals**, not 18 like ETH. Always use `formatUSDC` and `parseUSDC` helpers to avoid calculation errors.
-</Aside>
+## Wagmi Format
 
-<Aside type="tip">
-**Gasless by default:** Users on Varity L3 don't pay gas fees. The platform sponsors all transaction costs.
-</Aside>
+```typescript
+import { varityL3Wagmi } from '@varity-labs/sdk';
+
+const config = createConfig({
+  chains: [varityL3Wagmi],
+});
+```
+
+</Accordion>
 
 ## Next Steps
 
 - [SDK Overview](/packages/sdk/overview) - Full SDK capabilities
-- [Deploy to Varity L3](/deploy/varity-l3) - Deploy your app
-- [Gasless Transactions](/build/payments/gasless) - How gas sponsorship works
+- [Deploy Your App](/deploy/varity-l3) - Deploy your app
+- [Free Operations](/build/payments/gasless) - How fee sponsorship works

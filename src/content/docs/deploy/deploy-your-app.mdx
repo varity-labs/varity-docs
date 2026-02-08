@@ -1,0 +1,328 @@
+---
+title: Deploy Your Application
+description: Make your application live in under 2 minutes with one command
+sidebar:
+  badge:
+    text: Beta
+    variant: note
+---
+
+import { Tabs, TabItem, Steps, Aside, Card, CardGrid } from '@astrojs/starlight/components';
+import Accordion from '../../../components/Accordion.astro';
+
+# Deploy Your Application
+
+Deploy your application to Varity with one command. Your app will be live in under 2 minutes.
+
+:::note[Beta Environment]
+Varity is currently in beta. Your deployments work exactly as in production, but with test data.
+:::
+
+## Quick Deploy
+
+<Steps>
+
+1. **Install the CLI**
+
+   ```bash
+   pip install varitykit
+   ```
+
+2. **Build your project**
+
+   ```bash
+   npm run build
+   ```
+
+3. **Deploy**
+
+   ```bash
+   varitykit app deploy
+   ```
+
+4. **Your app is live!**
+
+   Varity will output your live URL:
+
+   ```
+   ✓ Deployed successfully!
+   ✓ URL: https://your-app.varity.app
+   ✓ Build time: 1m 23s
+   ✓ Status: Live
+   ```
+
+</Steps>
+
+## What Happens During Deployment
+
+When you run `varitykit app deploy`:
+
+1. **Detects your framework** - Automatically identifies Next.js, React, Vue, etc.
+2. **Builds your app** - Runs your build command (`npm run build`)
+3. **Uploads your files** - Stores them securely with automatic backups
+4. **Makes your app live** - Generates a public URL
+5. **Enables free operations** - Users never pay usage fees
+
+All of this happens automatically in under 2 minutes.
+
+## Hosting Options
+
+Choose the right hosting for your application type:
+
+<CardGrid>
+  <Card title="Static Sites" icon="document">
+    **Best for**: React, Vue, Next.js static exports, documentation, landing pages
+
+    **Features**:
+    - Free hosting with global CDN
+    - Instant cache invalidation
+    - Automatic SSL certificates
+    - 99.9% uptime
+
+    ```bash
+    varitykit app deploy
+    ```
+  </Card>
+  <Card title="Dynamic Apps" icon="rocket">
+    **Best for**: Full-stack apps, APIs, real-time applications, databases
+
+    **Features**:
+    - Container-based compute
+    - Automatic scaling
+    - Database support
+    - WebSocket support
+
+    :::note[Coming Soon]
+    Dynamic hosting is currently in development.
+    :::
+
+    ```bash
+    varitykit app deploy --dynamic
+    ```
+  </Card>
+</CardGrid>
+
+## Before You Deploy
+
+### Environment Variables
+
+Credentials are managed automatically by Varity. Optionally set your app ID:
+
+```bash title=".env.local"
+# Optional: Your Varity App ID
+NEXT_PUBLIC_VARITY_APP_ID=<your-app-id>
+
+# Optional: Custom domain
+VARITY_CUSTOM_DOMAIN=your-domain.com
+```
+
+See [Environment Variables](/deploy/env-variables) for the complete list and [Managed Credentials](/deploy/managed-credentials) for how credential auto-provision works.
+
+### Test Locally First
+
+Always test your build works locally:
+
+```bash
+npm run build
+npm run start
+```
+
+Visit `http://localhost:3000` and verify everything works.
+
+## Publish to App Store
+
+List your app in the Varity App Store for users to discover:
+
+```bash
+varitykit app deploy --submit-to-store
+```
+
+This will:
+1. Deploy your app
+2. Submit it for listing in the App Store
+3. Make it discoverable by users
+4. Enable payments and subscriptions (optional)
+
+### Revenue Share
+
+When users purchase your app or subscribe:
+
+- **90%** goes to you (the developer)
+- **10%** goes to the Varity platform
+
+All payment processing is handled automatically. You receive payouts monthly.
+
+## Manage Your Deployments
+
+### List All Deployments
+
+View your deployment history:
+
+```bash
+varitykit app list
+```
+
+Output:
+```
+ID                  Status    URL                              Deployed
+deploy-1737491000   live      https://your-app.varity.app      2 hours ago
+deploy-1737484800   archived  https://v2.your-app.varity.app   1 day ago
+deploy-1737398400   archived  https://v1.your-app.varity.app   2 days ago
+```
+
+### Rollback to Previous Version
+
+Revert to a previous deployment:
+
+```bash
+varitykit app rollback deploy-1737484800
+```
+
+Your app will instantly switch to the selected version.
+
+### View Deployment Status
+
+Check the status of a specific deployment:
+
+```bash
+varitykit app status deploy-1737491000
+```
+
+## Custom Domains
+
+Add your own domain to your Varity app:
+
+```bash
+varitykit domain add your-domain.com
+```
+
+Follow the prompts to configure DNS. Varity will automatically provision SSL certificates.
+
+## Troubleshooting
+
+### "Deployment failed: Build error"
+
+1. Verify your build works locally:
+   ```bash
+   npm run build
+   ```
+
+2. Check the build output directory exists:
+   - Next.js: `.next/` or `out/`
+   - React: `dist/` or `build/`
+   - Vue: `dist/`
+
+### "Environment variables not found"
+
+Credentials are auto-provided. If you see this error, run `varitykit doctor` to check your setup.
+
+### "Deployment timed out"
+
+Check your internet connection:
+
+```bash
+varitykit doctor
+```
+
+If issues persist, try deploying with verbose output:
+
+```bash
+varitykit app deploy --verbose
+```
+
+### "Permission denied"
+
+Make sure you are authenticated:
+
+```bash
+varitykit login
+```
+
+## Advanced Configuration
+
+:::note[Advanced Settings]
+Most users do not need these settings. Use defaults unless you have specific requirements.
+:::
+
+### Build Configuration
+
+Override the default build command:
+
+```bash
+varitykit app deploy --build-command "pnpm build"
+```
+
+### Output Directory
+
+Specify a custom output directory:
+
+```bash
+varitykit app deploy --output-dir "dist"
+```
+
+### Resource Allocation (Dynamic Apps)
+
+For dynamic apps, configure resources:
+
+```bash
+varitykit app deploy --dynamic \
+  --cpu 2 \
+  --memory 4GB \
+  --replicas 3
+```
+
+<Accordion title="Advanced: Technical Architecture">
+
+## Network Details
+
+Varity runs on dedicated infrastructure optimized for application deployment:
+
+| Property | Value |
+|----------|-------|
+| **Chain ID** | `33529` |
+| **RPC URL** | `https://rpc-varity-testnet-rroe52pwjp.t.conduit.xyz` |
+| **Explorer** | `https://explorer-varity-testnet-rroe52pwjp.t.conduit.xyz` |
+| **Native Token** | Bridged USDC (6 decimals, NOT 18!) |
+| **Usage Fees** | Sponsored (free for users via ERC-4337) |
+| **Status** | **Beta** - Production launch post-MVP |
+
+## Backend Contracts
+
+Pre-deployed on Varity's infrastructure:
+
+| Contract | Address | Purpose |
+|----------|---------|---------|
+| **TemplateMarketplace** | `0x58618dcD2A4109854441B74a28C1dA4E58d7AF44` | 90/10 Revenue Split |
+| **TemplateRegistry** | `0xE4062a3eF177C1A80C7f03874596EFa0D5b4FeD3` | Template metadata |
+| **VarityAppRegistry** | `0x52d4f28ebe20fad743bbef9daa61bfe3ce91eb74` | App Store submissions |
+| **SimplifiedPaymaster** | `0xeF467aef91d4e626C7e56967779069bEF22c4453` | Fee sponsorship (ERC-4337) |
+| **VarityWalletFactory** | `0x85AB92708CB4d921f5c2BdCCd7f2D0813a380f71` | Smart accounts (ERC-4337) |
+
+## Storage Architecture
+
+Static deployments use:
+- **IPFS** for content-addressed storage
+- **Filecoin** for long-term archival
+- **CDN** for global distribution
+
+Dynamic deployments use:
+- **Akash Network** for distributed compute
+- **Persistent volumes** for databases
+- **Load balancing** across multiple providers
+
+## Deployment Flow (Technical)
+
+1. **Build** - CLI detects framework and runs build
+2. **Upload** - Files uploaded to IPFS, deployment ID generated
+3. **Register** - App registered via `VarityAppRegistry`
+4. **Paymaster** - Free operations enabled via `SimplifiedPaymaster`
+5. **CDN** - Files propagated to global CDN
+
+</Accordion>
+
+## Next Steps
+
+- [Configure environment variables](/deploy/env-variables)
+- [CLI Reference](/cli/overview)
+- [Quick Start Guide](/getting-started/quickstart)
+- [Troubleshooting](/resources/troubleshooting)

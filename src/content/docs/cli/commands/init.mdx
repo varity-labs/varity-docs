@@ -5,7 +5,7 @@ description: "Create a new project from a template"
 
 import { Steps, Aside } from '@astrojs/starlight/components';
 
-Create a new Varity project from an industry-specific template.
+Create a new Varity project from a starter template.
 
 ## Usage
 
@@ -23,24 +23,24 @@ varitykit init
 varitykit init my-app
 
 # With template
-varitykit init my-app --template generic
+varitykit init my-app --template saas-starter
 ```
 
 ## Available Templates
 
 | Template | Description | Best For |
 |----------|-------------|----------|
-| `generic` | General-purpose dashboard | Most applications |
-| `finance` | Financial services template | Fintech, banking |
-| `healthcare` | Healthcare template | Medical apps, patient portals |
-| `retail` | Retail/e-commerce template | Online stores, marketplaces |
-| `iso-merchant` | ISO merchant services | Payment processing |
+| `saas-starter` | SaaS dashboard with auth, analytics, and billing | Most applications |
+
+<Aside type="tip">
+The `saas-starter` template includes everything you need: authentication, dashboard layout, analytics, and deployment-ready configuration.
+</Aside>
 
 ## Options
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `--template` | `generic` | Template to use |
+| `--template` | `saas-starter` | Template to use |
 | `--skip-install` | `false` | Skip `npm install` |
 | `--skip-git` | `false` | Skip git initialization |
 | `--typescript` | `true` | Use TypeScript |
@@ -54,7 +54,7 @@ Running without arguments starts interactive mode:
 $ varitykit init
 
 ? Project name: my-app
-? Select a template: generic
+? Select a template: saas-starter
 ? Package manager: npm
 ? Initialize git repository? Yes
 
@@ -99,47 +99,16 @@ my-app/
 
 ## What's Included
 
-Every template includes:
+The SaaS starter template includes:
 
 - **Authentication** - PrivyStack pre-configured
 - **Protected Routes** - PrivyProtectedRoute examples
+- **Dashboard Layout** - Responsive sidebar and navigation
+- **Analytics** - Data tables, charts, and KPIs
 - **Environment Variables** - `.env.local.example` with all variables
 - **TypeScript** - Full type support
 - **Styling** - Tailwind CSS configured
 - **Deployment Ready** - Works with `varitykit app deploy`
-
-## Template-Specific Features
-
-### Generic Template
-
-Basic dashboard with:
-- User authentication
-- Dashboard layout
-- Profile management
-
-### Finance Template
-
-Includes:
-- Transaction history
-- Balance displays
-- Payment forms
-- Compliance components
-
-### Healthcare Template
-
-Includes:
-- Patient management
-- Appointment scheduling
-- Medical records display
-- HIPAA-ready components
-
-### Retail Template
-
-Includes:
-- Product listings
-- Shopping cart
-- Checkout flow
-- Order management
 
 ## Environment Setup
 
@@ -153,14 +122,7 @@ After initialization, set up your environment:
    cp .env.local.example .env.local
    ```
 
-2. **Add your credentials**
-
-   ```bash title=".env.local"
-   NEXT_PUBLIC_PRIVY_APP_ID=your_privy_app_id
-   NEXT_PUBLIC_THIRDWEB_CLIENT_ID=your_thirdweb_client_id
-   ```
-
-3. **Start development server**
+2. **Start development server**
 
    ```bash
    npm run dev
@@ -169,7 +131,7 @@ After initialization, set up your environment:
 </Steps>
 
 <Aside type="tip">
-**Development Mode:** Templates work without credentials using shared development defaults. Add your own keys before going to production.
+No credentials needed. Varity manages all credentials automatically. See [Managed Credentials](/deploy/managed-credentials).
 </Aside>
 
 ## Custom Templates
@@ -217,7 +179,7 @@ npm install
 
 - [Run your app locally](/getting-started/quickstart)
 - [Add authentication](/build/auth/quickstart)
-- [Deploy to production](/cli/commands/deploy)
+- [Deploy your app](/cli/commands/deploy)
 
 ## Related Resources
 

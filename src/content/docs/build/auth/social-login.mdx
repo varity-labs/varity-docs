@@ -24,7 +24,7 @@ Let users sign in with accounts they already have. No new passwords, no email ve
 1. **Configure login methods**
 
    ```tsx title="app/layout.tsx"
-   import { PrivyStack } from '@varity/ui-kit';
+   import { PrivyStack } from '@varity-labs/ui-kit';
 
    export default function RootLayout({ children }) {
      return (
@@ -46,7 +46,7 @@ Let users sign in with accounts they already have. No new passwords, no email ve
    The `PrivyLoginButton` automatically shows all configured providers:
 
    ```tsx title="components/LoginButton.tsx"
-   import { PrivyLoginButton } from '@varity/ui-kit';
+   import { PrivyLoginButton } from '@varity-labs/ui-kit';
 
    export function LoginButton() {
      return <PrivyLoginButton />;
@@ -66,7 +66,7 @@ Users will see a modal with options for email and all configured social provider
 After social login, user data is available through `usePrivy`:
 
 ```tsx title="components/UserInfo.tsx"
-import { usePrivy } from '@varity/ui-kit';
+import { usePrivy } from '@varity-labs/ui-kit';
 
 export function UserInfo() {
   const { user } = usePrivy();
@@ -156,7 +156,7 @@ Pick providers your users actually use:
 ### Handle Login Errors
 
 ```tsx title="components/LoginWithErrorHandling.tsx"
-import { PrivyLoginButton } from '@varity/ui-kit';
+import { PrivyLoginButton } from '@varity-labs/ui-kit';
 import { toast } from 'react-hot-toast';
 
 export function LoginWithErrorHandling() {

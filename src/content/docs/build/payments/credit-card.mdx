@@ -7,53 +7,67 @@ import { Aside } from '@astrojs/starlight/components';
 
 # Credit Card Payments
 
-Let users add funds using their credit or debit card. The payment flow is familiar—just like any e-commerce checkout.
+Let users pay for your app using credit cards, Apple Pay, or Google Pay through the Varity App Store.
+
+<Aside type="caution" title="Beta Limitation">
+Credit card payments are not available during beta (development environment). Apps can use the free tier. Paid tiers with credit card support will be available after production launch.
+</Aside>
 
 ## How It Works
 
-1. User clicks "Buy" or "Add Funds"
-2. Secure payment modal opens
-3. User enters card details (or uses Apple Pay or Google Pay)
-4. Payment is processed by a licensed provider
-5. USDC is deposited to the app
+1. User finds your app in the Varity App Store
+2. User clicks "Purchase" or "Subscribe"
+3. Secure checkout opens with familiar payment options
+4. Payment is processed automatically
+5. Revenue is split 90/10 (you keep 90%)
 
-Users never need to know about cryptocurrency. They just pay with their card.
+Users never need special accounts or knowledge. They just pay with their card.
 
-## Basic Setup
+## Setting Up Pricing
 
-```tsx title="components/AddFundsButton.tsx"
-import { BuyUSDCButton } from '@varity/ui-kit';
-import { usePrivy } from '@varity/ui-kit';
+Configure your app pricing in the [Developer Portal](https://developer.store.varity.so):
 
-export function AddFundsButton() {
+| Pricing Model | Description |
+|---------------|-------------|
+| **Free** | No charge. Great for building an audience. |
+| **One-time** | Single purchase. User gets lifetime access. |
+| **Subscription** | Monthly recurring payment. |
+
+## In-App Payments (Post-Beta)
+
+Once credit card payments are available, add payment components directly in your app:
+
+```tsx title="components/UpgradeButton.tsx"
+import { PaymentWidget } from '@varity-labs/ui-kit';
+import { usePrivy } from '@varity-labs/ui-kit';
+
+export function UpgradeButton() {
   const { user } = usePrivy();
-  const walletAddress = user?.wallet?.address;
 
-  if (!walletAddress) {
-    return <p>Please log in to add funds</p>;
+  if (!user) {
+    return <p>Please log in to upgrade</p>;
   }
 
   return (
-    <BuyUSDCButton
-      walletAddress={walletAddress}
-      clientId={process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID}
+    <PaymentWidget
+      appId={process.env.NEXT_PUBLIC_VARITY_APP_ID}
       amount={50}
-      buttonText="Add $50"
-      onSuccess={(tx) => {
-        toast.success('Funds added successfully!');
+      buttonText="Upgrade to Pro - $50"
+      onSuccess={(result) => {
+        console.log('Upgrade complete!', result);
       }}
     />
   );
 }
 ```
 
-## Full Checkout Page
+## Full Checkout Page (Post-Beta)
 
-For a complete payment page:
+For a complete payment experience:
 
 ```tsx title="pages/checkout.tsx"
-import { OnrampWidget } from '@varity/ui-kit';
-import { usePrivy } from '@varity/ui-kit';
+import { PaymentGate } from '@varity-labs/ui-kit';
+import { usePrivy } from '@varity-labs/ui-kit';
 import { useRouter } from 'next/navigation';
 
 export default function CheckoutPage() {
@@ -67,16 +81,15 @@ export default function CheckoutPage() {
 
   return (
     <div className="max-w-md mx-auto py-8">
-      <h1 className="text-2xl font-bold mb-6">Add Funds</h1>
+      <h1 className="text-2xl font-bold mb-6">Upgrade Your Plan</h1>
 
-      <OnrampWidget
-        walletAddress={user.wallet.address}
-        clientId={process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID}
-        defaultAmount={100}
-        theme="light"
-        onComplete={(purchase) => {
-          if (purchase.status === 'completed') {
-            router.push('/dashboard?funded=true');
+      <PaymentGate
+        appId={process.env.NEXT_PUBLIC_VARITY_APP_ID}
+        amount={100}
+        tier="business"
+        onSuccess={(result) => {
+          if (result.status === 'completed') {
+            router.push('/dashboard?upgraded=true');
           }
         }}
       />
@@ -85,133 +98,28 @@ export default function CheckoutPage() {
 }
 ```
 
-## Payment Amounts
+## Payment Methods (Post-Beta)
 
-Control min and max payment amounts:
+| Method | Availability |
+|--------|--------------|
+| Credit/Debit Card | All users |
+| Apple Pay | iOS/macOS users |
+| Google Pay | Android/Chrome users |
 
-```tsx
-<OnrampWidget
-  walletAddress={walletAddress}
-  clientId={clientId}
-  defaultAmount={50}
-  minAmount={5}
-  maxAmount={500}
-/>
-```
+## Revenue Split
 
-## Preset Amounts
+When users purchase your app:
 
-Show preset amount buttons:
+- **90%** goes to you (the developer)
+- **10%** goes to the Varity platform
 
-```tsx title="components/QuickBuy.tsx"
-import { useState } from 'react';
-import { BuyUSDCButton } from '@varity/ui-kit';
-
-const PRESET_AMOUNTS = [10, 25, 50, 100];
-
-export function QuickBuy({ walletAddress, clientId }) {
-  const [selectedAmount, setSelectedAmount] = useState(25);
-
-  return (
-    <div>
-      <div className="flex gap-2 mb-4">
-        {PRESET_AMOUNTS.map((amount) => (
-          <button
-            key={amount}
-            onClick={() => setSelectedAmount(amount)}
-            className={`px-4 py-2 rounded ${
-              selectedAmount === amount
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100'
-            }`}
-          >
-            ${amount}
-          </button>
-        ))}
-      </div>
-
-      <BuyUSDCButton
-        walletAddress={walletAddress}
-        clientId={clientId}
-        amount={selectedAmount}
-        buttonText={`Buy $${selectedAmount}`}
-      />
-    </div>
-  );
-}
-```
-
-## Supported Cards
-
-| Card Type | Supported |
-|-----------|-----------|
-| Visa | Yes |
-| Mastercard | Yes |
-| American Express | Yes |
-| Discover | Yes |
-
-## Apple Pay and Google Pay
-
-These are automatically enabled when available:
-
-- **Apple Pay** - Shows on iOS devices and macOS Safari
-- **Google Pay** - Shows on Android and Chrome
-
-No additional configuration needed.
-
-## Handling Errors
-
-Common error scenarios:
-
-```tsx
-<OnrampWidget
-  walletAddress={walletAddress}
-  clientId={clientId}
-  onError={(error) => {
-    if (error.message.includes('declined')) {
-      toast.error('Card declined. Please try a different card.');
-      return;
-    }
-
-    if (error.message.includes('authentication')) {
-      toast.error('Card verification failed. Please try again.');
-      return;
-    }
-
-    toast.error('Payment failed. Please try again.');
-  }}
-/>
-```
-
-## Purchase History
-
-Show past purchases:
-
-```tsx
-<OnrampWidget
-  walletAddress={walletAddress}
-  clientId={clientId}
-  showHistory={true}
-/>
-```
-
-## Dark Mode
-
-Use dark theme:
-
-```tsx
-<OnrampWidget
-  walletAddress={walletAddress}
-  clientId={clientId}
-  theme="dark"
-/>
-```
+Revenue is tracked in the [Developer Portal](https://developer.store.varity.so).
 
 <Aside type="tip">
-**Processing time** - Most payments complete within 1-3 minutes. Bank transfers may take longer.
+**No setup needed for payments** - The Varity App Store handles all payment processing, compliance, and payouts. You just set your price.
 </Aside>
 
 ## Next Steps
 
-- [Gasless Transactions](/build/payments/gasless) - Users never pay fees
+- [Free Operations](/build/payments/gasless) - Users never pay usage fees
 - [Authentication Quick Start](/build/auth/quickstart) - Set up user accounts

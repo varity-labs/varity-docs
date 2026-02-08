@@ -30,15 +30,15 @@ The doctor command performs 20+ checks:
 
 | Variable | Status |
 |----------|--------|
-| `THIRDWEB_CLIENT_ID` | Required for IPFS deployments |
+| `THIRDWEB_CLIENT_ID` | Auto-provided (or set your own) |
 | `AKASH_WALLET_KEY` | Required for Akash deployments |
 | `WALLET_PRIVATE_KEY` | Required for contract deployments |
 
 ### Network Connectivity
 
 - Varity L3 RPC connection
-- thirdweb API access
-- IPFS gateway access
+- Storage API access
+- Storage gateway access
 
 ### Project Structure
 
@@ -58,14 +58,14 @@ Checking system requirements...
   ✓ Docker: Running
 
 Checking environment variables...
-  ✓ THIRDWEB_CLIENT_ID: Set
+  ✓ Credentials: Auto-provided
   ✗ AKASH_WALLET_KEY: Not set (required for Akash deployments)
   ✗ WALLET_PRIVATE_KEY: Not set (required for contract deployments)
 
 Checking network connectivity...
   ✓ Varity L3 RPC: Connected
-  ✓ thirdweb API: Accessible
-  ✓ IPFS Gateway: Accessible
+  ✓ Storage API: Accessible
+  ✓ Storage Gateway: Accessible
 
 Checking project structure...
   ✓ package.json: Found
@@ -117,10 +117,9 @@ sudo apt install -y nodejs
 
 ### Missing Environment Variables
 
-Create a `.env` file in your project root:
+Storage and authentication credentials are auto-provided by Varity. For other variables, create a `.env` file in your project root:
 
 ```bash title=".env"
-THIRDWEB_CLIENT_ID=your_client_id
 AKASH_WALLET_KEY=your_wallet_key
 WALLET_PRIVATE_KEY=your_private_key
 ```

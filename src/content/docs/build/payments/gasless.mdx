@@ -1,27 +1,28 @@
 ---
-title: "Gasless Transactions"
-description: "Users never pay transaction fees"
+title: "Free Operations"
+description: "Users never pay usage fees"
 ---
 
 import { Steps, Aside } from '@astrojs/starlight/components';
+import Accordion from '../../../../components/Accordion.astro';
 
-# Gasless Transactions
+# Free Operations
 
-Your users never pay transaction fees. Varity sponsors all transaction costs for a seamless app experience.
+Your users never pay usage fees. Varity sponsors all operational costs for a seamless app experience.
 
 ## How It Works
 
-Traditional apps make users pay fees for every action. With Varity:
+Traditional platforms charge per-request fees. With Varity:
 
-1. User performs an action (buy, transfer, update)
-2. Varity's paymaster sponsors the transaction fee
-3. Transaction completes
-4. User sees success - no fee prompt, no extra steps
+1. User performs an action (create, update, delete)
+2. Varity's infrastructure handles the operation for free
+3. Operation completes instantly
+4. User sees success -- no fee prompts, no extra steps
 
-Users don't even know they're using a decentralized app.
+Your app works just like any other web app. No interruptions, no hidden costs.
 
 <Aside type="tip">
-**No crypto wallets needed:** Combined with email login, your users never see wallet prompts, seed phrases, or fee confirmations. It just works.
+**No special accounts needed.** Combined with email login, your users never see extra prompts or fee confirmations. It just works.
 </Aside>
 
 ## Setup
@@ -30,10 +31,10 @@ Users don't even know they're using a decentralized app.
 
 1. **Wrap with PrivyStack**
 
-   Gasless transactions are enabled by default:
+   Free operations are enabled by default:
 
    ```tsx title="app/layout.tsx"
-   import { PrivyStack } from '@varity/ui-kit';
+   import { PrivyStack } from '@varity-labs/ui-kit';
 
    export default function RootLayout({ children }) {
      return (
@@ -48,23 +49,37 @@ Users don't even know they're using a decentralized app.
    }
    ```
 
-2. **Transactions are automatically gasless**
+2. **Operations are automatically free**
 
-   When users perform actions, fees are sponsored automatically.
+   When users perform actions, all operational costs are sponsored automatically.
 
 </Steps>
 
-## Smart Wallet Provider
+## Features
 
-For more control, use `SmartWalletProvider` directly:
+| Feature | Description |
+|---------|-------------|
+| Free operations | All usage fees paid by Varity |
+| Batch | Multiple operations in one request |
+| Auto-deploy | Account created on first use |
+| No keys to manage | Users never handle private keys |
+
+## Billing
+
+- **Beta**: Free (using shared development credentials)
+- **Production**: Usage-based billing through your Varity account
+
+<Accordion title="Advanced: Smart Account Configuration">
+
+**Varity manages these credentials automatically. Only use this if you need custom configuration.**
+
+For more control, you can configure the smart account provider directly:
 
 ```tsx title="app/layout.tsx"
-// IMPORTANT: Use thirdweb v5 function-based API (NOT v4 class-based)
-import { SmartWalletProvider } from '@varity/ui-kit';
+import { SmartWalletProvider } from '@varity-labs/ui-kit';
 import { createThirdwebClient } from 'thirdweb';
-import { varityL3Testnet } from '@varity/sdk';
+import { varityL3Testnet } from '@varity-labs/sdk';
 
-// Create thirdweb client for smart wallet operations
 const client = createThirdwebClient({
   clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID,
 });
@@ -74,10 +89,8 @@ export default function App({ children }) {
     <SmartWalletProvider
       config={{
         client,
-        chain: varityL3Testnet, // Varity L3 testnet (Chain ID 33529)
-        gasless: {
-          enabled: true, // Enable gasless transactions (users pay no fees)
-        },
+        chain: varityL3Testnet,
+        gasless: { enabled: true },
       }}
     >
       {children}
@@ -86,172 +99,59 @@ export default function App({ children }) {
 }
 ```
 
-## Using Smart Wallet
+### Smart Account Hook
 
-Access smart wallet functionality with `useSmartWallet`:
+```tsx
+import { useSmartWallet } from '@varity-labs/ui-kit';
 
-```tsx title="components/SendButton.tsx"
-import { useSmartWallet } from '@varity/ui-kit';
-
-export function SendButton() {
+function ActionButton() {
   const { sendTransaction, isGasless, isConnected } = useSmartWallet();
 
-  const handleSend = async () => {
-    const txHash = await sendTransaction({
+  const handleAction = async () => {
+    const result = await sendTransaction({
       to: '0x...',
       data: '0x...',
       value: '0',
     });
-
-    console.log('Transaction sent:', txHash);
-  };
-
-  if (!isConnected) {
-    return <p>Please connect wallet</p>;
-  }
-
-  return (
-    <div>
-      <button onClick={handleSend}>
-        Send Transaction
-      </button>
-      {isGasless && (
-        <span className="text-green-600 text-sm">
-          No fees - gasless enabled
-        </span>
-      )}
-    </div>
-  );
-}
-```
-
-## Gasless Badge
-
-Show users that transactions are free:
-
-```tsx
-import { GaslessBadge } from '@varity/ui-kit';
-
-export function TransactionInfo() {
-  return (
-    <div>
-      <h3>Send Payment</h3>
-      <GaslessBadge />  {/* Shows "Gasless" badge when enabled */}
-    </div>
-  );
-}
-```
-
-## Batch Transactions
-
-Send multiple operations in one transaction:
-
-```tsx
-import { useSmartWallet } from '@varity/ui-kit';
-
-function BatchOperations() {
-  const { sendBatchTransaction } = useSmartWallet();
-
-  const handleBatch = async () => {
-    const txHash = await sendBatchTransaction([
-      { to: '0x...', data: '0x...', value: '0' },
-      { to: '0x...', data: '0x...', value: '0' },
-      { to: '0x...', data: '0x...', value: '0' },
-    ]);
-
-    console.log('All operations completed in one transaction:', txHash);
+    console.log('Operation complete:', result);
   };
 
   return (
-    <button onClick={handleBatch}>
-      Execute All
+    <button onClick={handleAction} disabled={!isConnected}>
+      Perform Action {isGasless && '(Free)'}
     </button>
   );
 }
 ```
 
-<Aside type="tip">
-**Batch benefits** - Batch transactions are faster (one confirmation instead of many) and use less total resources.
-</Aside>
+### Batch Operations
 
-## How Gasless Sponsorship Works
+```tsx
+const { sendBatchTransaction } = useSmartWallet();
 
-Behind the scenes:
+const result = await sendBatchTransaction([
+  { to: '0x...', data: '0x...', value: '0' },
+  { to: '0x...', data: '0x...', value: '0' },
+]);
+```
 
-1. **User initiates action** - Clicks button in your app
-2. **Transaction prepared** - Smart wallet encodes the operation
-3. **Bundler submission** - Transaction sent to bundler network
-4. **Paymaster approval** - Varity's paymaster agrees to pay fee
-5. **Execution** - Transaction executes on-chain
+### How Fee Sponsorship Works
+
+Behind the scenes, Varity uses ERC-4337 account abstraction:
+
+1. **User initiates action** - Clicks a button in your app
+2. **Operation prepared** - Smart account encodes the operation
+3. **Bundler submission** - Operation sent to bundler network
+4. **Paymaster approval** - Varity's paymaster agrees to pay the fee
+5. **Execution** - Operation executes on Varity's infrastructure
 6. **Confirmation** - User sees success
 
 All of this happens in seconds, completely invisible to users.
 
-## Smart Wallet Features
-
-| Feature | Description |
-|---------|-------------|
-| Gasless | Transaction fees paid by Varity |
-| Batch | Multiple operations in one transaction |
-| Auto-deploy | Wallet created on first use |
-| Account abstraction | No private keys for users to manage |
-
-## Transaction Status
-
-Check wallet and deployment status:
-
-```tsx
-import { useSmartWallet } from '@varity/ui-kit';
-
-function WalletStatus() {
-  const { isConnected, isGasless, isDeployed, getAddress } = useSmartWallet();
-
-  return (
-    <div>
-      <p>Connected: {isConnected ? 'Yes' : 'No'}</p>
-      <p>Gasless: {isGasless ? 'Enabled' : 'Disabled'}</p>
-      <p>Wallet Deployed: {isDeployed ? 'Yes' : 'Not yet'}</p>
-      {isConnected && <p>Address: {getAddress()}</p>}
-    </div>
-  );
-}
-```
-
-## Error Handling
-
-Handle transaction errors:
-
-```tsx
-async function safeSend() {
-  try {
-    const txHash = await sendTransaction({
-      to: recipient,
-      data: callData,
-    });
-    toast.success('Transaction successful!');
-    return txHash;
-  } catch (error) {
-    if (error.message.includes('rejected')) {
-      toast.error('Transaction rejected');
-    } else if (error.message.includes('insufficient')) {
-      toast.error('Insufficient balance');
-    } else {
-      toast.error('Transaction failed');
-    }
-    throw error;
-  }
-}
-```
-
-## Billing
-
-- **Development**: Free (using shared dev credentials)
-- **Production**: Usage-based billing through your Varity account
-
-See your gas usage in the Varity dashboard.
+</Accordion>
 
 ## Next Steps
 
-- [Credit Card Payments](/build/payments/credit-card) - Users buy with card
-- [Storage Quick Start](/build/storage/quickstart) - Upload files
-- [Authentication Quick Start](/build/auth/quickstart) - Set up login
+- [Credit Card Payments](/build/payments/credit-card) - Monetize your app
+- [File Storage](/build/storage/quickstart) - Upload and store files
+- [Authentication](/build/auth/quickstart) - Set up login

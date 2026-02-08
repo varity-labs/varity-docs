@@ -14,7 +14,7 @@ export default defineConfig({
     starlight({
       title: "Varity Docs",
       description:
-        "Deploy apps to decentralized infrastructure with one command. 70-85% cheaper than AWS.",
+        "Build, deploy, and monetize apps with one command. 70-85% cheaper than AWS.",
       logo: {
         src: "./src/assets/varity-logo.svg",
         replacesTitle: false,
@@ -39,7 +39,10 @@ export default defineConfig({
       editLink: {
         baseUrl: "https://github.com/varity-labs/varity-docs/edit/main/",
       },
-      customCss: ["./src/styles/varity-theme.css"],
+      customCss: [
+        "./src/styles/varity-theme.css",
+        "./src/styles/components.css"
+      ],
       head: [
         {
           tag: "meta",
@@ -82,7 +85,7 @@ export default defineConfig({
               items: [
                 { label: "Overview", slug: "packages/sdk/overview" },
                 { label: "Installation", slug: "packages/sdk/installation" },
-                { label: "Chain Support", slug: "packages/sdk/chains" },
+                { label: "Configuration", slug: "packages/sdk/chains" },
               ],
             },
             {
@@ -124,13 +127,26 @@ export default defineConfig({
               ],
             },
 
+            // ----- DATABASE -----
+            {
+              label: "Database",
+              collapsed: false,
+              items: [
+                {
+                  label: "Quick Start",
+                  slug: "build/databases/quickstart",
+                  badge: { text: "New", variant: "success" },
+                },
+              ],
+            },
+
             // ----- FILE STORAGE -----
             {
               label: "File Storage",
               collapsed: false,
               items: [
                 {
-                  label: "Quick Start (thirdweb)",
+                  label: "Quick Start",
                   slug: "build/storage/quickstart",
                   badge: { text: "Recommended", variant: "success" },
                 },
@@ -145,18 +161,18 @@ export default defineConfig({
               collapsed: false,
               items: [
                 {
-                  label: "Quick Start (thirdweb Pay)",
+                  label: "Quick Start",
                   slug: "build/payments/quickstart",
                   badge: { text: "Recommended", variant: "success" },
                 },
-                { label: "Credit Card On-ramp", slug: "build/payments/credit-card" },
-                { label: "Gasless Transactions", slug: "build/payments/gasless" },
+                { label: "Credit Card Payments", slug: "build/payments/credit-card" },
+                { label: "Free Operations", slug: "build/payments/gasless" },
               ],
             },
 
-            // ----- SMART WALLETS -----
+            // ----- SMART ACCOUNTS -----
             {
-              label: "Smart Wallets",
+              label: "Smart Accounts",
               collapsed: false,
               items: [
                 {
@@ -164,7 +180,7 @@ export default defineConfig({
                   slug: "build/wallets/quickstart",
                   badge: { text: "Recommended", variant: "success" },
                 },
-                { label: "Create Wallet", slug: "build/wallets/create-wallet" },
+                { label: "Create Account", slug: "build/wallets/create-wallet" },
                 { label: "Session Keys", slug: "build/wallets/session-keys" },
               ],
             },
@@ -204,10 +220,11 @@ export default defineConfig({
           label: "Deploy",
           items: [
             {
-              label: "Varity L3",
+              label: "Deploy Your App",
               slug: "deploy/varity-l3",
-              badge: { text: "Testnet", variant: "note" },
+              badge: { text: "Beta", variant: "note" },
             },
+            { label: "Managed Credentials", slug: "deploy/managed-credentials" },
             { label: "Environment Variables", slug: "deploy/env-variables" },
           ],
         },

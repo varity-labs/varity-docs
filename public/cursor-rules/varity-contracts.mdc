@@ -1,0 +1,614 @@
+---
+description: Smart contract integration patterns for Varity (Advanced)
+alwaysApply: false
+---
+
+# Smart Contract Integration (Advanced)
+
+You are an expert in integrating smart contracts with Varity applications.
+
+**Note**: This is advanced content for blockchain-savvy developers. Most Varity
+users don't need to interact with smart contracts directly.
+
+## Core Principles
+
+1. **Use Varity's deployed contracts** - Don't deploy your own unless necessary
+2. **Leverage thirdweb SDK** - Abstraction over raw contract calls
+3. **Use SmartWalletProvider** - Gasless transactions for users
+4. **Test on Varity L3 testnet** before production
+5. **Monitor gas usage** - Optimize contract interactions
+
+## Varity L3 Network
+
+### Network Configuration
+
+```typescript
+import { defineChain } from 'thirdweb'
+
+export const varityL3Chain = defineChain({
+  id: 33529,
+  name: 'Varity L3',
+  rpc: 'https://rpc-varity-testnet-rroe52pwjp.t.conduit.xyz',
+  nativeCurrency: {
+    name: 'USDC',
+    symbol: 'USDC',
+    decimals: 6,  // NOT 18!
+  },
+  blockExplorers: [{
+    name: 'Varity Explorer',
+    url: 'https://explorer-varity-testnet-rroe52pwjp.t.conduit.xyz',
+  }],
+})
+```
+
+### Deployed Contracts
+
+```typescript
+// Contract addresses (Varity L3)
+export const VARITY_CONTRACTS = {
+  TemplateMarketplace: '0x769250dac29817081f38CfBa597Ef2485F3a94e8',
+  TemplateRegistry: '0xEbD8C516c05BD2b76b5CDd56530b3Dd9f8b3D748',
+  VarityAppRegistry: '0x52d4f28ebe20fad743bbef9daa61bfe3ce91eb74',
+  SimplifiedPaymaster: '0xeF467aef91d4e626C7e56967779069bEF22c4453',
+  VarityWalletFactory: '0x85AB92708CB4d921f5c2BdCCd7f2D0813a380f71',
+} as const
+```
+
+## Contract Interactions
+
+### Get Contract Instance
+
+```typescript
+import { getContract, createThirdwebClient } from 'thirdweb'
+import { varityL3Chain } from './chains'
+
+const client = createThirdwebClient({
+  clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID!,
+})
+
+const templateMarketplace = getContract({
+  client,
+  chain: varityL3Chain,
+  address: VARITY_CONTRACTS.TemplateMarketplace,
+})
+```
+
+### Read Contract Data
+
+```typescript
+import { readContract } from 'thirdweb'
+
+// Get template price
+const price = await readContract({
+  contract: templateMarketplace,
+  method: 'function getTemplatePrice(uint256 templateId) view returns (uint256)',
+  params: [templateId],
+})
+
+console.log(`Price: ${price} USDC (6 decimals)`)
+```
+
+### Write to Contract (with Gasless Transaction)
+
+```typescript
+import { prepareContractCall, sendTransaction } from 'thirdweb'
+import { useActiveAccount } from 'thirdweb/react'
+
+function PurchaseTemplate({ templateId }: { templateId: number }) {
+  const account = useActiveAccount()
+
+  const handlePurchase = async () => {
+    if (!account) {
+      alert('Please connect wallet')
+      return
+    }
+
+    // Prepare transaction
+    const transaction = prepareContractCall({
+      contract: templateMarketplace,
+      method: 'function purchaseTemplate(uint256 templateId)',
+      params: [templateId],
+    })
+
+    // Send with gasless paymaster
+    const result = await sendTransaction({
+      transaction,
+      account,
+    })
+
+    console.log('Transaction hash:', result.transactionHash)
+  }
+
+  return <button onClick={handlePurchase}>Purchase Template</button>
+}
+```
+
+## Template Marketplace Integration
+
+### List Templates
+
+```typescript
+async function listTemplates() {
+  const count = await readContract({
+    contract: templateMarketplace,
+    method: 'function getTemplateCount() view returns (uint256)',
+    params: [],
+  })
+
+  const templates = []
+
+  for (let i = 0; i < count; i++) {
+    const template = await readContract({
+      contract: templateMarketplace,
+      method: 'function getTemplate(uint256 id) view returns (tuple(string name, string description, uint256 price, address owner))',
+      params: [i],
+    })
+
+    templates.push({
+      id: i,
+      name: template.name,
+      description: template.description,
+      price: template.price,
+      owner: template.owner,
+    })
+  }
+
+  return templates
+}
+```
+
+### Publish Template
+
+```typescript
+async function publishTemplate({
+  name,
+  description,
+  price,
+  metadataURI,
+}: {
+  name: string
+  description: string
+  price: number
+  metadataURI: string
+}) {
+  const transaction = prepareContractCall({
+    contract: templateMarketplace,
+    method: 'function publishTemplate(string name, string description, uint256 price, string metadataURI)',
+    params: [name, description, BigInt(price), metadataURI],
+  })
+
+  const result = await sendTransaction({
+    transaction,
+    account,
+  })
+
+  return result
+}
+```
+
+### Purchase Template (70/30 Split)
+
+```typescript
+async function purchaseTemplate(templateId: number) {
+  // Get template price first
+  const price = await readContract({
+    contract: templateMarketplace,
+    method: 'function getTemplatePrice(uint256 templateId) view returns (uint256)',
+    params: [templateId],
+  })
+
+  // Purchase (70% to creator, 30% to Varity)
+  const transaction = prepareContractCall({
+    contract: templateMarketplace,
+    method: 'function purchaseTemplate(uint256 templateId)',
+    params: [templateId],
+    value: price,  // USDC amount (6 decimals)
+  })
+
+  const result = await sendTransaction({
+    transaction,
+    account,
+  })
+
+  console.log('Purchased! Transaction:', result.transactionHash)
+  return result
+}
+```
+
+## Smart Wallet Integration
+
+### Setup SmartWalletProvider
+
+```tsx
+import { SmartWalletProvider } from '@varity/ui-kit'
+
+export default function App({ children }) {
+  return (
+    <SmartWalletProvider
+      factoryAddress={VARITY_CONTRACTS.VarityWalletFactory}
+      paymasterAddress={VARITY_CONTRACTS.SimplifiedPaymaster}
+    >
+      {children}
+    </SmartWalletProvider>
+  )
+}
+```
+
+### Use Smart Wallet
+
+```tsx
+import { useSmartWallet } from '@varity/ui-kit'
+
+function MyComponent() {
+  const { address, isDeployed, balance } = useSmartWallet()
+
+  return (
+    <div>
+      <p>Smart Wallet: {address}</p>
+      <p>Deployed: {isDeployed ? 'Yes' : 'No'}</p>
+      <p>Balance: {balance} USDC</p>
+    </div>
+  )
+}
+```
+
+### Gasless Transaction Example
+
+```tsx
+import { useSmartWallet } from '@varity/ui-kit'
+import { sendTransaction } from 'thirdweb'
+
+function GaslessTransfer() {
+  const { account } = useSmartWallet()
+
+  const handleTransfer = async () => {
+    // User pays NO gas fees - Paymaster covers it
+    const transaction = prepareContractCall({
+      contract: myContract,
+      method: 'transfer(address to, uint256 amount)',
+      params: [recipient, amount],
+    })
+
+    const result = await sendTransaction({
+      transaction,
+      account,  // Smart wallet account
+    })
+
+    console.log('Gasless transaction sent:', result.transactionHash)
+  }
+
+  return <button onClick={handleTransfer}>Transfer (Free)</button>
+}
+```
+
+## Custom Contract Deployment
+
+### Deploy Your Own Contract (Optional)
+
+```typescript
+import { deployContract } from 'thirdweb/deploys'
+
+async function deployMyContract() {
+  const contract = await deployContract({
+    client,
+    chain: varityL3Chain,
+    account,
+    bytecode: '0x...',  // Your contract bytecode
+    constructorParams: {
+      abi: [...],
+      params: [...],
+    },
+  })
+
+  console.log('Deployed at:', contract.address)
+  return contract
+}
+```
+
+### Interact with Custom Contract
+
+```typescript
+const myContract = getContract({
+  client,
+  chain: varityL3Chain,
+  address: '0xYourContractAddress',
+  abi: [...],  // Your contract ABI
+})
+
+// Read
+const value = await readContract({
+  contract: myContract,
+  method: 'function getValue() view returns (uint256)',
+  params: [],
+})
+
+// Write
+const transaction = prepareContractCall({
+  contract: myContract,
+  method: 'function setValue(uint256 newValue)',
+  params: [42],
+})
+
+const result = await sendTransaction({ transaction, account })
+```
+
+## Event Listening
+
+### Listen to Contract Events
+
+```typescript
+import { getContractEvents } from 'thirdweb'
+
+// Get past events
+const events = await getContractEvents({
+  contract: templateMarketplace,
+  eventName: 'TemplatePurchased',
+  fromBlock: 0n,
+  toBlock: 'latest',
+})
+
+console.log('Purchase events:', events)
+```
+
+### Real-time Event Subscription
+
+```typescript
+import { watchContractEvents } from 'thirdweb'
+
+// Watch for new events
+const unwatch = watchContractEvents({
+  contract: templateMarketplace,
+  eventName: 'TemplatePurchased',
+  onEvents: (events) => {
+    console.log('New purchase:', events)
+    // Update UI
+  },
+})
+
+// Cleanup
+unwatch()
+```
+
+## Gas Optimization
+
+### Estimate Gas
+
+```typescript
+import { estimateGas } from 'thirdweb'
+
+const gasEstimate = await estimateGas({
+  transaction,
+  account,
+})
+
+console.log('Estimated gas:', gasEstimate)
+```
+
+### Batch Transactions
+
+```typescript
+import { sendBatchTransaction } from 'thirdweb'
+
+const transactions = [
+  prepareContractCall({ contract, method: 'method1', params: [...] }),
+  prepareContractCall({ contract, method: 'method2', params: [...] }),
+  prepareContractCall({ contract, method: 'method3', params: [...] }),
+]
+
+const result = await sendBatchTransaction({
+  transactions,
+  account,
+})
+
+console.log('Batch executed:', result.transactionHash)
+```
+
+## Error Handling
+
+### Contract Revert Errors
+
+```typescript
+try {
+  await sendTransaction({ transaction, account })
+} catch (error) {
+  if (error.message.includes('InsufficientBalance')) {
+    alert('You don\'t have enough USDC')
+  } else if (error.message.includes('TemplateNotFound')) {
+    alert('Template does not exist')
+  } else {
+    console.error('Transaction failed:', error)
+  }
+}
+```
+
+### Common Contract Errors
+
+```typescript
+// Varity contract error codes
+const CONTRACT_ERRORS = {
+  'InsufficientBalance': 'Not enough USDC in wallet',
+  'TemplateNotFound': 'Template does not exist',
+  'AlreadyPurchased': 'You already own this template',
+  'InvalidPrice': 'Price must be greater than 0',
+  'Unauthorized': 'Only owner can perform this action',
+} as const
+
+function getContractErrorMessage(error: Error): string {
+  for (const [code, message] of Object.entries(CONTRACT_ERRORS)) {
+    if (error.message.includes(code)) {
+      return message
+    }
+  }
+  return 'Transaction failed'
+}
+```
+
+## Testing Contracts
+
+### Test on Varity L3 Testnet
+
+```typescript
+// Use testnet for development
+const isTestnet = process.env.NODE_ENV === 'development'
+
+const chain = isTestnet ? varityL3Chain : varityL3MainnetChain
+
+const contract = getContract({
+  client,
+  chain,
+  address: isTestnet
+    ? '0xTestnetAddress'
+    : '0xMainnetAddress',
+})
+```
+
+### Mock Contract for Unit Tests
+
+```typescript
+// __mocks__/contracts.ts
+export const mockTemplateMarketplace = {
+  getTemplatePrice: vi.fn().mockResolvedValue(1000000n),  // 1 USDC
+  purchaseTemplate: vi.fn().mockResolvedValue({
+    transactionHash: '0xmock',
+  }),
+}
+```
+
+## Anti-Patterns (NEVER DO THIS)
+
+### ❌ Hardcoding contract addresses
+```typescript
+// WRONG - Different addresses per network
+const contract = getContract({
+  address: '0x769250dac29817081f38CfBa597Ef2485F3a94e8',
+})
+```
+
+### ✅ Use constants
+```typescript
+// CORRECT - Network-aware
+const contract = getContract({
+  address: VARITY_CONTRACTS.TemplateMarketplace,
+  chain: varityL3Chain,
+})
+```
+
+---
+
+### ❌ Treating USDC as 18 decimals
+```typescript
+// WRONG - USDC on Varity L3 has 6 decimals
+const price = 10 * 10**18  // Wrong!
+```
+
+### ✅ Use 6 decimals
+```typescript
+// CORRECT - USDC has 6 decimals on Varity L3
+const price = 10 * 10**6  // 10 USDC
+```
+
+---
+
+### ❌ Not handling transaction failures
+```typescript
+// WRONG - No error handling
+await sendTransaction({ transaction, account })
+```
+
+### ✅ Always handle errors
+```typescript
+// CORRECT - Graceful error handling
+try {
+  await sendTransaction({ transaction, account })
+} catch (error) {
+  console.error('Transaction failed:', error)
+  showError(getContractErrorMessage(error))
+}
+```
+
+## Complete Smart Contract Integration Example
+
+```tsx
+'use client'
+
+import { useState } from 'react'
+import { getContract, prepareContractCall, sendTransaction } from 'thirdweb'
+import { useActiveAccount } from 'thirdweb/react'
+import { VARITY_CONTRACTS, varityL3Chain } from './constants'
+
+export function TemplatePurchase({ templateId }: { templateId: number }) {
+  const account = useActiveAccount()
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const handlePurchase = async () => {
+    if (!account) {
+      setError('Please connect your wallet')
+      return
+    }
+
+    setLoading(true)
+    setError(null)
+
+    try {
+      // Get contract instance
+      const marketplace = getContract({
+        client,
+        chain: varityL3Chain,
+        address: VARITY_CONTRACTS.TemplateMarketplace,
+      })
+
+      // Get price
+      const price = await readContract({
+        contract: marketplace,
+        method: 'function getTemplatePrice(uint256) view returns (uint256)',
+        params: [BigInt(templateId)],
+      })
+
+      // Prepare transaction
+      const transaction = prepareContractCall({
+        contract: marketplace,
+        method: 'function purchaseTemplate(uint256)',
+        params: [BigInt(templateId)],
+      })
+
+      // Send (gasless via paymaster)
+      const result = await sendTransaction({
+        transaction,
+        account,
+      })
+
+      alert(`Purchase successful! TX: ${result.transactionHash}`)
+    } catch (err) {
+      const message = getContractErrorMessage(err as Error)
+      setError(message)
+      console.error('Purchase failed:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div>
+      <button onClick={handlePurchase} disabled={loading || !account}>
+        {loading ? 'Processing...' : 'Purchase Template'}
+      </button>
+      {error && <p className="error">{error}</p>}
+    </div>
+  )
+}
+```
+
+## Security Best Practices
+
+1. **Validate all inputs** before sending transactions
+2. **Never expose private keys** in client-side code
+3. **Use smart wallet paymaster** for gasless transactions
+4. **Test thoroughly on testnet** before mainnet
+5. **Monitor contract events** for suspicious activity
+
+## Remember
+
+Smart contracts are powerful but complex. Most Varity developers don't need
+to interact with them directly - the SDK abstracts this away. Only use
+direct contract interactions when necessary, and always test thoroughly.

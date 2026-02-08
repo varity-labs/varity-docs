@@ -1,5 +1,5 @@
 ---
-title: "@varity/sdk Installation"
+title: "@varity-labs/sdk Installation"
 description: "Install and configure the Varity SDK for your project"
 ---
 
@@ -12,36 +12,20 @@ Get the Varity SDK installed and configured in your project.
 <Tabs>
   <TabItem label="npm">
     ```bash
-    npm install @varity/sdk
+    npm install @varity-labs/sdk
     ```
   </TabItem>
   <TabItem label="pnpm">
     ```bash
-    pnpm add @varity/sdk
+    pnpm add @varity-labs/sdk
     ```
   </TabItem>
   <TabItem label="yarn">
     ```bash
-    yarn add @varity/sdk
+    yarn add @varity-labs/sdk
     ```
   </TabItem>
 </Tabs>
-
-## Peer Dependencies
-
-The SDK has the following peer dependencies:
-
-```json
-{
-  "thirdweb": "^5.0.0"
-}
-```
-
-Install them if not already present:
-
-```bash
-npm install thirdweb
-```
 
 ## Quick Setup
 
@@ -50,7 +34,7 @@ npm install thirdweb
 1. **Import and initialize the SDK**
 
    ```typescript
-   import { createVaritySDK } from '@varity/sdk';
+   import { createVaritySDK } from '@varity-labs/sdk';
 
    const sdk = createVaritySDK({
      network: 'arbitrum-l3-testnet',
@@ -75,45 +59,12 @@ npm install thirdweb
 
 </Steps>
 
-## Environment Variables
+## Credentials
 
-For production use, set up these environment variables:
-
-```bash title=".env"
-# thirdweb Client ID (required)
-THIRDWEB_CLIENT_ID=your_client_id
-
-# Optional: Override default RPC
-VARITY_RPC_URL=https://rpc-varity-testnet-rroe52pwjp.t.conduit.xyz
-```
+Varity manages all credentials automatically. No environment variables are needed to start developing.
 
 <Aside type="tip">
-**Development Mode:** The SDK includes shared development credentials that work automatically. Replace them with your own keys before deploying to production.
-</Aside>
-
-## Development Credentials
-
-For quick prototyping, the SDK provides shared development credentials:
-
-```typescript
-import { VARITY_DEV_CREDENTIALS, resolveCredentials } from '@varity/sdk';
-
-// Auto-resolves to dev credentials if none provided
-const credentials = resolveCredentials({
-  privyAppId: process.env.PRIVY_APP_ID,
-  thirdwebClientId: process.env.THIRDWEB_CLIENT_ID,
-});
-
-// Check if using dev credentials
-import { isUsingDevCredentials } from '@varity/sdk';
-
-if (isUsingDevCredentials()) {
-  console.log('Using shared development credentials');
-}
-```
-
-<Aside type="caution">
-**Production Warning:** Never use shared development credentials in production. Replace them with your own API keys.
+The SDK uses shared development credentials by default. When you deploy with `varitykit deploy`, production credentials are provided automatically. See [Managed Credentials](/deploy/managed-credentials) for details.
 </Aside>
 
 ## TypeScript Configuration
@@ -138,10 +89,10 @@ The SDK supports tree-shaking. Import only what you need.
 
 ```typescript
 // Good - imports only what's needed
-import { createVaritySDK, varityL3Testnet } from '@varity/sdk';
+import { createVaritySDK, varityL3Testnet } from '@varity-labs/sdk';
 
 // Avoid - imports the entire package
-import * as VaritySDK from '@varity/sdk';
+import * as VaritySDK from '@varity-labs/sdk';
 ```
 
 Approximate bundle sizes:
@@ -156,6 +107,6 @@ Approximate bundle sizes:
 
 ## Related Resources
 
-- [@varity/ui-kit](/packages/ui-kit/overview) - React components
+- [@varity-labs/ui-kit](/packages/ui-kit/overview) - React components
 - [Authentication Guide](/build/auth/quickstart) - Add login
 - [Deploy to Varity L3](/deploy/varity-l3) - Ship to production

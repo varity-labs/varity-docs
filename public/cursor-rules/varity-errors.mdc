@@ -1,0 +1,489 @@
+---
+description: Error handling patterns for Varity applications
+alwaysApply: false
+---
+
+# Varity Error Handling Patterns
+
+You are an expert in implementing robust error handling for Varity applications.
+
+## Core Principles
+
+1. **Always use try-catch for async operations**
+2. **Check for specific error codes, not just messages**
+3. **Provide user-friendly error messages**
+4. **Log errors for debugging**
+5. **Implement fallback UI for error states**
+
+## Varity Error Structure
+
+All Varity SDK errors follow this structure:
+
+```typescript
+interface VarityError {
+  code: string
+  message: string
+  details?: object
+  timestamp: string
+}
+```
+
+## Common Error Codes
+
+### Authentication Errors
+
+```typescript
+// UNAUTHORIZED - Invalid or missing API key
+{
+  code: 'UNAUTHORIZED',
+  message: 'Invalid API key'
+}
+
+// SESSION_EXPIRED - User session expired
+{
+  code: 'SESSION_EXPIRED',
+  message: 'Please log in again'
+}
+
+// INSUFFICIENT_PERMISSIONS - User lacks required permissions
+{
+  code: 'INSUFFICIENT_PERMISSIONS',
+  message: 'You do not have permission to perform this action'
+}
+```
+
+### Storage Errors
+
+```typescript
+// FILE_TOO_LARGE - File exceeds size limit
+{
+  code: 'FILE_TOO_LARGE',
+  message: 'File size exceeds 10MB limit',
+  details: { size: 15728640, limit: 10485760 }
+}
+
+// INVALID_FILE_TYPE - Unsupported file type
+{
+  code: 'INVALID_FILE_TYPE',
+  message: 'File type not supported',
+  details: { type: 'application/exe', allowed: ['image/*', 'application/pdf'] }
+}
+
+// UPLOAD_FAILED - Upload operation failed
+{
+  code: 'UPLOAD_FAILED',
+  message: 'Failed to upload file to storage'
+}
+```
+
+### Deployment Errors
+
+```typescript
+// DEPLOYMENT_FAILED - Deployment operation failed
+{
+  code: 'DEPLOYMENT_FAILED',
+  message: 'Build failed during deployment',
+  details: { buildLog: '...' }
+}
+
+// INVALID_CONFIG - Invalid deployment configuration
+{
+  code: 'INVALID_CONFIG',
+  message: 'Invalid deployment configuration',
+  details: { field: 'hosting', value: 'invalid' }
+}
+```
+
+### Network Errors
+
+```typescript
+// NETWORK_ERROR - Network connectivity issue
+{
+  code: 'NETWORK_ERROR',
+  message: 'Network request failed'
+}
+
+// RATE_LIMITED - Too many requests
+{
+  code: 'RATE_LIMITED',
+  message: 'Rate limit exceeded',
+  details: { retryAfter: 60 }
+}
+
+// TIMEOUT - Operation timed out
+{
+  code: 'TIMEOUT',
+  message: 'Operation timed out after 30s'
+}
+```
+
+## Error Handling Patterns
+
+### Basic Try-Catch
+
+```typescript
+try {
+  const result = await varity.storage.upload(file)
+  console.log('Success:', result)
+} catch (error) {
+  if (error instanceof VarityError) {
+    console.error('Varity error:', error.code, error.message)
+  } else {
+    console.error('Unexpected error:', error)
+  }
+}
+```
+
+### Error Code Handling
+
+```typescript
+try {
+  const result = await varity.storage.upload(file)
+} catch (error) {
+  switch (error.code) {
+    case 'FILE_TOO_LARGE':
+      showError('File is too large. Maximum size is 10MB.')
+      break
+    case 'INVALID_FILE_TYPE':
+      showError('File type not supported. Please upload an image or PDF.')
+      break
+    case 'UNAUTHORIZED':
+      redirectToLogin()
+      break
+    default:
+      showError('Upload failed. Please try again.')
+  }
+}
+```
+
+### User-Friendly Error Messages
+
+```typescript
+const getErrorMessage = (error: VarityError): string => {
+  const messages: Record<string, string> = {
+    FILE_TOO_LARGE: 'Your file is too large. Please upload a file smaller than 10MB.',
+    INVALID_FILE_TYPE: 'This file type is not supported. Please upload an image or PDF.',
+    UNAUTHORIZED: 'You need to sign in to perform this action.',
+    SESSION_EXPIRED: 'Your session has expired. Please sign in again.',
+    RATE_LIMITED: 'Too many requests. Please wait a moment and try again.',
+    NETWORK_ERROR: 'Network error. Please check your connection.',
+    TIMEOUT: 'The operation took too long. Please try again.',
+    DEPLOYMENT_FAILED: 'Deployment failed. Please check your build configuration.',
+  }
+
+  return messages[error.code] || 'An unexpected error occurred. Please try again.'
+}
+
+// Usage
+try {
+  await varity.storage.upload(file)
+} catch (error) {
+  const message = getErrorMessage(error)
+  showError(message)
+}
+```
+
+### Retry Logic
+
+```typescript
+const uploadWithRetry = async (
+  file: File,
+  maxRetries: number = 3
+): Promise<UploadResult> => {
+  let lastError: Error | null = null
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await varity.storage.upload(file)
+    } catch (error) {
+      lastError = error
+
+      // Don't retry on certain errors
+      if (error.code === 'FILE_TOO_LARGE' || error.code === 'INVALID_FILE_TYPE') {
+        throw error
+      }
+
+      // Wait before retry (exponential backoff)
+      if (attempt < maxRetries) {
+        const delay = Math.pow(2, attempt) * 1000
+        await new Promise(resolve => setTimeout(resolve, delay))
+      }
+    }
+  }
+
+  throw lastError || new Error('Upload failed after retries')
+}
+```
+
+### Error Boundaries (React)
+
+```tsx
+'use client'
+
+import { Component, ReactNode } from 'react'
+
+interface Props {
+  children: ReactNode
+  fallback?: ReactNode
+}
+
+interface State {
+  hasError: boolean
+  error?: Error
+}
+
+export class ErrorBoundary extends Component<Props, State> {
+  constructor(props: Props) {
+    super(props)
+    this.state = { hasError: false }
+  }
+
+  static getDerivedStateFromError(error: Error): State {
+    return { hasError: true, error }
+  }
+
+  componentDidCatch(error: Error, errorInfo: any) {
+    console.error('Error caught by boundary:', error, errorInfo)
+    // Log to error tracking service
+    // logErrorToService(error, errorInfo)
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback || (
+        <div className="error-container">
+          <h2>Something went wrong</h2>
+          <p>{this.state.error?.message}</p>
+          <button onClick={() => this.setState({ hasError: false })}>
+            Try again
+          </button>
+        </div>
+      )
+    }
+
+    return this.props.children
+  }
+}
+
+// Usage
+<ErrorBoundary fallback={<ErrorFallback />}>
+  <YourComponent />
+</ErrorBoundary>
+```
+
+### Form Validation Errors
+
+```tsx
+'use client'
+
+import { useState } from 'react'
+
+export function FormWithValidation() {
+  const [errors, setErrors] = useState<Record<string, string>>({})
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setErrors({})
+
+    const formData = new FormData(event.currentTarget)
+    const file = formData.get('file') as File
+
+    // Validate
+    const validationErrors: Record<string, string> = {}
+
+    if (!file) {
+      validationErrors.file = 'Please select a file'
+    } else if (file.size > 10 * 1024 * 1024) {
+      validationErrors.file = 'File must be smaller than 10MB'
+    }
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors)
+      return
+    }
+
+    // Upload
+    try {
+      await varity.storage.upload(file)
+      alert('Upload successful!')
+    } catch (error) {
+      setErrors({ submit: getErrorMessage(error) })
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input type="file" name="file" />
+      {errors.file && <p className="error">{errors.file}</p>}
+
+      <button type="submit">Upload</button>
+      {errors.submit && <p className="error">{errors.submit}</p>}
+    </form>
+  )
+}
+```
+
+## Anti-Patterns (NEVER DO THIS)
+
+### ❌ Ignoring errors silently
+```typescript
+// WRONG - Error disappears without trace
+try {
+  await varity.storage.upload(file)
+} catch (error) {
+  // Nothing here
+}
+```
+
+### ✅ ALWAYS handle or log errors
+```typescript
+// CORRECT - Error is handled
+try {
+  await varity.storage.upload(file)
+} catch (error) {
+  console.error('Upload failed:', error)
+  showError(getErrorMessage(error))
+}
+```
+
+---
+
+### ❌ Using error messages for logic
+```typescript
+// WRONG - Messages can change
+if (error.message === 'File too large') {
+  // ...
+}
+```
+
+### ✅ Use error codes
+```typescript
+// CORRECT - Codes are stable
+if (error.code === 'FILE_TOO_LARGE') {
+  // ...
+}
+```
+
+---
+
+### ❌ Generic error messages
+```typescript
+// WRONG - Not helpful
+catch (error) {
+  alert('Error')
+}
+```
+
+### ✅ Specific, actionable messages
+```typescript
+// CORRECT - Tells user what to do
+catch (error) {
+  if (error.code === 'FILE_TOO_LARGE') {
+    alert('File is too large. Maximum size is 10MB. Please select a smaller file.')
+  }
+}
+```
+
+## Complete Error Handling Example
+
+```tsx
+'use client'
+
+import { useState } from 'react'
+import { createStorageClient } from '@varity/sdk/storage'
+
+export function RobustFileUploader() {
+  const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [result, setResult] = useState<string | null>(null)
+
+  const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    // Clear previous state
+    setError(null)
+    setResult(null)
+    setUploading(true)
+
+    try {
+      // Client-side validation
+      if (file.size > 10 * 1024 * 1024) {
+        throw { code: 'FILE_TOO_LARGE' }
+      }
+
+      const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf']
+      if (!allowedTypes.includes(file.type)) {
+        throw { code: 'INVALID_FILE_TYPE' }
+      }
+
+      // Upload with retry
+      const storage = createStorageClient({ client })
+      const uploadResult = await uploadWithRetry(file, 3)
+
+      setResult(uploadResult.gatewayUrl)
+    } catch (err) {
+      const message = getErrorMessage(err)
+      setError(message)
+      console.error('Upload error:', err)
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  return (
+    <div>
+      <input
+        type="file"
+        onChange={handleUpload}
+        disabled={uploading}
+        accept="image/jpeg,image/png,application/pdf"
+      />
+
+      {uploading && <p>Uploading...</p>}
+      {error && <p className="error">{error}</p>}
+      {result && <img src={result} alt="Uploaded file" />}
+    </div>
+  )
+}
+```
+
+## Error Logging
+
+### Development
+
+```typescript
+if (process.env.NODE_ENV === 'development') {
+  console.error('Error details:', {
+    code: error.code,
+    message: error.message,
+    details: error.details,
+    stack: error.stack,
+  })
+}
+```
+
+### Production
+
+```typescript
+// Send to error tracking service
+import * as Sentry from '@sentry/nextjs'
+
+try {
+  await varity.storage.upload(file)
+} catch (error) {
+  Sentry.captureException(error, {
+    extra: {
+      code: error.code,
+      details: error.details,
+    },
+  })
+  showError(getErrorMessage(error))
+}
+```
+
+## Remember
+
+Proper error handling improves user experience and makes debugging easier.
+Always handle errors gracefully, provide clear messages, and log for
+debugging. These patterns ensure your app is resilient and maintainable.

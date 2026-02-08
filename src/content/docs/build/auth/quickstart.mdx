@@ -20,17 +20,17 @@ Add email, social, and wallet login to your app. Users can sign in without insta
 <Tabs>
   <TabItem label="npm">
     ```bash
-    npm install @varity/ui-kit @varity/sdk
+    npm install @varity-labs/ui-kit @varity-labs/sdk
     ```
   </TabItem>
   <TabItem label="pnpm">
     ```bash
-    pnpm add @varity/ui-kit @varity/sdk
+    pnpm add @varity-labs/ui-kit @varity-labs/sdk
     ```
   </TabItem>
   <TabItem label="yarn">
     ```bash
-    yarn add @varity/ui-kit @varity/sdk
+    yarn add @varity-labs/ui-kit @varity-labs/sdk
     ```
   </TabItem>
 </Tabs>
@@ -42,7 +42,7 @@ Add email, social, and wallet login to your app. Users can sign in without insta
 1. **Wrap your app with PrivyStack**
 
    ```tsx title="app/layout.tsx"
-   import { PrivyStack } from '@varity/ui-kit';
+   import { PrivyStack } from '@varity-labs/ui-kit';
 
    export default function RootLayout({ children }) {
      return (
@@ -64,7 +64,7 @@ Add email, social, and wallet login to your app. Users can sign in without insta
 2. **Add a login button**
 
    ```tsx title="components/Header.tsx"
-   import { PrivyLoginButton, usePrivy } from '@varity/ui-kit';
+   import { PrivyLoginButton, usePrivy } from '@varity-labs/ui-kit';
 
    export function Header() {
      const { authenticated, logout } = usePrivy();
@@ -84,7 +84,7 @@ Add email, social, and wallet login to your app. Users can sign in without insta
 3. **Protect routes**
 
    ```tsx title="app/dashboard/page.tsx"
-   import { PrivyProtectedRoute } from '@varity/ui-kit';
+   import { PrivyProtectedRoute } from '@varity-labs/ui-kit';
 
    export default function DashboardPage() {
      return (
@@ -115,7 +115,7 @@ Users never see wallet addresses or transaction confirmations unless you choose 
 ## Access User Data
 
 ```tsx
-import { usePrivy } from '@varity/ui-kit';
+import { usePrivy } from '@varity-labs/ui-kit';
 
 function Profile() {
   const { user, authenticated } = usePrivy();

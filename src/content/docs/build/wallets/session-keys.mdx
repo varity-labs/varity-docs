@@ -1,37 +1,32 @@
 ---
 title: Session Keys
-description: Use session keys for batch transactions
+description: Use session keys for batch operations
 ---
 
 # Session Keys
 
-Enable advanced transaction patterns with session keys.
+Enable advanced operation patterns with session keys.
 
 ## What are session keys?
 
-Session keys allow your app to sign transactions on behalf of users without requiring approval for each one. This enables:
+Session keys allow your app to perform operations on behalf of users without requiring approval for each one. This enables:
 
-- Batch transactions
-- Background transactions
-- Better UX for frequent operations
+- Batch operations
+- Background operations
+- Better experience for frequent actions
 
 ## Create a session key
 
 ```typescript
-import { useSmartWallet } from '@varity/ui-kit';
+import { useSmartWallet } from '@varity-labs/ui-kit';
 
 function SessionKeyDemo() {
   const { createSessionKey } = useSmartWallet();
 
   const handleCreate = async () => {
     const sessionKey = await createSessionKey({
-      // Permissions for this session
       permissions: ['transfer', 'approve'],
-
-      // Session duration (in seconds)
       duration: 3600, // 1 hour
-
-      // Max transactions per session
       maxTransactions: 100,
     });
 
@@ -42,12 +37,12 @@ function SessionKeyDemo() {
 }
 ```
 
-## Use session key for transactions
+## Use session key for operations
 
 ```typescript
 const { sendTransactionWithSession } = useSmartWallet();
 
-// Send multiple transactions without user approval
+// Send multiple operations without user approval
 await sendTransactionWithSession([
   { to: '0x...', data: '0x...' },
   { to: '0x...', data: '0x...' },
@@ -61,7 +56,7 @@ await sendTransactionWithSession([
 |-----------|-------------|
 | `transfer` | Send tokens |
 | `approve` | Approve token spending |
-| `execute` | Execute contract calls |
+| `execute` | Execute backend calls |
 | `*` | All permissions |
 
 ## Revoke session keys
@@ -74,5 +69,5 @@ await revokeSessionKey(sessionKeyAddress);
 
 ## Next steps
 
-- [Create Wallet](/build/wallets/create-wallet) — Wallet creation options
-- [Gasless Transactions](/build/payments/gasless) — Sponsor gas fees
+- [Create Account](/build/wallets/create-wallet) -- Account creation options
+- [Free Operations](/build/payments/gasless) -- Sponsor fees for users

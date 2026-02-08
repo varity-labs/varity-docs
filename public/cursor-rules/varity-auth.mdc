@@ -1,0 +1,397 @@
+---
+description: Setup Varity authentication with social login and wallet support
+alwaysApply: false
+---
+
+# Setup Varity Authentication
+
+You are an expert in implementing authentication with Varity.
+
+## Core Principles
+
+1. **Use PrivyStack as the root provider** - Wraps your entire app
+2. **Never manually manage wallet connections** - Privy handles it
+3. **Support both Web2 and Web3 auth** - Email, social, and wallets
+4. **Use PrivyProtectedRoute** for route protection
+5. **Access user data via usePrivy() hook**
+
+## Authentication Methods
+
+Varity supports multiple authentication methods:
+
+- **Email**: Magic link (passwordless)
+- **Social**: Google, Twitter, Discord, GitHub, Apple
+- **Wallet**: MetaMask, WalletConnect, Coinbase Wallet, Rainbow
+- **Phone**: SMS verification (optional)
+
+## Quick Setup
+
+### Step 1: Install dependencies
+
+```bash
+npm install @varity/sdk @varity/ui-kit
+```
+
+### Step 2: Wrap app with PrivyStack
+
+```tsx
+// app/layout.tsx (Next.js App Router)
+import { PrivyStack } from '@varity/ui-kit'
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <body>
+        <PrivyStack
+          appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID!}
+        >
+          {children}
+        </PrivyStack>
+      </body>
+    </html>
+  )
+}
+```
+
+### Step 3: Add login button
+
+```tsx
+// components/LoginButton.tsx
+import { PrivyLoginButton } from '@varity/ui-kit'
+
+export function LoginButton() {
+  return <PrivyLoginButton />
+}
+```
+
+### Step 4: Access user data
+
+```tsx
+// components/UserProfile.tsx
+'use client'
+
+import { usePrivy } from '@privy-io/react-auth'
+
+export function UserProfile() {
+  const { user, authenticated, logout } = usePrivy()
+
+  if (!authenticated) {
+    return <p>Please log in</p>
+  }
+
+  return (
+    <div>
+      <p>Welcome, {user?.email?.address || 'User'}</p>
+      <button onClick={logout}>Log out</button>
+    </div>
+  )
+}
+```
+
+## Advanced Patterns
+
+### Protected Routes
+
+```tsx
+// app/dashboard/layout.tsx
+import { PrivyProtectedRoute } from '@varity/ui-kit'
+
+export default function DashboardLayout({ children }) {
+  return (
+    <PrivyProtectedRoute>
+      {children}
+    </PrivyProtectedRoute>
+  )
+}
+```
+
+### Conditional Rendering
+
+```tsx
+'use client'
+
+import { usePrivy } from '@privy-io/react-auth'
+
+export function ConditionalContent() {
+  const { authenticated } = usePrivy()
+
+  return (
+    <div>
+      {authenticated ? (
+        <DashboardContent />
+      ) : (
+        <PublicContent />
+      )}
+    </div>
+  )
+}
+```
+
+### Custom Login UI
+
+```tsx
+'use client'
+
+import { usePrivy } from '@privy-io/react-auth'
+
+export function CustomLogin() {
+  const { login } = usePrivy()
+
+  return (
+    <div>
+      <button onClick={() => login()}>
+        Sign in with Email or Wallet
+      </button>
+    </div>
+  )
+}
+```
+
+### Server-Side Authentication
+
+```tsx
+// app/api/protected/route.ts
+import { getServerSession } from '@varity/ui-kit/server'
+
+export async function GET(request: Request) {
+  const session = await getServerSession()
+
+  if (!session) {
+    return new Response('Unauthorized', { status: 401 })
+  }
+
+  // User is authenticated
+  return Response.json({ userId: session.userId })
+}
+```
+
+## Common Use Cases
+
+### Email Magic Link
+
+```tsx
+<PrivyStack
+  appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID!}
+  config={{
+    loginMethods: ['email'],
+    appearance: {
+      theme: 'dark',
+      accentColor: '#3ecf8e',
+    },
+  }}
+>
+  {children}
+</PrivyStack>
+```
+
+### Social Login Only
+
+```tsx
+<PrivyStack
+  appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID!}
+  config={{
+    loginMethods: ['google', 'twitter', 'discord'],
+  }}
+>
+  {children}
+</PrivyStack>
+```
+
+### Wallet-First Experience
+
+```tsx
+<PrivyStack
+  appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID!}
+  config={{
+    loginMethods: ['wallet'],
+    appearance: {
+      walletList: ['metamask', 'coinbase', 'rainbow'],
+    },
+  }}
+>
+  {children}
+</PrivyStack>
+```
+
+### Hybrid Auth (Web2 + Web3)
+
+```tsx
+<PrivyStack
+  appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID!}
+  config={{
+    loginMethods: ['email', 'google', 'wallet'],
+    appearance: {
+      theme: 'dark',
+    },
+  }}
+>
+  {children}
+</PrivyStack>
+```
+
+## Anti-Patterns (NEVER DO THIS)
+
+### ❌ Manually managing wallet connections
+```typescript
+// WRONG - Don't use Web3Modal or ConnectKit directly
+import { Web3Modal } from '@web3modal/react'
+// Privy handles all wallet connections
+```
+
+### ✅ ALWAYS use Privy
+```typescript
+// CORRECT - Privy manages everything
+import { PrivyStack } from '@varity/ui-kit'
+```
+
+---
+
+### ❌ Storing auth tokens in localStorage
+```typescript
+// WRONG - Security vulnerability
+localStorage.setItem('auth_token', token)
+```
+
+### ✅ Let Privy handle session management
+```typescript
+// CORRECT - Privy manages sessions securely
+const { authenticated } = usePrivy()
+```
+
+---
+
+### ❌ Creating custom auth providers
+```typescript
+// WRONG - Reinventing the wheel
+const AuthContext = createContext()
+```
+
+### ✅ Use PrivyStack
+```typescript
+// CORRECT - Battle-tested auth
+<PrivyStack appId={appId}>
+  {children}
+</PrivyStack>
+```
+
+## User Data Access
+
+### Get user information
+
+```tsx
+const { user } = usePrivy()
+
+// Email
+const email = user?.email?.address
+
+// Wallet address
+const wallet = user?.wallet?.address
+
+// Social profiles
+const twitter = user?.twitter?.username
+const google = user?.google?.email
+
+// Phone
+const phone = user?.phone?.number
+```
+
+### Check authentication status
+
+```tsx
+const { authenticated, ready } = usePrivy()
+
+if (!ready) {
+  return <LoadingSpinner />
+}
+
+if (!authenticated) {
+  return <LoginPrompt />
+}
+
+return <AuthenticatedContent />
+```
+
+### Handle login/logout
+
+```tsx
+const { login, logout } = usePrivy()
+
+// Login
+<button onClick={() => login()}>Sign in</button>
+
+// Logout
+<button onClick={() => logout()}>Sign out</button>
+```
+
+## Security Best Practices
+
+1. **Always validate on the server**
+   ```typescript
+   // Client-side check (UI only)
+   const { authenticated } = usePrivy()
+
+   // Server-side validation (required)
+   const session = await getServerSession()
+   ```
+
+2. **Use HTTPS in production**
+   ```bash
+   # Varity deployments use HTTPS by default
+   varitykit app deploy
+   ```
+
+3. **Set secure redirect URLs**
+   ```typescript
+   <PrivyStack
+     appId={appId}
+     config={{
+       redirectUrl: 'https://your-app.varity.app/dashboard',
+     }}
+   >
+   ```
+
+4. **Implement proper RBAC**
+   ```typescript
+   const { user } = usePrivy()
+   const isAdmin = user?.customMetadata?.role === 'admin'
+
+   if (!isAdmin) {
+     return <Unauthorized />
+   }
+   ```
+
+## Environment Variables
+
+```bash
+# Required
+NEXT_PUBLIC_PRIVY_APP_ID=<SUBSTITUTE_PRIVY_APP_ID>
+
+# Optional
+PRIVY_APP_SECRET=<SUBSTITUTE_PRIVY_APP_SECRET>  # Server-side only
+```
+
+## Troubleshooting
+
+### Login modal doesn't appear
+**Solution**: Ensure PrivyStack wraps your app root
+
+### User data is undefined
+**Solution**: Check if `ready` is true before accessing user
+
+### Logout doesn't work
+**Solution**: Clear local storage manually if needed:
+```typescript
+logout().then(() => {
+  localStorage.clear()
+  window.location.href = '/'
+})
+```
+
+### Wallet connection fails
+**Solution**: Ensure user has wallet extension installed and enabled
+
+## Remember
+
+Authentication is critical for security. Always use Privy's built-in features,
+never roll your own auth, and always validate on the server. These patterns
+ensure your app is secure and compliant.

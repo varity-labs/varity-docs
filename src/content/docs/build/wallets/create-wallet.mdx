@@ -1,20 +1,20 @@
 ---
-title: Create Wallet
-description: Create smart wallets for your users
+title: Create Account
+description: Create smart accounts for your users
 ---
 
-# Create Wallet
+# Create Account
 
-Create ERC-4337 smart wallets for your users with customizable options.
+Create smart accounts for your users with customizable options.
 
-## Basic wallet creation
+## Basic account creation
 
-Wallets are created automatically when users authenticate with Privy:
+Accounts are created automatically when users authenticate with Privy:
 
 ```typescript
-import { useSmartWallet } from '@varity/ui-kit';
+import { useSmartWallet } from '@varity-labs/ui-kit';
 
-function WalletInfo() {
+function AccountInfo() {
   const { account, getAddress, isConnected, isDeployed, deployWallet } = useSmartWallet();
 
   if (!isConnected) {
@@ -24,59 +24,59 @@ function WalletInfo() {
   if (!isDeployed) {
     return (
       <button onClick={deployWallet}>
-        Deploy Smart Wallet on Varity L3
+        Activate Smart Account
       </button>
     );
   }
 
   return (
     <div>
-      <p>Wallet Address: {getAddress()}</p>
-      <p>Deployed on: Varity L3 testnet (Chain ID 33529)</p>
+      <p>Account Address: {getAddress()}</p>
+      <p>Status: Active</p>
     </div>
   );
 }
 ```
 
-:::note[Automatic Deployment]
-Smart wallets are deployed on-chain only when needed (on first transaction). This saves gas costs.
+:::note[Automatic Activation]
+Smart accounts are activated only when needed (on first operation). This saves resources.
 :::
 
-## Check wallet status
+## Check account status
 
 ```typescript
-import { useSmartWallet } from '@varity/ui-kit';
+import { useSmartWallet } from '@varity-labs/ui-kit';
 
-function WalletStatus() {
+function AccountStatus() {
   const {
-    isConnected,    // Wallet connection status
-    isDeployed,     // Is wallet deployed on-chain?
-    isGasless,      // Are gasless transactions enabled?
-    getAddress,     // Get wallet address
+    isConnected,    // Account connection status
+    isDeployed,     // Is account activated?
+    isGasless,      // Are free operations enabled?
+    getAddress,     // Get account address
   } = useSmartWallet();
 
   return (
     <div>
       <p>Connected: {isConnected ? 'Yes' : 'No'}</p>
-      <p>Deployed: {isDeployed ? 'Yes' : 'Not yet'}</p>
-      <p>Gasless: {isGasless ? 'Enabled' : 'Disabled'}</p>
+      <p>Activated: {isDeployed ? 'Yes' : 'Not yet'}</p>
+      <p>Free operations: {isGasless ? 'Enabled' : 'Disabled'}</p>
       {isConnected && <p>Address: {getAddress()}</p>}
     </div>
   );
 }
 ```
 
-## Wallet features on Varity L3
+## Smart account features
 
 | Feature | Description |
 |---------|-------------|
-| **Gasless** | All transaction fees paid by Varity platform |
-| **Auto-deploy** | Deployed on first transaction (not on creation) |
-| **ERC-4337** | Standard Account Abstraction (smart wallet) |
-| **Batch transactions** | Send multiple operations in one transaction |
+| **Free operations** | All usage fees paid by Varity platform |
+| **Auto-activate** | Activated on first operation (not on creation) |
+| **Smart accounts** | Enhanced security with programmable features |
+| **Batch operations** | Send multiple operations at once |
 | **Session keys** | Delegate specific permissions (coming soon) |
 
 ## Next steps
 
-- [Session Keys](/build/wallets/session-keys) — Enable batch transactions
-- [Gasless Transactions](/build/payments/gasless) — Sponsor gas for users
+- [Session Keys](/build/wallets/session-keys) -- Enable batch operations
+- [Free Operations](/build/payments/gasless) -- Sponsor fees for users

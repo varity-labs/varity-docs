@@ -1,63 +1,51 @@
 ---
 title: Uploading Files
-description: Upload files, images, and data to decentralized storage
+description: Upload files, images, and data to secure storage
 ---
 
 import { Aside } from '@astrojs/starlight/components';
+import Accordion from '../../../../components/Accordion.astro';
 
 # Uploading Files
 
-Upload any type of file to decentralized storage with automatic redundancy and CDN delivery.
+Upload any type of file to secure storage with automatic redundancy and CDN delivery.
 
 ## Basic File Upload
 
 Upload a file from a file input:
 
 ```tsx
-// IMPORTANT: Use thirdweb v5 function-based API (NOT v4 class-based)
-import { createThirdwebClient } from 'thirdweb';
-import { upload } from 'thirdweb/storage';
+import { createVaritySDK } from '@varity-labs/sdk';
 
-// Create thirdweb client for storage operations
-const client = createThirdwebClient({
-  clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID,
+const sdk = createVaritySDK({
+  network: 'arbitrum-l3-testnet',
 });
 
 // Get file from input
 const fileInput = document.querySelector('input[type="file"]');
 const file = fileInput.files[0];
 
-// Upload to IPFS using thirdweb v5
-const uri = await upload({
-  client,
-  files: [file],
-});
+// Upload to secure storage
+const result = await sdk.storage.upload(file);
 
-console.log('IPFS URI:', uri);
-// Returns: ipfs://bafybei... (IPFS content identifier)
-
-// Convert to gateway URL for browser access
-const gatewayUrl = uri.replace('ipfs://', 'https://ipfs.thirdwebcdn.com/ipfs/');
-console.log('Gateway URL:', gatewayUrl);
+console.log('File URL:', result.url);
+// Returns a permanent HTTPS URL
 ```
 
 ## Upload Result
 
-thirdweb v5 upload returns an IPFS URI string:
+The upload method returns an object with the file URL:
 
 ```tsx
-// Upload returns a string URI
-const uri = await upload({ client, files: [file] });
-// Returns: "ipfs://bafybei..."
+const result = await sdk.storage.upload(file);
+// Returns: { url: "https://...", id: "..." }
 
-// For multiple files, returns array of URIs
-const uris = await upload({ client, files: [file1, file2, file3] });
-// Returns: ["ipfs://bafybei...", "ipfs://bafybei...", "ipfs://bafybei..."]
+// For multiple files
+const results = await sdk.storage.uploadBatch([file1, file2, file3]);
+// Returns array of { url, id } objects
 
-// Convert URI to gateway URL for display/access
-function getGatewayUrl(ipfsUri: string): string {
-  return ipfsUri.replace('ipfs://', 'https://ipfs.thirdwebcdn.com/ipfs/');
-}
+// Display the file
+<img src={result.url} alt="Uploaded file" />
 ```
 
 ## Upload JSON Data
@@ -74,47 +62,31 @@ const userData = {
   },
 };
 
-// Upload JSON data as a file
-const uri = await upload({
-  client,
-  files: [userData], // thirdweb v5 automatically converts objects to JSON
-});
-
-console.log('IPFS URI:', uri);
-// Convert to gateway URL for access
-const gatewayUrl = uri.replace('ipfs://', 'https://ipfs.thirdwebcdn.com/ipfs/');
-console.log('Data URL:', gatewayUrl);
+const result = await sdk.storage.upload(userData);
+console.log('Data URL:', result.url);
 ```
 
-## Upload NFT Metadata
+## Upload Metadata with Image
 
-For NFT applications, upload image first, then metadata:
+Upload image first, then metadata referencing it:
 
 ```tsx
 // Step 1: Upload the image file
-const imageUri = await upload({
-  client,
-  files: [imageFile],
-});
+const imageResult = await sdk.storage.upload(imageFile);
 
-// Step 2: Upload metadata with the image URI
+// Step 2: Upload metadata with the image URL
 const metadata = {
-  name: 'My NFT #1',
-  description: 'A unique digital collectible',
-  image: imageUri, // Reference to uploaded image
+  name: 'My Item #1',
+  description: 'A unique digital item',
+  image: imageResult.url,
   attributes: [
     { trait_type: 'Color', value: 'Blue' },
     { trait_type: 'Size', value: 'Large' },
   ],
 };
 
-const metadataUri = await upload({
-  client,
-  files: [metadata],
-});
-
-console.log('Token URI:', metadataUri);
-// This URI can be used as the tokenURI in your NFT contract
+const metadataResult = await sdk.storage.upload(metadata);
+console.log('Metadata URL:', metadataResult.url);
 ```
 
 ## Batch Upload
@@ -124,18 +96,12 @@ Upload multiple files at once:
 ```tsx
 const files = [file1, file2, file3];
 
-// Upload multiple files in one call
-const uris = await upload({
-  client,
-  files: files,
-});
+const results = await sdk.storage.uploadBatch(files);
 
-console.log('Total files uploaded:', uris.length);
+console.log('Total files uploaded:', results.length);
 
-// Process each uploaded file
-uris.forEach((uri, index) => {
-  const gatewayUrl = uri.replace('ipfs://', 'https://ipfs.thirdwebcdn.com/ipfs/');
-  console.log(`File ${index + 1}: ${gatewayUrl}`);
+results.forEach((result, index) => {
+  console.log(`File ${index + 1}: ${result.url}`);
 });
 ```
 
@@ -146,40 +112,38 @@ Create and upload data programmatically:
 ```tsx
 // Text file from Blob
 const textBlob = new Blob(['Hello, World!'], { type: 'text/plain' });
-const textUri = await upload({ client, files: [textBlob] });
+const textResult = await sdk.storage.upload(textBlob);
 
 // JSON data (can pass object directly)
 const jsonData = { hello: 'world' };
-const jsonUri = await upload({ client, files: [jsonData] });
+const jsonResult = await sdk.storage.upload(jsonData);
 
 // Canvas to image
 const canvas = document.querySelector('canvas');
 canvas.toBlob(async (blob) => {
-  const imageUri = await upload({ client, files: [blob] });
-  const gatewayUrl = imageUri.replace('ipfs://', 'https://ipfs.thirdwebcdn.com/ipfs/');
-  console.log('Canvas uploaded:', gatewayUrl);
+  const imageResult = await sdk.storage.upload(blob);
+  console.log('Canvas uploaded:', imageResult.url);
 }, 'image/png');
 ```
 
 ## Storage Provider
 
-thirdweb v5 uploads to IPFS by default with automatic pinning:
+Uploads go to secure storage by default with automatic redundancy:
 
 ```tsx
-// All uploads go to IPFS
-const uri = await upload({ client, files: [file] });
-// Returns: ipfs://bafybei...
+const result = await sdk.storage.upload(file);
+// Returns a permanent URL with global CDN delivery
 ```
 
 <Aside type="tip">
-**Automatic pinning** - IPFS uploads are automatically pinned by thirdweb's infrastructure. Your files won't disappear.
+**Automatic redundancy** - Uploads are automatically replicated by the storage infrastructure. Your files are always available.
 </Aside>
 
-**Why IPFS?**
-- Fast, distributed storage
+**Why secure storage?**
+- Fast, distributed access
 - Content-addressed (files never break)
-- Automatic redundancy across multiple nodes
-- Perfect for most use cases including NFTs
+- Automatic redundancy across multiple servers
+- Perfect for most use cases
 
 ## Error Handling
 
@@ -188,8 +152,8 @@ Handle upload errors gracefully:
 ```tsx
 async function safeUpload(file: File) {
   try {
-    const uri = await upload({ client, files: [file] });
-    return { success: true, uri };
+    const result = await sdk.storage.upload(file);
+    return { success: true, url: result.url };
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
 
@@ -199,14 +163,40 @@ async function safeUpload(file: File) {
     if (message.includes('Network') || message.includes('fetch')) {
       return { success: false, error: 'Network error. Please try again.' };
     }
-    if (message.includes('client')) {
-      return { success: false, error: 'Invalid client ID. Check your configuration.' };
-    }
 
     return { success: false, error: 'Upload failed. Please try again.' };
   }
 }
 ```
+
+<Accordion title="Advanced: Direct Storage API">
+
+**Varity manages these credentials automatically. Only use this if you need custom configuration.**
+
+For lower-level control, you can use the storage provider directly:
+
+```tsx
+import { createThirdwebClient } from 'thirdweb';
+import { upload } from 'thirdweb/storage';
+
+const client = createThirdwebClient({
+  clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID,
+});
+
+const uri = await upload({
+  client,
+  files: [file],
+});
+
+// Returns: ipfs://bafybei... (permanent storage identifier)
+
+// Convert to gateway URL for browser access
+const gatewayUrl = uri.replace('ipfs://', 'https://ipfs.thirdwebcdn.com/ipfs/');
+```
+
+This gives you direct access to IPFS URIs and custom gateway configuration for advanced use cases.
+
+</Accordion>
 
 ## Next Steps
 

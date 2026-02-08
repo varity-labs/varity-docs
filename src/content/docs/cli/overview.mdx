@@ -5,16 +5,16 @@ description: "The command-line interface for building and deploying applications
 
 import { Card, CardGrid, Aside } from '@astrojs/starlight/components';
 
-VarietyKit is a Python-based CLI that helps you build, test, and deploy applications to decentralized infrastructure. If you've used tools like the Vercel CLI, Netlify CLI, or Firebase CLI, you'll feel right at home.
+VarietyKit is a Python-based CLI that helps you build, test, and deploy applications. If you have used tools like the Vercel CLI, Netlify CLI, or Firebase CLI, you will feel right at home.
 
 ## What You Can Do
 
 <CardGrid>
   <Card title="Initialize Projects" icon="document">
-    Scaffold new projects from industry-specific templates with AI-powered configuration.
+    Scaffold new projects from starter templates with pre-configured auth and deployment.
   </Card>
   <Card title="Deploy Applications" icon="rocket">
-    Deploy static sites to IPFS or dynamic apps with compute resources.
+    Deploy static sites or dynamic apps with one command.
   </Card>
   <Card title="Test Locally" icon="laptop">
     Run a local development network with all services for testing.
@@ -32,7 +32,7 @@ VarietyKit is a Python-based CLI that helps you build, test, and deploy applicat
 | `varitykit init` | Create a new project from a template |
 | `varitykit app deploy` | Deploy your application |
 | `varitykit localnet` | Manage local development network |
-| `varitykit deploy` | Deploy smart contracts |
+| `varitykit deploy` | Deploy backend services |
 
 ## Quick Start
 
@@ -46,11 +46,11 @@ varitykit doctor
 # Create a new project
 varitykit init my-app
 
-# Deploy to IPFS (static sites)
-varitykit app deploy --hosting ipfs
+# Deploy (static sites)
+varitykit app deploy
 
-# Deploy to Akash (dynamic apps with compute)
-varitykit app deploy --hosting akash
+# Deploy (dynamic apps - coming soon)
+varitykit app deploy --dynamic
 ```
 
 ## Global Options
@@ -84,30 +84,30 @@ The CLI uses these environment variables for various features:
 
 | Variable | Required For | Description |
 |----------|--------------|-------------|
-| `THIRDWEB_CLIENT_ID` | IPFS deployment | Your thirdweb project client ID |
-| `AKASH_WALLET_KEY` | Akash deployment | Wallet key for Akash deployments |
-| `WALLET_PRIVATE_KEY` | Contract deployment | Private key for signing transactions |
+| `THIRDWEB_CLIENT_ID` | Deployment | Auto-provided by Varity (optional override) |
+| `AKASH_WALLET_KEY` | Akash deployment | Key for Akash deployments |
+| `WALLET_PRIVATE_KEY` | Backend deployment | Private key for signing operations |
 
 ## Hosting Options
 
-### IPFS (Static Sites)
+### Static Sites
 
 Deploy static websites and single-page applications:
 
 ```bash
-varitykit app deploy --hosting ipfs
+varitykit app deploy
 ```
 
 - **Best for**: Marketing sites, documentation, SPAs
 - **Cost**: Free (sponsored by Varity)
 - **Speed**: Global CDN distribution
 
-### Akash (Dynamic Apps)
+### Dynamic Apps (Coming Soon)
 
 Deploy full-stack applications with backend:
 
 ```bash
-varitykit app deploy --hosting akash --cpu 1 --memory 512Mi --storage 1Gi
+varitykit app deploy --dynamic
 ```
 
 - **Best for**: APIs, databases, server-side rendering
@@ -115,12 +115,12 @@ varitykit app deploy --hosting akash --cpu 1 --memory 512Mi --storage 1Gi
 - **Features**: Containers, scaling, persistence
 
 <Aside type="note">
-Akash deployment is under active development and will be fully available before MVP launch.
+Dynamic hosting is under active development and will be available soon.
 </Aside>
 
 ## Supported Frameworks
 
-| Framework | Static (IPFS) | Dynamic (Akash) |
+| Framework | Static | Dynamic |
 |-----------|---------------|-----------------|
 | Next.js 13+ | Yes | Yes |
 | React (Vite) | Yes | Yes |

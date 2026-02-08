@@ -1,0 +1,542 @@
+---
+description: Testing strategies for Varity applications
+alwaysApply: false
+---
+
+# Testing Varity Applications
+
+You are an expert in testing applications built with Varity.
+
+## Core Principles
+
+1. **Test business logic, not Varity SDK internals**
+2. **Mock Varity SDK in unit tests**
+3. **Use integration tests for critical flows**
+4. **Test error scenarios**
+5. **Use TypeScript for type safety in tests**
+
+## Testing Stack
+
+Recommended testing tools for Varity apps:
+
+```json
+{
+  "devDependencies": {
+    "vitest": "latest",
+    "@testing-library/react": "latest",
+    "@testing-library/jest-dom": "latest",
+    "@testing-library/user-event": "latest",
+    "msw": "latest"
+  }
+}
+```
+
+## Unit Testing
+
+### Mock Varity SDK
+
+```typescript
+// __mocks__/@varity/sdk.ts
+export const createClient = vi.fn(() => ({
+  storage: {
+    upload: vi.fn(),
+    download: vi.fn(),
+  },
+  auth: {
+    login: vi.fn(),
+    logout: vi.fn(),
+  },
+}))
+
+export const createStorageClient = vi.fn(() => ({
+  uploadFile: vi.fn(),
+  download: vi.fn(),
+}))
+```
+
+### Test Components
+
+```typescript
+// FileUploader.test.tsx
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { vi, describe, it, expect } from 'vitest'
+import { FileUploader } from './FileUploader'
+import * as VaritySDK from '@varity/sdk'
+
+// Mock the SDK
+vi.mock('@varity/sdk')
+
+describe('FileUploader', () => {
+  it('should upload file successfully', async () => {
+    // Setup mock
+    const mockUpload = vi.fn().mockResolvedValue({
+      uri: 'ipfs://Qm123',
+      gatewayUrl: 'https://gateway.thirdweb.com/ipfs/Qm123',
+    })
+
+    vi.mocked(VaritySDK.createStorageClient).mockReturnValue({
+      uploadFile: mockUpload,
+    })
+
+    // Render component
+    render(<FileUploader />)
+
+    // Create test file
+    const file = new File(['content'], 'test.txt', { type: 'text/plain' })
+
+    // Upload file
+    const input = screen.getByLabelText('Upload file')
+    fireEvent.change(input, { target: { files: [file] } })
+
+    // Assert
+    await waitFor(() => {
+      expect(mockUpload).toHaveBeenCalledWith(file)
+      expect(screen.getByText(/upload successful/i)).toBeInTheDocument()
+    })
+  })
+
+  it('should handle upload errors', async () => {
+    // Setup mock to throw error
+    const mockUpload = vi.fn().mockRejectedValue({
+      code: 'FILE_TOO_LARGE',
+      message: 'File exceeds size limit',
+    })
+
+    vi.mocked(VaritySDK.createStorageClient).mockReturnValue({
+      uploadFile: mockUpload,
+    })
+
+    // Render component
+    render(<FileUploader />)
+
+    // Create test file
+    const file = new File(['content'], 'test.txt', { type: 'text/plain' })
+
+    // Upload file
+    const input = screen.getByLabelText('Upload file')
+    fireEvent.change(input, { target: { files: [file] } })
+
+    // Assert error is shown
+    await waitFor(() => {
+      expect(screen.getByText(/file is too large/i)).toBeInTheDocument()
+    })
+  })
+})
+```
+
+### Test Hooks
+
+```typescript
+// useVarity.test.ts
+import { renderHook, act } from '@testing-library/react'
+import { vi, describe, it, expect } from 'vitest'
+import { useVarity } from './useVarity'
+
+describe('useVarity', () => {
+  it('should initialize Varity client', () => {
+    const { result } = renderHook(() => useVarity())
+
+    expect(result.current.client).toBeDefined()
+  })
+
+  it('should upload file', async () => {
+    const { result } = renderHook(() => useVarity())
+    const file = new File(['content'], 'test.txt')
+
+    await act(async () => {
+      await result.current.uploadFile(file)
+    })
+
+    expect(result.current.uploadStatus).toBe('success')
+  })
+})
+```
+
+## Integration Testing
+
+### Test Complete Flows
+
+```typescript
+// upload-flow.test.ts
+import { test, expect } from '@playwright/test'
+
+test('complete upload flow', async ({ page }) => {
+  // Navigate to app
+  await page.goto('http://localhost:3000')
+
+  // Login
+  await page.click('button:has-text("Sign in")')
+  await page.fill('input[type="email"]', 'test@example.com')
+  await page.click('button:has-text("Continue")')
+
+  // Wait for login
+  await page.waitForSelector('text=Dashboard')
+
+  // Upload file
+  const fileInput = await page.locator('input[type="file"]')
+  await fileInput.setInputFiles('./test-files/sample.pdf')
+
+  // Wait for upload
+  await page.waitForSelector('text=Upload successful')
+
+  // Verify file appears
+  await expect(page.locator('text=sample.pdf')).toBeVisible()
+})
+```
+
+### Test Error Scenarios
+
+```typescript
+test('handles network errors gracefully', async ({ page }) => {
+  // Simulate offline mode
+  await page.route('**/*', route => route.abort())
+
+  await page.goto('http://localhost:3000')
+
+  const fileInput = await page.locator('input[type="file"]')
+  await fileInput.setInputFiles('./test-files/sample.pdf')
+
+  // Should show error
+  await expect(page.locator('text=Network error')).toBeVisible()
+})
+```
+
+## API Route Testing
+
+### Test Server-Side Code
+
+```typescript
+// api/upload/route.test.ts
+import { describe, it, expect, vi } from 'vitest'
+import { POST } from './route'
+
+describe('POST /api/upload', () => {
+  it('should upload file', async () => {
+    const formData = new FormData()
+    formData.append('file', new File(['content'], 'test.txt'))
+
+    const request = new Request('http://localhost:3000/api/upload', {
+      method: 'POST',
+      body: formData,
+    })
+
+    const response = await POST(request)
+    const data = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(data).toHaveProperty('uri')
+  })
+
+  it('should return 400 for missing file', async () => {
+    const request = new Request('http://localhost:3000/api/upload', {
+      method: 'POST',
+      body: new FormData(),
+    })
+
+    const response = await POST(request)
+
+    expect(response.status).toBe(400)
+  })
+})
+```
+
+## Mock Service Worker (MSW)
+
+### Setup MSW for API Mocking
+
+```typescript
+// mocks/handlers.ts
+import { http, HttpResponse } from 'msw'
+
+export const handlers = [
+  // Mock storage upload
+  http.post('https://api.varity.dev/storage/upload', async ({ request }) => {
+    const formData = await request.formData()
+    const file = formData.get('file')
+
+    if (!file) {
+      return HttpResponse.json(
+        { error: 'No file provided' },
+        { status: 400 }
+      )
+    }
+
+    return HttpResponse.json({
+      uri: 'ipfs://Qm123mock',
+      gatewayUrl: 'https://gateway.thirdweb.com/ipfs/Qm123mock',
+    })
+  }),
+
+  // Mock auth login
+  http.post('https://api.varity.dev/auth/login', async ({ request }) => {
+    const { email } = await request.json()
+
+    return HttpResponse.json({
+      user: { email, id: 'mock-user-id' },
+      session: { token: 'mock-token' },
+    })
+  }),
+]
+```
+
+```typescript
+// vitest.setup.ts
+import { beforeAll, afterEach, afterAll } from 'vitest'
+import { setupServer } from 'msw/node'
+import { handlers } from './mocks/handlers'
+
+const server = setupServer(...handlers)
+
+beforeAll(() => server.listen())
+afterEach(() => server.resetHandlers())
+afterAll(() => server.close())
+```
+
+## Test Coverage
+
+### Run Tests with Coverage
+
+```bash
+# Run all tests
+npm test
+
+# Run with coverage
+npm test -- --coverage
+
+# Watch mode
+npm test -- --watch
+```
+
+### Coverage Configuration
+
+```typescript
+// vitest.config.ts
+import { defineConfig } from 'vitest/config'
+
+export default defineConfig({
+  test: {
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
+      include: ['src/**/*.{ts,tsx}'],
+      exclude: [
+        'src/**/*.test.{ts,tsx}',
+        'src/**/*.spec.{ts,tsx}',
+        'src/**/__tests__/**',
+      ],
+      thresholds: {
+        lines: 80,
+        functions: 80,
+        branches: 80,
+        statements: 80,
+      },
+    },
+  },
+})
+```
+
+## Testing Best Practices
+
+### 1. Test User Behavior, Not Implementation
+
+```typescript
+// ❌ BAD - Testing implementation details
+it('should call useState', () => {
+  const spy = vi.spyOn(React, 'useState')
+  render(<Component />)
+  expect(spy).toHaveBeenCalled()
+})
+
+// ✅ GOOD - Testing user behavior
+it('should show upload progress', async () => {
+  render(<Component />)
+  const input = screen.getByLabelText('Upload file')
+  fireEvent.change(input, { target: { files: [file] } })
+  expect(await screen.findByText('Uploading...')).toBeInTheDocument()
+})
+```
+
+### 2. Use Descriptive Test Names
+
+```typescript
+// ❌ BAD
+it('works', () => { /* ... */ })
+
+// ✅ GOOD
+it('should display error message when file exceeds size limit', () => { /* ... */ })
+```
+
+### 3. Arrange-Act-Assert Pattern
+
+```typescript
+it('should upload file successfully', async () => {
+  // Arrange
+  const mockUpload = vi.fn().mockResolvedValue({ uri: 'ipfs://...' })
+  vi.mocked(createStorageClient).mockReturnValue({ uploadFile: mockUpload })
+  render(<FileUploader />)
+
+  // Act
+  const input = screen.getByLabelText('Upload file')
+  fireEvent.change(input, { target: { files: [file] } })
+
+  // Assert
+  await waitFor(() => {
+    expect(mockUpload).toHaveBeenCalledWith(file)
+    expect(screen.getByText(/success/i)).toBeInTheDocument()
+  })
+})
+```
+
+### 4. Test Edge Cases
+
+```typescript
+describe('FileUploader', () => {
+  it('should handle empty file', () => { /* ... */ })
+  it('should handle oversized file', () => { /* ... */ })
+  it('should handle invalid file type', () => { /* ... */ })
+  it('should handle network errors', () => { /* ... */ })
+  it('should handle multiple uploads', () => { /* ... */ })
+})
+```
+
+## Anti-Patterns (NEVER DO THIS)
+
+### ❌ Testing implementation details
+```typescript
+// WRONG - Testing internal state
+expect(component.state.uploading).toBe(true)
+```
+
+### ✅ Test observable behavior
+```typescript
+// CORRECT - Testing what user sees
+expect(screen.getByText('Uploading...')).toBeInTheDocument()
+```
+
+---
+
+### ❌ Not cleaning up after tests
+```typescript
+// WRONG - State leaks between tests
+it('test 1', () => {
+  localStorage.setItem('key', 'value')
+  // No cleanup
+})
+```
+
+### ✅ Always cleanup
+```typescript
+// CORRECT - Clean state
+afterEach(() => {
+  localStorage.clear()
+  vi.clearAllMocks()
+})
+```
+
+---
+
+### ❌ Over-mocking
+```typescript
+// WRONG - Mocking everything
+vi.mock('@varity/sdk')
+vi.mock('react')
+vi.mock('next/navigation')
+// Tests become meaningless
+```
+
+### ✅ Mock only external dependencies
+```typescript
+// CORRECT - Mock only Varity SDK
+vi.mock('@varity/sdk')
+// Test actual React behavior
+```
+
+## Complete Test Suite Example
+
+```typescript
+// FileUploader.test.tsx
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { FileUploader } from './FileUploader'
+import * as VaritySDK from '@varity/sdk'
+
+vi.mock('@varity/sdk')
+
+describe('FileUploader', () => {
+  const mockUploadFile = vi.fn()
+
+  beforeEach(() => {
+    vi.mocked(VaritySDK.createStorageClient).mockReturnValue({
+      uploadFile: mockUploadFile,
+    })
+  })
+
+  afterEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('should render upload input', () => {
+    render(<FileUploader />)
+    expect(screen.getByLabelText('Upload file')).toBeInTheDocument()
+  })
+
+  it('should upload file successfully', async () => {
+    mockUploadFile.mockResolvedValue({
+      uri: 'ipfs://Qm123',
+      gatewayUrl: 'https://gateway.thirdweb.com/ipfs/Qm123',
+    })
+
+    render(<FileUploader />)
+
+    const file = new File(['content'], 'test.txt', { type: 'text/plain' })
+    const input = screen.getByLabelText('Upload file')
+
+    fireEvent.change(input, { target: { files: [file] } })
+
+    await waitFor(() => {
+      expect(mockUploadFile).toHaveBeenCalledWith(file)
+      expect(screen.getByText(/success/i)).toBeInTheDocument()
+    })
+  })
+
+  it('should show error for oversized file', async () => {
+    render(<FileUploader />)
+
+    const largeFile = new File(
+      [new Array(11 * 1024 * 1024).join('a')],
+      'large.txt'
+    )
+    const input = screen.getByLabelText('Upload file')
+
+    fireEvent.change(input, { target: { files: [largeFile] } })
+
+    await waitFor(() => {
+      expect(screen.getByText(/too large/i)).toBeInTheDocument()
+    })
+  })
+
+  it('should handle upload errors', async () => {
+    mockUploadFile.mockRejectedValue({
+      code: 'NETWORK_ERROR',
+      message: 'Network request failed',
+    })
+
+    render(<FileUploader />)
+
+    const file = new File(['content'], 'test.txt')
+    const input = screen.getByLabelText('Upload file')
+
+    fireEvent.change(input, { target: { files: [file] } })
+
+    await waitFor(() => {
+      expect(screen.getByText(/network error/i)).toBeInTheDocument()
+    })
+  })
+})
+```
+
+## Remember
+
+Good tests give you confidence to refactor and prevent regressions.
+Test user behavior, not implementation details, and always test error cases.
+These patterns ensure your tests are maintainable and valuable.

@@ -3,24 +3,28 @@ title: Retrieving Files
 description: Download and display files from storage
 ---
 
+import Accordion from '../../../../components/Accordion.astro';
 
 # Retrieving Files
 
-Access your stored files via fast CDN gateways.
+Access your stored files via fast CDN delivery.
 
-## Get Gateway URL
+## Display Uploaded Files
 
-Convert a storage URI to an accessible URL:
+When you upload a file, you get back a permanent HTTPS URL. Use it directly:
 
 ```tsx
-import { createStorageClient, StorageClient } from '@varity/sdk';
+import { createVaritySDK } from '@varity-labs/sdk';
 
-// From instance
-const url = storage.getGatewayUrl('ipfs://QmXxx...');
-// https://gateway.thirdweb.com/ipfs/QmXxx...
+const sdk = createVaritySDK({
+  network: 'arbitrum-l3-testnet',
+});
 
-// Static method
-const url = StorageClient.resolveUri('ipfs://QmXxx...');
+// Upload returns a permanent URL
+const result = await sdk.storage.upload(file);
+
+// Use the URL directly in your app
+<img src={result.url} alt="Uploaded file" />
 ```
 
 ## Display Images
@@ -28,11 +32,7 @@ const url = StorageClient.resolveUri('ipfs://QmXxx...');
 Display uploaded images in your app:
 
 ```tsx title="components/StoredImage.tsx"
-import { storage } from '@/lib/storage';
-
-export function StoredImage({ uri }) {
-  const imageUrl = storage.getGatewayUrl(uri);
-
+export function StoredImage({ imageUrl }: { imageUrl: string }) {
   return (
     <img
       src={imageUrl}
@@ -48,20 +48,26 @@ export function StoredImage({ uri }) {
 Get resized and optimized images for faster loading:
 
 ```tsx
+import { createVaritySDK } from '@varity-labs/sdk';
+
+const sdk = createVaritySDK({
+  network: 'arbitrum-l3-testnet',
+});
+
 // Resize to specific dimensions
-const thumbnailUrl = storage.getGatewayUrl(uri, {
+const thumbnailUrl = sdk.storage.getOptimizedUrl(imageUrl, {
   width: 200,
   height: 200,
 });
 
 // High quality for detail view
-const fullUrl = storage.getGatewayUrl(uri, {
+const fullUrl = sdk.storage.getOptimizedUrl(imageUrl, {
   width: 1200,
   quality: 90,
 });
 
 // WebP format for smaller file sizes
-const webpUrl = storage.getGatewayUrl(uri, {
+const webpUrl = sdk.storage.getOptimizedUrl(imageUrl, {
   width: 800,
   format: 'webp',
   quality: 80,
@@ -77,12 +83,12 @@ const webpUrl = storage.getGatewayUrl(uri, {
 | `quality` | number | Image quality (1-100) |
 | `format` | string | Output format: `webp`, `jpeg`, `png`, `avif` |
 
-## Download JSON
+## Download JSON Data
 
-Retrieve and parse JSON data:
+Retrieve and parse stored JSON data:
 
 ```tsx
-const userData = await storage.downloadJSON('ipfs://QmXxx...');
+const userData = await sdk.storage.downloadJSON(dataUrl);
 
 console.log('Name:', userData.name);
 console.log('Email:', userData.email);
@@ -102,7 +108,7 @@ interface UserData {
   };
 }
 
-const userData = await storage.downloadJSON<UserData>(uri);
+const userData = await sdk.storage.downloadJSON<UserData>(dataUrl);
 ```
 
 ## Download Files
@@ -110,7 +116,7 @@ const userData = await storage.downloadJSON<UserData>(uri);
 Download raw file data:
 
 ```tsx
-const response = await storage.downloadFile('ipfs://QmXxx...');
+const response = await sdk.storage.downloadFile(fileUrl);
 
 // Get as blob
 const blob = await response.blob();
@@ -128,25 +134,29 @@ Complete gallery component with optimized loading:
 
 ```tsx title="components/ImageGallery.tsx"
 import { useState } from 'react';
-import { storage } from '@/lib/storage';
+import { createVaritySDK } from '@varity-labs/sdk';
 
-export function ImageGallery({ imageUris }) {
-  const [selected, setSelected] = useState(null);
+const sdk = createVaritySDK({
+  network: 'arbitrum-l3-testnet',
+});
+
+export function ImageGallery({ imageUrls }: { imageUrls: string[] }) {
+  const [selected, setSelected] = useState<string | null>(null);
 
   return (
     <div>
       {/* Thumbnail grid */}
       <div className="grid grid-cols-4 gap-2">
-        {imageUris.map((uri, index) => (
+        {imageUrls.map((url, index) => (
           <img
             key={index}
-            src={storage.getGatewayUrl(uri, {
+            src={sdk.storage.getOptimizedUrl(url, {
               width: 200,
               height: 200,
               format: 'webp',
             })}
             alt={`Image ${index + 1}`}
-            onClick={() => setSelected(uri)}
+            onClick={() => setSelected(url)}
             className="cursor-pointer rounded"
           />
         ))}
@@ -159,7 +169,7 @@ export function ImageGallery({ imageUris }) {
           onClick={() => setSelected(null)}
         >
           <img
-            src={storage.getGatewayUrl(selected, {
+            src={sdk.storage.getOptimizedUrl(selected, {
               width: 1200,
               quality: 90,
             })}
@@ -173,22 +183,26 @@ export function ImageGallery({ imageUris }) {
 }
 ```
 
-## NFT Metadata Display
+## Item Metadata Display
 
-Display NFT data from stored metadata:
+Display item data from stored metadata:
 
-```tsx title="components/NFTCard.tsx"
+```tsx title="components/ItemCard.tsx"
 import { useState, useEffect } from 'react';
-import { storage } from '@/lib/storage';
+import { createVaritySDK } from '@varity-labs/sdk';
 
-export function NFTCard({ metadataUri }) {
-  const [metadata, setMetadata] = useState(null);
+const sdk = createVaritySDK({
+  network: 'arbitrum-l3-testnet',
+});
+
+export function ItemCard({ metadataUrl }: { metadataUrl: string }) {
+  const [metadata, setMetadata] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadMetadata() {
       try {
-        const data = await storage.downloadJSON(metadataUri);
+        const data = await sdk.storage.downloadJSON(metadataUrl);
         setMetadata(data);
       } catch (error) {
         console.error('Failed to load metadata:', error);
@@ -197,7 +211,7 @@ export function NFTCard({ metadataUri }) {
       }
     }
     loadMetadata();
-  }, [metadataUri]);
+  }, [metadataUrl]);
 
   if (loading) return <div>Loading...</div>;
   if (!metadata) return <div>Failed to load</div>;
@@ -205,7 +219,7 @@ export function NFTCard({ metadataUri }) {
   return (
     <div className="rounded-xl overflow-hidden shadow-lg">
       <img
-        src={storage.getGatewayUrl(metadata.image, { width: 400 })}
+        src={sdk.storage.getOptimizedUrl(metadata.image, { width: 400 })}
         alt={metadata.name}
       />
       <div className="p-4">
@@ -214,7 +228,7 @@ export function NFTCard({ metadataUri }) {
 
         {metadata.attributes && (
           <div className="mt-2 flex flex-wrap gap-2">
-            {metadata.attributes.map((attr, i) => (
+            {metadata.attributes.map((attr: any, i: number) => (
               <span key={i} className="bg-gray-100 px-2 py-1 rounded text-sm">
                 {attr.trait_type}: {attr.value}
               </span>
@@ -226,6 +240,31 @@ export function NFTCard({ metadataUri }) {
   );
 }
 ```
+
+<Accordion title="Advanced: Direct Storage API">
+
+For lower-level control, you can work with storage URIs directly:
+
+```tsx
+import { createStorageClient, StorageClient } from '@varity-labs/sdk';
+
+// Convert an IPFS URI to an accessible gateway URL
+const url = storage.getGatewayUrl('ipfs://QmXxx...');
+// https://gateway.thirdwebcdn.com/ipfs/QmXxx...
+
+// Static method
+const url = StorageClient.resolveUri('ipfs://QmXxx...');
+
+// Download JSON from IPFS URI
+const data = await storage.downloadJSON('ipfs://QmXxx...');
+
+// Download raw file from IPFS URI
+const response = await storage.downloadFile('ipfs://QmXxx...');
+```
+
+This gives you direct access to IPFS URIs and custom gateway configuration for advanced use cases.
+
+</Accordion>
 
 ## Next Steps
 

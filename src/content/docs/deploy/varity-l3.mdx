@@ -1,43 +1,22 @@
 ---
-title: "Deploy to Varity L3"
-description: "Deploy your application to Varity's decentralized infrastructure"
+title: "Deploy Your App"
+description: "Deploy your application to Varity's secure infrastructure"
 sidebar:
   badge:
-    text: Testnet
+    text: Beta
     variant: note
 ---
 
 import { Tabs, TabItem, Steps, Aside, Card, CardGrid } from '@astrojs/starlight/components';
+import Accordion from '../../../components/Accordion.astro';
 
-# Deploy to Varity L3
+# Deploy Your App
 
-Deploy your application to Varity L3, an Arbitrum Orbit rollup optimized for applications.
+Deploy your application to Varity with one command. Your app will be live in under 2 minutes.
 
 <Aside type="note">
-**Testnet Mode** - Varity L3 testnet is currently active. Mainnet launch will follow MVP validation.
+**Beta** - Varity is currently in beta. Your deployments work exactly as in production, but with test data.
 </Aside>
-
-## Network Details
-
-| Property | Value |
-|----------|-------|
-| **Chain ID** | `33529` |
-| **RPC URL** | `https://rpc-varity-testnet-rroe52pwjp.t.conduit.xyz` |
-| **Explorer** | `https://explorer-varity-testnet-rroe52pwjp.t.conduit.xyz` |
-| **Native Token** | Bridged USDC (**6 decimals**, NOT 18!) |
-| **Gas Fees** | Sponsored (free for users) |
-| **Status** | **TESTNET** - Mainnet launch post-MVP |
-
-## Deployment Options
-
-<CardGrid>
-  <Card title="IPFS (Static)" icon="document">
-    Static websites, SPAs, documentation. Free hosting via IPFS/Filecoin.
-  </Card>
-  <Card title="Akash (Dynamic)" icon="rocket">
-    Full-stack apps, APIs, databases. Container-based compute (coming soon).
-  </Card>
-</CardGrid>
 
 ## Quick Deploy
 
@@ -55,13 +34,13 @@ Deploy your application to Varity L3, an Arbitrum Orbit rollup optimized for app
    npm run build
    ```
 
-3. **Deploy to IPFS**
+3. **Deploy**
 
    ```bash
-   varitykit app deploy --hosting ipfs
+   varitykit app deploy
    ```
 
-4. **View your live app**
+4. **Your app is live!**
 
    Your app is now live at the URL shown in the terminal.
 
@@ -71,77 +50,60 @@ Deploy your application to Varity L3, an Arbitrum Orbit rollup optimized for app
 
 When you run `varitykit app deploy`:
 
-1. **Project Detection** - Detects your framework (Next.js, React, Vue, etc.)
-2. **Build** - Runs your build command (`npm run build`)
-3. **Upload** - Uploads to IPFS (static) or deploys to Akash (dynamic)
-4. **Register** - Registers your app on Varity L3
-5. **Gas Sponsorship** - Enables gasless transactions for your users
+1. **Detects your framework** - Automatically identifies Next.js, React, Vue, etc.
+2. **Builds your app** - Runs your build command (`npm run build`)
+3. **Uploads your files** - Stores them securely with automatic backups
+4. **Makes your app live** - Generates a public URL
+5. **Enables free operations** - Users never pay usage fees
 
-All transaction fees are sponsored by Varity, so your users never pay network fees.
+All of this happens automatically in under 2 minutes.
+
+## Hosting Options
+
+<CardGrid>
+  <Card title="Static Sites" icon="document">
+    Static websites, SPAs, documentation, landing pages. Free hosting with global CDN.
+  </Card>
+  <Card title="Dynamic Apps (Coming Soon)" icon="rocket">
+    Full-stack apps, APIs, databases. Container-based compute with automatic scaling.
+  </Card>
+</CardGrid>
 
 ## Environment Variables
 
-Before deploying, ensure these environment variables are set:
+Credentials are managed automatically by Varity. No manual setup needed for deployment.
 
-<Tabs>
-  <TabItem label="IPFS Deployment">
-    ```bash title=".env"
-    # Required for IPFS deployment
-    THIRDWEB_CLIENT_ID=your_client_id
-    ```
-  </TabItem>
-  <TabItem label="Akash Deployment">
-    ```bash title=".env"
-    # Required for Akash deployment
-    AKASH_WALLET_KEY=your_wallet_key
-    THIRDWEB_CLIENT_ID=your_client_id
-    ```
-  </TabItem>
-</Tabs>
-
-See [Environment Variables](/deploy/env-variables) for the complete list.
-
-## Deployed Contracts
-
-Pre-deployed contracts available on Varity L3:
-
-| Contract | Address | Purpose |
-|----------|---------|---------|
-| **TemplateMarketplace** | `0x769250dac29817081f38CfBa597Ef2485F3a94e8` | 70/30 Revenue Split |
-| **TemplateRegistry** | `0xEbD8C516c05BD2b76b5CDd56530b3Dd9f8b3D748` | Template metadata |
-| **VarityAppRegistry** | `0x52d4f28ebe20fad743bbef9daa61bfe3ce91eb74` | App Store submissions |
-| **SimplifiedPaymaster** | `0xeF467aef91d4e626C7e56967779069bEF22c4453` | Gas sponsorship |
-| **VarityWalletFactory** | `0x85AB92708CB4d921f5c2BdCCd7f2D0813a380f71` | Smart wallets |
+See [Environment Variables](/deploy/env-variables) for optional configuration and [Managed Credentials](/deploy/managed-credentials) for how it works.
 
 ## Submit to App Store
 
 Submit your app for listing in the Varity App Store:
 
 ```bash
-varitykit app deploy --hosting ipfs --submit-to-store
+varitykit app deploy --submit-to-store
 ```
 
 This will:
-1. Deploy your app to IPFS
-2. Register on Varity L3
+1. Deploy your app
+2. Register it on Varity's infrastructure
 3. Submit to the App Store for review
 
 ## Revenue Split
 
 When users purchase your app or pay for subscriptions:
 
-- **70%** goes to you (the developer)
-- **30%** goes to the Varity platform
+- **90%** goes to you (the developer)
+- **10%** goes to the Varity platform
 
-This is handled automatically by the TemplateMarketplace contract.
+This is handled automatically. You receive payouts monthly.
 
 ## Verify Your Deployment
 
-After deployment, verify on the Varity Explorer:
+After deployment, check status:
 
-1. Go to [Varity Explorer](https://explorer-varity-testnet-rroe52pwjp.t.conduit.xyz)
-2. Search for your deployment ID or app address
-3. View transaction history and app metadata
+```bash
+varitykit app list
+```
 
 ## Rollback
 
@@ -151,23 +113,11 @@ Revert to a previous deployment:
 varitykit app rollback deploy-1737491000
 ```
 
-## List Deployments
-
-View all your deployments:
-
-```bash
-varitykit app list
-```
-
 ## Troubleshooting
 
-### "Deployment failed: THIRDWEB_CLIENT_ID not set"
+### "Deployment failed"
 
-Create a `.env` file with your thirdweb credentials:
-
-```bash title=".env"
-THIRDWEB_CLIENT_ID=your_client_id
-```
+Run `varitykit doctor` to diagnose. Credentials are auto-provided — if deployment fails, check your network connection.
 
 ### "Build failed"
 
@@ -185,6 +135,43 @@ Check network connectivity:
 ```bash
 varitykit doctor
 ```
+
+<Accordion title="Advanced: Technical Architecture">
+
+## Network Details
+
+Varity runs on a dedicated infrastructure layer optimized for application deployment:
+
+| Property | Value |
+|----------|-------|
+| **Chain ID** | `33529` |
+| **RPC URL** | `https://rpc-varity-testnet-rroe52pwjp.t.conduit.xyz` |
+| **Explorer** | `https://explorer-varity-testnet-rroe52pwjp.t.conduit.xyz` |
+| **Native Token** | Bridged USDC (6 decimals, NOT 18!) |
+| **Usage Fees** | Sponsored (free for users via smart accounts) |
+| **Status** | **Beta** - Production launch post-MVP |
+
+## Backend Contracts
+
+Pre-deployed backend contracts on Varity's infrastructure:
+
+| Contract | Address | Purpose |
+|----------|---------|---------|
+| **TemplateMarketplace** | `0x58618dcD2A4109854441B74a28C1dA4E58d7AF44` | 90/10 Revenue Split |
+| **TemplateRegistry** | `0xE4062a3eF177C1A80C7f03874596EFa0D5b4FeD3` | Template metadata |
+| **VarityAppRegistry** | `0x52d4f28ebe20fad743bbef9daa61bfe3ce91eb74` | App Store submissions |
+| **SimplifiedPaymaster** | `0xeF467aef91d4e626C7e56967779069bEF22c4453` | Fee sponsorship |
+| **VarityWalletFactory** | `0x85AB92708CB4d921f5c2BdCCd7f2D0813a380f71` | Smart accounts |
+
+## Deployment Flow (Technical)
+
+1. **Build** - CLI detects framework and runs build
+2. **Upload** - Files uploaded to secure storage, deployment ID generated
+3. **Register** - App registered via `VarityAppRegistry`
+4. **Paymaster** - Free operations enabled via `SimplifiedPaymaster`
+5. **CDN** - Files propagated to global CDN
+
+</Accordion>
 
 ## Next Steps
 

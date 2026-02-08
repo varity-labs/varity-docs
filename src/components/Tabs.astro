@@ -1,0 +1,241 @@
+---
+/**
+ * Tabs Component
+ *
+ * Multi-language/framework tabs with keyboard navigation.
+ * Inspired by Supabase's tab system.
+ *
+ * Usage:
+ * <Tabs defaultTab="js" queryGroup="language">
+ *   <TabPanel id="js" label="JavaScript">
+ *     Content for JavaScript
+ *   </TabPanel>
+ *   <TabPanel id="ts" label="TypeScript">
+ *     Content for TypeScript
+ *   </TabPanel>
+ * </Tabs>
+ */
+
+interface Props {
+  defaultTab?: string
+  queryGroup?: string
+  size?: 'small' | 'medium'
+  type?: 'underlined' | 'boxed'
+}
+
+const { defaultTab, queryGroup, size = 'medium', type = 'underlined' } = Astro.props
+const tabsId = `tabs-${Math.random().toString(36).slice(2, 11)}`
+---
+
+<div class:list={["varity-tabs", `tabs-${size}`, `tabs-${type}`]} data-tabs-id={tabsId} data-default-tab={defaultTab} data-query-group={queryGroup}>
+  <div class="tabs-header" role="tablist">
+    <slot name="tabs" />
+  </div>
+  <div class="tabs-content">
+    <slot />
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.varity-tabs').forEach(tabsContainer => {
+      const tabsId = tabsContainer.getAttribute('data-tabs-id')
+      const defaultTab = tabsContainer.getAttribute('data-default-tab')
+      const queryGroup = tabsContainer.getAttribute('data-query-group')
+
+      const tabButtons = tabsContainer.querySelectorAll('[role="tab"]')
+      const tabPanels = tabsContainer.querySelectorAll('[role="tabpanel"]')
+
+      if (tabButtons.length === 0) return
+
+      // Initialize active tab
+      const activeTab = defaultTab || tabButtons[0].getAttribute('data-tab-id')
+
+      function activateTab(tabId: string) {
+        tabButtons.forEach(button => {
+          const isActive = button.getAttribute('data-tab-id') === tabId
+          button.setAttribute('aria-selected', String(isActive))
+          button.classList.toggle('active', isActive)
+        })
+
+        tabPanels.forEach(panel => {
+          const isActive = panel.getAttribute('data-panel-id') === tabId
+          panel.setAttribute('aria-hidden', String(!isActive))
+          panel.classList.toggle('active', isActive)
+        })
+
+        // Update URL query param if queryGroup is set
+        if (queryGroup) {
+          const url = new URL(window.location.href)
+          url.searchParams.set(queryGroup, tabId)
+          window.history.replaceState({}, '', url)
+        }
+      }
+
+      // Click handlers
+      tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+          const tabId = button.getAttribute('data-tab-id')
+          if (tabId) activateTab(tabId)
+        })
+      })
+
+      // Keyboard navigation
+      tabsContainer.addEventListener('keydown', (e) => {
+        const target = e.target as HTMLElement
+        if (target.getAttribute('role') !== 'tab') return
+
+        const currentIndex = Array.from(tabButtons).indexOf(target)
+        let newIndex = currentIndex
+
+        if (e.key === 'ArrowRight') {
+          newIndex = (currentIndex + 1) % tabButtons.length
+          e.preventDefault()
+        } else if (e.key === 'ArrowLeft') {
+          newIndex = currentIndex === 0 ? tabButtons.length - 1 : currentIndex - 1
+          e.preventDefault()
+        } else if (e.key === 'Home') {
+          newIndex = 0
+          e.preventDefault()
+        } else if (e.key === 'End') {
+          newIndex = tabButtons.length - 1
+          e.preventDefault()
+        }
+
+        if (newIndex !== currentIndex) {
+          (tabButtons[newIndex] as HTMLElement).focus()
+          const tabId = tabButtons[newIndex].getAttribute('data-tab-id')
+          if (tabId) activateTab(tabId)
+        }
+      })
+
+      // Initialize from URL query param if set
+      if (queryGroup) {
+        const url = new URL(window.location.href)
+        const queryTab = url.searchParams.get(queryGroup)
+        if (queryTab) {
+          activateTab(queryTab)
+          return
+        }
+      }
+
+      // Activate default tab
+      activateTab(activeTab)
+    })
+  })
+</script>
+
+<style>
+  .varity-tabs {
+    margin: var(--space-6) 0;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-primary);
+    overflow: hidden;
+  }
+
+  .tabs-header {
+    display: flex;
+    gap: 0;
+    background: rgba(255, 255, 255, 0.02);
+    border-bottom: 1px solid var(--border-secondary);
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+
+  .tabs-header::-webkit-scrollbar {
+    height: 2px;
+  }
+
+  .tabs-header::-webkit-scrollbar-thumb {
+    background: var(--color-brand);
+  }
+
+  /* Tab buttons */
+  :global(.varity-tabs [role="tab"]) {
+    flex: 1;
+    min-width: max-content;
+    padding: var(--space-3) var(--space-5);
+    background: transparent;
+    border: none;
+    color: var(--text-tertiary);
+    font-family: var(--sl-font);
+    font-size: var(--text-sm);
+    font-weight: var(--font-medium);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    position: relative;
+    white-space: nowrap;
+  }
+
+  /* Underlined variant */
+  .tabs-underlined :global([role="tab"]) {
+    border-bottom: 2px solid transparent;
+  }
+
+  .tabs-underlined :global([role="tab"]:hover) {
+    color: var(--text-secondary);
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .tabs-underlined :global([role="tab"].active) {
+    color: var(--color-brand);
+    border-bottom-color: var(--color-brand);
+    background: transparent;
+  }
+
+  /* Boxed variant */
+  .tabs-boxed :global([role="tab"]) {
+    border-radius: var(--radius-md);
+    margin: var(--space-2);
+  }
+
+  .tabs-boxed :global([role="tab"]:hover) {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-secondary);
+  }
+
+  .tabs-boxed :global([role="tab"].active) {
+    background: var(--color-brand-subtle);
+    color: var(--color-brand);
+    border: 1px solid var(--color-brand);
+  }
+
+  /* Size variants */
+  .tabs-small :global([role="tab"]) {
+    padding: var(--space-2) var(--space-4);
+    font-size: 0.8125rem;
+  }
+
+  /* Tab content */
+  .tabs-content {
+    background: var(--sl-color-bg);
+  }
+
+  :global(.varity-tabs [role="tabpanel"]) {
+    display: none;
+    padding: var(--space-5);
+    animation: fadeIn 0.2s ease-out;
+  }
+
+  :global(.varity-tabs [role="tabpanel"].active) {
+    display: block;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Focus states */
+  :global(.varity-tabs [role="tab"]:focus-visible) {
+    outline: 2px solid var(--color-brand);
+    outline-offset: -2px;
+    z-index: 1;
+  }
+</style>

@@ -1,5 +1,5 @@
 ---
-title: "@varity/ui-kit Installation"
+title: "@varity-labs/ui-kit Installation"
 description: "Install and configure the Varity UI Kit for your React project"
 ---
 
@@ -12,17 +12,17 @@ Get the Varity UI Kit installed in your React project.
 <Tabs>
   <TabItem label="npm">
     ```bash
-    npm install @varity/ui-kit @varity/sdk
+    npm install @varity-labs/ui-kit @varity-labs/sdk
     ```
   </TabItem>
   <TabItem label="pnpm">
     ```bash
-    pnpm add @varity/ui-kit @varity/sdk
+    pnpm add @varity-labs/ui-kit @varity-labs/sdk
     ```
   </TabItem>
   <TabItem label="yarn">
     ```bash
-    yarn add @varity/ui-kit @varity/sdk
+    yarn add @varity-labs/ui-kit @varity-labs/sdk
     ```
   </TabItem>
 </Tabs>
@@ -36,31 +36,22 @@ The UI Kit requires these peer dependencies:
   "react": "^18.0.0",
   "react-dom": "^18.0.0",
   "@privy-io/react-auth": "^1.0.0",
-  "@tanstack/react-query": "^5.0.0",
-  "thirdweb": "^5.0.0"
+  "@tanstack/react-query": "^5.0.0"
 }
 ```
 
 Install any missing dependencies:
 
 ```bash
-npm install react react-dom @privy-io/react-auth @tanstack/react-query thirdweb
+npm install react react-dom @privy-io/react-auth @tanstack/react-query
 ```
 
-## Environment Variables
+## Credentials
 
-Set up these environment variables:
-
-```bash title=".env.local"
-# Privy App ID - get from https://dashboard.privy.io
-NEXT_PUBLIC_PRIVY_APP_ID=your_privy_app_id
-
-# thirdweb Client ID - get from https://thirdweb.com/dashboard
-NEXT_PUBLIC_THIRDWEB_CLIENT_ID=your_thirdweb_client_id
-```
+No credential setup needed. Varity provides authentication and storage credentials automatically.
 
 <Aside type="tip">
-**Development Mode:** Varity provides shared development credentials that work automatically. Skip the environment variables and the UI Kit will use development defaults.
+Just install the packages and start building. The UI Kit uses managed credentials by default. See [Managed Credentials](/deploy/managed-credentials) for details.
 </Aside>
 
 ## Basic Setup
@@ -70,7 +61,7 @@ NEXT_PUBLIC_THIRDWEB_CLIENT_ID=your_thirdweb_client_id
 1. **Wrap your app with PrivyStack**
 
    ```tsx title="app/layout.tsx"
-   import { PrivyStack } from '@varity/ui-kit';
+   import { PrivyStack } from '@varity-labs/ui-kit';
 
    export default function RootLayout({ children }) {
      return (
@@ -88,7 +79,7 @@ NEXT_PUBLIC_THIRDWEB_CLIENT_ID=your_thirdweb_client_id
 2. **Add a login button**
 
    ```tsx title="components/Header.tsx"
-   import { PrivyLoginButton, usePrivy } from '@varity/ui-kit';
+   import { PrivyLoginButton, usePrivy } from '@varity-labs/ui-kit';
 
    export function Header() {
      const { authenticated, logout } = usePrivy();
@@ -108,7 +99,7 @@ NEXT_PUBLIC_THIRDWEB_CLIENT_ID=your_thirdweb_client_id
 3. **Protect routes**
 
    ```tsx title="app/dashboard/page.tsx"
-   import { PrivyProtectedRoute } from '@varity/ui-kit';
+   import { PrivyProtectedRoute } from '@varity-labs/ui-kit';
 
    export default function DashboardPage() {
      return (
@@ -126,7 +117,7 @@ NEXT_PUBLIC_THIRDWEB_CLIENT_ID=your_thirdweb_client_id
 ### Next.js (App Router)
 
 ```tsx title="app/layout.tsx"
-import { PrivyStack } from '@varity/ui-kit';
+import { PrivyStack } from '@varity-labs/ui-kit';
 
 export default function RootLayout({
   children,
@@ -150,7 +141,7 @@ export default function RootLayout({
 ```tsx title="src/main.tsx"
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { PrivyStack } from '@varity/ui-kit';
+import { PrivyStack } from '@varity-labs/ui-kit';
 import App from './App';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -167,7 +158,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 ```tsx title="src/index.tsx"
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { PrivyStack } from '@varity/ui-kit';
+import { PrivyStack } from '@varity-labs/ui-kit';
 import App from './App';
 
 const root = ReactDOM.createRoot(
@@ -189,9 +180,8 @@ root.render(
 
 ```tsx
 <PrivyStack
-  // Required (or use dev defaults)
+  // Optional (uses dev defaults if not set)
   appId="your-privy-app-id"
-  thirdwebClientId="your-thirdweb-client-id"
 
   // Login methods to show
   loginMethods={['email', 'google', 'twitter', 'discord']}
@@ -218,8 +208,8 @@ The UI Kit is fully typed. Import types as needed:
 import type {
   PrivyStackProps,
   PrivyLoginButtonProps,
-  OnrampWidgetProps,
-} from '@varity/ui-kit';
+  PaymentWidgetProps,
+} from '@varity-labs/ui-kit';
 ```
 
 ## Next Steps
@@ -230,6 +220,6 @@ import type {
 
 ## Related Resources
 
-- [@varity/sdk](/packages/sdk/overview) - Backend SDK
+- [@varity-labs/sdk](/packages/sdk/overview) - Backend SDK
 - [Payment Components](/build/payments/quickstart) - Accept payments
 - [Smart Wallets](/build/wallets/quickstart) - Gasless transactions

@@ -9,7 +9,7 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="January 28, 2026"
+  lastUpdated="February 7, 2026"
   version="1.2.3"
   stability="stable"
 />
@@ -33,17 +33,17 @@ Get your first Varity app running in 5 minutes.
    <Tabs>
      <TabItem label="npm">
        ```bash
-       npm install @varity/sdk @varity/ui-kit @varity/types
+       npm install @varity-labs/sdk @varity-labs/ui-kit @varity-labs/types
        ```
      </TabItem>
      <TabItem label="pnpm">
        ```bash
-       pnpm add @varity/sdk @varity/ui-kit @varity/types
+       pnpm add @varity-labs/sdk @varity-labs/ui-kit @varity-labs/types
        ```
      </TabItem>
      <TabItem label="yarn">
        ```bash
-       yarn add @varity/sdk @varity/ui-kit @varity/types
+       yarn add @varity-labs/sdk @varity-labs/ui-kit @varity-labs/types
        ```
      </TabItem>
    </Tabs>
@@ -69,7 +69,7 @@ Get your first Varity app running in 5 minutes.
 The fastest way to add authentication is with `PrivyStack`:
 
 ```tsx title="app/layout.tsx"
-import { PrivyStack } from '@varity/ui-kit';
+import { PrivyStack } from '@varity-labs/ui-kit';
 
 export default function RootLayout({ children }) {
   return (
@@ -95,7 +95,7 @@ export default function RootLayout({ children }) {
 ## Add a Login Button
 
 ```tsx title="components/LoginButton.tsx"
-import { PrivyLoginButton, usePrivy } from '@varity/ui-kit';
+import { PrivyLoginButton, usePrivy } from '@varity-labs/ui-kit';
 
 export function LoginButton() {
   const { user, authenticated, logout } = usePrivy();
@@ -116,7 +116,6 @@ export function LoginButton() {
 Your users can now log in with:
 - Email (magic link, no password required)
 - Google, Twitter, Discord, GitHub
-- Any crypto wallet (optional)
 
 ## Deploy Your App
 
@@ -128,10 +127,10 @@ Your users can now log in with:
    npm run build
    ```
 
-2. **Deploy to Varity L3**
+2. **Deploy**
 
    ```bash
-   varitykit app deploy --hosting ipfs
+   varitykit app deploy
    ```
 
 3. **View your live app**
@@ -145,9 +144,9 @@ Your users can now log in with:
 When you deployed, Varity:
 
 1. **Built your app** into static files
-2. **Uploaded to IPFS** for decentralized hosting
-3. **Registered on Varity L3** for discoverability
-4. **Set up gasless transactions** so users never pay fees
+2. **Deployed** to secure, globally distributed hosting
+3. **Registered** your app for discoverability
+4. **Enabled free operations** so users never pay usage fees
 
 All of this happens in about 60 seconds.
 
@@ -156,14 +155,14 @@ All of this happens in about 60 seconds.
 Now that your app is running, you can:
 
 - [Add file storage](/build/storage/quickstart) - Upload and retrieve files
-- [Add payments](/build/payments/quickstart) - Accept credit card payments
+- [Add payments](/build/payments/quickstart) - Monetize your app
 - [Submit to App Store](/deploy/varity-l3) - List your app for users to discover
 
 ---
 
 ## Full Example
 
-Here's a complete example with authentication, protected routes, and user profile:
+Here is a complete example with authentication, protected routes, and user profile:
 
 ```tsx title="app/page.tsx"
 'use client';
@@ -174,7 +173,7 @@ import {
   PrivyProtectedRoute,
   PrivyUserProfile,
   usePrivy,
-} from '@varity/ui-kit';
+} from '@varity-labs/ui-kit';
 
 function Dashboard() {
   const { user } = usePrivy();

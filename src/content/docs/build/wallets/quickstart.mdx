@@ -1,56 +1,107 @@
 ---
-title: Smart Wallets Quick Start
-description: Add embedded smart wallets to your app in 5 minutes
+title: Accounts Quick Start
+description: How user accounts work in Varity apps
 ---
 
-import { Tabs, TabItem } from '@astrojs/starlight/components';
+import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+import Accordion from '../../../../components/Accordion.astro';
 
-# Smart Wallets Quick Start
+# Accounts Quick Start
 
-Give your users embedded smart wallets with gasless transactions.
+When users sign in to your Varity app, they automatically get an account. No extra setup needed.
 
-:::tip[Why smart wallets?]
-- Users don't need MetaMask or any wallet app
-- You sponsor gas fees (users pay nothing)
-- Better UX than traditional wallets
+:::tip[How it works]
+- Users sign in with email or social login
+- An account is created automatically behind the scenes
+- All operations are free for users (you sponsor the costs)
+- No browser extensions or special apps required
 :::
 
 ## Prerequisites
 
-- A Varity project with authentication set up
+- A Varity project with authentication set up ([Auth Quick Start](/build/auth/quickstart))
 - Node.js 18 or later
 
-## Installation
+## What Happens When Users Sign In
 
-<Tabs>
-  <TabItem label="npm">
-    ```bash
-    npm install @varity/ui-kit
-    ```
-  </TabItem>
-  <TabItem label="yarn">
-    ```bash
-    yarn add @varity/ui-kit
-    ```
-  </TabItem>
-  <TabItem label="pnpm">
-    ```bash
-    pnpm add @varity/ui-kit
-    ```
-  </TabItem>
-</Tabs>
+When a user logs in via `PrivyStack`, Varity automatically:
 
-## Step 1: Add the SmartWalletProvider
+1. Creates an embedded account linked to their identity
+2. Enables free operations (users never pay fees)
+3. Sets up session handling
 
-Wrap your app with `SmartWalletProvider`:
+You don't need to configure anything extra — `PrivyStack` handles everything.
+
+## Checking Account Status
+
+Use the `usePrivy` hook to check if a user is signed in:
+
+```tsx title="src/components/AccountStatus.tsx"
+import { usePrivy } from '@varity-labs/ui-kit';
+
+function AccountStatus() {
+  const { authenticated, user, ready } = usePrivy();
+
+  if (!ready) return <p>Loading...</p>;
+  if (!authenticated) return <p>Not signed in</p>;
+
+  return (
+    <div>
+      <p>Signed in as: {user?.email?.address || 'User'}</p>
+    </div>
+  );
+}
+```
+
+## Protecting Routes
+
+Show content only to signed-in users:
+
+```tsx title="src/components/ProtectedDashboard.tsx"
+import { PrivyProtectedRoute } from '@varity-labs/ui-kit';
+
+function App() {
+  return (
+    <PrivyProtectedRoute>
+      <Dashboard />
+    </PrivyProtectedRoute>
+  );
+}
+```
+
+## Free Operations
+
+All operations on Varity are free for end users. The platform sponsors operational costs so your users never see fees or extra prompts.
+
+```tsx
+import { usePrivy } from '@varity-labs/ui-kit';
+
+function PurchaseButton() {
+  const { authenticated } = usePrivy();
+
+  return (
+    <button disabled={!authenticated}>
+      Purchase — Free, no extra charges
+    </button>
+  );
+}
+```
+
+<Aside type="note">
+**Beta** — All operations run on Varity's beta environment. Production launch coming soon.
+</Aside>
+
+<Accordion title="Advanced: Smart Account Configuration">
+
+**Varity manages these credentials automatically. Only use this if you need custom configuration.**
+
+For advanced use cases, you can configure smart accounts directly using the `SmartWalletProvider`:
 
 ```typescript title="src/App.tsx"
-// IMPORTANT: Use thirdweb v5 function-based API (NOT v4 class-based)
-import { PrivyStack, SmartWalletProvider } from '@varity/ui-kit';
+import { PrivyStack, SmartWalletProvider } from '@varity-labs/ui-kit';
 import { createThirdwebClient } from 'thirdweb';
-import { varityL3Testnet } from '@varity/sdk';
+import { varityL3Testnet } from '@varity-labs/sdk';
 
-// Create thirdweb client for smart wallet operations
 const client = createThirdwebClient({
   clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID,
 });
@@ -61,8 +112,8 @@ function App() {
       <SmartWalletProvider
         config={{
           client,
-          chain: varityL3Testnet, // Varity L3 testnet (Chain ID 33529)
-          gasless: { enabled: true }, // Users never pay gas fees
+          chain: varityL3Testnet,
+          gasless: { enabled: true },
         }}
       >
         <YourApp />
@@ -72,71 +123,38 @@ function App() {
 }
 ```
 
-## Step 2: Use the wallet hook
+Access smart account operations:
 
-Access the smart wallet in your components:
+```typescript title="src/components/SmartAccountDemo.tsx"
+import { useSmartWallet } from '@varity-labs/ui-kit';
 
-```typescript title="src/components/WalletInfo.tsx"
-import { useSmartWallet } from '@varity/ui-kit';
-
-function WalletInfo() {
-  const { account, getAddress, isConnected, isGasless } = useSmartWallet();
-
-  if (!isConnected) return <p>Connecting wallet...</p>;
-
-  return (
-    <div>
-      <p>Wallet address: {getAddress()}</p>
-      <p>Gasless: {isGasless ? 'Enabled' : 'Disabled'}</p>
-    </div>
-  );
-}
-```
-
-## Step 3: Send gasless transactions
-
-Users can transact without paying gas:
-
-```typescript title="src/components/SendTransaction.tsx"
-import { useSmartWallet } from '@varity/ui-kit';
-
-function SendTransaction() {
-  const { sendTransaction, isGasless, isConnected } = useSmartWallet();
+function SmartAccountDemo() {
+  const { account, getAddress, isConnected, isGasless, sendTransaction } = useSmartWallet();
 
   const handleSend = async () => {
-    if (!isConnected) {
-      console.error('Wallet not connected');
-      return;
-    }
-
-    // Send gasless transaction on Varity L3 testnet (Chain ID 33529)
-    const txHash = await sendTransaction({
-      to: '0x...', // Recipient address
-      value: '0',  // Amount in wei
-      data: '0x...', // Encoded transaction data
+    const result = await sendTransaction({
+      to: '0x...',
+      value: '0',
+      data: '0x...',
     });
-
-    console.log('Transaction hash:', txHash);
-    console.log('User paid no gas fees:', isGasless);
+    console.log('Operation result:', result);
   };
 
   return (
     <div>
-      <button onClick={handleSend} disabled={!isConnected}>
-        Send Transaction
-      </button>
-      {isGasless && <p className="text-green-600">Gasless enabled</p>}
+      <p>Connected: {isConnected ? 'Yes' : 'No'}</p>
+      <p>Address: {getAddress()}</p>
+      <p>Free operations: {isGasless ? 'Enabled' : 'Disabled'}</p>
+      <button onClick={handleSend}>Send Operation</button>
     </div>
   );
 }
 ```
 
-:::note[Testnet Only]
-All transactions are on Varity L3 testnet (Chain ID 33529). Mainnet launch coming post-MVP.
-:::
+</Accordion>
 
 ## Next steps
 
-- [Create Wallet](/build/wallets/create-wallet) — Customize wallet creation
-- [Session Keys](/build/wallets/session-keys) — Enable batch transactions
-- [Gasless Transactions](/build/payments/gasless) — Configure gas sponsorship
+- [Authentication Quick Start](/build/auth/quickstart) — Set up user login
+- [Session Keys](/build/wallets/session-keys) — Enable batch operations
+- [Free Operations](/build/payments/gasless) — How fee sponsorship works

@@ -1,11 +1,12 @@
 ---
-title: "@varity/sdk Overview"
-description: "Backend SDK for building apps on Varity L3 - authentication, storage, analytics, and more"
+title: "@varity-labs/sdk Overview"
+description: "Backend SDK for building apps on Varity - authentication, storage, analytics, and more"
 ---
 
 import { Aside, Card, CardGrid, Badge } from '@astrojs/starlight/components';
+import Accordion from '../../../../components/Accordion.astro';
 
-The Varity SDK provides everything you need to build backend services for your Varity applications. It abstracts the complexity of blockchain interactions so you can focus on building your product.
+The Varity SDK provides everything you need to build backend services for your applications. It abstracts infrastructure complexity so you can focus on building your product.
 
 <Badge text="v2.0.0-alpha.1" variant="note" />
 
@@ -16,27 +17,27 @@ The Varity SDK provides everything you need to build backend services for your V
     Login, access control, and role management
   </Card>
   <Card title="Storage" icon="document">
-    File uploads to decentralized storage (IPFS/Filecoin)
+    File uploads to secure, distributed storage
   </Card>
   <Card title="Analytics" icon="graph">
     KPIs, trends, leaderboards, and growth metrics
   </Card>
-  <Card title="Contracts" icon="puzzle">
-    Pre-deployed smart contract interactions
+  <Card title="Database" icon="puzzle">
+    Zero-config database powered by Supabase
   </Card>
 </CardGrid>
 
 ## Quick Example
 
 ```typescript
-import { createVaritySDK, varityL3Testnet } from '@varity/sdk';
+import { createVaritySDK, varityL3Testnet } from '@varity-labs/sdk';
 
-// Initialize the SDK for Varity L3 testnet
+// Initialize the SDK
 const sdk = createVaritySDK({
-  network: 'arbitrum-l3-testnet', // Varity L3 (Chain ID 33529)
+  network: 'arbitrum-l3-testnet',
 });
 
-// Connect to the network
+// Connect
 await sdk.connect();
 
 // Use capability modules
@@ -57,12 +58,12 @@ The SDK exports several categories of functionality.
 | `getNetworkConfig` | Get network configuration by name |
 | `NETWORK_CONFIGS` | All supported network configurations |
 
-### Chain Configuration
+### Configuration
 
 | Export | Description |
 |--------|-------------|
-| `varityL3Testnet` | Varity L3 chain config (thirdweb format) |
-| `varityL3Wagmi` | Varity L3 chain config (wagmi format) |
+| `varityL3Testnet` | Varity infrastructure config |
+| `varityL3Wagmi` | Varity infrastructure config (wagmi format) |
 | `USDC_DECIMALS` | USDC decimal places (6) |
 | `formatUSDC` | Format bigint to USDC string |
 | `parseUSDC` | Parse USDC string to bigint |
@@ -73,7 +74,7 @@ The SDK exports several categories of functionality.
 |--------|-------------|
 | `VARITY_CONTRACTS` | All deployed contract addresses |
 | `VARITY_L3_CHAIN_ID` | Chain ID (33529) |
-| `REVENUE_SPLIT` | Revenue split percentages |
+| `REVENUE_SPLIT` | Revenue split percentages (90/10) |
 | `getVarityContractAddress` | Get contract address by name |
 
 ### Development Credentials
@@ -91,12 +92,11 @@ The SDK provides 13 capability modules that work across all application types.
 | Module | Purpose |
 |--------|---------|
 | `sdk.auth` | Authentication and access control |
-| `sdk.storage` | File storage (IPFS/Filecoin) |
+| `sdk.storage` | File storage |
+| `sdk.db` | Database operations |
 | `sdk.s3` | S3-compatible storage (optional) |
 | `sdk.compute` | AI/LLM queries |
-| `sdk.zk` | Zero-knowledge proofs |
-| `sdk.contracts` | Smart contract interactions |
-| `sdk.oracle` | Price feeds and external data |
+| `sdk.contracts` | Backend interactions |
 | `sdk.analytics` | KPIs, trends, growth metrics |
 | `sdk.notifications` | Email, push, webhook notifications |
 | `sdk.export` | CSV, JSON, PDF exports |
@@ -104,41 +104,6 @@ The SDK provides 13 capability modules that work across all application types.
 | `sdk.monitoring` | Health checks and metrics |
 | `sdk.forecasting` | Predictive analytics |
 | `sdk.webhooks` | Webhook management |
-
-## thirdweb Integration
-
-The SDK includes complete thirdweb v5 integration.
-
-| Client | Purpose |
-|--------|---------|
-| `EngineClient` | Production transaction management |
-| `NebulaClient` | AI-powered blockchain interactions |
-| `StorageClient` | IPFS/Arweave storage |
-| `BridgeClient` | Cross-chain transfers |
-| `GatewayClient` | RPC infrastructure |
-| `x402Client` | API monetization |
-
-```typescript
-// IMPORTANT: Use thirdweb v5 Engine for production transaction management
-import { createEngineClient } from '@varity/sdk';
-
-const engine = createEngineClient({
-  engineUrl: process.env.THIRDWEB_ENGINE_URL,
-  accessToken: process.env.THIRDWEB_ACCESS_TOKEN,
-  backendWallet: process.env.BACKEND_WALLET_ADDRESS,
-});
-
-// Send transaction to Varity L3 testnet
-const result = await engine.sendTransaction({
-  chainId: 33529, // Varity L3 testnet
-  to: contractAddress,
-  data: txData,
-});
-```
-
-<Aside type="tip">
-thirdweb v5 uses function-based APIs, not class-based. If you're migrating from v4, see the [thirdweb migration guide](https://portal.thirdweb.com/typescript/v5/migrate).
-</Aside>
 
 ## Type Exports
 
@@ -153,17 +118,7 @@ import type {
   NetworkConfig,
   ContractAddresses,
   CredentialConfig,
-} from '@varity/sdk';
-```
-
-### Chain Types
-
-```typescript
-import type {
-  ChainSelection,
-  ChainMetadata,
-  VarityContractName,
-} from '@varity/sdk';
+} from '@varity-labs/sdk';
 ```
 
 ### Module Types
@@ -186,102 +141,122 @@ import type {
   // Webhooks
   Webhook,
   DeliveryLog,
-} from '@varity/sdk';
+} from '@varity-labs/sdk';
 ```
 
 ## Version
 
 ```typescript
-import { VERSION, SDK_VERSION } from '@varity/sdk';
+import { VERSION, SDK_VERSION } from '@varity-labs/sdk';
 
 console.log(VERSION); // '2.0.0-alpha.1'
 ```
 
 ## Complete Working Example
 
-Here's a full example showing proper thirdweb v5 usage with contract interaction on Varity L3 testnet:
+```typescript
+import { createVaritySDK, formatUSDC, parseUSDC } from '@varity-labs/sdk';
+
+// Initialize SDK
+const sdk = createVaritySDK({
+  network: 'arbitrum-l3-testnet',
+});
+
+await sdk.connect();
+
+// Upload a file
+const result = await sdk.storage.upload(myFile);
+console.log('File URL:', result.url);
+
+// Get analytics
+const kpis = await sdk.analytics.getKPIs({ period: 'current_month' });
+console.log('Total users:', kpis.totalUsers);
+
+// Format prices
+const display = formatUSDC(10500000n);
+console.log(display.formatted); // "10.50 USDC"
+
+// Revenue split: 90% to developer, 10% to Varity platform
+```
+
+<Aside type="note">
+**Beta** — This example uses Varity's beta environment. Production launch coming soon.
+</Aside>
+
+<Accordion title="Advanced: Direct Infrastructure Access">
+
+**Varity manages these credentials automatically. Only use this if you need custom configuration.**
+
+For power users who need lower-level access to Varity's infrastructure, the SDK includes direct integration APIs.
+
+### Contract Interaction
 
 ```typescript
-// IMPORTANT: Use thirdweb v5 function-based API (NOT v4 class-based)
-import { createThirdwebClient, getContract, readContract, prepareContractCall } from 'thirdweb';
-import { varityL3Testnet, VARITY_CONTRACTS, formatUSDC, parseUSDC } from '@varity/sdk';
+import { createThirdwebClient, getContract, readContract } from 'thirdweb';
+import { varityL3Testnet, VARITY_CONTRACTS, formatUSDC } from '@varity-labs/sdk';
 
-// Step 1: Create thirdweb client (required for all operations)
 const client = createThirdwebClient({
   clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID,
 });
 
-// Step 2: Get contract instance on Varity L3 testnet (Chain ID 33529)
-const marketplaceContract = getContract({
+const contract = getContract({
   client,
   chain: varityL3Testnet,
-  address: VARITY_CONTRACTS.TemplateMarketplace, // 0x769250dac29817081f38CfBa597Ef2485F3a94e8
+  address: VARITY_CONTRACTS.TemplateMarketplace,
 });
 
-// Step 3: Read contract data (no transaction needed)
-async function getTemplatePrice(templateId: string) {
-  const priceRaw = await readContract({
-    contract: marketplaceContract,
-    method: 'function getPrice(uint256) view returns (uint256)',
-    params: [BigInt(templateId)],
-  });
+const priceRaw = await readContract({
+  contract,
+  method: 'function getPrice(uint256) view returns (uint256)',
+  params: [BigInt('1')],
+});
 
-  // Format USDC (6 decimals, NOT 18!)
-  const priceFormatted = formatUSDC(priceRaw);
-  console.log(`Template price: ${priceFormatted.formatted}`);
-
-  return priceFormatted;
-}
-
-// Step 4: Prepare transaction (will be sent via wallet)
-async function purchaseTemplate(templateId: string, priceUSD: string) {
-  // Parse USDC amount (6 decimals)
-  const amount = parseUSDC(priceUSD);
-
-  // Prepare contract call
-  const transaction = prepareContractCall({
-    contract: marketplaceContract,
-    method: 'function purchase(uint256, uint256) payable',
-    params: [BigInt(templateId), amount],
-  });
-
-  // This transaction will be gasless on Varity L3 testnet
-  // Users pay no transaction fees - sponsored by Varity platform
-  return transaction;
-}
-
-// Example usage
-async function example() {
-  // Read template price
-  const price = await getTemplatePrice('1');
-
-  // Prepare purchase transaction
-  const tx = await purchaseTemplate('1', '10.00');
-
-  console.log('Transaction prepared - gasless on Varity L3 testnet');
-  console.log('Revenue split: 70% to developer, 30% to Varity platform');
-}
+console.log(formatUSDC(priceRaw).formatted);
 ```
 
-<Aside type="note">
-**Testnet Only** - This example uses Varity L3 testnet (Chain ID 33529). Mainnet launch coming post-MVP validation.
-</Aside>
+### Engine Client
+
+| Client | Purpose |
+|--------|---------|
+| `EngineClient` | Production operation management |
+| `NebulaClient` | AI-powered interactions |
+| `StorageClient` | File storage |
+| `BridgeClient` | Cross-chain transfers |
+| `GatewayClient` | RPC infrastructure |
+
+```typescript
+import { createEngineClient } from '@varity-labs/sdk';
+
+const engine = createEngineClient({
+  engineUrl: process.env.THIRDWEB_ENGINE_URL,
+  accessToken: process.env.THIRDWEB_ACCESS_TOKEN,
+  backendWallet: process.env.BACKEND_WALLET_ADDRESS,
+});
+
+const result = await engine.sendTransaction({
+  chainId: 33529,
+  to: contractAddress,
+  data: txData,
+});
+```
+
+</Accordion>
 
 ## Next Steps
 
 <CardGrid>
   <Card title="Installation" icon="rocket">
     Get the SDK installed and configured in your project.
-    [View Guide →](/packages/sdk/installation)
+    [View Guide](/packages/sdk/installation)
   </Card>
-  <Card title="Chain Support" icon="seti:config">
-    Learn about Varity L3 and working with chains.
-    [View Guide →](/packages/sdk/chains)
+  <Card title="Infrastructure Config" icon="seti:config">
+    Learn about Varity's infrastructure and configuration.
+    [View Guide](/packages/sdk/chains)
   </Card>
 </CardGrid>
 
 ## Related Resources
 
 - [Quick Start](/getting-started/quickstart) - Build your first app
-- [@varity/ui-kit](/packages/ui-kit/overview) - React components
-- [Deploy to Varity L3](/deploy/varity-l3) - Ship to production
+- [@varity-labs/ui-kit](/packages/ui-kit/overview) - React components
+- [Deploy Your App](/deploy/varity-l3) - Ship to production

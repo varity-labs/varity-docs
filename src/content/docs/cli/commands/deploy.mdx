@@ -1,11 +1,12 @@
 ---
 title: "varitykit app deploy"
-description: "Deploy your application to decentralized infrastructure"
+description: "Deploy your application with one command"
 ---
 
 import { Tabs, TabItem, Steps, Aside } from '@astrojs/starlight/components';
+import Accordion from '../../../../components/Accordion.astro';
 
-Deploy your application to IPFS (static sites) or Akash (dynamic apps).
+Deploy your application to Varity's secure infrastructure.
 
 ## Usage
 
@@ -15,12 +16,12 @@ varitykit app deploy [OPTIONS]
 
 ## Hosting Options
 
-### IPFS (Static Sites)
+### Static Sites
 
 Deploy static websites and single-page applications:
 
 ```bash
-varitykit app deploy --hosting ipfs
+varitykit app deploy
 ```
 
 **Best for:**
@@ -32,15 +33,15 @@ varitykit app deploy --hosting ipfs
 **Features:**
 - Global CDN distribution
 - Free hosting (sponsored by Varity)
-- Permanent URLs via CID
+- Permanent deployment URLs
 - Automatic SSL
 
-### Akash (Dynamic Apps)
+### Dynamic Apps (Coming Soon)
 
 Deploy full-stack applications with compute resources:
 
 ```bash
-varitykit app deploy --hosting akash
+varitykit app deploy --dynamic
 ```
 
 **Best for:**
@@ -56,25 +57,17 @@ varitykit app deploy --hosting akash
 - 70-85% cheaper than AWS
 
 <Aside type="note">
-Akash deployment is under active development and will be fully available before MVP launch.
+Dynamic hosting is under active development and will be available soon.
 </Aside>
 
 ## Options
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `--hosting` | `ipfs` | Hosting type: `ipfs` or `akash` |
+| `--hosting` | `ipfs` | Hosting type: `ipfs` (static) |
 | `--network` | `varity` | Target network |
 | `--path` | `.` | Project directory |
 | `--submit-to-store` | `false` | Submit to Varity App Store |
-
-### Akash-specific Options
-
-| Option | Default | Description |
-|--------|---------|-------------|
-| `--cpu` | `0.5` | CPU cores |
-| `--memory` | `512Mi` | Memory allocation |
-| `--storage` | `1Gi` | Storage allocation |
 
 ## Basic Deployment
 
@@ -86,21 +79,21 @@ Akash deployment is under active development and will be fully available before 
    npm run build
    ```
 
-2. **Deploy to IPFS**
+2. **Deploy**
 
    ```bash
-   varitykit app deploy --hosting ipfs
+   varitykit app deploy
    ```
 
 3. **View your live app**
 
    ```
    ✓ Build complete
-   ✓ Uploaded to IPFS
-   ✓ Registered on Varity L3
+   ✓ Deployed successfully
+   ✓ Registered on Varity
 
    Your app is live at:
-   https://bafybei...ipfs.thirdwebcdn.com
+   https://your-app.varity.app
 
    Deployment ID: deploy-1737492000
    ```
@@ -112,37 +105,13 @@ Akash deployment is under active development and will be fully available before 
 Submit your app to the Varity App Store during deployment:
 
 ```bash
-varitykit app deploy --hosting ipfs --submit-to-store
+varitykit app deploy --submit-to-store
 ```
 
 This will:
 1. Build and deploy your app
-2. Register on Varity L3
+2. Register on Varity's infrastructure
 3. Submit to the App Store for review
-
-## Deploy to Akash
-
-Deploy a full-stack application:
-
-```bash
-varitykit app deploy --hosting akash --cpu 2 --memory 2Gi --storage 5Gi
-```
-
-Example output:
-
-```
-✓ Build complete
-✓ Container image created
-✓ Deployed to Akash Network
-✓ Registered on Varity L3
-
-Your app is live at:
-https://abc123.provider.akash.network
-
-Deployment ID: deploy-1737492000
-Resources: 2 CPU, 2Gi memory, 5Gi storage
-Estimated cost: ~$15/month
-```
 
 ## Supported Frameworks
 
@@ -158,38 +127,7 @@ The CLI automatically detects your framework:
 
 ## Environment Variables
 
-Required environment variables:
-
-<Tabs>
-  <TabItem label="IPFS">
-    ```bash title=".env"
-    THIRDWEB_CLIENT_ID=your_client_id
-    ```
-  </TabItem>
-  <TabItem label="Akash">
-    ```bash title=".env"
-    THIRDWEB_CLIENT_ID=your_client_id
-    AKASH_WALLET_KEY=your_wallet_key
-    ```
-  </TabItem>
-</Tabs>
-
-## Deployment Manifest
-
-After deployment, a manifest file is created:
-
-```json title=".varity/deploy-1737492000.json"
-{
-  "deployment_id": "deploy-1737492000",
-  "timestamp": "2026-01-28T12:00:00Z",
-  "hosting": "ipfs",
-  "network": "varity",
-  "cid": "bafybei...",
-  "url": "https://bafybei...ipfs.thirdwebcdn.com",
-  "tx_hash": "0x...",
-  "gasless": true
-}
-```
+Storage and authentication credentials are auto-provided by Varity. No manual credential setup is required. See [Managed Credentials](/deploy/managed-credentials).
 
 ## Rollback
 
@@ -210,11 +148,10 @@ varitykit app list
 Output:
 
 ```
-ID                  | Hosting | Network | Status  | URL
---------------------|---------|---------|---------|---------------------------
-deploy-1737492000   | ipfs    | varity  | active  | bafybei...
-deploy-1737491000   | ipfs    | varity  | rolled  | bafybei...
-deploy-1737490000   | akash   | varity  | stopped | abc123.provider...
+ID                  | Status  | URL
+--------------------|---------|---------------------------
+deploy-1737492000   | live    | https://your-app.varity.app
+deploy-1737491000   | archived| https://v2.your-app.varity.app
 ```
 
 ## Troubleshooting
@@ -231,29 +168,35 @@ deploy-1737490000   | akash   | varity  | stopped | abc123.provider...
    npm install
    ```
 
-### "IPFS upload failed"
+### "Upload failed"
 
-1. Check your Client ID:
-   ```bash
-   echo $THIRDWEB_CLIENT_ID
-   ```
-
-2. Verify network connectivity:
+1. Verify network connectivity:
    ```bash
    varitykit doctor
    ```
 
-### "Akash deployment failed"
+2. Check your internet connection and try again
 
-1. Check your wallet has AKT tokens
-2. Verify the Akash CLI is installed:
-   ```bash
-   akash version
-   ```
+<Accordion title="Advanced: Deployment Manifest">
+
+After deployment, a manifest file is created:
+
+```json title=".varity/deploy-1737492000.json"
+{
+  "deployment_id": "deploy-1737492000",
+  "timestamp": "2026-01-28T12:00:00Z",
+  "hosting": "static",
+  "network": "varity",
+  "url": "https://your-app.varity.app",
+  "gasless": true
+}
+```
+
+</Accordion>
 
 ## Next Steps
 
-- [Deploy to Varity L3](/deploy/varity-l3) - Network details
+- [Deploy Your App](/deploy/varity-l3) - Deployment details
 - [Configure environment variables](/deploy/env-variables) - Required setup
 - [CLI Overview](/cli/overview) - All CLI commands
 
@@ -261,4 +204,4 @@ deploy-1737490000   | akash   | varity  | stopped | abc123.provider...
 
 - [Quick Start](/getting-started/quickstart) - Complete tutorial
 - [Troubleshooting](/resources/troubleshooting) - Fix common issues
-- [IPFS Storage](/build/storage/quickstart) - File storage guide
+- [File Storage](/build/storage/quickstart) - File storage guide

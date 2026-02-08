@@ -23,7 +23,7 @@ No password storage, no forgotten password flows, no security vulnerabilities fr
 1. **Add PrivyStack to your app**
 
    ```tsx title="app/layout.tsx"
-   import { PrivyStack } from '@varity/ui-kit';
+   import { PrivyStack } from '@varity-labs/ui-kit';
 
    export default function RootLayout({ children }) {
      return (
@@ -41,7 +41,7 @@ No password storage, no forgotten password flows, no security vulnerabilities fr
 2. **Add the login button**
 
    ```tsx title="components/LoginButton.tsx"
-   import { PrivyLoginButton } from '@varity/ui-kit';
+   import { PrivyLoginButton } from '@varity-labs/ui-kit';
 
    export function LoginButton() {
      return (
@@ -59,7 +59,7 @@ No password storage, no forgotten password flows, no security vulnerabilities fr
 Build your own login button using the `usePrivy` hook:
 
 ```tsx title="components/CustomEmailLogin.tsx"
-import { usePrivy, useLogin } from '@varity/ui-kit';
+import { usePrivy, useLogin } from '@varity-labs/ui-kit';
 
 export function CustomEmailLogin() {
   const { ready, authenticated } = usePrivy();
@@ -89,7 +89,7 @@ export function CustomEmailLogin() {
 After login, access the user's email from the `user` object:
 
 ```tsx title="components/UserProfile.tsx"
-import { usePrivy } from '@varity/ui-kit';
+import { usePrivy } from '@varity-labs/ui-kit';
 
 export function UserProfile() {
   const { user } = usePrivy();
@@ -127,7 +127,7 @@ The typical user experience:
 Execute custom logic when a user successfully logs in:
 
 ```tsx title="components/LoginWithCallback.tsx"
-import { PrivyLoginButton } from '@varity/ui-kit';
+import { PrivyLoginButton } from '@varity-labs/ui-kit';
 
 export function LoginWithCallback() {
   const handleSuccess = (user) => {
@@ -162,7 +162,7 @@ export function LoginWithCallback() {
 Only show content to logged-in users:
 
 ```tsx title="pages/dashboard.tsx"
-import { PrivyProtectedRoute, usePrivy } from '@varity/ui-kit';
+import { PrivyProtectedRoute, usePrivy } from '@varity-labs/ui-kit';
 
 function DashboardContent() {
   const { user } = usePrivy();

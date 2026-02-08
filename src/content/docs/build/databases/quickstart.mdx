@@ -1,0 +1,59 @@
+---
+title: Database Quick Start
+description: Add a database to your application in minutes
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+# Database Quick Start
+
+Varity includes a zero-config database powered by Supabase. Import and start querying immediately.
+
+## Installation
+
+The database module is included in `@varity-labs/sdk`. No additional packages needed.
+
+## Quick Start
+
+```typescript
+import { db } from '@varity-labs/sdk';
+
+// Create a collection
+const users = db.collection('users');
+
+// Insert a document
+await users.insert({
+  name: 'John Doe',
+  email: 'john@example.com',
+  plan: 'starter'
+});
+
+// Query documents
+const activeUsers = await users.find({ plan: 'starter' });
+
+// Update a document
+await users.update({ email: 'john@example.com' }, { plan: 'growth' });
+
+// Delete a document
+await users.delete({ email: 'john@example.com' });
+```
+
+## Environment Variables
+
+Set these in your `.env.local` file:
+
+```bash
+NEXT_PUBLIC_VARITY_APP_ID=your-app-id
+NEXT_PUBLIC_VARITY_APP_TOKEN=your-app-token
+NEXT_PUBLIC_VARITY_DB_PROXY_URL=your-db-url
+```
+
+<Aside type="tip">
+When you deploy with `varietykit app deploy`, database credentials are automatically injected. No manual setup needed!
+</Aside>
+
+## Next Steps
+
+- [Authentication](/build/auth/quickstart) -- Add user login
+- [Payments](/build/payments/quickstart) -- Monetize your app
+- [Deploy](/deploy/varity-l3) -- Go live

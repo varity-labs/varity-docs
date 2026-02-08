@@ -1,0 +1,188 @@
+---
+/**
+ * Callout Component (Enhanced Admonition)
+ *
+ * Supabase-quality callout boxes with 4 types:
+ * - tip: Best practices, helpful hints
+ * - note: Additional information
+ * - warning: Important caveats
+ * - danger: Critical warnings, security issues
+ *
+ * Usage:
+ * <Callout type="tip" title="Pro tip">
+ *   Your content here...
+ * </Callout>
+ */
+
+type CalloutType = 'tip' | 'note' | 'warning' | 'danger'
+
+interface Props {
+  type: CalloutType
+  title?: string
+  collapsible?: boolean
+  defaultOpen?: boolean
+}
+
+const { type, title, collapsible = false, defaultOpen = true } = Astro.props
+
+const icons = {
+  tip: '💡',
+  note: 'ℹ️',
+  warning: '⚠️',
+  danger: '🚨'
+}
+
+const defaultTitles = {
+  tip: 'Tip',
+  note: 'Note',
+  warning: 'Warning',
+  danger: 'Danger'
+}
+
+const displayTitle = title || defaultTitles[type]
+const componentId = `callout-${Math.random().toString(36).slice(2, 11)}`
+---
+
+<div class:list={["varity-callout", `callout-${type}`, collapsible && "collapsible"]}>
+  {collapsible ? (
+    <details open={defaultOpen}>
+      <summary>
+        <span class="callout-icon">{icons[type]}</span>
+        <span class="callout-title">{displayTitle}</span>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </summary>
+      <div class="callout-content">
+        <slot />
+      </div>
+    </details>
+  ) : (
+    <>
+      <div class="callout-header">
+        <span class="callout-icon">{icons[type]}</span>
+        <span class="callout-title">{displayTitle}</span>
+      </div>
+      <div class="callout-content">
+        <slot />
+      </div>
+    </>
+  )}
+</div>
+
+<style>
+  .varity-callout {
+    border-radius: var(--radius-lg);
+    border-left: 4px solid;
+    padding: var(--space-4) var(--space-5);
+    margin: var(--space-6) 0;
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  /* Type-specific styling */
+  .callout-tip {
+    background: var(--color-success-subtle);
+    border-color: var(--color-success);
+  }
+
+  .callout-note {
+    background: var(--color-info-subtle);
+    border-color: var(--color-info);
+  }
+
+  .callout-warning {
+    background: var(--color-warning-subtle);
+    border-color: var(--color-warning);
+  }
+
+  .callout-danger {
+    background: var(--color-danger-subtle);
+    border-color: var(--color-danger);
+  }
+
+  .callout-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
+  }
+
+  .callout-icon {
+    font-size: 1.125rem;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  .callout-title {
+    font-weight: var(--font-semibold);
+    font-size: var(--text-sm);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-wide);
+    color: var(--text-primary);
+  }
+
+  .callout-content {
+    color: var(--text-secondary);
+    font-size: 0.9375rem;
+    line-height: var(--leading-relaxed);
+  }
+
+  .callout-content > :first-child {
+    margin-top: 0;
+  }
+
+  .callout-content > :last-child {
+    margin-bottom: 0;
+  }
+
+  /* Collapsible variant */
+  .varity-callout.collapsible details {
+    cursor: pointer;
+  }
+
+  .varity-callout.collapsible summary {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    list-style: none;
+    user-select: none;
+  }
+
+  .varity-callout.collapsible summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .varity-callout.collapsible .chevron {
+    margin-left: auto;
+    transition: transform var(--transition-base);
+    color: var(--text-tertiary);
+  }
+
+  .varity-callout.collapsible details[open] .chevron {
+    transform: rotate(180deg);
+  }
+
+  .varity-callout.collapsible .callout-content {
+    margin-top: var(--space-3);
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--border-secondary);
+  }
+
+  /* Nested content styling */
+  .callout-content p {
+    margin-bottom: var(--space-3);
+  }
+
+  .callout-content code {
+    font-size: 0.875em;
+  }
+
+  .callout-content a {
+    color: var(--color-brand-light);
+    text-decoration: underline;
+  }
+
+  .callout-content a:hover {
+    color: var(--color-brand);
+  }
+</style>

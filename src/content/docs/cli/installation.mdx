@@ -60,7 +60,7 @@ Expected output:
 ✓ Node.js version: 20.0.0 (>= 18 required)
 ✓ npm version: 10.0.0
 ✓ Docker: Running
-✓ THIRDWEB_CLIENT_ID: Set
+✓ Storage credentials: Set
 ✓ All checks passed!
 ```
 
@@ -85,12 +85,9 @@ Expected output:
 
 <Steps>
 
-1. **Create a .env file** in your project root:
+1. **Create a .env file** (optional) in your project root:
 
    ```bash title=".env"
-   # Required for IPFS deployments
-   THIRDWEB_CLIENT_ID=your_client_id
-
    # Required for Akash deployments
    AKASH_WALLET_KEY=your_wallet_key
 
@@ -98,13 +95,9 @@ Expected output:
    WALLET_PRIVATE_KEY=your_private_key
    ```
 
-2. **Get your thirdweb Client ID**:
+   Storage and authentication credentials are provided automatically by Varity. See [Managed Credentials](/deploy/managed-credentials).
 
-   - Go to [thirdweb Dashboard](https://thirdweb.com/dashboard)
-   - Create or select a project
-   - Copy your Client ID
-
-3. **Verify environment variables**:
+2. **Verify your setup**:
 
    ```bash
    varitykit doctor

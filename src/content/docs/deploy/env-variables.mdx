@@ -4,29 +4,38 @@ description: "Configure environment variables for Varity deployments"
 ---
 
 import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+import Accordion from '../../../components/Accordion.astro';
 
 # Environment Variables
 
-Configure environment variables for your Varity application.
+Varity manages most credentials automatically. You only need to set environment variables for services you manage yourself.
 
-## Required Variables
+<Aside type="tip">
+**No credential setup required.** Authentication and storage credentials are provided automatically by Varity. See [Managed Credentials](/deploy/managed-credentials) for details.
+</Aside>
 
-### THIRDWEB_CLIENT_ID
+## Varity App Configuration
 
-Required for all deployments. Used for IPFS uploads and blockchain interactions.
-
-```bash title=".env"
-THIRDWEB_CLIENT_ID=your_thirdweb_client_id
+```bash title=".env.local"
+# Your Varity App ID (from developer portal)
+NEXT_PUBLIC_VARITY_APP_ID=your-app-id
 ```
 
-**How to get it:**
-1. Go to [thirdweb Dashboard](https://thirdweb.com/dashboard)
-2. Create or select a project
-3. Copy your Client ID
+## Optional Variables
 
-### AKASH_WALLET_KEY (Akash deployments only)
+These variables are only needed for specific use cases:
 
-Required for deploying dynamic applications to Akash.
+| Variable | Required For | Default |
+|----------|--------------|---------|
+| `NEXT_PUBLIC_VARITY_APP_ID` | App identity | Dev default |
+| `VARITY_API_URL` | Custom API endpoint | `https://api.varity.io` |
+| `VARITY_API_KEY` | API authentication | Auto-provided |
+| `AKASH_WALLET_KEY` | Akash deployments | Not set |
+| `WALLET_PRIVATE_KEY` | Contract deployments | Not set |
+
+### Akash Deployments
+
+Required only for deploying dynamic applications:
 
 ```bash title=".env"
 AKASH_WALLET_KEY=your_akash_wallet_private_key
@@ -36,112 +45,41 @@ AKASH_WALLET_KEY=your_akash_wallet_private_key
 Never commit your `AKASH_WALLET_KEY` to version control. Use environment variables or a secrets manager.
 </Aside>
 
-## Application Variables
-
-### Authentication (Privy)
-
-```bash title=".env"
-# Privy App ID - get from https://dashboard.privy.io
-NEXT_PUBLIC_PRIVY_APP_ID=your_privy_app_id
-
-# Or use Varity development credentials (for testing only)
-NEXT_PUBLIC_VARITY_APP_ID=varity_dev_app_id
-```
-
-### Varity SDK
-
-```bash title=".env"
-# Optional: Override default Varity API endpoint
-VARITY_API_URL=https://api.varity.io
-
-# Optional: Your Varity API key
-VARITY_API_KEY=your_api_key
-
-# Optional: Your wallet address
-VARITY_WALLET_ADDRESS=0x...
-```
-
-## Network Configuration
-
-### Default Network Settings
-
-The SDK automatically uses these network settings:
-
-| Environment | RPC URL | Chain ID |
-|-------------|---------|----------|
-| **Local** | `http://localhost:8545` | 31337 |
-| **Testnet (Varity L3 testnet)** | `https://rpc-varity-testnet-rroe52pwjp.t.conduit.xyz` | 33529 |
-| **Mainnet** | Coming soon | TBD |
-
 ## Example .env Files
 
 <Tabs>
   <TabItem label="Development">
     ```bash title=".env.local"
-    # Authentication
-    NEXT_PUBLIC_PRIVY_APP_ID=your_privy_app_id
-
-    # thirdweb
-    THIRDWEB_CLIENT_ID=your_client_id
-    THIRDWEB_SECRET_KEY=your_secret_key
-
-    # Varity SDK
-    VARITY_API_URL=http://localhost:3001
+    # Varity SDK (optional — dev defaults work automatically)
+    NEXT_PUBLIC_VARITY_APP_ID=your-app-id
     ```
+
+    In development, the SDK uses shared credentials automatically. No other variables are needed.
   </TabItem>
   <TabItem label="Production">
     ```bash title=".env.production"
-    # Authentication
-    NEXT_PUBLIC_PRIVY_APP_ID=your_production_privy_app_id
-
-    # thirdweb
-    THIRDWEB_CLIENT_ID=your_production_client_id
-    THIRDWEB_SECRET_KEY=your_production_secret_key
-
     # Varity SDK
+    NEXT_PUBLIC_VARITY_APP_ID=your-app-id
     VARITY_API_URL=https://api.varity.io
     VARITY_API_KEY=your_production_api_key
 
     # Akash (for dynamic app deployment)
     AKASH_WALLET_KEY=your_akash_wallet_key
     ```
+
+    Production credentials for authentication and storage are auto-provided by the CLI during deployment.
   </TabItem>
 </Tabs>
 
-## Framework-Specific Configuration
+## Framework-Specific Prefixes
 
-### Next.js
+Different frameworks require different prefixes for client-side variables:
 
-Next.js requires the `NEXT_PUBLIC_` prefix for client-side variables:
-
-```bash title=".env.local"
-# Client-side (exposed to browser)
-NEXT_PUBLIC_PRIVY_APP_ID=your_app_id
-NEXT_PUBLIC_THIRDWEB_CLIENT_ID=your_client_id
-
-# Server-side only
-THIRDWEB_SECRET_KEY=your_secret_key
-```
-
-### Vite (React, Vue)
-
-Vite requires the `VITE_` prefix for client-side variables:
-
-```bash title=".env"
-# Client-side (exposed to browser)
-VITE_PRIVY_APP_ID=your_app_id
-VITE_THIRDWEB_CLIENT_ID=your_client_id
-```
-
-### Create React App
-
-CRA requires the `REACT_APP_` prefix:
-
-```bash title=".env"
-# Client-side (exposed to browser)
-REACT_APP_PRIVY_APP_ID=your_app_id
-REACT_APP_THIRDWEB_CLIENT_ID=your_client_id
-```
+| Framework | Prefix | Example |
+|-----------|--------|---------|
+| Next.js | `NEXT_PUBLIC_` | `NEXT_PUBLIC_VARITY_APP_ID` |
+| Vite | `VITE_` | `VITE_VARITY_APP_ID` |
+| Create React App | `REACT_APP_` | `REACT_APP_VARITY_APP_ID` |
 
 ## Security Best Practices
 
@@ -152,7 +90,6 @@ REACT_APP_THIRDWEB_CLIENT_ID=your_client_id
 ### Do:
 - Use `.env.local` for local development (git-ignored)
 - Store production secrets in your CI/CD platform
-- Use different API keys for development and production
 - Rotate keys regularly
 
 ### Don't:
@@ -170,18 +107,12 @@ varitykit doctor
 ```
 
 This checks:
-- Required environment variables
+- Credential availability (auto-provided or manually set)
 - Network connectivity
 - API key validity
 - Project structure
 
 ## Troubleshooting
-
-### "THIRDWEB_CLIENT_ID not set"
-
-1. Create a `.env` file in your project root
-2. Add `THIRDWEB_CLIENT_ID=your_client_id`
-3. Restart your terminal or run `source .env`
 
 ### Variables not loading
 
@@ -189,3 +120,39 @@ This checks:
 2. Restart your development server after changes
 3. Verify no syntax errors in the file
 4. Check framework-specific prefixes (`NEXT_PUBLIC_`, `VITE_`, etc.)
+
+### Credentials not working
+
+Run `varitykit doctor` to diagnose. Credentials are auto-provided — if they fail, check your network connection.
+
+<Accordion title="Advanced: Using Your Own Credentials">
+
+**Varity manages these credentials automatically. Only use this if you need custom configuration.**
+
+Override managed credentials by setting these variables:
+
+```bash title=".env.local"
+# Authentication — get from https://dashboard.privy.io
+NEXT_PUBLIC_PRIVY_APP_ID=your_privy_app_id
+
+# Storage — get from https://thirdweb.com/dashboard
+THIRDWEB_CLIENT_ID=your_thirdweb_client_id
+THIRDWEB_SECRET_KEY=your_thirdweb_secret_key
+```
+
+Framework-specific variants:
+
+```bash
+# Next.js
+NEXT_PUBLIC_THIRDWEB_CLIENT_ID=your_client_id
+
+# Vite
+VITE_THIRDWEB_CLIENT_ID=your_client_id
+
+# Create React App
+REACT_APP_THIRDWEB_CLIENT_ID=your_client_id
+```
+
+When these are set, the SDK and CLI use your credentials instead of the managed ones.
+
+</Accordion>

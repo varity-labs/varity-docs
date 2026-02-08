@@ -55,15 +55,9 @@ npm install
 
 ## Deployment Issues
 
-### "THIRDWEB_CLIENT_ID not set"
+### "Credentials not found"
 
-Create a `.env` file with your thirdweb credentials:
-
-```bash title=".env"
-THIRDWEB_CLIENT_ID=your_client_id
-```
-
-Get your Client ID from [thirdweb Dashboard](https://thirdweb.com/dashboard).
+Credentials are managed automatically by Varity. Run `varitykit doctor` to verify your setup. See [Managed Credentials](/deploy/managed-credentials).
 
 ### "Build failed"
 
@@ -86,16 +80,16 @@ Get your Client ID from [thirdweb Dashboard](https://thirdweb.com/dashboard).
 
 </Steps>
 
-### "IPFS upload failed"
+### "Upload failed"
 
 Possible causes and solutions:
 
 | Cause | Solution |
 |-------|----------|
-| Invalid Client ID | Verify `THIRDWEB_CLIENT_ID` in your `.env` |
 | Network timeout | Try again - temporary network issue |
 | Large files | Split into smaller chunks |
 | Rate limiting | Wait a few minutes and retry |
+| Credentials issue | Run `varitykit doctor` to verify |
 
 ## Authentication Issues
 
@@ -128,12 +122,7 @@ Or use Varity development credentials (the SDK will use defaults if none provide
 
 ### "Domain not allowed" error
 
-Your domain must be allowed in your Privy dashboard:
-
-1. Go to [Privy Dashboard](https://dashboard.privy.io)
-2. Select your app
-3. Add your domain under "Allowed Domains"
-4. Include `localhost` for local development
+Your domain needs to be allowed for authentication. Contact [support@varity.so](mailto:support@varity.so) to allow your domain, or include `localhost` for local development.
 
 ### Session not persisting
 
@@ -160,13 +149,13 @@ Ensure you're using compatible TypeScript version:
 }
 ```
 
-### "Cannot find module '@varity/sdk'"
+### "Cannot find module '@varity-labs/sdk'"
 
 <Steps>
 
 1. Install packages:
    ```bash
-   npm install @varity/sdk @varity/ui-kit @varity/types
+   npm install @varity-labs/sdk @varity-labs/ui-kit @varity-labs/types
    ```
 
 2. Check package.json includes the dependencies
@@ -199,23 +188,19 @@ Varity UI Kit requires React 18+:
 Check network connectivity:
 
 ```bash
-# Test Varity L3 RPC
-curl https://rpc-varity-testnet-rroe52pwjp.t.conduit.xyz \
-  -X POST \
-  -H "Content-Type: application/json" \
-  -d '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":1}'
+varitykit doctor
 ```
 
-Expected response: `{"jsonrpc":"2.0","id":1,"result":"0x82e9"}`
+This will verify your connection to Varity's infrastructure.
 
-### "Transaction failed"
+### "Operation failed"
 
 Common causes:
 
 | Error | Solution |
 |-------|----------|
-| Insufficient funds | Transactions are gasless - contact support |
-| Contract not found | Verify contract address is correct |
+| Insufficient funds | Operations are free -- contact support |
+| Service not found | Verify configuration is correct |
 | Invalid parameters | Check function arguments |
 
 ### Slow performance
@@ -235,10 +220,10 @@ Common causes:
 3. Verify you're using tree-shaking:
    ```typescript
    // Good - tree-shakeable
-   import { PrivyStack } from '@varity/ui-kit';
+   import { PrivyStack } from '@varity-labs/ui-kit';
 
    // Avoid - imports entire package
-   import * as VarityUI from '@varity/ui-kit';
+   import * as VarityUI from '@varity-labs/ui-kit';
    ```
 
 </Steps>

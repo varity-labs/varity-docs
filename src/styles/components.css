@@ -1,0 +1,471 @@
+/* ========================================
+   VARITY DOCS - COMPONENT STYLES
+   Enhanced component styling and utilities
+   ======================================== */
+
+/* ========================================
+   CARD GRID UTILITY
+   Used with Card components
+   ======================================== */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-5);
+  margin: var(--space-8) 0;
+}
+
+@media (max-width: 48rem) {
+  .card-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+}
+
+/* Two column variant */
+.card-grid.cols-2 {
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+
+/* Three column variant */
+.card-grid.cols-3 {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+/* Four column variant */
+.card-grid.cols-4 {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+/* ========================================
+   FEATURE GRID
+   Special variant for feature showcases
+   ======================================== */
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--space-6);
+  margin: var(--space-10) 0;
+}
+
+@media (max-width: 64rem) {
+  .feature-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ========================================
+   PROSE UTILITIES
+   Enhanced text formatting
+   ======================================== */
+
+/* Lead paragraph (first paragraph larger) */
+.prose-lead > p:first-of-type {
+  font-size: 1.125rem;
+  line-height: 1.75;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-6);
+}
+
+/* Balanced text wrapping */
+.text-balance {
+  text-wrap: balance;
+}
+
+/* Pretty text wrapping */
+.text-pretty {
+  text-wrap: pretty;
+}
+
+/* ========================================
+   BADGE UTILITIES
+   Status badges for navigation
+   ======================================== */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.625rem;
+  font-weight: var(--font-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  border-radius: var(--radius-sm);
+  line-height: 1.4;
+}
+
+.badge-new {
+  background: var(--color-success-subtle);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.25);
+}
+
+.badge-beta {
+  background: var(--color-info-subtle);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.25);
+}
+
+.badge-soon {
+  background: var(--color-warning-subtle);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.badge-deprecated {
+  background: var(--color-danger-subtle);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+.badge-advanced {
+  background: rgba(147, 51, 234, 0.12);
+  color: #c084fc;
+  border: 1px solid rgba(147, 51, 234, 0.25);
+}
+
+/* ========================================
+   CODE EXAMPLE ENHANCEMENTS
+   Additional code block features
+   ======================================== */
+
+/* File tree structure in code blocks */
+.file-tree {
+  font-family: var(--sl-font-mono);
+  font-size: 0.875rem;
+  line-height: 1.8;
+  color: var(--text-secondary);
+  padding: var(--space-4);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  margin: var(--space-6) 0;
+}
+
+.file-tree ul {
+  list-style: none;
+  padding-left: var(--space-5);
+  margin: 0;
+}
+
+.file-tree li {
+  position: relative;
+  margin: 0.25rem 0;
+}
+
+.file-tree li::before {
+  content: '├──';
+  position: absolute;
+  left: calc(-1 * var(--space-5));
+  color: var(--text-muted);
+}
+
+.file-tree li:last-child::before {
+  content: '└──';
+}
+
+/* File/folder icons */
+.file-tree .folder::after {
+  content: ' 📁';
+}
+
+.file-tree .file::after {
+  content: ' 📄';
+}
+
+/* Terminal output styling */
+.terminal-output {
+  font-family: var(--sl-font-mono);
+  font-size: 0.875rem;
+  background: #0d0d0f;
+  color: #0f0;
+  padding: var(--space-4);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  overflow-x: auto;
+  margin: var(--space-6) 0;
+}
+
+.terminal-output .prompt {
+  color: var(--color-brand);
+  font-weight: var(--font-semibold);
+}
+
+.terminal-output .success {
+  color: var(--color-success);
+}
+
+.terminal-output .error {
+  color: var(--color-danger);
+}
+
+/* ========================================
+   COMPARISON TABLE
+   Side-by-side comparisons
+   ======================================== */
+.comparison-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: var(--space-6) 0;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--border-primary);
+}
+
+.comparison-table th {
+  background: var(--color-brand-subtle);
+  color: var(--color-brand);
+  font-weight: var(--font-bold);
+  padding: var(--space-4);
+  text-align: left;
+  border-bottom: 2px solid var(--color-brand);
+}
+
+.comparison-table td {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border-secondary);
+}
+
+.comparison-table tr:last-child td {
+  border-bottom: none;
+}
+
+.comparison-table .check {
+  color: var(--color-success);
+  font-weight: var(--font-bold);
+}
+
+.comparison-table .cross {
+  color: var(--text-muted);
+  opacity: 0.5;
+}
+
+/* ========================================
+   API REFERENCE CARDS
+   Enhanced API documentation layout
+   ======================================== */
+.api-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-primary);
+  border-left: 3px solid var(--color-brand);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  margin: var(--space-6) 0;
+}
+
+.api-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+}
+
+.api-card-method {
+  font-family: var(--sl-font-mono);
+  font-size: var(--text-lg);
+  font-weight: var(--font-bold);
+  color: var(--color-brand);
+}
+
+.api-card-badge {
+  display: inline-flex;
+  padding: 0.25rem 0.5rem;
+  background: var(--color-brand-subtle);
+  color: var(--color-brand);
+  font-size: 0.75rem;
+  font-weight: var(--font-semibold);
+  border-radius: var(--radius-sm);
+  text-transform: uppercase;
+}
+
+.api-card-description {
+  color: var(--text-secondary);
+  line-height: var(--leading-relaxed);
+  margin-bottom: var(--space-4);
+}
+
+/* ========================================
+   STATUS INDICATORS
+   Visual status displays
+   ======================================== */
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.status-online .status-dot {
+  background: var(--color-success);
+}
+
+.status-offline .status-dot {
+  background: var(--text-muted);
+  animation: none;
+}
+
+.status-warning .status-dot {
+  background: var(--color-warning);
+}
+
+.status-error .status-dot {
+  background: var(--color-danger);
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* ========================================
+   BREADCRUMB ENHANCEMENT
+   Improved breadcrumb styling
+   ======================================== */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--text-tertiary);
+  margin-bottom: var(--space-4);
+}
+
+.breadcrumb a {
+  color: var(--text-tertiary);
+  transition: color var(--transition-fast);
+}
+
+.breadcrumb a:hover {
+  color: var(--color-brand);
+}
+
+.breadcrumb-separator {
+  color: var(--text-muted);
+}
+
+/* ========================================
+   RESPONSIVE VIDEO EMBED
+   16:9 aspect ratio container
+   ======================================== */
+.video-wrapper {
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%; /* 16:9 */
+  margin: var(--space-8) 0;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+}
+
+.video-wrapper iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* ========================================
+   PRINT UTILITY CLASSES
+   ======================================== */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  .page-break-before {
+    page-break-before: always;
+  }
+
+  .page-break-after {
+    page-break-after: always;
+  }
+
+  .page-break-inside-avoid {
+    page-break-inside: avoid;
+  }
+}
+
+/* ========================================
+   ACCESSIBILITY UTILITIES
+   ======================================== */
+
+/* Screen reader only text */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Skip to content link */
+.skip-to-content {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-brand);
+  color: var(--gray-950);
+  font-weight: var(--font-semibold);
+  z-index: 100;
+  transition: top var(--transition-fast);
+}
+
+.skip-to-content:focus {
+  top: 0;
+}
+
+/* ========================================
+   UTILITY CLASSES
+   ======================================== */
+
+/* Spacing utilities */
+.mt-0 { margin-top: 0; }
+.mt-2 { margin-top: var(--space-2); }
+.mt-4 { margin-top: var(--space-4); }
+.mt-6 { margin-top: var(--space-6); }
+.mt-8 { margin-top: var(--space-8); }
+.mt-12 { margin-top: var(--space-12); }
+
+.mb-0 { margin-bottom: 0; }
+.mb-2 { margin-bottom: var(--space-2); }
+.mb-4 { margin-bottom: var(--space-4); }
+.mb-6 { margin-bottom: var(--space-6); }
+.mb-8 { margin-bottom: var(--space-8); }
+.mb-12 { margin-bottom: var(--space-12); }
+
+/* Text alignment */
+.text-left { text-align: left; }
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+
+/* Font weights */
+.font-normal { font-weight: var(--font-normal); }
+.font-medium { font-weight: var(--font-medium); }
+.font-semibold { font-weight: var(--font-semibold); }
+.font-bold { font-weight: var(--font-bold); }
+
+/* Colors */
+.text-primary { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
+.text-tertiary { color: var(--text-tertiary); }
+.text-brand { color: var(--color-brand); }
+.text-success { color: var(--color-success); }
+.text-warning { color: var(--color-warning); }
+.text-danger { color: var(--color-danger); }
