@@ -78,7 +78,7 @@ function AuthControls() {
 }
 ```
 
-## Dashboard Hooks
+## Data & API Hooks
 
 ### useAnalytics
 
@@ -88,43 +88,193 @@ Dashboard analytics data.
 import { useAnalytics } from '@varity-labs/ui-kit';
 
 function AnalyticsPanel() {
-  const { data, isLoading, error, refetch } = useAnalytics({
+  const { data, loading, error, refetch, trackEvent } = useAnalytics({
     period: 'current_month',
   });
 
-  if (isLoading) return <div>Loading...</div>;
+  if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
 
   return (
     <div>
       <p>Total Users: {data.totalUsers}</p>
       <p>Revenue: ${data.revenue}</p>
+      <button onClick={() => trackEvent('page_view', { page: 'analytics' })}>
+        Track Event
+      </button>
     </div>
   );
 }
 ```
 
+**Returns:**
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `data` | `AnalyticsData` | Analytics data for the period |
+| `loading` | `boolean` | Data is loading |
+| `error` | `Error \| null` | Error if request failed |
+| `refetch` | `() => void` | Refetch analytics data |
+| `trackEvent` | `(name, data?) => void` | Track a custom event |
+
 ### useKPI
 
-Key performance indicators.
+Key performance indicator for a specific metric.
 
 ```tsx
 import { useKPI } from '@varity-labs/ui-kit';
 
 function KPICard() {
-  const { kpis, isLoading } = useKPI();
+  const { value, unit, trend, trendValue, loading, error, refetch } = useKPI('monthly_revenue', {
+    period: 'current_month',
+  });
+
+  if (loading) return <div>Loading...</div>;
 
   return (
     <div>
-      {kpis.map((kpi) => (
-        <div key={kpi.id}>
-          <h3>{kpi.label}</h3>
-          <p>{kpi.value}</p>
-          <span className={kpi.trend > 0 ? 'up' : 'down'}>
-            {kpi.trend}%
-          </span>
-        </div>
+      <h3>Monthly Revenue</h3>
+      <p>{value} {unit}</p>
+      <span className={trend === 'up' ? 'text-green-500' : 'text-red-500'}>
+        {trendValue}%
+      </span>
+    </div>
+  );
+}
+```
+
+**Returns:**
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `value` | `string \| number` | KPI value |
+| `unit` | `string` | Unit label (e.g. "USD", "users") |
+| `trend` | `'up' \| 'down' \| 'flat'` | Trend direction |
+| `trendValue` | `number` | Trend percentage |
+| `loading` | `boolean` | Data is loading |
+| `error` | `Error \| null` | Error if request failed |
+| `refetch` | `() => void` | Refetch KPI data |
+
+### useDashboard
+
+Dashboard configuration and widget management.
+
+```tsx
+import { useDashboard } from '@varity-labs/ui-kit';
+
+function DashboardEditor() {
+  const {
+    config,
+    loading,
+    error,
+    updateConfig,
+    addWidget,
+    removeWidget,
+    save,
+    load,
+    reset,
+  } = useDashboard();
+
+  return (
+    <div>
+      <h2>{config?.title}</h2>
+      <button onClick={() => addWidget({ type: 'chart', title: 'Revenue' })}>
+        Add Widget
+      </button>
+      <button onClick={save}>Save Layout</button>
+      <button onClick={reset}>Reset</button>
+    </div>
+  );
+}
+```
+
+### useWidgetData
+
+Fetch data for a specific dashboard widget.
+
+```tsx
+import { useWidgetData } from '@varity-labs/ui-kit';
+
+function Widget({ widget }) {
+  const { data, loading, error, refetch } = useWidgetData(widget);
+
+  if (loading) return <div>Loading widget...</div>;
+  if (error) return <div>Widget error</div>;
+
+  return <div>{JSON.stringify(data)}</div>;
+}
+```
+
+### useVarityQuery
+
+Generic data fetching hook. Requires `<VarityDashboardProvider>` or `<VarityPrivyProvider>`.
+
+```tsx
+import { useVarityQuery } from '@varity-labs/ui-kit';
+
+function UserList() {
+  const { data, loading, error, refetch } = useVarityQuery(
+    async () => {
+      const response = await fetch('/api/users');
+      return response.json();
+    },
+    [] // dependency array
+  );
+
+  if (loading) return <div>Loading...</div>;
+
+  return (
+    <ul>
+      {data?.map((user) => (
+        <li key={user.id}>{user.name}</li>
       ))}
+    </ul>
+  );
+}
+```
+
+### useVarityMutation
+
+Mutation hook for create/update/delete operations.
+
+```tsx
+import { useVarityMutation } from '@varity-labs/ui-kit';
+
+function CreateUser() {
+  const { mutate, loading, error, data, reset } = useVarityMutation(
+    async (args: { name: string; email: string }) => {
+      const response = await fetch('/api/users', {
+        method: 'POST',
+        body: JSON.stringify(args),
+      });
+      return response.json();
+    }
+  );
+
+  return (
+    <button
+      onClick={() => mutate({ name: 'Alice', email: 'alice@example.com' })}
+      disabled={loading}
+    >
+      {loading ? 'Creating...' : 'Create User'}
+    </button>
+  );
+}
+```
+
+### useTheme
+
+Access the current theme. Requires `<ThemeProvider>`.
+
+```tsx
+import { useTheme } from '@varity-labs/ui-kit';
+
+function ThemedComponent() {
+  const theme = useTheme();
+
+  return (
+    <div style={{ color: theme.colors.primary }}>
+      Themed content
     </div>
   );
 }
@@ -133,11 +283,12 @@ function KPICard() {
 ## Complete Example
 
 ```tsx
-import { usePrivy, useAnalytics } from '@varity-labs/ui-kit';
+import { usePrivy, useAnalytics, useKPI } from '@varity-labs/ui-kit';
 
 function Dashboard() {
   const { user, authenticated, logout } = usePrivy();
   const { data } = useAnalytics({ period: 'current_month' });
+  const revenue = useKPI('monthly_revenue');
 
   if (!authenticated) {
     return <p>Please sign in</p>;
@@ -147,6 +298,7 @@ function Dashboard() {
     <div>
       <h1>Welcome, {user?.email?.address}</h1>
       <p>Total Users: {data?.totalUsers}</p>
+      <p>Revenue: {revenue.value} {revenue.unit}</p>
       <button onClick={logout}>Sign Out</button>
     </div>
   );
@@ -155,7 +307,7 @@ function Dashboard() {
 
 <Accordion title="Advanced: Account and Infrastructure Hooks">
 
-These hooks provide lower-level access to account state and infrastructure details. Most apps only need `usePrivy` for authentication.
+These hooks provide lower-level access to account state and infrastructure. Most apps only need `usePrivy` for authentication.
 
 ### useWallets
 
@@ -181,74 +333,9 @@ function AccountList() {
 }
 ```
 
-### useWalletSync
-
-Unified account state from authentication providers.
-
-```tsx
-import { useWalletSync } from '@varity-labs/ui-kit';
-
-function AccountStatus() {
-  const {
-    address,         // string | null - Account address
-    isLoading,       // boolean - Syncing in progress
-    isSynced,        // boolean - Sync complete
-    isAuthenticated, // boolean - User logged in
-    authMethod,      // string - 'email', 'google', 'wallet', etc.
-  } = useWalletSync();
-
-  return (
-    <div>
-      <p>Address: {address}</p>
-      <p>Auth method: {authMethod}</p>
-    </div>
-  );
-}
-```
-
-### useSmartWallet
-
-Smart account operations with free transactions.
-
-```tsx
-import { useSmartWallet } from '@varity-labs/ui-kit';
-
-function SmartAccountDemo() {
-  const {
-    account,              // Smart account
-    isConnected,          // boolean
-    isGasless,            // boolean - Free operations enabled
-    connect,              // () => Promise<void>
-    disconnect,           // () => void
-    sendTransaction,      // (tx) => Promise<string>
-    sendBatchTransaction, // (txs[]) => Promise<string>
-    getAddress,           // () => string
-    isDeployed,           // boolean - Account deployed
-    deployWallet,         // () => Promise<void>
-  } = useSmartWallet();
-
-  const handleSend = async () => {
-    const txHash = await sendTransaction({
-      to: '0x...',
-      data: '0x...',
-      value: '0',
-    });
-    console.log('Transaction:', txHash);
-  };
-
-  return (
-    <div>
-      <p>Connected: {isConnected ? 'Yes' : 'No'}</p>
-      <p>Free operations: {isGasless ? 'Enabled' : 'Disabled'}</p>
-      <button onClick={handleSend}>Send Transaction</button>
-    </div>
-  );
-}
-```
-
 ### useWalletAuth
 
-Session-based account authentication with auto-refresh.
+Session-based account authentication with auto-refresh and multi-device support.
 
 ```tsx
 import { useWalletAuth } from '@varity-labs/ui-kit';
@@ -283,69 +370,50 @@ function SessionDemo() {
 }
 ```
 
-### useVarityWallet
+### useAuth
 
-General account utilities.
+Sign-In with Ethereum (SIWE) authentication.
 
 ```tsx
-import { useVarityWallet } from '@varity-labs/ui-kit';
+import { useAuth } from '@varity-labs/ui-kit';
 
-function AccountUtils() {
-  const { address, balance, isConnected, chain } = useVarityWallet();
+function AuthStatus() {
+  const { user, isAuthenticated, login, logout } = useAuth();
+
+  if (!isAuthenticated) {
+    return <button onClick={login}>Sign In</button>;
+  }
 
   return (
     <div>
-      <p>Address: {address}</p>
-      <p>Balance: {balance}</p>
+      <p>Signed in as: {user?.address}</p>
+      <button onClick={logout}>Sign Out</button>
     </div>
   );
 }
 ```
 
-### useUSDCFormat
+### useVarityAPI
 
-Format USDC amounts for display.
-
-```tsx
-import { useUSDCFormat } from '@varity-labs/ui-kit';
-
-function PriceDisplay({ amountRaw }) {
-  const { format, parse } = useUSDCFormat();
-  const display = format(amountRaw); // "10.50 USDC"
-  return <p>{display}</p>;
-}
-```
-
-### useAddressValidation
-
-Validate account addresses.
+Direct access to module clients. Requires a provider context.
 
 ```tsx
-import { useAddressValidation } from '@varity-labs/ui-kit';
+import { useVarityAPI } from '@varity-labs/ui-kit';
 
-function AddressInput() {
-  const { isValid, validate } = useAddressValidation();
-  const [address, setAddress] = useState('');
+function DirectAPIAccess() {
+  const { client, isAuthenticated } = useVarityAPI();
+
+  const fetchAnalytics = async () => {
+    if (!client) return;
+    const data = await client.analytics.getKPIs();
+    console.log(data);
+  };
 
   return (
-    <div>
-      <input value={address} onChange={(e) => { setAddress(e.target.value); validate(e.target.value); }} />
-      {address && !isValid && <p className="error">Invalid address</p>}
-    </div>
+    <button onClick={fetchAnalytics} disabled={!isAuthenticated}>
+      Fetch Analytics
+    </button>
   );
-}
-```
-
-### useBlockExplorer
-
-Get explorer URLs for transactions and addresses.
-
-```tsx
-import { useBlockExplorer } from '@varity-labs/ui-kit';
-
-function TransactionLink({ txHash }) {
-  const { getTxUrl, getAddressUrl } = useBlockExplorer();
-  return <a href={getTxUrl(txHash)} target="_blank">View Details</a>;
 }
 ```
 
@@ -355,4 +423,4 @@ function TransactionLink({ txHash }) {
 
 - [Components Reference](/packages/ui-kit/components) - All components
 - [Authentication Guide](/build/auth/quickstart) - Complete auth setup
-- [Free Operations](/build/payments/gasless) - How free operations work
+- [Payments Guide](/build/payments/quickstart) - Accept payments

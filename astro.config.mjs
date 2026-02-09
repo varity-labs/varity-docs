@@ -72,6 +72,30 @@ export default defineConfig({
               slug: "getting-started/quickstart",
               badge: { text: "Recommended", variant: "success" },
             },
+            {
+              label: "Next.js Quick Start",
+              slug: "getting-started/quickstart-nextjs",
+              badge: { text: "New", variant: "success" },
+            },
+            {
+              label: "React Quick Start",
+              slug: "getting-started/quickstart-react",
+              badge: { text: "New", variant: "success" },
+            },
+          ],
+        },
+
+        // ===== TEMPLATES =====
+        {
+          label: "Templates",
+          badge: { text: "New", variant: "success" },
+          items: [
+            { label: "Overview", slug: "templates/overview" },
+            {
+              label: "SaaS Starter",
+              slug: "templates/saas-starter",
+              badge: { text: "Recommended", variant: "success" },
+            },
           ],
         },
 
@@ -135,7 +159,7 @@ export default defineConfig({
                 {
                   label: "Quick Start",
                   slug: "build/databases/quickstart",
-                  badge: { text: "New", variant: "success" },
+                  badge: { text: "Updated", variant: "success" },
                 },
               ],
             },
@@ -163,7 +187,7 @@ export default defineConfig({
                 {
                   label: "Quick Start",
                   slug: "build/payments/quickstart",
-                  badge: { text: "Recommended", variant: "success" },
+                  badge: { text: "Beta", variant: "note" },
                 },
                 { label: "Credit Card Payments", slug: "build/payments/credit-card" },
                 { label: "Free Operations", slug: "build/payments/gasless" },
@@ -173,12 +197,11 @@ export default defineConfig({
             // ----- SMART ACCOUNTS -----
             {
               label: "Smart Accounts",
-              collapsed: false,
+              collapsed: true,
               items: [
                 {
                   label: "Quick Start",
                   slug: "build/wallets/quickstart",
-                  badge: { text: "Recommended", variant: "success" },
                 },
                 { label: "Create Account", slug: "build/wallets/create-wallet" },
                 { label: "Session Keys", slug: "build/wallets/session-keys" },
@@ -226,6 +249,39 @@ export default defineConfig({
             },
             { label: "Managed Credentials", slug: "deploy/managed-credentials" },
             { label: "Environment Variables", slug: "deploy/env-variables" },
+          ],
+        },
+
+        // ===== TUTORIALS =====
+        {
+          label: "Tutorials",
+          badge: { text: "New", variant: "success" },
+          items: [
+            {
+              label: "Build & Deploy a SaaS App",
+              slug: "tutorials/build-saas-app",
+              badge: { text: "Recommended", variant: "success" },
+            },
+            { label: "Customize the Template", slug: "tutorials/customize-template" },
+            { label: "Add a CRUD Feature", slug: "tutorials/add-crud-feature" },
+          ],
+        },
+
+        // ===== AI TOOLS =====
+        {
+          label: "AI Tools",
+          items: [
+            { label: "Overview", slug: "ai-tools/overview" },
+            {
+              label: "AI Prompts",
+              slug: "ai-tools/prompts",
+              badge: { text: "New", variant: "success" },
+            },
+            {
+              label: "MCP Server Spec",
+              slug: "ai-tools/mcp-server-spec",
+              badge: { text: "Coming Soon", variant: "caution" },
+            },
           ],
         },
 

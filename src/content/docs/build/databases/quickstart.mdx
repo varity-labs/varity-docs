@@ -1,59 +1,325 @@
 ---
 title: Database Quick Start
-description: Add a database to your application in minutes
+description: Add a database to your application in minutes with zero configuration
 ---
 
-import { Aside } from '@astrojs/starlight/components';
+import { Steps, Tabs, TabItem, Aside, Code } from '@astrojs/starlight/components';
 
 # Database Quick Start
 
-Varity includes a zero-config database powered by Supabase. Import and start querying immediately.
+Varity includes a zero-config database. Import `db` from the SDK and start querying immediately — no database setup, no connection strings, no ORM configuration.
 
 ## Installation
 
 The database module is included in `@varity-labs/sdk`. No additional packages needed.
 
-## Quick Start
+```bash
+npm install @varity-labs/sdk
+```
+
+## Define Your Data Types
+
+Start by defining TypeScript interfaces for your data:
+
+```typescript title="src/types/index.ts"
+export interface Project {
+  id?: string;
+  name: string;
+  description: string;
+  status: 'active' | 'paused' | 'completed';
+  owner: string;
+  members: string[];
+  dueDate: string;
+  createdAt: string;
+}
+
+export interface Task {
+  id?: string;
+  projectId: string;
+  title: string;
+  description?: string;
+  status: 'todo' | 'in_progress' | 'done';
+  priority: 'low' | 'medium' | 'high';
+  assignee?: string;
+  dueDate?: string;
+  createdAt: string;
+}
+```
+
+<Aside type="tip">
+The `id` field is optional — Varity generates one automatically when you insert a document.
+</Aside>
+
+## Create Collection Helpers
+
+Create a file that exports typed collection accessors:
+
+```typescript title="src/lib/database.ts"
+import { db } from '@varity-labs/sdk';
+import type { Project, Task } from '../types';
+
+export const projects = () => db.collection<Project>('projects');
+export const tasks = () => db.collection<Task>('tasks');
+```
+
+Each call to `db.collection<T>('name')` returns a typed collection with full CRUD operations.
+
+## Basic Operations
+
+### Insert Documents
 
 ```typescript
-import { db } from '@varity-labs/sdk';
+import { projects } from './database';
 
-// Create a collection
-const users = db.collection('users');
+// Insert a single document
+await projects().add({
+  name: 'My Project',
+  description: 'A new project',
+  status: 'active',
+  owner: 'user@example.com',
+  members: ['user@example.com'],
+  dueDate: '2026-03-01',
+  createdAt: new Date().toISOString(),
+});
+```
 
-// Insert a document
-await users.insert({
-  name: 'John Doe',
-  email: 'john@example.com',
-  plan: 'starter'
+### Query Documents
+
+```typescript
+// Get all documents in a collection
+const allProjects = await projects().get();
+
+// Get with pagination
+const page1 = await projects().get({ limit: 10, offset: 0 });
+const page2 = await projects().get({ limit: 10, offset: 10 });
+
+// Get with ordering (prefix with - for descending)
+const newest = await projects().get({ orderBy: '-createdAt' });
+```
+
+**Filtering:** The `.get()` method returns all documents. Filter on the client side:
+
+```typescript
+const allProjects = await projects().get();
+const activeProjects = allProjects.filter(p => p.status === 'active');
+const projectTasks = (await tasks().get()).filter(t => t.projectId === 'proj-123');
+```
+
+### Update Documents
+
+```typescript
+// Update by ID
+await projects().update('proj-123', {
+  status: 'completed',
 });
 
-// Query documents
-const activeUsers = await users.find({ plan: 'starter' });
+// Update specific fields (partial update)
+await projects().update('proj-123', {
+  name: 'Updated Name',
+  description: 'New description',
+});
+```
 
-// Update a document
-await users.update({ email: 'john@example.com' }, { plan: 'growth' });
+### Delete Documents
 
-// Delete a document
-await users.delete({ email: 'john@example.com' });
+```typescript
+// Delete by ID
+await projects().delete('proj-123');
+```
+
+## Build a React Hook
+
+The recommended pattern is to wrap database operations in a custom React hook. This gives you loading states, error handling, and optimistic UI updates:
+
+```typescript title="src/lib/hooks.ts"
+'use client';
+
+import { useState, useEffect, useCallback } from 'react';
+import { projects } from './database';
+import type { Project } from '../types';
+
+export function useProjects() {
+  const [data, setData] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Load all projects on mount
+  const refresh = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const result = await projects().get();
+      setData(result as Project[]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { refresh(); }, [refresh]);
+
+  // Create with optimistic UI
+  const create = async (input: Omit<Project, 'id' | 'createdAt'>) => {
+    const optimistic: Project = {
+      ...input,
+      id: `temp-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+    };
+    setData(prev => [optimistic, ...prev]);
+
+    try {
+      await projects().add({ ...input, createdAt: optimistic.createdAt });
+      await refresh(); // Refresh to get real ID
+    } catch (err) {
+      setData(prev => prev.filter(p => p.id !== optimistic.id)); // Rollback
+      throw err;
+    }
+  };
+
+  // Update with optimistic UI
+  const update = async (id: string, updates: Partial<Project>) => {
+    const original = data.find(p => p.id === id);
+    setData(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
+
+    try {
+      await projects().update(id, updates);
+    } catch (err) {
+      if (original) setData(prev => prev.map(p => p.id === id ? original : p));
+      throw err;
+    }
+  };
+
+  // Delete with optimistic UI
+  const remove = async (id: string) => {
+    const original = data.find(p => p.id === id);
+    setData(prev => prev.filter(p => p.id !== id));
+
+    try {
+      await projects().delete(id);
+    } catch (err) {
+      if (original) setData(prev => [...prev, original]);
+      throw err;
+    }
+  };
+
+  return { data, loading, error, create, update, remove, refresh };
+}
+```
+
+### Use the Hook in a Component
+
+```tsx title="src/app/dashboard/projects/page.tsx"
+'use client';
+
+import { useProjects } from '../../../lib/hooks';
+
+export default function ProjectsPage() {
+  const { data: projects, loading, error, create, remove } = useProjects();
+
+  if (loading) return <p>Loading projects...</p>;
+  if (error) return <p>Error: {error}</p>;
+
+  return (
+    <div>
+      <h1>Projects ({projects.length})</h1>
+
+      <button onClick={() => create({
+        name: 'New Project',
+        description: 'Created just now',
+        status: 'active',
+        owner: 'me@example.com',
+        members: ['me@example.com'],
+        dueDate: '2026-12-31',
+      })}>
+        Add Project
+      </button>
+
+      {projects.map(project => (
+        <div key={project.id}>
+          <h3>{project.name}</h3>
+          <p>{project.description}</p>
+          <span>Status: {project.status}</span>
+          <button onClick={() => remove(project.id!)}>Delete</button>
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+## Filtering with Related Data
+
+To filter documents based on a parent relationship (e.g., tasks for a specific project):
+
+```typescript title="src/lib/hooks.ts"
+export function useTasks(projectId?: string) {
+  const [allTasks, setAllTasks] = useState<Task[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const refresh = useCallback(async () => {
+    try {
+      setLoading(true);
+      const result = await tasks().get();
+      setAllTasks(result as Task[]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { refresh(); }, [refresh]);
+
+  // Client-side filtering
+  const data = projectId
+    ? allTasks.filter(t => t.projectId === projectId)
+    : allTasks;
+
+  // ... create, update, remove (same pattern as above)
+
+  return { data, loading, error, refresh };
+}
 ```
 
 ## Environment Variables
 
-Set these in your `.env.local` file:
-
-```bash
-NEXT_PUBLIC_VARITY_APP_ID=your-app-id
-NEXT_PUBLIC_VARITY_APP_TOKEN=your-app-token
-NEXT_PUBLIC_VARITY_DB_PROXY_URL=your-db-url
-```
+<Tabs>
+  <TabItem label="Next.js">
+    ```bash title=".env.local"
+    NEXT_PUBLIC_VARITY_APP_ID=your-app-id
+    NEXT_PUBLIC_VARITY_APP_TOKEN=your-app-token
+    NEXT_PUBLIC_VARITY_DB_PROXY_URL=your-db-url
+    ```
+  </TabItem>
+  <TabItem label="Vite / React">
+    ```bash title=".env"
+    VITE_VARITY_APP_ID=your-app-id
+    VITE_VARITY_APP_TOKEN=your-app-token
+    VITE_VARITY_DB_PROXY_URL=your-db-url
+    ```
+  </TabItem>
+</Tabs>
 
 <Aside type="tip">
-When you deploy with `varietykit app deploy`, database credentials are automatically injected. No manual setup needed!
+**Don't have credentials?** When you deploy with `varitykit app deploy`, the CLI detects database usage in your code and automatically generates credentials (app ID, JWT token, proxy URL). These are injected into your build at deploy time — no manual setup needed for production. During local development, you can set these env vars manually or build your UI with mock data first.
 </Aside>
+
+## The Pattern: Collection, Hook, Page
+
+Every feature in a Varity app follows the same 3-step pattern:
+
+1. **Type** — Define a TypeScript interface in `types/index.ts`
+2. **Collection** — Create a typed collection accessor in `database.ts`
+3. **Hook** — Build a React hook with CRUD + optimistic updates
+4. **Page** — Use the hook in a page component
+
+This pattern is used throughout the [SaaS Starter Template](/templates/saas-starter) for projects, tasks, and team members.
 
 ## Next Steps
 
-- [Authentication](/build/auth/quickstart) -- Add user login
-- [Payments](/build/payments/quickstart) -- Monetize your app
-- [Deploy](/deploy/varity-l3) -- Go live
+- [Authentication](/build/auth/quickstart) — Add user login to protect data
+- [SaaS Starter Template](/templates/saas-starter) — See a full working app with database integration
+- [Add a CRUD Feature](/tutorials/add-crud-feature) — Step-by-step guide to add a new data model
+- [Deploy](/deploy/varity-l3) — Go live

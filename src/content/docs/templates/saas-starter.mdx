@@ -1,0 +1,299 @@
+---
+title: SaaS Starter Template
+description: Complete SaaS application with auth, database, dashboard, and deployment
+---
+
+import { Steps, Tabs, TabItem, Aside, Card, CardGrid } from '@astrojs/starlight/components';
+
+# SaaS Starter Template
+
+A production-ready SaaS application with authentication, database, team management, and a full dashboard. Scaffold it in one command and deploy in 5 minutes.
+
+```bash
+varitykit init my-app
+```
+
+## What's Included
+
+### Pages
+
+| Page | Route | Description |
+|------|-------|-------------|
+| Landing | `/` | Marketing page with features, testimonials, and CTA |
+| Login | `/login` | Email, Google, Twitter, Discord, GitHub |
+| Dashboard | `/dashboard` | Overview with key metrics |
+| Projects | `/dashboard/projects` | Full CRUD with status tracking |
+| Tasks | `/dashboard/tasks` | Task management with priorities and assignments |
+| Team | `/dashboard/team` | Team member management with roles |
+| Settings | `/dashboard/settings` | App configuration |
+
+### Built-in Features
+
+- **Authentication** — Privy-powered login (email magic link + social providers)
+- **Database** — Typed collections with CRUD operations and optimistic updates
+- **Dashboard layout** — Responsive sidebar with mobile hamburger menu
+- **Command palette** — Cmd+K / Ctrl+K to search projects, tasks, and team
+- **Confirmation dialogs** — Safe delete operations
+- **CSS variables** — Easy brand customization via `globals.css`
+- **Landing page** — Animated sections, social proof, testimonials
+
+## Data Models
+
+The template includes three data models:
+
+```typescript title="src/types/index.ts"
+export interface Project {
+  id?: string;
+  name: string;
+  description: string;
+  status: 'active' | 'paused' | 'completed';
+  owner: string;
+  members: string[];
+  dueDate: string;
+  createdAt: string;
+}
+
+export interface Task {
+  id?: string;
+  projectId: string;
+  title: string;
+  description?: string;
+  status: 'todo' | 'in_progress' | 'done';
+  priority: 'low' | 'medium' | 'high';
+  assignee?: string;
+  dueDate?: string;
+  createdAt: string;
+}
+
+export interface TeamMember {
+  id?: string;
+  name: string;
+  email: string;
+  role: 'admin' | 'member' | 'viewer';
+  avatarUrl?: string;
+  joinedAt: string;
+}
+```
+
+## Directory Structure
+
+```
+src/
+├── app/
+│   ├── page.tsx                    # Landing page
+│   ├── layout.tsx                  # Root layout (PrivyStack wrapper)
+│   ├── login/page.tsx              # Login page
+│   └── dashboard/
+│       ├── layout.tsx              # Dashboard layout (sidebar + mobile nav)
+│       ├── page.tsx                # Dashboard home
+│       ├── projects/page.tsx       # Projects CRUD
+│       ├── tasks/page.tsx          # Tasks CRUD
+│       ├── team/page.tsx           # Team management
+│       ├── settings/page.tsx       # Settings
+│       └── components/ui/          # Command palette, dialogs
+├── lib/
+│   ├── varity.ts                   # SDK import (1 line)
+│   ├── database.ts                 # Collection helpers
+│   ├── hooks.ts                    # React hooks (useProjects, useTasks, useTeam)
+│   ├── constants.ts                # App name, navigation items
+│   └── utils.ts                    # CSV export, helpers
+├── types/
+│   └── index.ts                    # TypeScript interfaces
+```
+
+## Key Patterns
+
+### Database Pattern
+
+Every data model follows the same 3-file pattern:
+
+```
+types/index.ts → lib/database.ts → lib/hooks.ts → app/dashboard/page.tsx
+```
+
+**1. Type** — Define a TypeScript interface
+**2. Collection** — Create a typed accessor: `db.collection<T>('name')`
+**3. Hook** — Build a React hook with loading/error states and optimistic updates
+**4. Page** — Use the hook in a component
+
+### Hook Pattern
+
+All hooks return the same interface:
+
+```typescript
+interface UseCollectionReturn<T> {
+  data: T[];
+  loading: boolean;
+  error: string | null;
+  create: (item: any) => Promise<void>;
+  update: (id: string, updates: Partial<T>) => Promise<void>;
+  remove: (id: string) => Promise<void>;
+  refresh: () => Promise<void>;
+}
+```
+
+### Authentication Pattern
+
+```tsx
+// Root layout wraps app with auth provider
+<PrivyStack appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID}>
+  {children}
+</PrivyStack>
+
+// Dashboard layout protects all dashboard routes
+<PrivyProtectedRoute>{children}</PrivyProtectedRoute>
+
+// Access user info in any component
+const { user, authenticated, logout } = usePrivy();
+```
+
+## Customization Guide
+
+### Change Branding
+
+<Steps>
+
+1. **App name** — Edit `APP_NAME` in `src/lib/constants.ts`
+
+   ```typescript
+   export const APP_NAME = 'YourAppName';
+   ```
+
+2. **Colors** — Edit CSS variables in `src/app/globals.css`
+
+   ```css
+   :root {
+     --color-primary-500: #3b82f6;  /* Your primary color */
+     --color-primary-600: #2563eb;
+     --color-primary-700: #1d4ed8;
+   }
+   ```
+
+   Four color presets are documented in the file: Blue (default), Purple, Green, Orange.
+
+3. **Logo** — Replace the logo file in `public/`
+
+</Steps>
+
+### Modify Navigation
+
+Edit `NAVIGATION_ITEMS` in `src/lib/constants.ts`:
+
+```typescript
+export const NAVIGATION_ITEMS = [
+  { label: 'Dashboard', icon: 'dashboard', path: '/dashboard' },
+  { label: 'Clients', icon: 'people', path: '/dashboard/clients' },
+  { label: 'Invoices', icon: 'list', path: '/dashboard/invoices' },
+  { label: 'Settings', icon: 'settings', path: '/dashboard/settings' },
+];
+```
+
+Available icons: `dashboard`, `folder`, `list`, `people`, `settings`
+
+### Add a New Data Model
+
+<Steps>
+
+1. **Define the interface** in `src/types/index.ts`
+
+   ```typescript
+   export interface Invoice {
+     id?: string;
+     clientId: string;
+     amount: number;
+     status: 'draft' | 'sent' | 'paid';
+     dueDate: string;
+     createdAt: string;
+   }
+   ```
+
+2. **Add collection helper** in `src/lib/database.ts`
+
+   ```typescript
+   import type { Invoice } from '../types';
+   export const invoices = () => db.collection<Invoice>('invoices');
+   ```
+
+3. **Create hook** in `src/lib/hooks.ts`
+
+   Copy the `useProjects` function, rename to `useInvoices`, and update the type and collection reference.
+
+4. **Create page** at `src/app/dashboard/invoices/page.tsx`
+
+5. **Add to navigation** in `constants.ts`
+
+</Steps>
+
+For a complete walkthrough, see the [Add a CRUD Feature](/tutorials/add-crud-feature) tutorial.
+
+### Add a New Page (No Database)
+
+For pages that don't need data (e.g., documentation, about):
+
+1. Create `src/app/dashboard/about/page.tsx`
+2. Add to `NAVIGATION_ITEMS` in `constants.ts`
+
+```tsx title="src/app/dashboard/about/page.tsx"
+'use client';
+
+export default function AboutPage() {
+  return (
+    <div style={{ padding: '2rem' }}>
+      <h1>About</h1>
+      <p>Your content here.</p>
+    </div>
+  );
+}
+```
+
+## Configuration
+
+### Environment Variables
+
+```bash title=".env.example"
+# Auth (optional for development — shared creds used automatically)
+NEXT_PUBLIC_PRIVY_APP_ID=
+
+# Your app ID (assigned after first deploy)
+NEXT_PUBLIC_VARITY_APP_ID=
+```
+
+### Next.js Config
+
+The template uses `output: 'export'` for static hosting:
+
+```javascript title="next.config.js"
+const nextConfig = {
+  output: 'export',
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  images: {
+    unoptimized: true,
+  },
+};
+```
+
+<Aside type="note">
+Static export means no server-side rendering and no dynamic routes (`[id]`). The template uses client-side state for detail views instead of URL parameters.
+</Aside>
+
+## Deploy
+
+```bash
+npm run build
+varitykit app deploy
+```
+
+To submit to the App Store:
+
+```bash
+varitykit app deploy --submit-to-store
+```
+
+## Next Steps
+
+- [Build & Deploy Tutorial](/tutorials/build-saas-app) — Step-by-step deployment guide
+- [Customize the Template](/tutorials/customize-template) — Branding and modifications
+- [Add a CRUD Feature](/tutorials/add-crud-feature) — Add a new data model end-to-end
+- [Database Quick Start](/build/databases/quickstart) — Database API deep dive

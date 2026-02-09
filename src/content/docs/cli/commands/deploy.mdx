@@ -41,7 +41,7 @@ varitykit app deploy
 Deploy full-stack applications with compute resources:
 
 ```bash
-varitykit app deploy --dynamic
+varitykit app deploy --hosting dynamic
 ```
 
 **Best for:**
@@ -52,7 +52,6 @@ varitykit app deploy --dynamic
 
 **Features:**
 - Container hosting
-- Custom resources (CPU, memory, storage)
 - Persistent storage
 - 70-85% cheaper than AWS
 
@@ -64,10 +63,10 @@ Dynamic hosting is under active development and will be available soon.
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `--hosting` | `ipfs` | Hosting type: `ipfs` (static) |
-| `--network` | `varity` | Target network |
+| `--hosting` | `static` | Hosting type: `static` or `dynamic` |
 | `--path` | `.` | Project directory |
 | `--submit-to-store` | `false` | Submit to Varity App Store |
+| `--tier` | - | Pricing tier: `free`, `starter`, `growth`, `enterprise` |
 
 ## Basic Deployment
 
@@ -154,6 +153,22 @@ deploy-1737492000   | live    | https://your-app.varity.app
 deploy-1737491000   | archived| https://v2.your-app.varity.app
 ```
 
+## View Deployment Details
+
+Get detailed information about a specific deployment:
+
+```bash
+varitykit app info deploy-1737492000
+```
+
+## Check Status
+
+View overall deployment status:
+
+```bash
+varitykit app status
+```
+
 ## Troubleshooting
 
 ### "Build failed"
@@ -186,9 +201,7 @@ After deployment, a manifest file is created:
   "deployment_id": "deploy-1737492000",
   "timestamp": "2026-01-28T12:00:00Z",
   "hosting": "static",
-  "network": "varity",
-  "url": "https://your-app.varity.app",
-  "gasless": true
+  "url": "https://your-app.varity.app"
 }
 ```
 

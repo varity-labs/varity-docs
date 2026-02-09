@@ -1,0 +1,240 @@
+---
+title: Next.js Quick Start
+description: Build and deploy a Next.js app with Varity in 5 minutes
+---
+
+import { Steps, Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+
+# Next.js Quick Start
+
+Build a full-stack Next.js app with authentication, database, and deployment in 5 minutes.
+
+## Prerequisites
+
+- Node.js 18 or later
+- npm, pnpm, or yarn
+- Python 3.8+ (for the CLI)
+
+## Create Your App
+
+<Steps>
+
+1. **Install the CLI**
+
+   ```bash
+   pip install varitykit
+   ```
+
+2. **Scaffold a new project**
+
+   ```bash
+   varitykit init my-app
+   cd my-app
+   ```
+
+   This creates a Next.js project from the SaaS Starter template with auth, database, and a full dashboard already configured.
+
+3. **Install dependencies**
+
+   ```bash
+   npm install
+   ```
+
+4. **Start the dev server**
+
+   ```bash
+   npm run dev
+   ```
+
+   Open [http://localhost:3000](http://localhost:3000). You should see the landing page.
+
+</Steps>
+
+## What's Included
+
+The template gives you a complete app out of the box:
+
+| Page | Route | Description |
+|------|-------|-------------|
+| Landing | `/` | Marketing page with feature highlights |
+| Login | `/login` | Email, Google, Twitter, Discord, GitHub login |
+| Dashboard | `/dashboard` | Overview with key metrics |
+| Projects | `/dashboard/projects` | Project CRUD with status tracking |
+| Tasks | `/dashboard/tasks` | Task management with priorities |
+| Team | `/dashboard/team` | Team member management |
+| Settings | `/dashboard/settings` | App settings |
+
+## Project Structure
+
+```
+my-app/
+├── src/
+│   ├── app/                     # Next.js App Router pages
+│   │   ├── page.tsx             # Landing page
+│   │   ├── login/page.tsx       # Login page
+│   │   ├── layout.tsx           # Root layout (PrivyStack)
+│   │   └── dashboard/
+│   │       ├── layout.tsx       # Dashboard layout (sidebar + mobile nav)
+│   │       ├── page.tsx         # Dashboard home
+│   │       ├── projects/page.tsx
+│   │       ├── tasks/page.tsx
+│   │       ├── team/page.tsx
+│   │       └── settings/page.tsx
+│   ├── lib/
+│   │   ├── varity.ts            # SDK import
+│   │   ├── database.ts          # Collection helpers
+│   │   ├── hooks.ts             # React hooks for data
+│   │   └── constants.ts         # App name, navigation
+│   ├── types/
+│   │   └── index.ts             # TypeScript interfaces
+│   └── components/ui/           # Shared components
+├── .env.example                 # Environment variables
+├── next.config.js
+├── tailwind.config.js
+└── package.json
+```
+
+## Understand the Key Files
+
+### Authentication (already configured)
+
+The root layout wraps everything with `PrivyStack`:
+
+```tsx title="src/app/layout.tsx"
+import { PrivyStack } from '@varity-labs/ui-kit';
+
+export default function RootLayout({ children }) {
+  return (
+    <html>
+      <body>
+        <PrivyStack appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID}>
+          {children}
+        </PrivyStack>
+      </body>
+    </html>
+  );
+}
+```
+
+<Aside type="tip">
+No `appId` needed during development. Varity provides shared credentials so you can start immediately.
+</Aside>
+
+### Database (already configured)
+
+Data types are defined in `src/types/index.ts`:
+
+```typescript title="src/types/index.ts"
+export interface Project {
+  id?: string;
+  name: string;
+  description: string;
+  status: 'active' | 'paused' | 'completed';
+  owner: string;
+  members: string[];
+  dueDate: string;
+  createdAt: string;
+}
+```
+
+Collections are set up in `src/lib/database.ts`:
+
+```typescript title="src/lib/database.ts"
+import { db } from '@varity-labs/sdk';
+import type { Project, Task, TeamMember } from '../types';
+
+export const projects = () => db.collection<Project>('projects');
+export const tasks = () => db.collection<Task>('tasks');
+export const teamMembers = () => db.collection<TeamMember>('team_members');
+```
+
+Hooks provide CRUD with optimistic updates in `src/lib/hooks.ts`:
+
+```typescript title="src/lib/hooks.ts (simplified)"
+export function useProjects() {
+  const [data, setData] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Auto-loads on mount, provides create/update/remove with optimistic UI
+  return { data, loading, error, create, update, remove, refresh };
+}
+```
+
+### Navigation
+
+Edit `src/lib/constants.ts` to change your app name and navigation:
+
+```typescript title="src/lib/constants.ts"
+export const APP_NAME = 'TaskFlow';
+
+export const NAVIGATION_ITEMS = [
+  { label: 'Dashboard', icon: 'dashboard', path: '/dashboard' },
+  { label: 'Projects', icon: 'folder', path: '/dashboard/projects' },
+  { label: 'Tasks', icon: 'list', path: '/dashboard/tasks' },
+  { label: 'Team', icon: 'people', path: '/dashboard/team' },
+  { label: 'Settings', icon: 'settings', path: '/dashboard/settings' },
+];
+```
+
+## Deploy
+
+<Steps>
+
+1. **Build your app**
+
+   ```bash
+   npm run build
+   ```
+
+2. **Deploy to Varity**
+
+   ```bash
+   varitykit app deploy
+   ```
+
+3. **Your app is live!**
+
+   The terminal shows your live URL. Your app is deployed with:
+   - Authentication ready (users can sign in immediately)
+   - Database credentials automatically injected
+   - Free usage for your end users (no fees)
+
+</Steps>
+
+### Submit to the App Store
+
+To list your app for users to discover and purchase:
+
+```bash
+varitykit app deploy --submit-to-store
+```
+
+This opens the Developer Portal where you can set pricing and app details.
+
+## Customize
+
+### Change Branding
+
+1. **App name**: Edit `APP_NAME` in `src/lib/constants.ts`
+2. **Colors**: Edit CSS variables in `src/app/globals.css`
+3. **Logo**: Replace logo in `public/`
+
+### Add a New Page
+
+1. Create `src/app/dashboard/analytics/page.tsx`
+2. Add to `NAVIGATION_ITEMS` in `constants.ts`:
+   ```typescript
+   { label: 'Analytics', icon: 'dashboard', path: '/dashboard/analytics' }
+   ```
+
+### Add a New Data Model
+
+See the [Add a CRUD Feature](/tutorials/add-crud-feature) tutorial for a step-by-step guide.
+
+## Next Steps
+
+- [Customize the Template](/tutorials/customize-template) — Branding, pages, data models
+- [Add a CRUD Feature](/tutorials/add-crud-feature) — End-to-end feature tutorial
+- [Database Quick Start](/build/databases/quickstart) — Deep dive into the database API
+- [SaaS Template Reference](/templates/saas-starter) — Complete template documentation

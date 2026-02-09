@@ -1,0 +1,149 @@
+---
+title: "Build & Deploy a SaaS App"
+description: "Build and deploy a complete SaaS application in 5 minutes"
+---
+
+import { Steps, Aside } from '@astrojs/starlight/components';
+
+# Build & Deploy a SaaS App in 5 Minutes
+
+This tutorial takes you from zero to a live SaaS application. You'll scaffold a project, explore what's included, and deploy it.
+
+## What You'll Build
+
+A project management app with:
+- Landing page for marketing
+- User authentication (email + social login)
+- Dashboard with projects, tasks, and team management
+- Full CRUD operations with optimistic UI
+- Mobile-responsive layout
+
+## Prerequisites
+
+- Node.js 18+
+- Python 3.8+
+- npm, pnpm, or yarn
+
+## Step-by-Step
+
+<Steps>
+
+1. **Install the CLI**
+
+   ```bash
+   pip install varitykit
+   ```
+
+   Verify it works:
+
+   ```bash
+   varitykit doctor
+   ```
+
+   You should see all checks passing:
+   ```
+   ✓ Python version: 3.11.0
+   ✓ Node.js version: 20.0.0
+   ✓ npm version: 10.0.0
+   ✓ All checks passed!
+   ```
+
+2. **Scaffold the project**
+
+   ```bash
+   varitykit init my-saas-app
+   cd my-saas-app
+   ```
+
+   This creates a Next.js project from the SaaS Starter template.
+
+3. **Install dependencies**
+
+   ```bash
+   npm install
+   ```
+
+4. **Start the dev server**
+
+   ```bash
+   npm run dev
+   ```
+
+   Open [http://localhost:3000](http://localhost:3000).
+
+   You'll see a landing page. Click "Get Started" to go to the login page, then sign in with your email. After login, you'll see the dashboard.
+
+5. **Explore the dashboard**
+
+   Try these:
+   - **Projects**: Create a project, edit its status, delete it
+   - **Tasks**: Add tasks, change priorities, mark as done
+   - **Team**: Add team members, assign roles
+   - **Cmd+K**: Open the command palette to search across everything
+
+   All data operations use optimistic updates — the UI updates instantly, then syncs with the database.
+
+6. **Build for production**
+
+   ```bash
+   npm run build
+   ```
+
+   This creates a static export in the `out/` directory.
+
+7. **Deploy**
+
+   ```bash
+   varitykit app deploy
+   ```
+
+   Output:
+   ```
+   Analyzing your app...
+     ✓ Detected: Next.js app (static)
+     ✓ Building and uploading...
+
+   Deploying...
+     ████████████████████ 100%
+
+   ✓ Deployed successfully!
+   ✓ Live at: https://your-app-url.varity.app
+   ```
+
+   Your app is now live. Share the URL with anyone.
+
+8. **Submit to the App Store (optional)**
+
+   To list your app for users to discover:
+
+   ```bash
+   varitykit app deploy --submit-to-store
+   ```
+
+   This opens the Developer Portal where you can:
+   - Set your app name and description
+   - Choose pricing (free, one-time, or subscription)
+   - Upload screenshots
+   - Publish to [store.varity.so](https://store.varity.so)
+
+</Steps>
+
+## What Just Happened?
+
+When you deployed, Varity:
+
+1. **Built** your Next.js app into static files
+2. **Deployed** to globally distributed hosting
+3. **Injected** database credentials automatically
+4. **Enabled** authentication (users can sign in immediately)
+5. **Made it discoverable** (if you submitted to the App Store)
+
+Total time: about 60 seconds for the deploy step.
+
+## Next Steps
+
+Now that you have a live app, you can:
+
+- [Customize the template](/tutorials/customize-template) — Change branding, colors, and content
+- [Add a new feature](/tutorials/add-crud-feature) — Add a new data model with full CRUD
+- [Set up payments](/build/payments/quickstart) — Monetize your app with 90/10 revenue split

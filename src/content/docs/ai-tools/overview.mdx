@@ -1,288 +1,130 @@
 ---
 title: AI Tools for Varity
-description: Use AI assistants to accelerate Varity development with MCP server, Cursor rules, and LLM-optimized documentation
+description: Use AI assistants to accelerate Varity development with prompts, Cursor rules, and LLM-optimized documentation
 ---
+
+import { Aside, Card, CardGrid } from '@astrojs/starlight/components';
 
 # AI Tools for Varity
 
-Varity provides first-class AI tooling to help developers build faster and more efficiently. Our AI-native approach includes an MCP server for Claude, Cursor rules for intelligent code completion, and LLM-optimized documentation.
+Varity provides AI tooling to help you build faster. Copy a prompt into your AI assistant, and it already knows how to build, deploy, and debug Varity apps.
 
-## Available AI Tools
+## Available Tools
 
-### 1. Varity MCP Server
+<CardGrid>
+  <Card title="AI Prompts" icon="document">
+    Ready-to-use prompts for Cursor, Claude Code, Copilot, and any AI assistant. Copy a prompt, start building.
 
-The Model Context Protocol (MCP) server allows AI assistants like Claude Desktop to interact with your Varity projects programmatically.
+    [View Prompts →](/ai-tools/prompts)
+  </Card>
+  <Card title="Cursor Rules" icon="setting">
+    `.mdc` rule files that teach Cursor how to write Varity code. Drop into your project for intelligent autocomplete.
+  </Card>
+  <Card title="LLM-Optimized Docs" icon="open-book">
+    A machine-readable summary of Varity for AI assistants to reference.
 
-**Features:**
-- Deploy applications directly from Claude
-- Search Varity documentation
-- Get project metrics and logs
-- Execute CLI commands
-- Debug deployment issues
+    Available at `/llms.txt`
+  </Card>
+  <Card title="MCP Server" icon="rocket">
+    Model Context Protocol server for Claude Desktop — deploy, search docs, and debug from your AI assistant.
 
-**Setup:**
+    [View Spec →](/ai-tools/mcp-server-spec) (Coming Soon)
+  </Card>
+</CardGrid>
 
-Add to your Claude Desktop configuration (`~/Library/Application Support/Claude/config.json` on Mac):
+## Quick Start: AI Prompts
 
-```json
-{
-  "mcpServers": {
-    "varity": {
-      "type": "http",
-      "url": "https://mcp.varity.dev/mcp",
-      "options": {
-        "project_ref": "your-project-id",
-        "read_only": false,
-        "features": "deployment,docs,debugging"
-      }
-    }
-  }
-}
-```
+The fastest way to get AI assistance with Varity is to copy one of our [AI Prompts](/ai-tools/prompts) into your project.
 
-[Learn more about the MCP Server →](/ai-tools/mcp-server-spec)
+**For Cursor:**
+1. Download the Varity rules file
+2. Save to `.cursor/rules/varity.mdc` in your project
+3. Cursor now understands Varity patterns automatically
 
-### 2. Cursor Rules
+**For Claude Code:**
+1. Copy the prompt content from our [AI Prompts page](/ai-tools/prompts)
+2. Add to your project's `CLAUDE.md` file
+3. Claude Code now has full Varity context
 
-Pre-configured AI rules for Cursor IDE that provide context-aware assistance for Varity development.
+**For any AI assistant:**
+1. Copy the prompt from [AI Prompts](/ai-tools/prompts)
+2. Paste at the start of your conversation
+3. Ask it to build features using Varity
 
-**Available Rules:**
+## Cursor Rules
 
-1. **Deploy Applications** - Best practices for deploying to Varity
-2. **Authentication Setup** - Implement social login and wallet auth
-3. **Storage Configuration** - File upload and storage patterns
-4. **Error Handling** - Robust error handling strategies
-5. **Testing** - Testing patterns and best practices
-6. **TypeScript** - Type-safe Varity development
-7. **Performance** - Optimization techniques
-8. **Backend Services** (Advanced) - Infrastructure integration
+Pre-configured rules that teach Cursor IDE how to write Varity code correctly.
 
-**Quick Install:**
+**Available rules:**
+- **Varity App Development** — SDK patterns, database queries, auth setup
+- **Deployment** — CLI commands, environment variables, hosting options
+- **Authentication** — Privy setup, protected routes, user data
+- **Database** — Collections, typed queries, CRUD hooks
 
-```bash
-curl -fsSL https://docs.varity.so/cursor-rules/install-varity-rules.sh | bash
-```
-
-**Manual Install:**
+**Install:**
 
 ```bash
 mkdir -p .cursor/rules
-curl -o .cursor/rules/varity-deploy.mdc https://docs.varity.so/cursor-rules/varity-deploy.mdc
-curl -o .cursor/rules/varity-auth.mdc https://docs.varity.so/cursor-rules/varity-auth.mdc
-curl -o .cursor/rules/varity-storage.mdc https://docs.varity.so/cursor-rules/varity-storage.mdc
-curl -o .cursor/rules/varity-errors.mdc https://docs.varity.so/cursor-rules/varity-errors.mdc
-curl -o .cursor/rules/varity-testing.mdc https://docs.varity.so/cursor-rules/varity-testing.mdc
-curl -o .cursor/rules/varity-typescript.mdc https://docs.varity.so/cursor-rules/varity-typescript.mdc
-curl -o .cursor/rules/varity-performance.mdc https://docs.varity.so/cursor-rules/varity-performance.mdc
-curl -o .cursor/rules/varity-contracts.mdc https://docs.varity.so/cursor-rules/varity-contracts.mdc
+# Download from the AI Prompts page
 ```
 
-### 3. LLM-Optimized Documentation
+See the [AI Prompts page](/ai-tools/prompts) for the full rules file content.
 
-Our documentation is structured specifically for AI assistants to understand and reference.
+## LLM-Optimized Documentation
 
-**Access:**
+AI assistants can reference our documentation in a machine-readable format:
 
 ```
 https://docs.varity.so/llms.txt
 ```
 
-AI assistants can use this to:
-- Answer questions about Varity
-- Generate code examples
-- Suggest best practices
-- Debug issues
+This file contains a structured summary of Varity: what it is, key APIs, CLI commands, and common patterns. Point any AI tool at this URL for instant Varity context.
 
-## Using AI Assistants with Varity
+## AI-Friendly Patterns
 
-### Example Prompts for Cursor
+Our tools teach AI assistants these patterns:
 
-**Deployment:**
-```
-Deploy my Next.js app to Varity
-```
+### Infrastructure Abstraction
 
-**Authentication:**
-```
-Add social login (Google and Twitter) to my app using Varity
-```
+AI assistants are trained to use developer-friendly language:
 
-**Storage:**
-```
-Implement file upload with validation and error handling
-```
+- "Deploy your application" (not "upload to IPFS")
+- "Sign in" (not "connect wallet")
+- "Usage fees are covered" (not "gasless transactions")
 
-**TypeScript:**
-```
-Generate TypeScript types for my Varity storage operations
-```
+### Type Safety
 
-### Example Prompts for Claude (with MCP)
+```typescript
+import { db } from '@varity-labs/sdk';
+import type { Project } from '../types';
 
-**Project Management:**
-```
-Show me all my Varity projects and their deployment status
-```
-
-**Deployment:**
-```
-Deploy my project to Varity and show me the live URL
-```
-
-**Debugging:**
-```
-Get the last 50 errors from my Varity project
-```
-
-**Documentation:**
-```
-How do I implement encrypted file storage in Varity?
-```
-
-## AI-Friendly Code Patterns
-
-Our AI tools are trained on these recommended patterns:
-
-### Environment Variables
-
-Always use the `<SUBSTITUTE_*>` format for documentation:
-
-```bash
-VARITY_URL=<SUBSTITUTE_VARITY_URL>
-VARITY_KEY=<SUBSTITUTE_VARITY_KEY>
+// Always use typed collections
+const projects = db.collection<Project>('projects');
 ```
 
 ### Error Handling
 
-Use error codes, not messages:
-
 ```typescript
 try {
-  await varity.storage.upload(file)
+  await projects.add(data);
 } catch (error) {
-  if (error.code === 'FILE_TOO_LARGE') {
+  if (error.code === 'VALIDATION_ERROR') {
     // Handle specific error
   }
 }
 ```
 
-### Type Safety
-
-Import types from `@varity-labs/types`:
-
-```typescript
-import type { UploadResult, VarityError } from '@varity-labs/types'
-```
-
-### Infrastructure Abstraction
-
-AI assistants are trained to avoid technical infrastructure jargon:
-
-❌ "Connect your wallet to deploy smart contracts on-chain"
-✅ "Sign in to deploy your application to Varity"
-
-## Benefits of AI-Assisted Development
-
-### Faster Development
-
-- Generate boilerplate code instantly
-- Get inline documentation as you code
-- Autocomplete with context awareness
-
-### Better Code Quality
-
-- Follow best practices automatically
-- Catch errors before they happen
-- Get security recommendations
-
-### Reduced Learning Curve
-
-- Ask questions in natural language
-- Get instant, contextual answers
-- Learn by doing with AI guidance
-
 ## Supported AI Tools
 
-### Fully Supported
+| Tool | Integration | Level |
+|------|------------|-------|
+| **Cursor** | `.mdc` rules + prompts | Full |
+| **Claude Code** | `CLAUDE.md` + prompts | Full |
+| **Windsurf** | Cursor-compatible rules | Full |
+| **Claude Desktop** | MCP Server (Coming Soon) | Planned |
+| **GitHub Copilot** | `llms.txt` context | Basic |
 
-- **Cursor** - Full integration with .mdc rules
-- **Claude Desktop** - MCP server integration
-- **Claude Code** - Complete Varity context
-- **Windsurf** - Compatible with Cursor rules
+## What's Next
 
-### Partially Supported
-
-- **GitHub Copilot** - Can access llms.txt
-- **ChatGPT** - Can browse documentation
-- **Zed** - Manual rule configuration
-
-## Advanced: Custom AI Integration
-
-### Build Your Own MCP Tools
-
-You can extend the Varity MCP server with custom tools:
-
-```typescript
-// custom-mcp-tool.ts
-export async function customDeployTool(params: DeployParams) {
-  // Your custom deployment logic
-  const result = await varitykit.deploy(params)
-  return result
-}
-```
-
-### Create Custom Cursor Rules
-
-Write your own `.mdc` files for team-specific patterns:
-
-```yaml
----
-description: Custom deployment workflow for our team
-alwaysApply: false
----
-
-# Custom Team Deployment
-
-[Your team's specific patterns and guidelines]
-```
-
-## Troubleshooting
-
-### MCP Server Not Working
-
-1. Check your Claude Desktop configuration file
-2. Verify your project ID is correct
-3. Ensure you have a valid Varity API key
-4. Check internet connectivity
-
-### Cursor Rules Not Activating
-
-1. Verify `.cursor/rules/` directory exists
-2. Check file names match exactly (`.mdc` extension)
-3. Restart Cursor IDE
-4. Check Cursor settings for rule activation
-
-### AI Suggestions Incorrect
-
-1. Update to latest Cursor rules
-2. Provide more context in your prompt
-3. Check if using correct Varity SDK version
-4. Report issues on GitHub
-
-## Getting Help
-
-- **Documentation**: [docs.varity.so](https://docs.varity.so)
-- **Discord**: [discord.gg/varity](https://discord.gg/varity) - #ai-tools channel
-- **GitHub**: [github.com/varity-labs/mcp-server](https://github.com/varity-labs/mcp-server)
-- **Email**: [support@varity.so](mailto:support@varity.so)
-
-## What's Next?
-
-- **MCP Server API**: [Full specification](/ai-tools/mcp-server-spec)
-- **Cursor Rules**: [Individual rule documentation](/ai-tools/cursor-rules)
-- **LLM Documentation**: [View llms.txt](https://docs.varity.so/llms.txt)
-- **Examples**: [AI-assisted development examples](/ai-tools/examples)
-
----
-
-**Note**: AI tools are continuously improving. Check back regularly for updates and new features.
+- **[AI Prompts](/ai-tools/prompts)** — Ready-to-use prompts for every AI tool
+- **[MCP Server Spec](/ai-tools/mcp-server-spec)** — API reference (Coming Soon)

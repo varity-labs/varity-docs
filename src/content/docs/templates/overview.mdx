@@ -1,0 +1,74 @@
+---
+title: Templates
+description: Pre-built app templates to get started in seconds
+---
+
+import { Card, CardGrid, Aside } from '@astrojs/starlight/components';
+
+# Templates
+
+Varity templates are complete, production-ready apps you can customize and deploy. Start with a template instead of building from scratch.
+
+## Available Templates
+
+<CardGrid>
+  <Card title="SaaS Starter" icon="rocket">
+    A full-stack SaaS application with authentication, database, dashboard, and team management.
+
+    **Includes:** Landing page, login, dashboard with 5 pages, mobile responsive layout, command palette, CRUD operations.
+
+    **Stack:** Next.js, TypeScript, Tailwind CSS, Privy Auth, Varity Database
+
+    [View Template →](/templates/saas-starter)
+  </Card>
+</CardGrid>
+
+## How Templates Work
+
+Templates are scaffolded using the CLI:
+
+```bash
+varitykit init my-app
+```
+
+This creates a new project directory with:
+- All source code (yours to modify)
+- Dependencies pre-configured
+- Auth, database, and deployment ready
+- No lock-in — it's a standard Next.js project
+
+## Template vs. Manual Setup
+
+| Feature | Template | Manual Setup |
+|---------|----------|-------------|
+| Auth | Pre-configured | Add `PrivyStack` yourself |
+| Database | Collections + hooks ready | Set up `db.collection()` yourself |
+| Dashboard | 5 pages with CRUD | Build from scratch |
+| Mobile nav | Included | Build from scratch |
+| Landing page | Included | Build from scratch |
+| Time to deploy | ~5 minutes | ~1 hour |
+
+<Aside type="tip">
+Even if you plan to heavily customize, starting from the template saves time. It demonstrates all the patterns (collection helpers, hooks, protected routes) that you can adapt to your needs.
+</Aside>
+
+## Customizing Templates
+
+After scaffolding, the code is yours. Common customizations:
+
+1. **Branding** — Change app name, colors, logo
+2. **Data models** — Replace Project/Task with your domain objects
+3. **Pages** — Add, remove, or modify dashboard pages
+4. **Navigation** — Edit the sidebar items
+
+See the [SaaS Starter](/templates/saas-starter) page for detailed customization guides, or follow the [Customize the Template](/tutorials/customize-template) tutorial.
+
+## Coming Soon
+
+More templates are planned:
+
+- **E-commerce Starter** — Product catalog, cart, checkout
+- **Blog / Content** — CMS with markdown editor
+- **Admin Panel** — Data management dashboard
+
+Want to suggest a template? [Join our Discord](https://discord.gg/Uhjx6yhJ).

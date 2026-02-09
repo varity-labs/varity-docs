@@ -125,46 +125,41 @@ Users never see technical details or extra prompts unless you choose to show the
 | `useLogin` | Trigger login programmatically |
 | `useLogout` | Trigger logout programmatically |
 
-### Utilities
-
-| Export | Description |
-|--------|-------------|
-| `formatUSDC` | Format USDC amounts for display |
-| `parseUSDC` | Parse user input to USDC units |
-| `formatAddress` | Shorten account addresses |
-
 <Accordion title="Advanced: Infrastructure Exports">
 
 These exports provide lower-level access for advanced use cases:
-
-### Providers
-
-| Export | Description |
-|--------|-------------|
-| `WalletSyncProvider` | Syncs Privy accounts with infrastructure |
-| `SmartWalletProvider` | Smart account with free operations |
-
-### Components
-
-| Export | Description |
-|--------|-------------|
-| `SmartWalletConnectButton` | Smart account connection |
-| `GaslessBadge` | Shows free operations status |
 
 ### Hooks
 
 | Export | Description |
 |--------|-------------|
-| `useWallets` | Access connected accounts |
-| `useWalletSync` | Unified account state |
-| `useWalletAuth` | Session-based account auth |
-| `useSmartWallet` | Smart account operations |
+| `useWallets` | Access all connected accounts (from Privy) |
+| `useWalletAuth` | Session-based account auth with auto-refresh |
+| `useAuth` | Sign-In with Ethereum (SIWE) authentication |
+| `useVarityAPI` | Direct access to module clients |
+| `useAnalytics` | Dashboard analytics data |
+| `useKPI` | Key performance indicators |
+| `useDashboard` | Dashboard configuration and widget management |
+| `useWidgetData` | Fetch data for a specific dashboard widget |
+| `useVarityQuery` | Generic data fetching hook |
+| `useVarityMutation` | Mutation hook for create/update/delete |
+| `useTheme` | Access current theme from ThemeProvider |
 
-### Utilities
+### Module Clients
 
 | Export | Description |
 |--------|-------------|
-| `varityL3Testnet` | Varity infrastructure config |
+| `AuthClient` | Authentication module client |
+| `StorageClient` | File storage module client |
+| `AnalyticsClient` | Analytics module client |
+| `ComputeClient` | AI/LLM query client |
+| `NotificationsClient` | Notification module client |
+| `ExportClient` | Data export module client |
+| `CacheClient` | In-memory cache client |
+| `MonitoringClient` | Health check client |
+| `ForecastingClient` | Predictive analytics client |
+
+Additional infrastructure hooks (`SmartWalletProvider`, `useSmartWallet`, etc.) are planned for a future release.
 
 </Accordion>
 

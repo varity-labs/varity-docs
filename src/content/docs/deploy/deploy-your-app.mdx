@@ -97,7 +97,7 @@ Choose the right hosting for your application type:
     :::
 
     ```bash
-    varitykit app deploy --dynamic
+    varitykit app deploy --hosting dynamic
     ```
   </Card>
 </CardGrid>
@@ -180,23 +180,27 @@ varitykit app rollback deploy-1737484800
 
 Your app will instantly switch to the selected version.
 
-### View Deployment Status
+### View Deployment Details
 
-Check the status of a specific deployment:
+Check the details of a specific deployment:
 
 ```bash
-varitykit app status deploy-1737491000
+varitykit app info deploy-1737491000
+```
+
+### Check Deployment Status
+
+View overall deployment status:
+
+```bash
+varitykit app status
 ```
 
 ## Custom Domains
 
-Add your own domain to your Varity app:
-
-```bash
-varitykit domain add your-domain.com
-```
-
-Follow the prompts to configure DNS. Varity will automatically provision SSL certificates.
+:::note[Coming Soon]
+Custom domain support is under development. Your apps will be available at Varity-generated URLs during beta.
+:::
 
 ## Troubleshooting
 
@@ -230,46 +234,16 @@ If issues persist, try deploying with verbose output:
 varitykit app deploy --verbose
 ```
 
-### "Permission denied"
-
-Make sure you are authenticated:
-
-```bash
-varitykit login
-```
-
 ## Advanced Configuration
 
-:::note[Advanced Settings]
-Most users do not need these settings. Use defaults unless you have specific requirements.
-:::
+### Deploy Options
 
-### Build Configuration
-
-Override the default build command:
-
-```bash
-varitykit app deploy --build-command "pnpm build"
-```
-
-### Output Directory
-
-Specify a custom output directory:
-
-```bash
-varitykit app deploy --output-dir "dist"
-```
-
-### Resource Allocation (Dynamic Apps)
-
-For dynamic apps, configure resources:
-
-```bash
-varitykit app deploy --dynamic \
-  --cpu 2 \
-  --memory 4GB \
-  --replicas 3
-```
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--hosting` | `static` | Hosting type: `static` or `dynamic` |
+| `--submit-to-store` | `false` | Submit to Varity App Store after deploy |
+| `--tier` | - | Pricing tier: `free`, `starter`, `growth`, `enterprise` |
+| `--path` | `.` | Project directory |
 
 <Accordion title="Advanced: Technical Architecture">
 

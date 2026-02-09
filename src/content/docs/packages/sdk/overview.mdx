@@ -29,18 +29,32 @@ The Varity SDK provides everything you need to build backend services for your a
 
 ## Quick Example
 
-```typescript
-import { createVaritySDK, varityL3Testnet } from '@varity-labs/sdk';
+The most common pattern is the zero-config database:
 
-// Initialize the SDK
+```typescript
+import { db } from '@varity-labs/sdk';
+
+// Define a collection with TypeScript types
+const users = db.collection<{ name: string; email: string }>('users');
+
+// CRUD operations
+await users.add({ name: 'Alice', email: 'alice@example.com' });
+const allUsers = await users.get({ limit: 10, orderBy: 'name' });
+await users.update('user-id', { name: 'Alice Smith' });
+await users.delete('user-id');
+```
+
+For apps that need multiple modules (analytics, storage, auth), use the full SDK:
+
+```typescript
+import { createVaritySDK } from '@varity-labs/sdk';
+
 const sdk = createVaritySDK({
   network: 'arbitrum-l3-testnet',
 });
 
-// Connect
 await sdk.connect();
 
-// Use capability modules
 const kpis = await sdk.analytics.getKPIs({ period: 'current_month' });
 const stored = await sdk.storage.upload(fileData);
 ```
@@ -55,27 +69,11 @@ The SDK exports several categories of functionality.
 |--------|-------------|
 | `VaritySDK` | Main SDK class |
 | `createVaritySDK` | Factory function to create SDK instance |
+| `db` | Zero-config database (recommended for most apps) |
+| `Database` | Database class |
+| `Collection` | Collection class for typed data access |
 | `getNetworkConfig` | Get network configuration by name |
 | `NETWORK_CONFIGS` | All supported network configurations |
-
-### Configuration
-
-| Export | Description |
-|--------|-------------|
-| `varityL3Testnet` | Varity infrastructure config |
-| `varityL3Wagmi` | Varity infrastructure config (wagmi format) |
-| `USDC_DECIMALS` | USDC decimal places (6) |
-| `formatUSDC` | Format bigint to USDC string |
-| `parseUSDC` | Parse USDC string to bigint |
-
-### Contract Addresses
-
-| Export | Description |
-|--------|-------------|
-| `VARITY_CONTRACTS` | All deployed contract addresses |
-| `VARITY_L3_CHAIN_ID` | Chain ID (33529) |
-| `REVENUE_SPLIT` | Revenue split percentages (90/10) |
-| `getVarityContractAddress` | Get contract address by name |
 
 ### Development Credentials
 
@@ -93,7 +91,7 @@ The SDK provides 13 capability modules that work across all application types.
 |--------|---------|
 | `sdk.auth` | Authentication and access control |
 | `sdk.storage` | File storage |
-| `sdk.db` | Database operations |
+| `sdk.db` | Database operations (also available standalone: `import { db } from '@varity-labs/sdk'`) |
 | `sdk.s3` | S3-compatible storage (optional) |
 | `sdk.compute` | AI/LLM queries |
 | `sdk.contracts` | Backend interactions |
@@ -155,9 +153,14 @@ console.log(VERSION); // '2.0.0-alpha.1'
 ## Complete Working Example
 
 ```typescript
-import { createVaritySDK, formatUSDC, parseUSDC } from '@varity-labs/sdk';
+import { db, createVaritySDK } from '@varity-labs/sdk';
 
-// Initialize SDK
+// Zero-config database
+const products = db.collection<{ name: string; price: number }>('products');
+await products.add({ name: 'Pro Plan', price: 99 });
+const allProducts = await products.get();
+
+// Full SDK for multi-module access
 const sdk = createVaritySDK({
   network: 'arbitrum-l3-testnet',
 });
@@ -171,12 +174,6 @@ console.log('File URL:', result.url);
 // Get analytics
 const kpis = await sdk.analytics.getKPIs({ period: 'current_month' });
 console.log('Total users:', kpis.totalUsers);
-
-// Format prices
-const display = formatUSDC(10500000n);
-console.log(display.formatted); // "10.50 USDC"
-
-// Revenue split: 90% to developer, 10% to Varity platform
 ```
 
 <Aside type="note">
@@ -187,13 +184,22 @@ console.log(display.formatted); // "10.50 USDC"
 
 **Varity manages these credentials automatically. Only use this if you need custom configuration.**
 
-For power users who need lower-level access to Varity's infrastructure, the SDK includes direct integration APIs.
+For power users who need lower-level access to Varity's infrastructure, the SDK provides subpath imports:
+
+### Infrastructure Configuration
+
+Chain configuration and utilities are available via subpath imports:
+
+```typescript
+// Infrastructure configuration (not in main entry)
+import { varityL3Testnet, formatUSDC, parseUSDC } from '@varity-labs/sdk/chains';
+```
 
 ### Contract Interaction
 
 ```typescript
 import { createThirdwebClient, getContract, readContract } from 'thirdweb';
-import { varityL3Testnet, VARITY_CONTRACTS, formatUSDC } from '@varity-labs/sdk';
+import { varityL3Testnet } from '@varity-labs/sdk/chains';
 
 const client = createThirdwebClient({
   clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID,
@@ -202,7 +208,7 @@ const client = createThirdwebClient({
 const contract = getContract({
   client,
   chain: varityL3Testnet,
-  address: VARITY_CONTRACTS.TemplateMarketplace,
+  address: '0x58618dcD2A4109854441B74a28C1dA4E58d7AF44', // TemplateMarketplace
 });
 
 const priceRaw = await readContract({
@@ -210,8 +216,6 @@ const priceRaw = await readContract({
   method: 'function getPrice(uint256) view returns (uint256)',
   params: [BigInt('1')],
 });
-
-console.log(formatUSDC(priceRaw).formatted);
 ```
 
 ### Engine Client

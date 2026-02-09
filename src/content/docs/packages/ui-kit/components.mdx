@@ -4,7 +4,6 @@ description: "Complete reference for all @varity-labs/ui-kit React components"
 ---
 
 import { Aside } from '@astrojs/starlight/components';
-import Accordion from '../../../../components/Accordion.astro';
 
 All React components exported by `@varity-labs/ui-kit`.
 
@@ -265,60 +264,9 @@ function Dashboard() {
 }
 ```
 
-<Accordion title="Advanced: Smart Account Components">
-
-**Varity manages these credentials automatically. Only use this if you need custom configuration.**
-
-These components provide direct access to smart account functionality. Most apps don't need these — `PrivyStack` handles account creation automatically.
-
-### SmartWalletProvider
-
-Provides smart account functionality with free operations.
-
-```tsx
-import { SmartWalletProvider } from '@varity-labs/ui-kit';
-import { createThirdwebClient } from 'thirdweb';
-import { varityL3Testnet } from '@varity-labs/sdk';
-
-const client = createThirdwebClient({
-  clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID,
-});
-
-<SmartWalletProvider
-  config={{
-    client,
-    chain: varityL3Testnet,
-    gasless: { enabled: true },
-  }}
->
-  {children}
-</SmartWalletProvider>
-```
-
-### SmartWalletConnectButton
-
-Button to connect or display smart account.
-
-```tsx
-import { SmartWalletConnectButton } from '@varity-labs/ui-kit';
-
-<SmartWalletConnectButton
-  onConnect={(address) => console.log('Connected:', address)}
-  onError={(error) => console.error(error)}
-/>
-```
-
-### GaslessBadge
-
-Shows green badge when free operations are enabled.
-
-```tsx
-import { GaslessBadge } from '@varity-labs/ui-kit';
-
-<GaslessBadge />
-```
-
-</Accordion>
+:::note
+Smart account components (`SmartWalletProvider`, `SmartWalletConnectButton`, `GaslessBadge`) will be available in a future release.
+:::
 
 ## Next Steps
 

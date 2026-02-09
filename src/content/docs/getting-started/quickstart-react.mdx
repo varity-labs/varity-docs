@@ -1,0 +1,263 @@
+---
+title: React Quick Start
+description: Build and deploy a React (Vite) app with Varity
+---
+
+import { Steps, Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+
+# React Quick Start
+
+Set up a React app with Vite and add Varity authentication and database.
+
+<Aside type="note">
+**Next.js recommended.** The [Next.js Quick Start](/getting-started/quickstart-nextjs) uses the SaaS Starter template with everything pre-configured. This guide is for developers who prefer Vite or have an existing React project.
+</Aside>
+
+## Prerequisites
+
+- Node.js 18 or later
+- npm, pnpm, or yarn
+- Python 3.8+ (for the CLI)
+
+## Set Up Your Project
+
+<Steps>
+
+1. **Create a Vite project** (skip if you have an existing project)
+
+   ```bash
+   npm create vite@latest my-app -- --template react-ts
+   cd my-app
+   npm install
+   ```
+
+2. **Install Varity packages**
+
+   <Tabs>
+     <TabItem label="npm">
+       ```bash
+       npm install @varity-labs/sdk @varity-labs/ui-kit @varity-labs/types
+       ```
+     </TabItem>
+     <TabItem label="pnpm">
+       ```bash
+       pnpm add @varity-labs/sdk @varity-labs/ui-kit @varity-labs/types
+       ```
+     </TabItem>
+   </Tabs>
+
+3. **Install the CLI**
+
+   ```bash
+   pip install varitykit
+   ```
+
+</Steps>
+
+## Add Authentication
+
+<Steps>
+
+1. **Wrap your app with PrivyStack**
+
+   ```tsx title="src/main.tsx"
+   import React from 'react';
+   import ReactDOM from 'react-dom/client';
+   import { PrivyStack } from '@varity-labs/ui-kit';
+   import App from './App';
+   import './index.css';
+
+   ReactDOM.createRoot(document.getElementById('root')!).render(
+     <React.StrictMode>
+       <PrivyStack appId={import.meta.env.VITE_VARITY_APP_ID}>
+         <App />
+       </PrivyStack>
+     </React.StrictMode>
+   );
+   ```
+
+   <Aside type="tip">
+   No `appId` needed during development. Varity provides shared credentials automatically.
+   </Aside>
+
+2. **Add a login button**
+
+   ```tsx title="src/App.tsx"
+   import { PrivyLoginButton, PrivyProtectedRoute, usePrivy } from '@varity-labs/ui-kit';
+
+   function Dashboard() {
+     const { user, logout } = usePrivy();
+
+     return (
+       <div>
+         <h1>Welcome, {user?.email?.address?.split('@')[0]}!</h1>
+         <button onClick={logout}>Log out</button>
+       </div>
+     );
+   }
+
+   export default function App() {
+     return (
+       <div>
+         <h1>My App</h1>
+         <PrivyLoginButton />
+
+         <PrivyProtectedRoute>
+           <Dashboard />
+         </PrivyProtectedRoute>
+       </div>
+     );
+   }
+   ```
+
+3. **Test it**
+
+   ```bash
+   npm run dev
+   ```
+
+   Click the login button. You can sign in with email, Google, Twitter, Discord, or GitHub.
+
+</Steps>
+
+## Add a Database
+
+<Steps>
+
+1. **Define your data types**
+
+   ```typescript title="src/types.ts"
+   export interface Todo {
+     id?: string;
+     title: string;
+     completed: boolean;
+     createdAt: string;
+   }
+   ```
+
+2. **Create a collection helper**
+
+   ```typescript title="src/database.ts"
+   import { db } from '@varity-labs/sdk';
+   import type { Todo } from './types';
+
+   export const todos = () => db.collection<Todo>('todos');
+   ```
+
+3. **Build a hook**
+
+   ```typescript title="src/hooks.ts"
+   import { useState, useEffect, useCallback } from 'react';
+   import { todos } from './database';
+   import type { Todo } from './types';
+
+   export function useTodos() {
+     const [data, setData] = useState<Todo[]>([]);
+     const [loading, setLoading] = useState(true);
+
+     const refresh = useCallback(async () => {
+       setLoading(true);
+       const result = await todos().get();
+       setData(result as Todo[]);
+       setLoading(false);
+     }, []);
+
+     useEffect(() => { refresh(); }, [refresh]);
+
+     const create = async (title: string) => {
+       const todo: Todo = {
+         id: `temp-${Date.now()}`,
+         title,
+         completed: false,
+         createdAt: new Date().toISOString(),
+       };
+       setData(prev => [todo, ...prev]);
+       await todos().add({ title, completed: false, createdAt: todo.createdAt });
+       await refresh();
+     };
+
+     const toggle = async (id: string) => {
+       const todo = data.find(t => t.id === id);
+       if (!todo) return;
+       setData(prev => prev.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
+       await todos().update(id, { completed: !todo.completed });
+     };
+
+     const remove = async (id: string) => {
+       setData(prev => prev.filter(t => t.id !== id));
+       await todos().delete(id);
+     };
+
+     return { data, loading, create, toggle, remove, refresh };
+   }
+   ```
+
+4. **Use in a component**
+
+   ```tsx title="src/TodoList.tsx"
+   import { useTodos } from './hooks';
+
+   export function TodoList() {
+     const { data: todos, loading, create, toggle, remove } = useTodos();
+
+     if (loading) return <p>Loading...</p>;
+
+     return (
+       <div>
+         <button onClick={() => create('New todo')}>Add Todo</button>
+         {todos.map(todo => (
+           <div key={todo.id}>
+             <input
+               type="checkbox"
+               checked={todo.completed}
+               onChange={() => toggle(todo.id!)}
+             />
+             <span>{todo.title}</span>
+             <button onClick={() => remove(todo.id!)}>Delete</button>
+           </div>
+         ))}
+       </div>
+     );
+   }
+   ```
+
+</Steps>
+
+## Deploy
+
+<Steps>
+
+1. **Build**
+
+   ```bash
+   npm run build
+   ```
+
+2. **Deploy**
+
+   ```bash
+   varitykit app deploy
+   ```
+
+   Your app is live. Database credentials are injected automatically.
+
+</Steps>
+
+## Environment Variables
+
+For Vite projects, use the `VITE_` prefix:
+
+```bash title=".env"
+VITE_VARITY_APP_ID=your-app-id
+VITE_PRIVY_APP_ID=your-privy-id
+```
+
+<Aside type="tip">
+These are optional during development. The SDK uses shared credentials by default.
+</Aside>
+
+## Next Steps
+
+- [Database Quick Start](/build/databases/quickstart) — Full database API reference
+- [Authentication](/build/auth/quickstart) — Advanced auth configuration
+- [Deploy](/deploy/varity-l3) — Deployment options and configuration

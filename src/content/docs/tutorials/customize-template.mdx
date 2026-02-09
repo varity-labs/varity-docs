@@ -1,0 +1,236 @@
+---
+title: "Customize the SaaS Template"
+description: "Change the branding, navigation, and data models in the SaaS Starter template"
+---
+
+import { Steps, Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+
+# Customize the SaaS Template
+
+This tutorial shows you how to take the SaaS Starter template and make it your own. You'll change the branding, modify navigation, and rename the default data models to match your business.
+
+## Prerequisites
+
+A scaffolded project from the SaaS Starter template:
+
+```bash
+varitykit init my-app
+cd my-app
+npm install
+npm run dev
+```
+
+## 1. Change the App Name
+
+The app name appears in the sidebar, page titles, and landing page.
+
+Edit `src/lib/constants.ts`:
+
+```typescript title="src/lib/constants.ts"
+// Before
+export const APP_NAME = 'TaskFlow';
+
+// After
+export const APP_NAME = 'ClientHub';
+```
+
+That's it. The name updates everywhere automatically.
+
+## 2. Change Colors
+
+The template uses CSS variables for theming. Edit `src/app/globals.css`:
+
+```css title="src/app/globals.css"
+:root {
+  /* Default: Blue */
+  --color-primary-500: #3b82f6;
+  --color-primary-600: #2563eb;
+  --color-primary-700: #1d4ed8;
+}
+```
+
+**Color presets you can use:**
+
+| Preset | `500` | `600` | `700` |
+|--------|-------|-------|-------|
+| Blue (default) | `#3b82f6` | `#2563eb` | `#1d4ed8` |
+| Purple | `#8b5cf6` | `#7c3aed` | `#6d28d9` |
+| Green | `#22c55e` | `#16a34a` | `#15803d` |
+| Orange | `#f97316` | `#ea580c` | `#c2410c` |
+
+Replace the hex values and save. The entire app updates instantly.
+
+## 3. Modify Navigation
+
+Edit `NAVIGATION_ITEMS` in `src/lib/constants.ts` to match your app's structure:
+
+```typescript title="src/lib/constants.ts"
+// Before (project management)
+export const NAVIGATION_ITEMS = [
+  { label: 'Dashboard', icon: 'dashboard', path: '/dashboard' },
+  { label: 'Projects', icon: 'folder', path: '/dashboard/projects' },
+  { label: 'Tasks', icon: 'list', path: '/dashboard/tasks' },
+  { label: 'Team', icon: 'people', path: '/dashboard/team' },
+  { label: 'Settings', icon: 'settings', path: '/dashboard/settings' },
+];
+
+// After (client management)
+export const NAVIGATION_ITEMS = [
+  { label: 'Dashboard', icon: 'dashboard', path: '/dashboard' },
+  { label: 'Clients', icon: 'people', path: '/dashboard/clients' },
+  { label: 'Invoices', icon: 'list', path: '/dashboard/invoices' },
+  { label: 'Settings', icon: 'settings', path: '/dashboard/settings' },
+];
+```
+
+Available icons: `dashboard`, `folder`, `list`, `people`, `settings`
+
+<Aside type="note">
+Removing a nav item doesn't delete the page. You'll also want to create or rename the actual page files (covered below).
+</Aside>
+
+## 4. Replace Data Models
+
+Let's replace the default "Project" model with a "Client" model.
+
+<Steps>
+
+1. **Define the new type**
+
+   Edit `src/types/index.ts`:
+
+   ```typescript title="src/types/index.ts"
+   // Replace Project with Client
+   export interface Client {
+     id?: string;
+     name: string;
+     email: string;
+     company: string;
+     status: 'active' | 'inactive' | 'lead';
+     createdAt: string;
+   }
+
+   // Keep or modify Task → Invoice
+   export interface Invoice {
+     id?: string;
+     clientId: string;
+     amount: number;
+     status: 'draft' | 'sent' | 'paid' | 'overdue';
+     dueDate: string;
+     createdAt: string;
+   }
+   ```
+
+2. **Update collection helpers**
+
+   Edit `src/lib/database.ts`:
+
+   ```typescript title="src/lib/database.ts"
+   import { db } from './varity';
+   import type { Client, Invoice } from '../types';
+
+   export const clients = () => db.collection<Client>('clients');
+   export const invoices = () => db.collection<Invoice>('invoices');
+   ```
+
+3. **Update hooks**
+
+   In `src/lib/hooks.ts`, rename `useProjects` to `useClients`:
+
+   ```typescript title="src/lib/hooks.ts"
+   import { clients, invoices } from './database';
+   import type { Client, Invoice } from '../types';
+
+   export function useClients(): UseCollectionReturn<Client> {
+     const [data, setData] = useState<Client[]>([]);
+     const [loading, setLoading] = useState(true);
+     const [error, setError] = useState<string | null>(null);
+
+     const refresh = useCallback(async () => {
+       try {
+         setLoading(true);
+         setError(null);
+         const result = await clients().get();
+         setData(result as Client[]);
+       } catch (err) {
+         setError(err instanceof Error ? err.message : 'Failed to load');
+       } finally {
+         setLoading(false);
+       }
+     }, []);
+
+     useEffect(() => { refresh(); }, [refresh]);
+
+     // create, update, remove — same pattern, using clients() instead of projects()
+     // ...
+
+     return { data, loading, error, create, update, remove, refresh };
+   }
+   ```
+
+4. **Rename page files**
+
+   ```bash
+   mv src/app/dashboard/projects src/app/dashboard/clients
+   mv src/app/dashboard/tasks src/app/dashboard/invoices
+   ```
+
+   Then update the page components to use `useClients()` and `useInvoices()` instead of `useProjects()` and `useTasks()`.
+
+5. **Update status/priority options**
+
+   In `constants.ts`, update the status options:
+
+   ```typescript
+   export const CLIENT_STATUS_OPTIONS = [
+     { value: 'active', label: 'Active' },
+     { value: 'inactive', label: 'Inactive' },
+     { value: 'lead', label: 'Lead' },
+   ] as const;
+
+   export const INVOICE_STATUS_OPTIONS = [
+     { value: 'draft', label: 'Draft' },
+     { value: 'sent', label: 'Sent' },
+     { value: 'paid', label: 'Paid' },
+     { value: 'overdue', label: 'Overdue' },
+   ] as const;
+   ```
+
+</Steps>
+
+## 5. Modify the Landing Page
+
+The landing page is at `src/app/page.tsx`. Key sections to update:
+
+- **Hero text** — Change the headline and subheading
+- **Features** — Update the feature cards
+- **Testimonials** — Add your own testimonials or remove the section
+- **CTA** — Change the call-to-action text and link
+
+## 6. Deploy Your Changes
+
+```bash
+npm run build
+varitykit app deploy
+```
+
+Your customized app is now live.
+
+## Summary
+
+| What to Change | Where to Edit |
+|----------------|---------------|
+| App name | `src/lib/constants.ts` → `APP_NAME` |
+| Colors | `src/app/globals.css` → CSS variables |
+| Navigation | `src/lib/constants.ts` → `NAVIGATION_ITEMS` |
+| Data models | `src/types/index.ts` |
+| Collections | `src/lib/database.ts` |
+| Hooks | `src/lib/hooks.ts` |
+| Pages | `src/app/dashboard/*/page.tsx` |
+| Landing page | `src/app/page.tsx` |
+
+## Next Steps
+
+- [Add a CRUD Feature](/tutorials/add-crud-feature) — Add a completely new data model
+- [Database Quick Start](/build/databases/quickstart) — Deep dive into database operations
+- [Deploy](/deploy/varity-l3) — Deployment options
