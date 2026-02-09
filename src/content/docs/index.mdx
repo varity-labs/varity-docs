@@ -30,39 +30,39 @@ import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
 
 <div class="product-grid">
   <ProductTile
-    icon="🔐"
+    icon="auth"
     title="Auth"
-    description="Email, social, and wallet login. Session management handled for you."
+    description="Email, social, and wallet login. Sessions handled for you."
     href="/build/auth/quickstart/"
   />
   <ProductTile
-    icon="🗄️"
+    icon="database"
     title="Database"
-    description="Zero-config database with typed collections. No setup required."
+    description="Zero-config database with typed collections."
     href="/build/databases/quickstart/"
   />
   <ProductTile
-    icon="📦"
+    icon="storage"
     title="Storage"
-    description="Upload files to secure, globally distributed storage with permanent URLs."
+    description="Secure, globally distributed file storage."
     href="/build/storage/quickstart/"
   />
   <ProductTile
-    icon="💳"
+    icon="payments"
     title="Payments"
-    description="Accept credit card payments. Revenue splits handled automatically."
+    description="Credit card payments with automatic revenue splits."
     href="/build/payments/quickstart/"
   />
   <ProductTile
-    icon="🚀"
+    icon="deploy"
     title="Deploy"
-    description="Ship to production with one command. Custom domains included."
+    description="Ship to production with one command."
     href="/deploy/deploy-your-app/"
   />
   <ProductTile
-    icon="⌨️"
+    icon="cli"
     title="CLI"
-    description="Build, test, and deploy from the command line with VarietyKit."
+    description="Build, test, and deploy from the terminal."
     href="/cli/overview/"
   />
 </div>
@@ -93,44 +93,8 @@ import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
 ## Explore the docs
 
 <CardGrid>
-  <LinkCard
-    title="@varity-labs/sdk"
-    description="Auth, storage, payments, and configuration."
-    href="/packages/sdk/overview/"
-  />
-  <LinkCard
-    title="@varity-labs/ui-kit"
-    description="React components for login, accounts, and dashboards."
-    href="/packages/ui-kit/overview/"
-  />
-  <LinkCard
-    title="@varity-labs/types"
-    description="TypeScript definitions for all Varity interfaces."
-    href="/packages/types/overview/"
-  />
-  <LinkCard
-    title="VarietyKit CLI"
-    description="Deploy and manage apps from the command line."
-    href="/cli/overview/"
-  />
-  <LinkCard
-    title="Authentication"
-    description="Add email, social, and account login."
-    href="/build/auth/quickstart/"
-  />
-  <LinkCard
-    title="File Storage"
-    description="Upload files to secure storage."
-    href="/build/storage/quickstart/"
-  />
-  <LinkCard
-    title="Payments"
-    description="Monetize your app through the App Store."
-    href="/build/payments/quickstart/"
-  />
-  <LinkCard
-    title="Templates"
-    description="Start from a production-ready SaaS template."
-    href="/templates/overview/"
-  />
+  <LinkCard title="SDK" description="Auth, storage, payments, and configuration." href="/packages/sdk/overview/" />
+  <LinkCard title="UI Kit" description="React components for login and dashboards." href="/packages/ui-kit/overview/" />
+  <LinkCard title="CLI" description="Deploy and manage apps from the terminal." href="/cli/overview/" />
+  <LinkCard title="Templates" description="Production-ready SaaS starter template." href="/templates/overview/" />
 </CardGrid>
