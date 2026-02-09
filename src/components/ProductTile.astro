@@ -1,0 +1,106 @@
+---
+/**
+ * ProductTile Component
+ *
+ * Supabase-style product tile for homepage grid.
+ * Larger icon area, left accent border, entire tile clickable.
+ */
+
+interface Props {
+  icon: string
+  title: string
+  description: string
+  href: string
+}
+
+const { icon, title, description, href } = Astro.props
+---
+
+<a class="product-tile" href={href}>
+  <div class="tile-icon">
+    <span>{icon}</span>
+  </div>
+  <div class="tile-content">
+    <h3 class="tile-title">{title}</h3>
+    <p class="tile-description">{description}</p>
+  </div>
+  <svg class="tile-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <path d="M5 12h14M12 5l7 7-7 7"/>
+  </svg>
+</a>
+
+<style>
+  .product-tile {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-4);
+    padding: var(--space-5);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.02) 100%);
+    border: 1px solid var(--border-primary);
+    border-left: 3px solid rgba(20, 184, 166, 0.5);
+    border-radius: var(--radius-lg);
+    text-decoration: none;
+    color: inherit;
+    transition: all var(--transition-base);
+    cursor: pointer;
+  }
+
+  .product-tile:hover {
+    border-left-color: #14b8a6;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg), 0 0 20px rgba(20, 184, 166, 0.08);
+  }
+
+  .tile-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    background: var(--color-brand-subtle);
+    border: 1px solid var(--color-brand);
+    border-radius: var(--radius-lg);
+    flex-shrink: 0;
+    font-size: 1.5rem;
+  }
+
+  .tile-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .tile-title {
+    font-size: var(--text-lg);
+    font-weight: var(--font-semibold);
+    color: var(--text-primary);
+    margin: 0 0 var(--space-1) 0;
+    line-height: var(--leading-tight);
+  }
+
+  .tile-description {
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    line-height: var(--leading-relaxed);
+    margin: 0;
+  }
+
+  .tile-arrow {
+    flex-shrink: 0;
+    color: var(--text-muted);
+    margin-top: var(--space-1);
+    transition: all var(--transition-fast);
+  }
+
+  .product-tile:hover .tile-arrow {
+    color: var(--color-brand);
+    transform: translateX(3px);
+  }
+
+  @media (max-width: 48rem) {
+    .tile-icon {
+      width: 2.75rem;
+      height: 2.75rem;
+      font-size: 1.25rem;
+    }
+  }
+</style>

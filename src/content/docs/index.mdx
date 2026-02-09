@@ -1,22 +1,77 @@
 ---
 title: Varity Documentation
-description: Build, deploy, and monetize apps with one command. 70-85% cheaper than AWS.
+description: Build, deploy, and monetize apps with one command. Auth, database, storage, and payments included.
 template: splash
 hero:
-  tagline: Build, deploy, and monetize apps with one command. 70-85% cheaper than AWS.
+  tagline: "Build, deploy, and monetize apps with one command. Auth, database, storage, and payments included."
   image:
     file: ../../assets/varity-logo.svg
   actions:
     - text: Get Started
       link: /getting-started/introduction/
       icon: right-arrow
-    - text: Quick Start
-      link: /getting-started/quickstart/
-      icon: rocket
+    - text: View on GitHub
+      link: https://github.com/varity-labs/varity-sdk
+      icon: external
       variant: minimal
 ---
 
+import InstallBlock from '../../components/InstallBlock.astro';
+import ProductTile from '../../components/ProductTile.astro';
+import FrameworkGrid from '../../components/FrameworkGrid.astro';
+import HowItWorks from '../../components/HowItWorks.astro';
 import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+## Get started in seconds
+
+<InstallBlock />
+
+## Everything you need to ship
+
+<div class="product-grid">
+  <ProductTile
+    icon="🔐"
+    title="Auth"
+    description="Email, social, and wallet login. Session management handled for you."
+    href="/build/auth/quickstart/"
+  />
+  <ProductTile
+    icon="🗄️"
+    title="Database"
+    description="Zero-config database with typed collections. No setup required."
+    href="/build/databases/quickstart/"
+  />
+  <ProductTile
+    icon="📦"
+    title="Storage"
+    description="Upload files to secure, globally distributed storage with permanent URLs."
+    href="/build/storage/quickstart/"
+  />
+  <ProductTile
+    icon="💳"
+    title="Payments"
+    description="Accept credit card payments. Revenue splits handled automatically."
+    href="/build/payments/quickstart/"
+  />
+  <ProductTile
+    icon="🚀"
+    title="Deploy"
+    description="Ship to production with one command. Custom domains included."
+    href="/deploy/deploy-your-app/"
+  />
+  <ProductTile
+    icon="⌨️"
+    title="CLI"
+    description="Build, test, and deploy from the command line with VarietyKit."
+    href="/cli/overview/"
+  />
+</div>
+
+<FrameworkGrid />
+
+## How it works
+
+<HowItWorks />
 
 ## Why Varity?
 
@@ -35,7 +90,7 @@ import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
   </Card>
 </CardGrid>
 
-## Core packages
+## Explore the docs
 
 <CardGrid>
   <LinkCard
@@ -58,11 +113,6 @@ import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
     description="Deploy and manage apps from the command line."
     href="/cli/overview/"
   />
-</CardGrid>
-
-## Quick links
-
-<CardGrid>
   <LinkCard
     title="Authentication"
     description="Add email, social, and account login."
@@ -79,8 +129,8 @@ import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
     href="/build/payments/quickstart/"
   />
   <LinkCard
-    title="Deploy"
-    description="Ship your app to production."
-    href="/deploy/varity-l3/"
+    title="Templates"
+    description="Start from a production-ready SaaS template."
+    href="/templates/overview/"
   />
 </CardGrid>

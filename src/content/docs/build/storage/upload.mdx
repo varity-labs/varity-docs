@@ -5,6 +5,14 @@ description: Upload files, images, and data to secure storage
 
 import { Aside } from '@astrojs/starlight/components';
 import Accordion from '../../../../components/Accordion.astro';
+import PageMeta from '../../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="February 2026"
+  stability="stable"
+/>
 
 # Uploading Files
 
@@ -17,9 +25,8 @@ Upload a file from a file input:
 ```tsx
 import { createVaritySDK } from '@varity-labs/sdk';
 
-const sdk = createVaritySDK({
-  network: 'arbitrum-l3-testnet',
-});
+const sdk = createVaritySDK();
+// Network is configured automatically
 
 // Get file from input
 const fileInput = document.querySelector('input[type="file"]');

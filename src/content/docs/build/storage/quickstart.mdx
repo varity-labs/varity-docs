@@ -5,6 +5,14 @@ description: "Upload and retrieve files with secure storage"
 
 import { Steps, Tabs, TabItem, Aside } from '@astrojs/starlight/components';
 import Accordion from '../../../../components/Accordion.astro';
+import PageMeta from '../../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="February 2026"
+  stability="stable"
+/>
 
 Upload files to secure, globally distributed storage. Files are replicated across multiple regions and accessible via permanent URLs.
 
@@ -41,9 +49,8 @@ Upload files to secure, globally distributed storage. Files are replicated acros
 import { createVaritySDK } from '@varity-labs/sdk';
 
 // Initialize the SDK
-const sdk = createVaritySDK({
-  network: 'arbitrum-l3-testnet',
-});
+const sdk = createVaritySDK();
+// Network is configured automatically
 
 await sdk.connect();
 ```
@@ -105,9 +112,8 @@ const json = await response.json(); // For JSON files
 import { createVaritySDK } from '@varity-labs/sdk';
 import { useState } from 'react';
 
-const sdk = createVaritySDK({
-  network: 'arbitrum-l3-testnet',
-});
+const sdk = createVaritySDK();
+// Network is configured automatically
 
 function FileManager() {
   const [fileUrl, setFileUrl] = useState('');

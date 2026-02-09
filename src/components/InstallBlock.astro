@@ -1,0 +1,167 @@
+---
+/**
+ * InstallBlock Component
+ *
+ * Two-panel install + code example block for the homepage.
+ * Left: npm install command with copy button.
+ * Right: 5-line db code example.
+ */
+---
+
+<div class="install-block">
+  <div class="install-panel terminal-panel">
+    <div class="panel-header">
+      <div class="terminal-dots">
+        <span class="dot dot-red"></span>
+        <span class="dot dot-yellow"></span>
+        <span class="dot dot-green"></span>
+      </div>
+      <span class="panel-label">Terminal</span>
+      <button class="copy-btn" data-copy="npm install @varity-labs/sdk" aria-label="Copy install command">
+        <svg class="icon-copy" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+        </svg>
+        <svg class="icon-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      </button>
+    </div>
+    <pre class="panel-code"><code><span class="prompt">$</span> npm install @varity-labs/sdk</code></pre>
+  </div>
+
+  <div class="install-panel code-panel">
+    <div class="panel-header">
+      <span class="panel-label">app.ts</span>
+    </div>
+    <pre class="panel-code"><code><span class="kw">import</span> {'{'} db {'}'} <span class="kw">from</span> <span class="str">'@varity-labs/sdk'</span>;
+
+<span class="kw">const</span> users = db.collection(<span class="str">'users'</span>);
+<span class="kw">await</span> users.add({'{'} name: <span class="str">'Alice'</span> {'}'});
+<span class="kw">const</span> all = <span class="kw">await</span> users.get();</code></pre>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.copy-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const text = btn.getAttribute('data-copy') || '';
+        try {
+          await navigator.clipboard.writeText(text);
+          btn.classList.add('copied');
+          setTimeout(() => btn.classList.remove('copied'), 2000);
+        } catch (e) {
+          console.error('Copy failed:', e);
+        }
+      });
+    });
+  });
+</script>
+
+<style>
+  .install-block {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-5);
+    margin: var(--space-8) 0;
+    max-width: 56rem;
+    margin-inline: auto;
+  }
+
+  @media (max-width: 48rem) {
+    .install-block {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .install-panel {
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    border: 1px solid var(--border-primary);
+    background: #0d0d0f;
+  }
+
+  .panel-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    background: rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid var(--border-secondary);
+  }
+
+  .terminal-dots {
+    display: flex;
+    gap: 6px;
+  }
+
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+
+  .dot-red { background: #ff5f57; }
+  .dot-yellow { background: #febc2e; }
+  .dot-green { background: #28c840; }
+
+  .panel-label {
+    font-family: var(--sl-font-mono);
+    font-size: var(--text-sm);
+    color: var(--text-tertiary);
+    flex: 1;
+  }
+
+  .copy-btn {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-secondary);
+    border-radius: var(--radius-md);
+    padding: var(--space-1) var(--space-2);
+    color: var(--text-tertiary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+
+  .copy-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+  }
+
+  .copy-btn.copied {
+    color: var(--color-success);
+    border-color: var(--color-success);
+  }
+
+  .copy-btn .icon-check { display: none; }
+  .copy-btn.copied .icon-copy { display: none; }
+  .copy-btn.copied .icon-check { display: block; }
+
+  .panel-code {
+    margin: 0;
+    padding: var(--space-4);
+    font-family: var(--sl-font-mono);
+    font-size: 0.875rem;
+    line-height: 1.7;
+    color: var(--gray-200);
+    overflow-x: auto;
+  }
+
+  .panel-code code {
+    font-family: inherit;
+    background: transparent;
+    padding: 0;
+    border: none;
+  }
+
+  .prompt {
+    color: #14b8a6;
+    font-weight: 600;
+    margin-right: 0.5em;
+  }
+
+  .kw { color: #c084fc; }
+  .str { color: #34d399; }
+</style>

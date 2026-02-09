@@ -4,6 +4,14 @@ description: "Install and configure the Varity SDK for your project"
 ---
 
 import { Tabs, TabItem, Steps, Aside } from '@astrojs/starlight/components';
+import PageMeta from '../../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="February 2026"
+  stability="stable"
+/>
 
 Get the Varity SDK installed and configured in your project.
 
@@ -36,9 +44,8 @@ Get the Varity SDK installed and configured in your project.
    ```typescript
    import { createVaritySDK } from '@varity-labs/sdk';
 
-   const sdk = createVaritySDK({
-     network: 'arbitrum-l3-testnet',
-   });
+   const sdk = createVaritySDK();
+   // Network is configured automatically
    ```
 
 2. **Connect to the network**

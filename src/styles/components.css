@@ -469,3 +469,22 @@
 .text-success { color: var(--color-success); }
 .text-warning { color: var(--color-warning); }
 .text-danger { color: var(--color-danger); }
+
+/* ========================================
+   PRODUCT GRID
+   Homepage product tile layout
+   ======================================== */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--space-5);
+  max-width: 56rem;
+  margin-inline: auto;
+}
+
+@media (max-width: 48rem) {
+  .product-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+}

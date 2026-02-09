@@ -4,6 +4,14 @@ description: Download and display files from storage
 ---
 
 import Accordion from '../../../../components/Accordion.astro';
+import PageMeta from '../../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="February 2026"
+  stability="stable"
+/>
 
 # Retrieving Files
 
@@ -16,9 +24,8 @@ When you upload a file, you get back a permanent HTTPS URL. Use it directly:
 ```tsx
 import { createVaritySDK } from '@varity-labs/sdk';
 
-const sdk = createVaritySDK({
-  network: 'arbitrum-l3-testnet',
-});
+const sdk = createVaritySDK();
+// Network is configured automatically
 
 // Upload returns a permanent URL
 const result = await sdk.storage.upload(file);
@@ -50,9 +57,8 @@ Get resized and optimized images for faster loading:
 ```tsx
 import { createVaritySDK } from '@varity-labs/sdk';
 
-const sdk = createVaritySDK({
-  network: 'arbitrum-l3-testnet',
-});
+const sdk = createVaritySDK();
+// Network is configured automatically
 
 // Resize to specific dimensions
 const thumbnailUrl = sdk.storage.getOptimizedUrl(imageUrl, {
@@ -136,9 +142,8 @@ Complete gallery component with optimized loading:
 import { useState } from 'react';
 import { createVaritySDK } from '@varity-labs/sdk';
 
-const sdk = createVaritySDK({
-  network: 'arbitrum-l3-testnet',
-});
+const sdk = createVaritySDK();
+// Network is configured automatically
 
 export function ImageGallery({ imageUrls }: { imageUrls: string[] }) {
   const [selected, setSelected] = useState<string | null>(null);
@@ -191,9 +196,8 @@ Display item data from stored metadata:
 import { useState, useEffect } from 'react';
 import { createVaritySDK } from '@varity-labs/sdk';
 
-const sdk = createVaritySDK({
-  network: 'arbitrum-l3-testnet',
-});
+const sdk = createVaritySDK();
+// Network is configured automatically
 
 export function ItemCard({ metadataUrl }: { metadataUrl: string }) {
   const [metadata, setMetadata] = useState<any>(null);

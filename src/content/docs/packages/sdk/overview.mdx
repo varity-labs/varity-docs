@@ -5,6 +5,14 @@ description: "Backend SDK for building apps on Varity - authentication, storage,
 
 import { Aside, Card, CardGrid, Badge } from '@astrojs/starlight/components';
 import Accordion from '../../../../components/Accordion.astro';
+import PageMeta from '../../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="February 2026"
+  stability="stable"
+/>
 
 The Varity SDK provides everything you need to build backend services for your applications. It abstracts infrastructure complexity so you can focus on building your product.
 
@@ -49,9 +57,8 @@ For apps that need multiple modules (analytics, storage, auth), use the full SDK
 ```typescript
 import { createVaritySDK } from '@varity-labs/sdk';
 
-const sdk = createVaritySDK({
-  network: 'arbitrum-l3-testnet',
-});
+const sdk = createVaritySDK();
+// Network is configured automatically
 
 await sdk.connect();
 
@@ -161,9 +168,8 @@ await products.add({ name: 'Pro Plan', price: 99 });
 const allProducts = await products.get();
 
 // Full SDK for multi-module access
-const sdk = createVaritySDK({
-  network: 'arbitrum-l3-testnet',
-});
+const sdk = createVaritySDK();
+// Network is configured automatically
 
 await sdk.connect();
 

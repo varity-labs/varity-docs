@@ -1,0 +1,100 @@
+---
+/**
+ * FrameworkGrid Component
+ *
+ * Horizontal row of framework icons linking to quickstart pages.
+ * Hardcoded: Next.js, React, Vite.
+ */
+
+const frameworks = [
+  { name: 'Next.js', abbr: 'N', color: '#000', bg: '#fff', href: '/getting-started/quickstart-nextjs/' },
+  { name: 'React', abbr: 'R', color: '#fff', bg: '#61dafb', href: '/getting-started/quickstart-react/' },
+  { name: 'Vite', abbr: 'V', color: '#fff', bg: '#646cff', href: '/getting-started/quickstart/' },
+]
+---
+
+<div class="framework-grid">
+  <p class="framework-label">Works with your stack</p>
+  <div class="framework-items">
+    {frameworks.map(fw => (
+      <a class="framework-item" href={fw.href}>
+        <div class="framework-circle" style={`background: ${fw.bg}; color: ${fw.color};`}>
+          <span>{fw.abbr}</span>
+        </div>
+        <span class="framework-name">{fw.name}</span>
+      </a>
+    ))}
+  </div>
+</div>
+
+<style>
+  .framework-grid {
+    text-align: center;
+    margin: var(--space-10) 0;
+  }
+
+  .framework-label {
+    font-size: var(--text-sm);
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-wide);
+    font-weight: var(--font-semibold);
+    margin-bottom: var(--space-5);
+  }
+
+  .framework-items {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-8);
+    flex-wrap: wrap;
+  }
+
+  .framework-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-3);
+    text-decoration: none;
+    color: inherit;
+    transition: transform var(--transition-fast);
+  }
+
+  .framework-item:hover {
+    transform: translateY(-3px);
+  }
+
+  .framework-circle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 50%;
+    font-size: 1.25rem;
+    font-weight: var(--font-bold);
+    box-shadow: var(--shadow-md);
+    transition: box-shadow var(--transition-fast);
+  }
+
+  .framework-item:hover .framework-circle {
+    box-shadow: var(--shadow-lg), var(--shadow-glow);
+  }
+
+  .framework-name {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    font-weight: var(--font-medium);
+  }
+
+  @media (max-width: 48rem) {
+    .framework-items {
+      gap: var(--space-6);
+    }
+
+    .framework-circle {
+      width: 3rem;
+      height: 3rem;
+      font-size: 1.1rem;
+    }
+  }
+</style>

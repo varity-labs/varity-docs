@@ -1,0 +1,170 @@
+---
+/**
+ * HowItWorks Component
+ *
+ * Visual 3-step flow: Install → Build → Deploy.
+ * Numbered teal circles with connecting lines.
+ */
+
+const steps = [
+  {
+    number: 1,
+    title: 'Install',
+    description: 'Add the SDK to any JavaScript project.',
+    code: 'npm install @varity-labs/sdk',
+  },
+  {
+    number: 2,
+    title: 'Build',
+    description: 'Use auth, database, storage, and payments.',
+    code: "const users = db.collection('users');",
+  },
+  {
+    number: 3,
+    title: 'Deploy',
+    description: 'Ship to production with one command.',
+    code: 'varitykit deploy',
+  },
+]
+---
+
+<div class="how-it-works">
+  <div class="steps-row">
+    {steps.map((step, i) => (
+      <div class="step-col">
+        <div class="step-circle-wrapper">
+          {i > 0 && <div class="connector connector-left" />}
+          <div class="step-circle">
+            <span>{step.number}</span>
+          </div>
+          {i < steps.length - 1 && <div class="connector connector-right" />}
+        </div>
+        <h3 class="step-title">{step.title}</h3>
+        <p class="step-desc">{step.description}</p>
+        <code class="step-code">{step.code}</code>
+      </div>
+    ))}
+  </div>
+</div>
+
+<style>
+  .how-it-works {
+    margin: var(--space-10) 0;
+    max-width: 56rem;
+    margin-inline: auto;
+  }
+
+  .steps-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-4);
+  }
+
+  .step-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--space-2);
+  }
+
+  .step-circle-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin-bottom: var(--space-3);
+  }
+
+  .step-circle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;
+    height: 3rem;
+    background: var(--color-brand-subtle);
+    border: 2px solid var(--color-brand);
+    border-radius: 50%;
+    color: var(--color-brand);
+    font-weight: var(--font-bold);
+    font-size: 1.125rem;
+    position: relative;
+    z-index: 1;
+    flex-shrink: 0;
+  }
+
+  .connector {
+    position: absolute;
+    top: 50%;
+    height: 2px;
+    background: var(--border-secondary);
+  }
+
+  .connector-left {
+    left: 0;
+    right: calc(50% + 1.5rem + var(--space-2));
+  }
+
+  .connector-right {
+    left: calc(50% + 1.5rem + var(--space-2));
+    right: 0;
+  }
+
+  .step-title {
+    font-size: var(--text-lg);
+    font-weight: var(--font-semibold);
+    color: var(--text-primary);
+    margin: 0;
+  }
+
+  .step-desc {
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    line-height: var(--leading-relaxed);
+    margin: 0;
+  }
+
+  .step-code {
+    display: inline-block;
+    font-family: var(--sl-font-mono);
+    font-size: 0.8125rem;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border-secondary);
+    border-radius: var(--radius-md);
+    padding: var(--space-2) var(--space-3);
+    color: #14b8a6;
+    margin-top: var(--space-1);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+
+  @media (max-width: 48rem) {
+    .steps-row {
+      grid-template-columns: 1fr;
+      gap: var(--space-8);
+    }
+
+    .connector {
+      display: none;
+    }
+
+    .step-col {
+      position: relative;
+      padding-bottom: var(--space-6);
+    }
+
+    .step-col:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 2px;
+      height: var(--space-6);
+      background: var(--border-secondary);
+    }
+  }
+</style>

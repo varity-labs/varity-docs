@@ -4,6 +4,14 @@ description: "TypeScript type definitions for building type-safe applications wi
 ---
 
 import { Tabs, TabItem, Aside, Card, CardGrid } from '@astrojs/starlight/components';
+import PageMeta from '../../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="February 2026"
+  stability="stable"
+/>
 
 TypeScript type definitions that power the entire Varity SDK ecosystem. These types provide auto-completion, compile-time validation, and clear documentation for all Varity APIs.
 
@@ -112,7 +120,7 @@ import type {
 } from '@varity-labs/types';
 
 import {
-  AuthProvider,       // aws-signature-v4, gcs-oauth2, web3-wallet
+  AuthProvider,       // aws-signature-v4, gcs-oauth2, browser-wallet
   PermissionEffect,   // allow, deny
   Action,             // storage:GetObject, admin:ViewMetrics, etc.
 } from '@varity-labs/types';
