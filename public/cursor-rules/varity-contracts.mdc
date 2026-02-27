@@ -48,9 +48,9 @@ export const varityL3Chain = defineChain({
 export const VARITY_CONTRACTS = {
   TemplateMarketplace: '0x769250dac29817081f38CfBa597Ef2485F3a94e8',
   TemplateRegistry: '0xEbD8C516c05BD2b76b5CDd56530b3Dd9f8b3D748',
-  VarityAppRegistry: '0x52d4f28ebe20fad743bbef9daa61bfe3ce91eb74',
-  SimplifiedPaymaster: '0xeF467aef91d4e626C7e56967779069bEF22c4453',
-  VarityWalletFactory: '0x85AB92708CB4d921f5c2BdCCd7f2D0813a380f71',
+  VarityAppRegistry: '0xbf9f4849a5508e9f271c30205c1ce924328e5e1c',
+  SimplifiedPaymaster: '0x579772Bfa5Ec1e8f33B81F304ffDbC55135db154',
+  VarityWalletFactory: '0x23dcca8E063CB0Eea8Ec6e56657c07E11fFa4E78',
 } as const
 ```
 

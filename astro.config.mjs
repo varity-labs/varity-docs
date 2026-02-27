@@ -280,7 +280,7 @@ export default defineConfig({
             {
               label: "MCP Server Spec",
               slug: "ai-tools/mcp-server-spec",
-              badge: { text: "Coming Soon", variant: "caution" },
+              badge: { text: "New", variant: "success" },
             },
           ],
         },

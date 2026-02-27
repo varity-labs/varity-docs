@@ -1,9 +1,9 @@
 ---
-title: Varity MCP Server Specification
-description: Model Context Protocol server for AI-assisted Varity development
+title: Varity MCP Server
+description: Deploy, search docs, and manage apps from your AI editor with the Varity MCP server
 ---
 
-import { Aside } from '@astrojs/starlight/components';
+import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
 import PageMeta from '../../../components/PageMeta.astro';
 
 <PageMeta
@@ -13,305 +13,234 @@ import PageMeta from '../../../components/PageMeta.astro';
   stability="stable"
 />
 
-# Varity MCP Server Specification
+# Varity MCP Server
 
-<Aside type="caution" title="Coming Soon">
-The Varity MCP server is under active development. This page documents the planned API. Tools marked with "Planned" are not yet available.
-</Aside>
+The Varity MCP server (`@varity-labs/mcp`) gives AI editors 7 tools for the full build → deploy → monetize workflow. It runs locally via stdio — no API keys, no accounts.
 
-The Varity MCP (Model Context Protocol) server will enable AI assistants like Claude Desktop, Cursor, and Windsurf to interact with Varity programmatically.
+## Prerequisites
 
-## Configuration
+- **Node.js 18+** — runs the MCP server
+- **Python 3.10+** — needed for `varitykit` CLI (used by deploy tools)
+- **varitykit** — install with `pip install varitykit`
 
-Add the Varity MCP server to your Claude Desktop or Cursor configuration:
+## Setup
 
-```json
-{
-  "mcpServers": {
-    "varity": {
-      "type": "http",
-      "url": "https://mcp.varity.dev/mcp",
-      "options": {
-        "project_ref": "<project-id>",
-        "read_only": false,
-        "features": "deployment,docs,debugging"
+<Tabs>
+  <TabItem label="Cursor">
+    Add to `.cursor/mcp.json` in your project root:
+
+    ```json
+    {
+      "mcpServers": {
+        "varity": {
+          "command": "npx",
+          "args": ["-y", "@varity-labs/mcp"]
+        }
       }
     }
-  }
-}
-```
+    ```
 
-### Configuration Options
+    Restart Cursor. The Varity tools appear in the MCP tool list.
+  </TabItem>
+  <TabItem label="Claude Code">
+    Run once from any directory:
 
-| Option | Type | Description | Default |
-|--------|------|-------------|---------|
-| `project_ref` | string | Your Varity project ID | Required |
-| `read_only` | boolean | Restrict to read-only operations | `false` |
-| `features` | string | Comma-separated feature list | `"all"` |
+    ```bash
+    claude mcp add varity -- npx -y @varity-labs/mcp
+    ```
 
-**Available features**: `deployment`, `docs`, `debugging`, `database`, `storage`, `marketplace`
+    Claude Code picks up the server automatically on the next conversation.
+  </TabItem>
+  <TabItem label="VS Code (Copilot)">
+    Add to `.vscode/mcp.json`:
+
+    ```json
+    {
+      "mcpServers": {
+        "varity": {
+          "command": "npx",
+          "args": ["-y", "@varity-labs/mcp"]
+        }
+      }
+    }
+    ```
+  </TabItem>
+  <TabItem label="Windsurf">
+    Add to `~/.codeium/windsurf/mcp_config.json`:
+
+    ```json
+    {
+      "mcpServers": {
+        "varity": {
+          "command": "npx",
+          "args": ["-y", "@varity-labs/mcp"]
+        }
+      }
+    }
+    ```
+  </TabItem>
+</Tabs>
 
 ## Tools Reference
 
-### Account Management
+The server exposes 7 tools. Read-only tools run safely with no side effects. Destructive tools create files or deploy infrastructure.
 
-#### `list_projects` — Planned
+### `varity_search_docs` — Search documentation
 
-List all projects in your Varity account.
+Search Varity docs for guides, API references, and tutorials.
 
-**Parameters**: None
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `query` | string | Yes | — | Search query (e.g., "database setup", "how to deploy") |
+| `maxResults` | number | No | 3 | Maximum results to return |
 
-**Returns**:
+**Annotations:** `readOnlyHint: true`
+
+**Example prompt:** "Search the Varity docs for how to set up authentication"
+
+---
+
+### `varity_cost_calculator` — Estimate costs
+
+Compare Varity hosting costs against AWS, Vercel, and other platforms.
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `users` | number | Yes | — | Estimated monthly active users |
+| `storage_gb` | number | No | 10 | Storage needed in GB |
+| `has_database` | boolean | No | true | Whether the app uses a database |
+| `has_auth` | boolean | No | true | Whether the app uses authentication |
+
+**Annotations:** `readOnlyHint: true`
+
+**Example prompt:** "How much would it cost to host a SaaS app with 500 users on Varity?"
+
+---
+
+### `varity_init` — Create a new app
+
+Scaffold a production-ready app with auth, database, and payments.
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `name` | string | Yes | — | Project name (lowercase, hyphens allowed) |
+| `template` | `"saas-starter"` | No | `"saas-starter"` | Template to use |
+| `path` | string | No | Current directory | Directory to create the project in |
+
+**Example prompt:** "Create a new Varity app called invoice-tracker"
+
+---
+
+### `varity_deploy` — Deploy to production
+
+Build and deploy the current project. Auto-detects framework (Next.js, React, Vue), builds it, and returns a live URL.
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `path` | string | No | Workspace root | Path to the project directory |
+| `submit_to_store` | boolean | No | false | Also submit to the Varity App Store (90% revenue to you) |
+
+**Annotations:** `destructiveHint: true` — deploys real infrastructure
+
+**Example prompt:** "Deploy this project to Varity"
+
+---
+
+### `varity_deploy_status` — Check deployments
+
+List all deployments or get status of a specific one. Shows URL, status, framework, size, and creation time.
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `deployment_id` | string | No | — | Specific deployment ID (omit to list all) |
+
+**Annotations:** `readOnlyHint: true`
+
+**Example prompt:** "Show me the status of my deployments"
+
+---
+
+### `varity_deploy_logs` — Get build logs
+
+Get build and deployment logs for debugging failed or recent deployments.
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `deployment_id` | string | Yes | — | The deployment ID to get logs for |
+| `limit` | number | No | 100 | Maximum log lines to return |
+
+**Annotations:** `readOnlyHint: true`
+
+**Example prompt:** "Show me the build logs for deployment abc123"
+
+---
+
+### `varity_submit_to_store` — Publish to App Store
+
+Submit a deployed app to the Varity App Store marketplace. Revenue split: 90% to you, 10% to Varity.
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `deployment_id` | string | Yes | — | Deployment ID from a previous `varity_deploy` |
+| `name` | string | Yes | — | Display name on the store |
+| `description` | string | Yes | — | Short description shown to users |
+| `price` | number | Yes | — | Monthly price in USD (use 0 for free apps) |
+
+**Annotations:** `destructiveHint: true` — publishes to a public store
+
+**Example prompt:** "Submit my last deployment to the Varity App Store at $9.99/month"
+
+## Response Format
+
+All tools return JSON with a consistent structure:
+
 ```typescript
+// Success
 {
-  projects: Array<{
-    id: string
-    name: string
-    url: string
-    status: 'active' | 'paused'
-    created_at: string
-  }>
+  success: true,
+  data: { /* tool-specific data */ },
+  message: "Human-readable summary"
 }
-```
 
-#### `get_project` — Planned
-
-Get detailed information about a specific project.
-
-**Parameters**:
-```typescript
+// Error
 {
-  project_id: string
-}
-```
-
-**Returns**:
-```typescript
-{
-  id: string
-  name: string
-  url: string
-  status: 'active' | 'paused'
-  deployments: number
-  storage_used: string
-  created_at: string
-  config: {
-    hosting: 'static' | 'dynamic'
-  }
-}
-```
-
-#### `create_project` — Planned
-
-Create a new Varity project.
-
-**Parameters**:
-```typescript
-{
-  name: string
-  config: {
-    hosting?: 'static' | 'dynamic'
-  }
-}
-```
-
-### Knowledge Base
-
-#### `search_docs` — Planned
-
-Search Varity documentation for relevant information.
-
-**Parameters**:
-```typescript
-{
-  query: string
-  limit?: number  // default: 10
-}
-```
-
-**Returns**:
-```typescript
-{
-  results: Array<{
-    title: string
-    url: string
-    snippet: string
-    relevance: number
-  }>
-}
-```
-
-### Deployment
-
-#### `deploy_app` — Planned
-
-Deploy an application to Varity.
-
-**Parameters**:
-```typescript
-{
-  project_id: string
-  config: {
-    hosting: 'static' | 'dynamic'
-    submit_to_store?: boolean
-    price?: number
-  }
-}
-```
-
-**Returns**:
-```typescript
-{
-  deployment_id: string
-  url: string
-  status: 'deploying' | 'success' | 'failed'
-  build_time: number
-}
-```
-
-#### `list_deployments` — Planned
-
-List all deployments for a project.
-
-**Parameters**:
-```typescript
-{
-  project_id: string
-  limit?: number  // default: 20
-}
-```
-
-#### `rollback_deployment` — Planned
-
-Rollback to a previous deployment.
-
-**Parameters**:
-```typescript
-{
-  deployment_id: string
-}
-```
-
-### CLI Execution
-
-#### `execute_cli` — Planned
-
-Execute a varitykit CLI command.
-
-**Parameters**:
-```typescript
-{
-  command: string  // e.g., "doctor", "deploy"
-  args: string[]
-  working_directory?: string
-}
-```
-
-### Debugging
-
-#### `get_logs` — Planned
-
-Get application logs for debugging.
-
-**Parameters**:
-```typescript
-{
-  project_id: string
-  options: {
-    level?: 'error' | 'warn' | 'info' | 'debug'
-    limit?: number  // default: 100
-    since?: string  // ISO timestamp
-  }
-}
-```
-
-#### `get_errors` — Planned
-
-Get error reports for a project.
-
-**Parameters**:
-```typescript
-{
-  project_id: string
-  limit?: number  // default: 50
-}
-```
-
-### Monitoring
-
-#### `get_metrics` — Planned
-
-Get performance metrics for a project.
-
-**Parameters**:
-```typescript
-{
-  project_id: string
-  timeframe: '1h' | '24h' | '7d' | '30d'
-}
-```
-
-**Returns**:
-```typescript
-{
-  requests: number
-  errors: number
-  latency_p50: number
-  latency_p95: number
-  storage_used: string
-  bandwidth_used: string
-}
-```
-
-## Security
-
-### Authentication
-
-All MCP server requests require a valid Varity API key. The server supports:
-
-- **Publishable keys**: Read-only operations (docs, metrics)
-- **Service keys**: Full access (deployment, configuration)
-
-### Rate Limits
-
-| Plan | Requests/Hour | Concurrent |
-|------|---------------|------------|
-| Free | 100 | 5 |
-| Pro | 1,000 | 20 |
-| Enterprise | Unlimited | Unlimited |
-
-### Permissions
-
-Tools respect your project permissions:
-- **Owner**: Full access to all tools
-- **Admin**: All except billing
-- **Developer**: Deployment and debugging only
-- **Viewer**: Read-only access
-
-## Error Handling
-
-All tools return standardized errors:
-
-```typescript
-{
+  success: false,
   error: {
-    code: string
-    message: string
-    details?: object
+    code: "ERROR_CODE",
+    message: "What went wrong",
+    suggestion?: "How to fix it"
   }
 }
 ```
 
-**Common error codes**:
-- `UNAUTHORIZED`: Invalid or missing API key
-- `NOT_FOUND`: Project or resource not found
-- `RATE_LIMITED`: Too many requests
-- `DEPLOYMENT_FAILED`: Deployment error (check logs)
-- `INVALID_CONFIG`: Invalid configuration parameters
+## Typical Workflow
+
+Here's the full build-to-monetize flow using the MCP tools:
+
+1. **"Create a Varity app called my-saas"** → `varity_init`
+2. **"What will this cost for 200 users?"** → `varity_cost_calculator`
+3. *(Build your features)*
+4. **"Deploy this"** → `varity_deploy`
+5. **"Did the deploy succeed?"** → `varity_deploy_status`
+6. **"Show me the build logs"** → `varity_deploy_logs`
+7. **"Submit to the app store at $14.99"** → `varity_submit_to_store`
+
+## Troubleshooting
+
+**"Cannot find module @varity-labs/mcp"**
+Make sure Node.js 18+ is installed. Run `node --version` to check.
+
+**Deploy tools fail with "varitykit not found"**
+Install the CLI: `pip install varitykit`. Run `varitykit doctor` to verify.
+
+**Server not showing in Cursor**
+Restart Cursor after adding the config. Check that `.cursor/mcp.json` is valid JSON.
+
+**Server not showing in Claude Code**
+Run `claude mcp list` to verify the server is registered. Re-add with `claude mcp add varity -- npx -y @varity-labs/mcp`.
 
 ## Support
 
-For MCP server updates:
 - [Documentation](https://docs.varity.so/ai-tools/overview)
 - [Discord](https://discord.gg/Uhjx6yhJ) — ask in #general
 - [GitHub Issues](https://github.com/varity-labs/varity-sdk/issues)

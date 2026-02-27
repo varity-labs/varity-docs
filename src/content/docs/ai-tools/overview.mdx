@@ -36,7 +36,7 @@ Varity provides AI tooling to help you build faster. Copy a prompt into your AI 
   <Card title="MCP Server" icon="rocket">
     Model Context Protocol server for Claude Desktop — deploy, search docs, and debug from your AI assistant.
 
-    [View Spec →](/ai-tools/mcp-server-spec) (Coming Soon)
+    [View Spec →](/ai-tools/mcp-server-spec)
   </Card>
 </CardGrid>
 
@@ -58,6 +58,31 @@ The fastest way to get AI assistance with Varity is to copy one of our [AI Promp
 1. Copy the prompt from [AI Prompts](/ai-tools/prompts)
 2. Paste at the start of your conversation
 3. Ask it to build features using Varity
+
+## Quick Start: MCP Server
+
+The Varity MCP server lets your AI editor create, deploy, and manage Varity apps directly.
+
+**For Cursor** — add to `.cursor/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "varity": {
+      "command": "npx",
+      "args": ["-y", "@varity-labs/mcp"]
+    }
+  }
+}
+```
+
+**For Claude Code:**
+
+```bash
+claude mcp add varity -- npx -y @varity-labs/mcp
+```
+
+Then ask your AI to "create a Varity app" or "deploy this project" — it has 7 tools for the full build-to-monetize workflow. See the [MCP Server Spec](/ai-tools/mcp-server-spec) for the complete tool reference.
 
 ## Cursor Rules
 
@@ -129,10 +154,10 @@ try {
 | **Cursor** | `.mdc` rules + prompts | Full |
 | **Claude Code** | `CLAUDE.md` + prompts | Full |
 | **Windsurf** | Cursor-compatible rules | Full |
-| **Claude Desktop** | MCP Server (Coming Soon) | Planned |
+| **Claude Desktop** | MCP Server (stdio) | Full |
 | **GitHub Copilot** | `llms.txt` context | Basic |
 
 ## What's Next
 
 - **[AI Prompts](/ai-tools/prompts)** — Ready-to-use prompts for every AI tool
-- **[MCP Server Spec](/ai-tools/mcp-server-spec)** — API reference (Coming Soon)
+- **[MCP Server Spec](/ai-tools/mcp-server-spec)** — Setup guide and tool reference
