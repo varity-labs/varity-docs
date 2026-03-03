@@ -133,41 +133,48 @@ Users never see technical details or extra prompts unless you choose to show the
 | `useLogin` | Trigger login programmatically |
 | `useLogout` | Trigger logout programmatically |
 
-<Accordion title="Advanced: Infrastructure Exports">
+<Accordion title="Advanced: Additional Exports">
 
-These exports provide lower-level access for advanced use cases:
+These exports provide lower-level access for advanced use cases. All are currently exported and available.
 
-### Hooks
-
-| Export | Description |
-|--------|-------------|
-| `useWallets` | Access all connected accounts (from Privy) |
-| `useWalletAuth` | Session-based account auth with auto-refresh |
-| `useAuth` | Sign-In with Ethereum (SIWE) authentication |
-| `useVarityAPI` | Direct access to module clients |
-| `useAnalytics` | Dashboard analytics data |
-| `useKPI` | Key performance indicators |
-| `useDashboard` | Dashboard configuration and widget management |
-| `useWidgetData` | Fetch data for a specific dashboard widget |
-| `useVarityQuery` | Generic data fetching hook |
-| `useVarityMutation` | Mutation hook for create/update/delete |
-| `useTheme` | Access current theme from ThemeProvider |
-
-### Module Clients
+### Additional Hooks
 
 | Export | Description |
 |--------|-------------|
-| `AuthClient` | Authentication module client |
-| `StorageClient` | File storage module client |
-| `AnalyticsClient` | Analytics module client |
-| `ComputeClient` | AI/LLM query client |
-| `NotificationsClient` | Notification module client |
-| `ExportClient` | Data export module client |
-| `CacheClient` | In-memory cache client |
-| `MonitoringClient` | Health check client |
-| `ForecastingClient` | Predictive analytics client |
+| `useWallets` | Access all connected accounts (re-exported from Privy) |
+| `useToast` | Show toast notifications (success, error, info) |
+| `useTheme` | Access current theme and presets from ThemeProvider |
+| `useVarityPayment` | Payment state and actions for in-app purchases |
 
-Additional infrastructure hooks (`SmartWalletProvider`, `useSmartWallet`, etc.) are planned for a future release.
+### Dashboard Components
+
+| Export | Description |
+|--------|-------------|
+| `DashboardLayout` | Full dashboard layout with sidebar, header, footer |
+| `DashboardHeader` | Dashboard header bar |
+| `DashboardSidebar` | Sidebar navigation |
+| `KPICard` | Key metric display card |
+| `StatusBadge` | Status indicator badge |
+| `EmptyState` | Empty state placeholder with presets |
+| `LoadingSkeleton` | Loading skeleton variants (text, card, table, list) |
+
+### Analytics Components
+
+| Export | Description |
+|--------|-------------|
+| `DataTable` | Sortable, paginated data table |
+| `AnalyticsCard` | Analytics display card |
+| `ChartContainer` | Chart wrapper with actions |
+| `MetricDisplay` | Metric with trend indicator |
+| `Sparkline` | Inline sparkline chart |
+
+### Branding
+
+| Export | Description |
+|--------|-------------|
+| `ThemeProvider` | Theme context provider with presets |
+| `Logo` | Varity logo component |
+| `Attribution` | Required "Powered by Varity" attribution |
 
 </Accordion>
 

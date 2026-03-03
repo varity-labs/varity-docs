@@ -39,29 +39,30 @@ Get the Varity SDK installed and configured in your project.
 
 <Steps>
 
-1. **Import and initialize the SDK**
+1. **Import the SDK**
 
    ```typescript
-   import { createVaritySDK } from '@varity-labs/sdk';
-
-   const sdk = createVaritySDK();
-   // Network is configured automatically
+   import { db, resolveCredentials } from '@varity-labs/sdk';
    ```
 
-2. **Connect to the network**
+2. **Use the database**
 
    ```typescript
-   await sdk.connect();
+   // Create a collection and add data
+   const users = db.collection('users');
+   await users.add({ name: 'Alice', email: 'alice@example.com' });
+
+   // Query data
+   const result = await users.get({ limit: 10 });
    ```
 
-3. **Start using SDK features**
+3. **Check credential status (optional)**
 
    ```typescript
-   // Upload a file
-   const result = await sdk.storage.upload(fileData);
+   import { resolveCredentials, isUsingDevCredentials } from '@varity-labs/sdk';
 
-   // Get analytics
-   const kpis = await sdk.analytics.getKPIs({ period: 'current_month' });
+   const creds = resolveCredentials();
+   console.log('Using dev credentials:', isUsingDevCredentials());
    ```
 
 </Steps>
@@ -96,7 +97,7 @@ The SDK supports tree-shaking. Import only what you need.
 
 ```typescript
 // Good - imports only what's needed
-import { createVaritySDK, varityL3Testnet } from '@varity-labs/sdk';
+import { db, resolveCredentials } from '@varity-labs/sdk';
 
 // Avoid - imports the entire package
 import * as VaritySDK from '@varity-labs/sdk';
