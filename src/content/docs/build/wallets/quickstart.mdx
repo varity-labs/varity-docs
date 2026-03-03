@@ -10,7 +10,7 @@ import PageMeta from '../../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="February 2026"
+  lastUpdated="March 2026"
   stability="stable"
 />
 
@@ -20,8 +20,7 @@ When users sign in to your Varity app, they automatically get an account. No ext
 
 :::tip[How it works]
 - Users sign in with email or social login
-- An account is created automatically behind the scenes
-- All operations are free for users (you sponsor the costs)
+- An embedded wallet is created automatically behind the scenes via Privy
 - No browser extensions or special apps required
 :::
 
@@ -34,28 +33,34 @@ When users sign in to your Varity app, they automatically get an account. No ext
 
 When a user logs in via `PrivyStack`, Varity automatically:
 
-1. Creates an embedded account linked to their identity
-2. Enables free operations (users never pay fees)
+1. Authenticates the user via email, social login, or wallet connection
+2. Creates an embedded wallet linked to their identity (managed by Privy)
 3. Sets up session handling
 
-You don't need to configure anything extra — `PrivyStack` handles everything.
+You don't need to configure anything extra -- `PrivyStack` handles everything.
 
 ## Checking Account Status
 
-Use the `usePrivy` hook to check if a user is signed in:
+Use the `usePrivy` hook to check if a user is signed in and access their wallet:
 
 ```tsx title="src/components/AccountStatus.tsx"
-import { usePrivy } from '@varity-labs/ui-kit';
+import { usePrivy, useWallets } from '@varity-labs/ui-kit';
 
 function AccountStatus() {
   const { authenticated, user, ready } = usePrivy();
+  const { wallets } = useWallets();
 
   if (!ready) return <p>Loading...</p>;
   if (!authenticated) return <p>Not signed in</p>;
 
+  const embeddedWallet = wallets.find(w => w.walletClientType === 'privy');
+
   return (
     <div>
       <p>Signed in as: {user?.email?.address || 'User'}</p>
+      {embeddedWallet && (
+        <p>Wallet: {embeddedWallet.address}</p>
+      )}
     </div>
   );
 }
@@ -77,92 +82,71 @@ function App() {
 }
 ```
 
-## Free Operations
+## Sending Transactions
 
-All operations on Varity are free for end users. The platform sponsors operational costs so your users never see fees or extra prompts.
+Authenticated users can send transactions through their Privy embedded wallet. Use the `useSendTransaction` hook from Privy:
 
-```tsx
+```tsx title="src/components/SendAction.tsx"
 import { usePrivy } from '@varity-labs/ui-kit';
+import { useSendTransaction } from '@privy-io/react-auth';
 
-function PurchaseButton() {
+function SendAction() {
   const { authenticated } = usePrivy();
+  const { sendTransaction } = useSendTransaction();
+
+  const handleAction = async () => {
+    const txResult = await sendTransaction({
+      to: '0x...',
+      data: '0x...',
+    });
+    console.log('Transaction hash:', txResult.hash);
+  };
 
   return (
-    <button disabled={!authenticated}>
-      Purchase — Free, no extra charges
+    <button onClick={handleAction} disabled={!authenticated}>
+      Perform Action
     </button>
   );
 }
 ```
 
 <Aside type="note">
-**Beta** — All operations run on Varity's beta environment. Production launch coming soon.
+**Beta** -- All operations run on Varity's beta environment. Production launch coming soon.
 </Aside>
 
-<Accordion title="Advanced: Smart Account Configuration">
+<Accordion title="Advanced: Smart Account Infrastructure">
 
-**Varity manages these credentials automatically. Only use this if you need custom configuration.**
+Varity's UI Kit includes a fully implemented `SmartWalletProvider` (630+ lines) that adds account abstraction features such as gasless transactions and batch operations. This component uses thirdweb v5 smart wallets internally.
 
-For advanced use cases, you can configure smart accounts directly using the `SmartWalletProvider`:
+**Current status:** The smart wallet source code exists in the `@varity-labs/ui-kit` package but is not yet exposed as a public export. It is being prepared for a future release. When available, it will enable:
 
-```typescript title="src/App.tsx"
-import { PrivyStack, SmartWalletProvider } from '@varity-labs/ui-kit';
-import { createThirdwebClient } from 'thirdweb';
-import { varityL3Testnet } from '@varity-labs/sdk';
+- **Gasless transactions** -- Users never pay gas fees
+- **Batch operations** -- Send multiple transactions at once
+- **Smart account features** -- Programmable account logic
 
-const client = createThirdwebClient({
-  clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID,
-});
-
-function App() {
-  return (
-    <PrivyStack appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID}>
-      <SmartWalletProvider
-        config={{
-          client,
-          chain: varityL3Testnet,
-          gasless: { enabled: true },
-        }}
-      >
-        <YourApp />
-      </SmartWalletProvider>
-    </PrivyStack>
-  );
-}
-```
-
-Access smart account operations:
-
-```typescript title="src/components/SmartAccountDemo.tsx"
-import { useSmartWallet } from '@varity-labs/ui-kit';
-
-function SmartAccountDemo() {
-  const { account, getAddress, isConnected, isGasless, sendTransaction } = useSmartWallet();
-
-  const handleSend = async () => {
-    const result = await sendTransaction({
-      to: '0x...',
-      value: '0',
-      data: '0x...',
-    });
-    console.log('Operation result:', result);
-  };
-
-  return (
-    <div>
-      <p>Connected: {isConnected ? 'Yes' : 'No'}</p>
-      <p>Address: {getAddress()}</p>
-      <p>Free operations: {isGasless ? 'Enabled' : 'Disabled'}</p>
-      <button onClick={handleSend}>Send Operation</button>
-    </div>
-  );
-}
-```
+For now, use the Privy embedded wallet flow shown above. The `PrivyStack` provider and `usePrivy` / `useWallets` hooks are the recommended way to handle user accounts.
 
 </Accordion>
 
+## Available Hooks and Components
+
+All of the following are exported from `@varity-labs/ui-kit`:
+
+| Export | Type | Description |
+|--------|------|-------------|
+| `PrivyStack` | Component | Wraps your app with Privy authentication |
+| `VarityPrivyProvider` | Component | Lower-level Privy provider |
+| `PrivyLoginButton` | Component | Pre-built sign-in button |
+| `PrivyUserProfile` | Component | Displays user profile info |
+| `PrivyProtectedRoute` | Component | Protects routes from unauthenticated access |
+| `PrivyReadyGate` | Component | Renders children only after Privy initializes |
+| `usePrivy` | Hook | Access auth state, user data, login/logout |
+| `useWallets` | Hook | Access connected wallets |
+| `useLogin` | Hook | Programmatic login |
+| `useLogout` | Hook | Programmatic logout |
+
 ## Next steps
 
-- [Authentication Quick Start](/build/auth/quickstart) — Set up user login
-- [Session Keys](/build/wallets/session-keys) — Enable batch operations
-- [Free Operations](/build/payments/gasless) — How fee sponsorship works
+- [Authentication Quick Start](/build/auth/quickstart) -- Set up user login
+- [Create Account](/build/wallets/create-wallet) -- Account creation details
+- [Session Keys](/build/wallets/session-keys) -- Advanced operation patterns

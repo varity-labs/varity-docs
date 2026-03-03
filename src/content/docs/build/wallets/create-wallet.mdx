@@ -1,91 +1,140 @@
 ---
 title: Create Account
-description: Create smart accounts for your users
+description: How accounts are created for your users
 ---
 
+import { Aside } from '@astrojs/starlight/components';
+import Accordion from '../../../../components/Accordion.astro';
 import PageMeta from '../../../../components/PageMeta.astro';
 
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="February 2026"
+  lastUpdated="March 2026"
   stability="stable"
 />
 
 # Create Account
 
-Create smart accounts for your users with customizable options.
+Accounts are created automatically when users authenticate through Privy. No manual wallet creation is needed.
 
-## Basic account creation
+## How Account Creation Works
 
-Accounts are created automatically when users authenticate with Privy:
+When a user signs in through `PrivyStack`, Privy automatically:
 
-```typescript
-import { useSmartWallet } from '@varity-labs/ui-kit';
+1. **Authenticates the user** via email, social login, or external wallet
+2. **Creates an embedded wallet** -- a secure wallet managed by Privy, linked to the user's identity
+3. **Stores the wallet** -- encrypted and recoverable, no seed phrases for users to manage
+
+Users never see wallet addresses, seed phrases, or any blockchain terminology.
+
+## Accessing the User's Wallet
+
+After authentication, use `useWallets` to access the embedded wallet:
+
+```tsx title="src/components/AccountInfo.tsx"
+import { usePrivy, useWallets } from '@varity-labs/ui-kit';
 
 function AccountInfo() {
-  const { account, getAddress, isConnected, isDeployed, deployWallet } = useSmartWallet();
+  const { authenticated, user, ready } = usePrivy();
+  const { wallets } = useWallets();
 
-  if (!isConnected) {
-    return <p>Please log in first</p>;
-  }
+  if (!ready) return <p>Loading...</p>;
+  if (!authenticated) return <p>Please sign in first</p>;
 
-  if (!isDeployed) {
-    return (
-      <button onClick={deployWallet}>
-        Activate Smart Account
-      </button>
-    );
-  }
+  // The Privy embedded wallet is created automatically
+  const embeddedWallet = wallets.find(w => w.walletClientType === 'privy');
 
   return (
     <div>
-      <p>Account Address: {getAddress()}</p>
-      <p>Status: Active</p>
+      <p>User ID: {user?.id}</p>
+      <p>Email: {user?.email?.address || 'Not provided'}</p>
+      {embeddedWallet && (
+        <p>Account Address: {embeddedWallet.address}</p>
+      )}
     </div>
   );
 }
 ```
 
-:::note[Automatic Activation]
-Smart accounts are activated only when needed (on first operation). This saves resources.
-:::
+## Displaying User Profile
 
-## Check account status
+Use the pre-built `PrivyUserProfile` component for a ready-made profile display:
 
-```typescript
-import { useSmartWallet } from '@varity-labs/ui-kit';
+```tsx title="src/components/Profile.tsx"
+import { PrivyUserProfile } from '@varity-labs/ui-kit';
 
-function AccountStatus() {
-  const {
-    isConnected,    // Account connection status
-    isDeployed,     // Is account activated?
-    isGasless,      // Are free operations enabled?
-    getAddress,     // Get account address
-  } = useSmartWallet();
-
+function ProfilePage() {
   return (
     <div>
-      <p>Connected: {isConnected ? 'Yes' : 'No'}</p>
-      <p>Activated: {isDeployed ? 'Yes' : 'Not yet'}</p>
-      <p>Free operations: {isGasless ? 'Enabled' : 'Disabled'}</p>
-      {isConnected && <p>Address: {getAddress()}</p>}
+      <h2>Your Profile</h2>
+      <PrivyUserProfile />
     </div>
   );
 }
 ```
 
-## Smart account features
+## Authentication Methods
 
-| Feature | Description |
-|---------|-------------|
-| **Free operations** | All usage fees paid by Varity platform |
-| **Auto-activate** | Activated on first operation (not on creation) |
-| **Smart accounts** | Enhanced security with programmable features |
-| **Batch operations** | Send multiple operations at once |
-| **Session keys** | Delegate specific permissions (coming soon) |
+Users can create accounts through any supported login method:
+
+| Method | Description |
+|--------|-------------|
+| **Email** | Magic link sent to email, no password needed |
+| **Google** | OAuth login via Google account |
+| **Twitter** | OAuth login via Twitter/X account |
+| **Discord** | OAuth login via Discord account |
+| **GitHub** | OAuth login via GitHub account |
+| **External wallet** | MetaMask, WalletConnect, etc. (optional) |
+
+All methods result in an embedded wallet being created automatically.
+
+## Checking Authentication State
+
+```tsx title="src/components/AuthGate.tsx"
+import { usePrivy } from '@varity-labs/ui-kit';
+
+function AuthGate({ children }) {
+  const { ready, authenticated } = usePrivy();
+
+  if (!ready) {
+    return <p>Initializing...</p>;
+  }
+
+  if (!authenticated) {
+    return <p>Please sign in to continue.</p>;
+  }
+
+  return <>{children}</>;
+}
+```
+
+## Signing Out
+
+```tsx
+import { useLogout } from '@varity-labs/ui-kit';
+
+function SignOutButton() {
+  const { logout } = useLogout();
+
+  return <button onClick={logout}>Sign Out</button>;
+}
+```
+
+<Accordion title="Advanced: Smart Account (Account Abstraction)">
+
+The `@varity-labs/ui-kit` package contains a fully implemented `SmartWalletProvider` component (630+ lines) that wraps Privy embedded wallets with smart account (account abstraction) capabilities using thirdweb v5. This enables features like:
+
+- **Gasless transactions** -- Sponsored gas so users never pay fees
+- **Batch operations** -- Multiple transactions in a single user action
+- **Programmable accounts** -- Custom validation and execution logic
+
+**Current status:** The `SmartWalletProvider` and `useSmartWallet` hook exist in the UI Kit source code but are not yet exposed as public exports. They are being finalized for a future release. The Privy embedded wallet flow documented above is the current recommended approach.
+
+</Accordion>
 
 ## Next steps
 
-- [Session Keys](/build/wallets/session-keys) -- Enable batch operations
-- [Free Operations](/build/payments/gasless) -- Sponsor fees for users
+- [Accounts Quick Start](/build/wallets/quickstart) -- Overview of accounts
+- [Session Keys](/build/wallets/session-keys) -- Advanced operation patterns
+- [Authentication Quick Start](/build/auth/quickstart) -- Set up login

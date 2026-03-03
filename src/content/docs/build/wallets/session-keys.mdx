@@ -1,82 +1,124 @@
 ---
 title: Session Keys
-description: Use session keys for batch operations
+description: Planned support for session keys and delegated permissions
 ---
 
+import { Aside } from '@astrojs/starlight/components';
 import PageMeta from '../../../../components/PageMeta.astro';
 
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="February 2026"
-  stability="stable"
+  lastUpdated="March 2026"
+  stability="planned"
 />
 
 # Session Keys
 
-Enable advanced operation patterns with session keys.
+<Aside type="caution">
+**Planned Feature** -- Session keys are not yet implemented in the Varity SDK. This page describes the planned functionality and current status.
+</Aside>
 
-## What are session keys?
+## What Are Session Keys?
 
-Session keys allow your app to perform operations on behalf of users without requiring approval for each one. This enables:
+Session keys are temporary, scoped credentials that allow your app to perform operations on behalf of users without requiring approval for each action. They are a feature of smart account (account abstraction) systems.
 
-- Batch operations
-- Background operations
-- Better experience for frequent actions
+When available, session keys will enable:
 
-## Create a session key
+- **Batch operations** -- Execute multiple actions in one step
+- **Background operations** -- Perform tasks without repeated user prompts
+- **Scoped permissions** -- Limit what actions a session key can perform
+- **Time-limited access** -- Keys expire after a set duration
 
-```typescript
+## Current Status
+
+Session keys require smart account (account abstraction) infrastructure. Here is the status of the underlying components:
+
+| Component | Status | Details |
+|-----------|--------|---------|
+| `SmartWalletProvider` | Source exists, not yet exported | 630+ line implementation using thirdweb v5, present in UI Kit source |
+| `useSmartWallet` | Source exists, not yet exported | Hook for smart wallet operations, present in UI Kit source |
+| Session key API | Not yet implemented | Will be added on top of smart account infrastructure |
+| Privy embedded wallets | Available now | Current account system, does not support session keys |
+
+The `SmartWalletProvider` and `useSmartWallet` are implemented in the `@varity-labs/ui-kit` source code but are currently commented out from the public exports. Session key functionality will be built on top of this smart account layer once it is publicly released.
+
+## What You Can Do Today
+
+While session keys are not yet available, you can use Privy's embedded wallet system for user authentication and transactions:
+
+```tsx title="src/components/UserActions.tsx"
+import { usePrivy, useWallets } from '@varity-labs/ui-kit';
+
+function UserActions() {
+  const { authenticated } = usePrivy();
+  const { wallets } = useWallets();
+
+  if (!authenticated) {
+    return <p>Please sign in first</p>;
+  }
+
+  return (
+    <div>
+      <p>You are signed in with an embedded wallet.</p>
+      <p>Each transaction requires user approval.</p>
+    </div>
+  );
+}
+```
+
+For sending transactions, use the `useSendTransaction` hook from Privy:
+
+```tsx
+import { useSendTransaction } from '@privy-io/react-auth';
+
+function ActionButton() {
+  const { sendTransaction } = useSendTransaction();
+
+  const handleAction = async () => {
+    const result = await sendTransaction({
+      to: '0x...',
+      data: '0x...',
+    });
+    console.log('Transaction hash:', result.hash);
+  };
+
+  return <button onClick={handleAction}>Execute Action</button>;
+}
+```
+
+## Planned Session Key API
+
+The following is a preview of the planned session key API. This API is subject to change and is **not yet available**.
+
+```tsx
+// PLANNED -- NOT YET AVAILABLE
+// This shows the intended API shape for session keys
+
 import { useSmartWallet } from '@varity-labs/ui-kit';
 
-function SessionKeyDemo() {
-  const { createSessionKey } = useSmartWallet();
+function SessionExample() {
+  const { createSessionKey, revokeSessionKey } = useSmartWallet();
 
   const handleCreate = async () => {
-    const sessionKey = await createSessionKey({
+    const session = await createSessionKey({
       permissions: ['transfer', 'approve'],
-      duration: 3600, // 1 hour
+      duration: 3600, // seconds
       maxTransactions: 100,
     });
-
-    console.log('Session key:', sessionKey.address);
+    console.log('Session key created:', session.address);
   };
 
   return <button onClick={handleCreate}>Create Session Key</button>;
 }
 ```
 
-## Use session key for operations
-
-```typescript
-const { sendTransactionWithSession } = useSmartWallet();
-
-// Send multiple operations without user approval
-await sendTransactionWithSession([
-  { to: '0x...', data: '0x...' },
-  { to: '0x...', data: '0x...' },
-  { to: '0x...', data: '0x...' },
-]);
-```
-
-## Session key permissions
-
-| Permission | Description |
-|-----------|-------------|
-| `transfer` | Send tokens |
-| `approve` | Approve token spending |
-| `execute` | Execute backend calls |
-| `*` | All permissions |
-
-## Revoke session keys
-
-```typescript
-const { revokeSessionKey } = useSmartWallet();
-
-await revokeSessionKey(sessionKeyAddress);
-```
+<Aside type="note">
+The planned API shown above is for illustration only. The actual API may differ when session keys are released.
+</Aside>
 
 ## Next steps
 
-- [Create Account](/build/wallets/create-wallet) -- Account creation options
-- [Free Operations](/build/payments/gasless) -- Sponsor fees for users
+- [Accounts Quick Start](/build/wallets/quickstart) -- Current account system
+- [Create Account](/build/wallets/create-wallet) -- How accounts work today
+- [Authentication Quick Start](/build/auth/quickstart) -- Set up user login
