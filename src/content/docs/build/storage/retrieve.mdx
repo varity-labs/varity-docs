@@ -1,276 +1,262 @@
 ---
-title: Retrieving Files
-description: Download and display files from storage
+title: "Retrieving Data"
+description: "Query and display stored records from your database"
 ---
 
+import { Aside } from '@astrojs/starlight/components';
 import Accordion from '../../../../components/Accordion.astro';
 import PageMeta from '../../../../components/PageMeta.astro';
 
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="February 2026"
+  lastUpdated="March 2026"
   stability="stable"
 />
 
-# Retrieving Files
+# Retrieving Data
 
-Access your stored files via fast CDN delivery.
+Query records from your database collections using the Varity SDK.
 
-## Display Uploaded Files
+## Basic Query
 
-When you upload a file, you get back a permanent HTTPS URL. Use it directly:
+Fetch all records from a collection:
 
-```tsx
-import { createVaritySDK } from '@varity-labs/sdk';
+```typescript
+import { db } from '@varity-labs/sdk';
 
-const sdk = createVaritySDK();
-// Network is configured automatically
+const products = await db.collection('products').get();
 
-// Upload returns a permanent URL
-const result = await sdk.storage.upload(file);
-
-// Use the URL directly in your app
-<img src={result.url} alt="Uploaded file" />
+products.forEach(product => {
+  console.log(`${product.name}: $${product.price}`);
+});
 ```
 
-## Display Images
+Each record includes system fields alongside your data:
 
-Display uploaded images in your app:
-
-```tsx title="components/StoredImage.tsx"
-export function StoredImage({ imageUrl }: { imageUrl: string }) {
-  return (
-    <img
-      src={imageUrl}
-      alt="Stored image"
-      loading="lazy"
-    />
-  );
+```typescript
+// Returned record shape
+{
+  id: "550e8400-e29b-41d4-a716-446655440000",  // UUID
+  name: "Widget",                                // your data
+  price: 29.99,                                  // your data
+  created_at: "2026-03-01T12:00:00Z",           // auto-generated
+  updated_at: "2026-03-01T12:00:00Z",           // auto-generated
 }
 ```
 
-## Optimized Images
+## Pagination
 
-Get resized and optimized images for faster loading:
+Fetch records in pages using `limit` and `offset`:
 
-```tsx
-import { createVaritySDK } from '@varity-labs/sdk';
-
-const sdk = createVaritySDK();
-// Network is configured automatically
-
-// Resize to specific dimensions
-const thumbnailUrl = sdk.storage.getOptimizedUrl(imageUrl, {
-  width: 200,
-  height: 200,
+```typescript
+// First page (10 records)
+const page1 = await db.collection('products').get({
+  limit: 10,
+  offset: 0,
 });
 
-// High quality for detail view
-const fullUrl = sdk.storage.getOptimizedUrl(imageUrl, {
-  width: 1200,
-  quality: 90,
-});
-
-// WebP format for smaller file sizes
-const webpUrl = sdk.storage.getOptimizedUrl(imageUrl, {
-  width: 800,
-  format: 'webp',
-  quality: 80,
+// Second page
+const page2 = await db.collection('products').get({
+  limit: 10,
+  offset: 10,
 });
 ```
 
-### Image Options
+## Ordering
 
-| Option | Type | Description |
-|--------|------|-------------|
-| `width` | number | Target width (maintains aspect ratio) |
-| `height` | number | Target height (maintains aspect ratio) |
-| `quality` | number | Image quality (1-100) |
-| `format` | string | Output format: `webp`, `jpeg`, `png`, `avif` |
+Sort records by any field. Prefix with `-` for descending order:
 
-## Download JSON Data
+```typescript
+// Newest first
+const recent = await db.collection('products').get({
+  orderBy: '-created_at',
+});
 
-Retrieve and parse stored JSON data:
-
-```tsx
-const userData = await sdk.storage.downloadJSON(dataUrl);
-
-console.log('Name:', userData.name);
-console.log('Email:', userData.email);
+// Cheapest first
+const cheapest = await db.collection('products').get({
+  orderBy: 'price',
+});
 ```
 
-### With TypeScript
+## Client-Side Filtering
 
-Type your downloaded data:
+<Aside type="caution">
+The database API does not support server-side `where` filters. The `get()` method returns all records in the collection. Filter on the client side after fetching.
+</Aside>
 
-```tsx
-interface UserData {
+```typescript
+const allProducts = await db.collection('products').get();
+
+// Filter by field value
+const inStock = allProducts.filter(p => p.inStock === true);
+
+// Search by text
+const matches = allProducts.filter(p =>
+  p.name.toLowerCase().includes('widget')
+);
+
+// Filter by range
+const affordable = allProducts.filter(p => p.price < 50);
+```
+
+## Type-Safe Queries
+
+Use TypeScript generics to get typed results:
+
+```typescript
+import { db } from '@varity-labs/sdk';
+
+interface Product {
   name: string;
-  email: string;
-  preferences: {
-    theme: 'light' | 'dark';
-    notifications: boolean;
-  };
+  price: number;
+  category: string;
+  inStock: boolean;
 }
 
-const userData = await sdk.storage.downloadJSON<UserData>(dataUrl);
+const products = await db.collection<Product>('products').get();
+
+// TypeScript knows: products is (Product & Document)[]
+products.forEach(p => {
+  console.log(p.name);    // string
+  console.log(p.price);   // number
+  console.log(p.id);      // string (from Document)
+});
 ```
 
-## Download Files
+## Display Records in React
 
-Download raw file data:
+### Product List Example
 
-```tsx
-const response = await sdk.storage.downloadFile(fileUrl);
-
-// Get as blob
-const blob = await response.blob();
-
-// Get as text
-const text = await response.text();
-
-// Get as array buffer
-const buffer = await response.arrayBuffer();
-```
-
-## Image Gallery Example
-
-Complete gallery component with optimized loading:
-
-```tsx title="components/ImageGallery.tsx"
-import { useState } from 'react';
-import { createVaritySDK } from '@varity-labs/sdk';
-
-const sdk = createVaritySDK();
-// Network is configured automatically
-
-export function ImageGallery({ imageUrls }: { imageUrls: string[] }) {
-  const [selected, setSelected] = useState<string | null>(null);
-
-  return (
-    <div>
-      {/* Thumbnail grid */}
-      <div className="grid grid-cols-4 gap-2">
-        {imageUrls.map((url, index) => (
-          <img
-            key={index}
-            src={sdk.storage.getOptimizedUrl(url, {
-              width: 200,
-              height: 200,
-              format: 'webp',
-            })}
-            alt={`Image ${index + 1}`}
-            onClick={() => setSelected(url)}
-            className="cursor-pointer rounded"
-          />
-        ))}
-      </div>
-
-      {/* Full size modal */}
-      {selected && (
-        <div
-          className="fixed inset-0 bg-black/80 flex items-center justify-center"
-          onClick={() => setSelected(null)}
-        >
-          <img
-            src={sdk.storage.getOptimizedUrl(selected, {
-              width: 1200,
-              quality: 90,
-            })}
-            alt="Full size"
-            className="max-w-full max-h-full"
-          />
-        </div>
-      )}
-    </div>
-  );
-}
-```
-
-## Item Metadata Display
-
-Display item data from stored metadata:
-
-```tsx title="components/ItemCard.tsx"
+```tsx title="components/ProductList.tsx"
+import { db } from '@varity-labs/sdk';
 import { useState, useEffect } from 'react';
-import { createVaritySDK } from '@varity-labs/sdk';
 
-const sdk = createVaritySDK();
-// Network is configured automatically
+interface Product {
+  name: string;
+  price: number;
+  category: string;
+}
 
-export function ItemCard({ metadataUrl }: { metadataUrl: string }) {
-  const [metadata, setMetadata] = useState<any>(null);
+export function ProductList() {
+  const [products, setProducts] = useState<(Product & { id: string })[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function loadMetadata() {
+    async function loadProducts() {
       try {
-        const data = await sdk.storage.downloadJSON(metadataUrl);
-        setMetadata(data);
+        const data = await db.collection<Product>('products').get({
+          orderBy: '-created_at',
+        });
+        setProducts(data);
       } catch (error) {
-        console.error('Failed to load metadata:', error);
+        console.error('Failed to load products:', error);
       } finally {
         setLoading(false);
       }
     }
-    loadMetadata();
-  }, [metadataUrl]);
+    loadProducts();
+  }, []);
 
-  if (loading) return <div>Loading...</div>;
-  if (!metadata) return <div>Failed to load</div>;
+  if (loading) return <p>Loading products...</p>;
 
   return (
-    <div className="rounded-xl overflow-hidden shadow-lg">
-      <img
-        src={sdk.storage.getOptimizedUrl(metadata.image, { width: 400 })}
-        alt={metadata.name}
-      />
-      <div className="p-4">
-        <h3 className="font-bold">{metadata.name}</h3>
-        <p className="text-gray-600">{metadata.description}</p>
+    <div>
+      {products.map(product => (
+        <div key={product.id}>
+          <h3>{product.name}</h3>
+          <p>${product.price.toFixed(2)}</p>
+          <p>{product.category}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+```
 
-        {metadata.attributes && (
-          <div className="mt-2 flex flex-wrap gap-2">
-            {metadata.attributes.map((attr: any, i: number) => (
-              <span key={i} className="bg-gray-100 px-2 py-1 rounded text-sm">
-                {attr.trait_type}: {attr.value}
-              </span>
-            ))}
-          </div>
-        )}
+### Paginated List Example
+
+```tsx title="components/PaginatedList.tsx"
+import { db } from '@varity-labs/sdk';
+import { useState, useEffect, useCallback } from 'react';
+
+interface Item {
+  title: string;
+  description: string;
+}
+
+const PAGE_SIZE = 10;
+
+export function PaginatedList() {
+  const [items, setItems] = useState<(Item & { id: string })[]>([]);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+
+  const loadPage = useCallback(async (pageNum: number) => {
+    const data = await db.collection<Item>('items').get({
+      limit: PAGE_SIZE,
+      offset: pageNum * PAGE_SIZE,
+      orderBy: '-created_at',
+    });
+    setItems(data);
+    setHasMore(data.length === PAGE_SIZE);
+  }, []);
+
+  useEffect(() => {
+    loadPage(page);
+  }, [page, loadPage]);
+
+  return (
+    <div>
+      {items.map(item => (
+        <div key={item.id}>
+          <h3>{item.title}</h3>
+          <p>{item.description}</p>
+        </div>
+      ))}
+      <div>
+        <button
+          onClick={() => setPage(p => Math.max(0, p - 1))}
+          disabled={page === 0}
+        >
+          Previous
+        </button>
+        <span>Page {page + 1}</span>
+        <button
+          onClick={() => setPage(p => p + 1)}
+          disabled={!hasMore}
+        >
+          Next
+        </button>
       </div>
     </div>
   );
 }
 ```
 
-<Accordion title="Advanced: Direct Storage API">
+## Query Options Reference
 
-For lower-level control, you can work with storage URIs directly:
+| Option | Type | Description |
+|--------|------|-------------|
+| `limit` | `number` | Maximum number of records to return |
+| `offset` | `number` | Number of records to skip (for pagination) |
+| `orderBy` | `string` | Field to sort by. Prefix with `-` for descending |
 
-```tsx
-import { createStorageClient, StorageClient } from '@varity-labs/sdk';
+## Error Handling
 
-// Convert an IPFS URI to an accessible gateway URL
-const url = storage.getGatewayUrl('ipfs://QmXxx...');
-// https://gateway.thirdwebcdn.com/ipfs/QmXxx...
-
-// Static method
-const url = StorageClient.resolveUri('ipfs://QmXxx...');
-
-// Download JSON from IPFS URI
-const data = await storage.downloadJSON('ipfs://QmXxx...');
-
-// Download raw file from IPFS URI
-const response = await storage.downloadFile('ipfs://QmXxx...');
+```typescript
+try {
+  const records = await db.collection('products').get();
+  console.log(`Loaded ${records.length} products`);
+} catch (error) {
+  if (error instanceof Error) {
+    console.error('Query failed:', error.message);
+  }
+}
 ```
-
-This gives you direct access to IPFS URIs and custom gateway configuration for advanced use cases.
-
-</Accordion>
 
 ## Next Steps
 
-- [Payments Quick Start](/build/payments/quickstart) - Accept payments
-- [Authentication Quick Start](/build/auth/quickstart) - Set up login
+- [Storing Data](/build/storage/upload) — Create and update records
+- [Data Storage Quick Start](/build/storage/quickstart) — Overview and setup
+- [Payments](/build/payments/quickstart) — Accept payments

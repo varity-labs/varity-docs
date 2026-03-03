@@ -1,6 +1,6 @@
 ---
-title: Uploading Files
-description: Upload files, images, and data to secure storage
+title: "Storing Data"
+description: "Create and update records in your database"
 ---
 
 import { Aside } from '@astrojs/starlight/components';
@@ -10,202 +10,257 @@ import PageMeta from '../../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="February 2026"
+  lastUpdated="March 2026"
   stability="stable"
 />
 
-# Uploading Files
+# Storing Data
 
-Upload any type of file to secure storage with automatic redundancy and CDN delivery.
+Create, update, and delete records using the Varity database API.
 
-## Basic File Upload
+## Add a Record
 
-Upload a file from a file input:
+Insert a new record into a collection:
 
-```tsx
-import { createVaritySDK } from '@varity-labs/sdk';
+```typescript
+import { db } from '@varity-labs/sdk';
 
-const sdk = createVaritySDK();
-// Network is configured automatically
+const product = await db.collection('products').add({
+  name: 'T-Shirt',
+  price: 29.99,
+  category: 'apparel',
+  inStock: true,
+});
 
-// Get file from input
-const fileInput = document.querySelector('input[type="file"]');
-const file = fileInput.files[0];
-
-// Upload to secure storage
-const result = await sdk.storage.upload(file);
-
-console.log('File URL:', result.url);
-// Returns a permanent HTTPS URL
+console.log('Created:', product.id);
+// "550e8400-e29b-41d4-a716-446655440000"
 ```
 
-## Upload Result
+The returned record includes your data plus system fields:
 
-The upload method returns an object with the file URL:
-
-```tsx
-const result = await sdk.storage.upload(file);
-// Returns: { url: "https://...", id: "..." }
-
-// For multiple files
-const results = await sdk.storage.uploadBatch([file1, file2, file3]);
-// Returns array of { url, id } objects
-
-// Display the file
-<img src={result.url} alt="Uploaded file" />
+```typescript
+{
+  id: "550e8400-...",       // auto-generated UUID
+  name: "T-Shirt",          // your data
+  price: 29.99,             // your data
+  category: "apparel",      // your data
+  inStock: true,            // your data
+  created_at: "2026-03-01T12:00:00Z",
+  updated_at: "2026-03-01T12:00:00Z",
+}
 ```
 
-## Upload JSON Data
+## Update a Record
 
-Store structured data:
+Update specific fields of an existing record by its ID:
 
-```tsx
-const userData = {
-  name: 'John Doe',
-  email: 'john@example.com',
+```typescript
+await db.collection('products').update(product.id, {
+  price: 24.99,
+  inStock: false,
+});
+```
+
+Only the fields you pass are updated. Other fields remain unchanged.
+
+## Delete a Record
+
+Remove a record by its ID:
+
+```typescript
+await db.collection('products').delete(product.id);
+```
+
+## Store Different Data Types
+
+The database accepts any JSON-serializable data:
+
+```typescript
+// User profile
+await db.collection('users').add({
+  name: 'Jane Doe',
+  email: 'jane@example.com',
   preferences: {
     theme: 'dark',
     notifications: true,
   },
-};
+});
 
-const result = await sdk.storage.upload(userData);
-console.log('Data URL:', result.url);
-```
-
-## Upload Metadata with Image
-
-Upload image first, then metadata referencing it:
-
-```tsx
-// Step 1: Upload the image file
-const imageResult = await sdk.storage.upload(imageFile);
-
-// Step 2: Upload metadata with the image URL
-const metadata = {
-  name: 'My Item #1',
-  description: 'A unique digital item',
-  image: imageResult.url,
-  attributes: [
-    { trait_type: 'Color', value: 'Blue' },
-    { trait_type: 'Size', value: 'Large' },
+// Order with nested data
+await db.collection('orders').add({
+  customerId: 'user-123',
+  items: [
+    { productId: 'prod-1', quantity: 2, price: 29.99 },
+    { productId: 'prod-2', quantity: 1, price: 49.99 },
   ],
-};
+  total: 109.97,
+  status: 'pending',
+});
 
-const metadataResult = await sdk.storage.upload(metadata);
-console.log('Metadata URL:', metadataResult.url);
-```
-
-## Batch Upload
-
-Upload multiple files at once:
-
-```tsx
-const files = [file1, file2, file3];
-
-const results = await sdk.storage.uploadBatch(files);
-
-console.log('Total files uploaded:', results.length);
-
-results.forEach((result, index) => {
-  console.log(`File ${index + 1}: ${result.url}`);
+// Application settings
+await db.collection('settings').add({
+  key: 'site-config',
+  siteName: 'My Store',
+  currency: 'USD',
+  features: ['dark-mode', 'analytics', 'notifications'],
 });
 ```
 
-## Upload from Blob
+## Type-Safe Records
 
-Create and upload data programmatically:
+Use TypeScript generics for compile-time safety:
 
-```tsx
-// Text file from Blob
-const textBlob = new Blob(['Hello, World!'], { type: 'text/plain' });
-const textResult = await sdk.storage.upload(textBlob);
+```typescript
+import { db } from '@varity-labs/sdk';
 
-// JSON data (can pass object directly)
-const jsonData = { hello: 'world' };
-const jsonResult = await sdk.storage.upload(jsonData);
+interface Product {
+  name: string;
+  price: number;
+  category: string;
+  inStock: boolean;
+}
 
-// Canvas to image
-const canvas = document.querySelector('canvas');
-canvas.toBlob(async (blob) => {
-  const imageResult = await sdk.storage.upload(blob);
-  console.log('Canvas uploaded:', imageResult.url);
-}, 'image/png');
+const products = db.collection<Product>('products');
+
+// TypeScript enforces the shape
+const item = await products.add({
+  name: 'Widget',
+  price: 29.99,
+  category: 'tools',
+  inStock: true,
+});
+// item.name: string, item.price: number, item.id: string
 ```
 
-## Storage Provider
+## Complete CRUD Example
 
-Uploads go to secure storage by default with automatic redundancy:
+```tsx title="components/ProductManager.tsx"
+import { db } from '@varity-labs/sdk';
+import { useState, useEffect } from 'react';
 
-```tsx
-const result = await sdk.storage.upload(file);
-// Returns a permanent URL with global CDN delivery
+interface Product {
+  name: string;
+  price: number;
+  inStock: boolean;
+}
+
+export function ProductManager() {
+  const [products, setProducts] = useState<(Product & { id: string })[]>([]);
+  const [name, setName] = useState('');
+  const [price, setPrice] = useState('');
+
+  useEffect(() => {
+    db.collection<Product>('products')
+      .get({ orderBy: '-created_at' })
+      .then(setProducts);
+  }, []);
+
+  const addProduct = async () => {
+    if (!name || !price) return;
+    const product = await db.collection<Product>('products').add({
+      name,
+      price: parseFloat(price),
+      inStock: true,
+    });
+    setProducts(prev => [product, ...prev]);
+    setName('');
+    setPrice('');
+  };
+
+  const toggleStock = async (id: string, currentStock: boolean) => {
+    await db.collection<Product>('products').update(id, {
+      inStock: !currentStock,
+    });
+    setProducts(prev =>
+      prev.map(p => (p.id === id ? { ...p, inStock: !currentStock } : p))
+    );
+  };
+
+  const removeProduct = async (id: string) => {
+    await db.collection<Product>('products').delete(id);
+    setProducts(prev => prev.filter(p => p.id !== id));
+  };
+
+  return (
+    <div>
+      <h2>Product Manager</h2>
+
+      <div>
+        <input value={name} onChange={e => setName(e.target.value)} placeholder="Name" />
+        <input value={price} onChange={e => setPrice(e.target.value)} placeholder="Price" type="number" />
+        <button onClick={addProduct}>Add Product</button>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Price</th>
+            <th>In Stock</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {products.map(product => (
+            <tr key={product.id}>
+              <td>{product.name}</td>
+              <td>${product.price.toFixed(2)}</td>
+              <td>
+                <button onClick={() => toggleStock(product.id, product.inStock)}>
+                  {product.inStock ? 'Yes' : 'No'}
+                </button>
+              </td>
+              <td>
+                <button onClick={() => removeProduct(product.id)}>Delete</button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
 ```
-
-<Aside type="tip">
-**Automatic redundancy** - Uploads are automatically replicated by the storage infrastructure. Your files are always available.
-</Aside>
-
-**Why secure storage?**
-- Fast, distributed access
-- Content-addressed (files never break)
-- Automatic redundancy across multiple servers
-- Perfect for most use cases
 
 ## Error Handling
 
-Handle upload errors gracefully:
+Handle storage errors gracefully:
 
-```tsx
-async function safeUpload(file: File) {
+```typescript
+async function safeAdd(collectionName: string, data: any) {
   try {
-    const result = await sdk.storage.upload(file);
-    return { success: true, url: result.url };
+    const record = await db.collection(collectionName).add(data);
+    return { success: true, record };
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error(`Failed to save to ${collectionName}:`, message);
+    return { success: false, error: message };
+  }
+}
 
-    if (message.includes('File too large')) {
-      return { success: false, error: 'File exceeds size limit' };
-    }
-    if (message.includes('Network') || message.includes('fetch')) {
-      return { success: false, error: 'Network error. Please try again.' };
-    }
-
-    return { success: false, error: 'Upload failed. Please try again.' };
+async function safeUpdate(collectionName: string, id: string, data: any) {
+  try {
+    const record = await db.collection(collectionName).update(id, data);
+    return { success: true, record };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error(`Failed to update ${id} in ${collectionName}:`, message);
+    return { success: false, error: message };
   }
 }
 ```
 
-<Accordion title="Advanced: Direct Storage API">
+<Aside type="note">
+**File uploads (images, videos, documents)** are not yet available through the SDK. The current storage API is for structured JSON data. File storage via IPFS/Filecoin is planned for a future release. In the meantime, you can store file URLs from external services (e.g., Cloudinary, S3) as string fields in your records.
+</Aside>
 
-**Varity manages these credentials automatically. Only use this if you need custom configuration.**
+## Storage Costs
 
-For lower-level control, you can use the storage provider directly:
-
-```tsx
-import { createThirdwebClient } from 'thirdweb';
-import { upload } from 'thirdweb/storage';
-
-const client = createThirdwebClient({
-  clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID,
-});
-
-const uri = await upload({
-  client,
-  files: [file],
-});
-
-// Returns: ipfs://bafybei... (permanent storage identifier)
-
-// Convert to gateway URL for browser access
-const gatewayUrl = uri.replace('ipfs://', 'https://ipfs.thirdwebcdn.com/ipfs/');
-```
-
-This gives you direct access to IPFS URIs and custom gateway configuration for advanced use cases.
-
-</Accordion>
+- **Beta**: Free with shared development credentials
+- **Production**: Included with your Varity deployment (provisioned automatically)
 
 ## Next Steps
 
-- [Retrieve Files](/build/storage/retrieve) - Download and display files
-- [Payments Quick Start](/build/payments/quickstart) - Accept payments
+- [Retrieving Data](/build/storage/retrieve) — Query and display records
+- [Data Storage Quick Start](/build/storage/quickstart) — Overview and setup
+- [Payments](/build/payments/quickstart) — Accept payments

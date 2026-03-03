@@ -1,6 +1,6 @@
 ---
 title: "Free Operations"
-description: "Users never pay usage fees"
+description: "Users never pay usage fees — gas is sponsored automatically"
 ---
 
 import { Steps, Aside } from '@astrojs/starlight/components';
@@ -10,156 +10,173 @@ import PageMeta from '../../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="February 2026"
+  lastUpdated="March 2026"
   stability="beta"
 />
 
 # Free Operations
 
-Your users never pay usage fees. Varity sponsors all operational costs for a seamless app experience.
+Your users never pay gas fees or usage costs. Varity sponsors all operational costs so your app works like any normal web app.
 
 ## How It Works
 
-Traditional platforms charge per-request fees. With Varity:
+Traditional blockchain platforms charge gas fees for every operation. With Varity, those fees are sponsored automatically:
 
-1. User performs an action (create, update, delete)
-2. Varity's infrastructure handles the operation for free
-3. Operation completes instantly
-4. User sees success -- no fee prompts, no extra steps
+1. User performs an action (save data, make a payment, etc.)
+2. Varity's paymaster sponsors the gas cost behind the scenes
+3. The operation completes instantly
+4. User sees success — no fee prompts, no wallet popups, no extra steps
 
-Your app works just like any other web app. No interruptions, no hidden costs.
+Your users never see gas fees, wallet confirmations, or blockchain terminology. It just works.
 
 <Aside type="tip">
-**No special accounts needed.** Combined with email login, your users never see extra prompts or fee confirmations. It just works.
+**No configuration needed.** Gas sponsorship is built into the platform. When you deploy with `varitykit deploy`, your app automatically gets free operations for end users.
 </Aside>
 
-## Setup
+## For Developers: Zero Setup Required
+
+Gas sponsorship is handled entirely by the Varity platform. You do not need to configure a paymaster, bundler, or smart wallet provider. When your app is deployed on Varity, all write operations are gas-sponsored automatically.
 
 <Steps>
 
-1. **Wrap with PrivyStack**
+1. **Build your app using Varity SDK**
 
-   Free operations are enabled by default:
+   Use the database and payment APIs normally:
 
-   ```tsx title="app/layout.tsx"
-   import { PrivyStack } from '@varity-labs/ui-kit';
+   ```tsx title="app/page.tsx"
+   import { db } from '@varity-labs/sdk';
 
-   export default function RootLayout({ children }) {
-     return (
-       <html>
-         <body>
-           <PrivyStack>
-             {children}
-           </PrivyStack>
-         </body>
-       </html>
-     );
+   async function saveUserData(data: any) {
+     // This write operation is free for the user
+     const result = await db.collection('users').add(data);
+     return result;
    }
    ```
 
-2. **Operations are automatically free**
+2. **Deploy with the CLI**
 
-   When users perform actions, all operational costs are sponsored automatically.
+   ```bash
+   varitykit deploy
+   ```
+
+   Gas sponsorship is enabled automatically. No extra flags or configuration.
+
+3. **Users interact for free**
+
+   When users trigger actions in your app, all operational costs are covered by Varity's infrastructure.
 
 </Steps>
 
-## Features
+## What's Free
 
-| Feature | Description |
-|---------|-------------|
-| Free operations | All usage fees paid by Varity |
-| Batch | Multiple operations in one request |
-| Auto-deploy | Account created on first use |
-| No keys to manage | Users never handle private keys |
+| Operation | Cost to User |
+|-----------|-------------|
+| Database reads | Free |
+| Database writes | Free |
+| Account creation | Free (auto-created on first login) |
+| App interactions | Free |
 
-## Billing
+## Collecting Payments from Users
 
-- **Beta**: Free (using shared development credentials)
+While operations are free, you can still charge users for your app or premium features using the payment components from `@varity-labs/ui-kit`.
+
+### PaymentWidget
+
+Wrap any element to make it a purchase trigger:
+
+```tsx title="components/BuyButton.tsx"
+import { PaymentWidget } from '@varity-labs/ui-kit';
+
+function BuyButton() {
+  return (
+    <PaymentWidget
+      appId={123}
+      price={999}
+      onSuccess={(txHash) => console.log('Purchased!', txHash)}
+      onError={(err) => console.error('Payment failed:', err)}
+    >
+      <button>Buy for $9.99</button>
+    </PaymentWidget>
+  );
+}
+```
+
+### PaymentGate
+
+Gate premium content behind a purchase:
+
+```tsx title="components/PremiumContent.tsx"
+import { PaymentGate } from '@varity-labs/ui-kit';
+
+function PremiumSection() {
+  return (
+    <PaymentGate
+      appId={123}
+      price={999}
+      fallback={<p>Purchase to unlock premium content.</p>}
+    >
+      <div>This content is only visible after purchase.</div>
+    </PaymentGate>
+  );
+}
+```
+
+### useVarityPayment Hook
+
+For custom payment flows:
+
+```tsx title="components/CustomPayment.tsx"
+import { useVarityPayment } from '@varity-labs/ui-kit';
+
+function CustomPayment() {
+  const { hasPurchased, purchase, isLoading, isPurchasing, pricing } =
+    useVarityPayment({ appId: 123 });
+
+  if (isLoading) return <p>Loading...</p>;
+  if (hasPurchased) return <p>Thank you for your purchase!</p>;
+
+  return (
+    <div>
+      {pricing && <p>Price: ${Number(pricing.priceUsdc) / 1_000_000}</p>}
+      <button onClick={purchase} disabled={isPurchasing}>
+        {isPurchasing ? 'Processing...' : 'Buy Now'}
+      </button>
+    </div>
+  );
+}
+```
+
+## Revenue Split
+
+When users pay for your app, the revenue is split automatically:
+
+- **90%** goes to you (the developer)
+- **10%** goes to Varity (platform fee)
+
+This is enforced by the on-chain payment contract. No invoices, no payment processing — it happens automatically.
+
+## Billing for Developers
+
+- **Beta**: Free — gas is sponsored using shared development credentials
 - **Production**: Usage-based billing through your Varity account
 
-<Accordion title="Advanced: Smart Account Configuration">
+<Accordion title="How Gas Sponsorship Works Under the Hood">
 
-**Varity manages these credentials automatically. Only use this if you need custom configuration.**
+Varity uses ERC-4337 account abstraction to sponsor gas fees:
 
-For more control, you can configure the smart account provider directly:
+1. **User initiates action** — clicks a button in your app
+2. **Smart account encodes the operation** — a UserOperation is created
+3. **Bundler submission** — the operation is sent to the bundler network (Conduit)
+4. **Paymaster approval** — Varity's paymaster agrees to cover the gas cost
+5. **Execution** — the operation executes on Varity L3
+6. **Confirmation** — user sees success
 
-```tsx title="app/layout.tsx"
-import { SmartWalletProvider } from '@varity-labs/ui-kit';
-import { createThirdwebClient } from 'thirdweb';
-import { varityL3Testnet } from '@varity-labs/sdk';
-
-const client = createThirdwebClient({
-  clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID,
-});
-
-export default function App({ children }) {
-  return (
-    <SmartWalletProvider
-      config={{
-        client,
-        chain: varityL3Testnet,
-        gasless: { enabled: true },
-      }}
-    >
-      {children}
-    </SmartWalletProvider>
-  );
-}
-```
-
-### Smart Account Hook
-
-```tsx
-import { useSmartWallet } from '@varity-labs/ui-kit';
-
-function ActionButton() {
-  const { sendTransaction, isGasless, isConnected } = useSmartWallet();
-
-  const handleAction = async () => {
-    const result = await sendTransaction({
-      to: '0x...',
-      data: '0x...',
-      value: '0',
-    });
-    console.log('Operation complete:', result);
-  };
-
-  return (
-    <button onClick={handleAction} disabled={!isConnected}>
-      Perform Action {isGasless && '(Free)'}
-    </button>
-  );
-}
-```
-
-### Batch Operations
-
-```tsx
-const { sendBatchTransaction } = useSmartWallet();
-
-const result = await sendBatchTransaction([
-  { to: '0x...', data: '0x...', value: '0' },
-  { to: '0x...', data: '0x...', value: '0' },
-]);
-```
-
-### How Fee Sponsorship Works
-
-Behind the scenes, Varity uses ERC-4337 account abstraction:
-
-1. **User initiates action** - Clicks a button in your app
-2. **Operation prepared** - Smart account encodes the operation
-3. **Bundler submission** - Operation sent to bundler network
-4. **Paymaster approval** - Varity's paymaster agrees to pay the fee
-5. **Execution** - Operation executes on Varity's infrastructure
-6. **Confirmation** - User sees success
-
-All of this happens in seconds, completely invisible to users.
+All of this happens in seconds, completely invisible to users. The smart wallet infrastructure (Privy for authentication, Conduit for bundler and paymaster) is managed by Varity. Developers do not need to configure any of these components.
 
 </Accordion>
 
 ## Next Steps
 
-- [Credit Card Payments](/build/payments/credit-card) - Monetize your app
-- [File Storage](/build/storage/quickstart) - Upload and store files
-- [Authentication](/build/auth/quickstart) - Set up login
+- [Credit Card Payments](/build/payments/credit-card) — Monetize your app
+- [Data Storage Quick Start](/build/storage/quickstart) — Store and retrieve data
+- [Authentication](/build/auth/quickstart) — Set up user login
