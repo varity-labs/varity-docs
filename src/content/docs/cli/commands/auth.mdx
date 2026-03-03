@@ -1,0 +1,184 @@
+---
+title: "varitykit login / auth"
+description: "Authenticate with Varity using your deploy key"
+---
+
+import { Steps, Aside } from '@astrojs/starlight/components';
+import PageMeta from '../../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="March 2026"
+  stability="stable"
+/>
+
+Log in to Varity from the CLI using a deploy key from the developer portal. Authentication is required for deploying apps and managing domains.
+
+## Usage
+
+```bash
+# Top-level shortcut
+varitykit login
+
+# Or use the auth subcommand
+varitykit auth login
+```
+
+Both commands do the same thing: prompt you for a deploy key and save it locally.
+
+## Prerequisites
+
+You need a deploy key from the Varity developer portal:
+
+<Steps>
+
+1. **Go to the developer portal**
+
+   Open [developer.store.varity.so/dashboard/settings](https://developer.store.varity.so/dashboard/settings) in your browser.
+
+2. **Copy your deploy key**
+
+   Find the deploy key section on the Settings page and copy the key.
+
+3. **Run the login command**
+
+   ```bash
+   varitykit login
+   ```
+
+   The CLI will open the settings page in your browser automatically. Paste the key when prompted (input is hidden for security).
+
+4. **Verify you are logged in**
+
+   ```bash
+   varitykit auth status
+   ```
+
+</Steps>
+
+## Commands
+
+### login
+
+Log in with your deploy key. The CLI opens the developer portal in your browser, then prompts you to paste the key.
+
+```bash
+varitykit login
+# or
+varitykit auth login
+```
+
+Example output:
+
+```
+  ╭─────────────────────────────────────────────────────╮
+  │  Get your deploy key from the developer portal:     │
+  │  https://developer.store.varity.so/dashboard/settings│
+  ╰─────────────────────────────────────────────────────╯
+
+  Opening https://developer.store.varity.so/dashboard/settings in your browser...
+  (input will be hidden for security)
+
+  Paste your deploy key: ********
+
+  Deploy key saved securely.
+  Logged in successfully!
+  Configured: deploy key, gateway key, database credentials
+  Your domains are now protected. Run 'varitykit app deploy' to deploy.
+```
+
+If you are already logged in, the CLI will show your current key (masked) and ask if you want to replace it.
+
+### logout
+
+Remove your saved credentials from this machine.
+
+```bash
+varitykit auth logout
+```
+
+This removes the deploy key, gateway key, and database credentials from your local config file. You will need to run `varitykit login` again to deploy or manage domains.
+
+### status
+
+Show your current login status.
+
+```bash
+varitykit auth status
+```
+
+Example output when logged in:
+
+```
+  Logged in (key: dk_live_...7f2a)
+```
+
+Example output when not logged in:
+
+```
+  Not logged in.
+  Run 'varitykit login' to connect your developer account.
+```
+
+## Where Credentials Are Stored
+
+Credentials are saved to `~/.varitykit/config.json` with restricted file permissions:
+
+| Path | Permissions |
+|------|-------------|
+| `~/.varitykit/` | `700` (owner-only access) |
+| `~/.varitykit/config.json` | `600` (owner-only read/write) |
+
+The config file may contain:
+
+| Key | Description |
+|-----|-------------|
+| `deploy_key` | Your developer portal deploy key |
+| `gateway_api_key` | API key for the Varity gateway (auto-configured) |
+| `jwt_secret` | Database credentials (auto-configured) |
+
+<Aside type="tip">
+Deploy keys can bundle multiple credentials. When you paste a key from the developer portal, the CLI automatically extracts and saves all associated credentials (gateway key, database credentials) in one step.
+</Aside>
+
+## When Is Authentication Required?
+
+| Command | Requires Login |
+|---------|---------------|
+| `varitykit app deploy` | Yes |
+| `varitykit domains list` | Yes |
+| `varitykit doctor` | No |
+| `varitykit init` | No |
+| `varitykit template list` | No |
+
+## Troubleshooting
+
+### "Not logged in" when deploying
+
+Run `varitykit login` and paste your deploy key from the developer portal.
+
+### "Invalid deploy key"
+
+Make sure you copied the full key from the developer portal Settings page. The key must be at least 10 characters long.
+
+### Credentials not persisting
+
+Check that the CLI has write access to your home directory:
+
+```bash
+ls -la ~/.varitykit/
+```
+
+If the directory does not exist, `varitykit login` will create it automatically.
+
+## Next Steps
+
+- [Deploy your app](/cli/commands/deploy) - Deploy to production
+- [CLI Overview](/cli/overview) - All CLI commands
+- [Quick Start](/getting-started/quickstart) - Complete tutorial
+
+## Related Resources
+
+- [Managed Credentials](/deploy/managed-credentials) - How Varity manages your credentials
+- [Environment Variables](/deploy/env-variables) - Required configuration
