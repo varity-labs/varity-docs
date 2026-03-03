@@ -82,6 +82,11 @@ export default defineConfig({
               slug: "getting-started/quickstart-react",
               badge: { text: "New", variant: "success" },
             },
+            {
+              label: "Node.js Quick Start",
+              slug: "getting-started/quickstart-nodejs",
+              badge: { text: "New", variant: "success" },
+            },
           ],
         },
 
@@ -230,6 +235,7 @@ export default defineConfig({
               label: "Commands",
               collapsed: false,
               items: [
+                { label: "login / auth", slug: "cli/commands/auth" },
                 { label: "doctor", slug: "cli/commands/doctor" },
                 { label: "init", slug: "cli/commands/init" },
                 { label: "deploy", slug: "cli/commands/deploy" },
