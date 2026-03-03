@@ -1,6 +1,6 @@
 ---
 title: "@varity-labs/sdk Overview"
-description: "Backend SDK for building apps on Varity - authentication, storage, analytics, and more"
+description: "Core SDK for building apps on Varity - database, credential management, and infrastructure utilities"
 ---
 
 import { Aside, Card, CardGrid, Badge } from '@astrojs/starlight/components';
@@ -10,32 +10,29 @@ import PageMeta from '../../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="February 2026"
-  stability="stable"
+  lastUpdated="March 2026"
+  stability="alpha"
 />
 
-The Varity SDK provides everything you need to build backend services for your applications. It abstracts infrastructure complexity so you can focus on building your product.
+The Varity SDK provides the core building blocks for your application: a zero-config database, credential management, and infrastructure utilities. Install it once and start building immediately.
 
-<Badge text="v2.0.0-alpha.1" variant="note" />
+<Badge text="v2.0.0-alpha.1" variant="caution" />
 
 ## What's Included
 
 <CardGrid>
-  <Card title="Authentication" icon="user">
-    Login, access control, and role management
-  </Card>
-  <Card title="Storage" icon="document">
-    File uploads to secure, distributed storage
-  </Card>
-  <Card title="Analytics" icon="graph">
-    KPIs, trends, leaderboards, and growth metrics
-  </Card>
   <Card title="Database" icon="puzzle">
-    Zero-config database powered by Supabase
+    Zero-config database with typed collections and CRUD operations
+  </Card>
+  <Card title="Credentials" icon="setting">
+    Credential resolution, validation, and dev/production management
+  </Card>
+  <Card title="Infrastructure" icon="rocket">
+    Chain definitions, gas tracking, and thirdweb integration via subpath imports
   </Card>
 </CardGrid>
 
-## Quick Example
+## Quick Start
 
 The most common pattern is the zero-config database:
 
@@ -45,210 +42,204 @@ import { db } from '@varity-labs/sdk';
 // Define a collection with TypeScript types
 const users = db.collection<{ name: string; email: string }>('users');
 
-// CRUD operations
+// Create
 await users.add({ name: 'Alice', email: 'alice@example.com' });
+
+// Read
 const allUsers = await users.get({ limit: 10, orderBy: 'name' });
+
+// Update
 await users.update('user-id', { name: 'Alice Smith' });
+
+// Delete
 await users.delete('user-id');
 ```
 
-For apps that need multiple modules (analytics, storage, auth), use the full SDK:
+## Main Exports
+
+Everything available from `import { ... } from '@varity-labs/sdk'`:
+
+### Database
+
+| Export | Type | Description |
+|--------|------|-------------|
+| `db` | `Database` instance | Pre-configured singleton -- use this for most apps |
+| `Database` | class | Database class. Constructor accepts optional `Partial<DatabaseConfig>` |
+| `Collection` | class | Typed CRUD class with `add()`, `get()`, `update()`, `delete()` methods |
 
 ```typescript
-import { createVaritySDK } from '@varity-labs/sdk';
+import { db, Database } from '@varity-labs/sdk';
 
-const sdk = createVaritySDK();
-// Network is configured automatically
+// Option 1: Use the pre-configured singleton (recommended)
+const posts = db.collection<{ title: string; body: string }>('posts');
+await posts.add({ title: 'Hello World', body: 'First post' });
 
-await sdk.connect();
-
-const kpis = await sdk.analytics.getKPIs({ period: 'current_month' });
-const stored = await sdk.storage.upload(fileData);
+// Option 2: Create a custom instance with your own config
+const customDb = new Database({
+  proxyUrl: 'https://your-proxy.example.com',
+  appToken: 'your-app-token',
+});
+const items = customDb.collection('items');
 ```
 
-## Core Exports
+### Credentials
 
-The SDK exports several categories of functionality.
+| Export | Type | Description |
+|--------|------|-------------|
+| `VARITY_DEV_CREDENTIALS` | const (object) | Shared dev credentials containing `privy.appId`, `thirdweb.clientId`, and `rateLimits` |
+| `resolveCredentials` | function | `(appId?, clientId?) => CredentialConfig` -- resolves with fallback to dev credentials |
+| `validateCredentials` | function | `(appId, clientId) => void` -- throws if credentials are invalid |
+| `isUsingDevCredentials` | function | `(appId?, clientId?) => boolean` -- check if using shared dev credentials |
+| `isProductionCredentials` | function | `(appId?, clientId?) => boolean` -- check if using production credentials |
+| `getCredentialWarning` | function | `(environment) => string \| null` -- get a warning message if credentials need attention |
+| `logCredentialUsage` | function | `(appId?, clientId?) => void` -- log which credentials are being used |
+| `getUpgradeInstructions` | function | `() => string` -- get instructions for upgrading to production credentials |
 
-### SDK Core
+```typescript
+import {
+  resolveCredentials,
+  isUsingDevCredentials,
+  getCredentialWarning,
+  VARITY_DEV_CREDENTIALS,
+} from '@varity-labs/sdk';
 
-| Export | Description |
-|--------|-------------|
-| `VaritySDK` | Main SDK class |
-| `createVaritySDK` | Factory function to create SDK instance |
-| `db` | Zero-config database (recommended for most apps) |
-| `Database` | Database class |
-| `Collection` | Collection class for typed data access |
-| `getNetworkConfig` | Get network configuration by name |
-| `NETWORK_CONFIGS` | All supported network configurations |
+// Resolve credentials with automatic fallback to dev credentials
+const creds = resolveCredentials(
+  process.env.NEXT_PUBLIC_PRIVY_APP_ID,
+  process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID,
+);
+console.log(creds.privy.appId);
+console.log(creds.thirdweb.clientId);
 
-### Development Credentials
+// Check if using dev credentials (useful for showing warnings)
+if (isUsingDevCredentials()) {
+  console.warn('Using shared dev credentials -- set your own before deploying');
+}
 
-| Export | Description |
-|--------|-------------|
-| `VARITY_DEV_CREDENTIALS` | Shared dev credentials for quick start |
-| `resolveCredentials` | Resolve with fallback to dev credentials |
-| `isUsingDevCredentials` | Check if using shared credentials |
+// Get environment-specific warnings
+const warning = getCredentialWarning('production');
+if (warning) {
+  console.warn(warning);
+}
+```
 
-## Capability Modules
+### Version
 
-The SDK provides 13 capability modules that work across all application types.
+| Export | Type | Description |
+|--------|------|-------------|
+| `VERSION` | const (string) | SDK version (`'2.0.0-alpha.1'`) |
+| `SDK_VERSION` | const (string) | Same as `VERSION` |
 
-| Module | Purpose |
-|--------|---------|
-| `sdk.auth` | Authentication and access control |
-| `sdk.storage` | File storage |
-| `sdk.db` | Database operations (also available standalone: `import { db } from '@varity-labs/sdk'`) |
-| `sdk.s3` | S3-compatible storage (optional) |
-| `sdk.compute` | AI/LLM queries |
-| `sdk.contracts` | Backend interactions |
-| `sdk.analytics` | KPIs, trends, growth metrics |
-| `sdk.notifications` | Email, push, webhook notifications |
-| `sdk.export` | CSV, JSON, PDF exports |
-| `sdk.cache` | In-memory caching |
-| `sdk.monitoring` | Health checks and metrics |
-| `sdk.forecasting` | Predictive analytics |
-| `sdk.webhooks` | Webhook management |
+```typescript
+import { VERSION } from '@varity-labs/sdk';
+
+console.log(`Running Varity SDK ${VERSION}`);
+```
 
 ## Type Exports
 
-The SDK exports comprehensive TypeScript types.
-
-### Configuration Types
+The SDK exports these TypeScript types from the main entry point:
 
 ```typescript
 import type {
-  VaritySDKConfig,
-  Network,
-  NetworkConfig,
-  ContractAddresses,
-  CredentialConfig,
+  CredentialConfig,   // { privy: { appId }, thirdweb: { clientId } }
+  DatabaseConfig,     // { proxyUrl?: string, appToken?: string }
+  QueryOptions,       // { limit?, offset?, orderBy? }
+  Document,           // { id: string, created_at?, updated_at?, [key]: any }
+  CollectionResponse, // { success: boolean, data?: T, error?: string }
 } from '@varity-labs/sdk';
 ```
 
-### Module Types
-
-```typescript
-import type {
-  // Analytics
-  KPISummary,
-  TrendResult,
-  LeaderboardResult,
-
-  // Storage
-  UploadResult,
-  StorageOptions,
-
-  // Notifications
-  NotificationResult,
-  AlertRule,
-
-  // Webhooks
-  Webhook,
-  DeliveryLog,
-} from '@varity-labs/sdk';
-```
-
-## Version
-
-```typescript
-import { VERSION, SDK_VERSION } from '@varity-labs/sdk';
-
-console.log(VERSION); // '2.0.0-alpha.1'
-```
-
-## Complete Working Example
-
-```typescript
-import { db, createVaritySDK } from '@varity-labs/sdk';
-
-// Zero-config database
-const products = db.collection<{ name: string; price: number }>('products');
-await products.add({ name: 'Pro Plan', price: 99 });
-const allProducts = await products.get();
-
-// Full SDK for multi-module access
-const sdk = createVaritySDK();
-// Network is configured automatically
-
-await sdk.connect();
-
-// Upload a file
-const result = await sdk.storage.upload(myFile);
-console.log('File URL:', result.url);
-
-// Get analytics
-const kpis = await sdk.analytics.getKPIs({ period: 'current_month' });
-console.log('Total users:', kpis.totalUsers);
-```
-
-<Aside type="note">
-**Beta** — This example uses Varity's beta environment. Production launch coming soon.
+<Aside type="caution">
+**Alpha release** -- The main SDK entry point currently exports database and credential utilities only. Additional modules (storage, analytics, notifications) are planned for future releases. See the subpath imports below for infrastructure access.
 </Aside>
 
-<Accordion title="Advanced: Direct Infrastructure Access">
+<Accordion title="Advanced: Subpath Imports for Infrastructure Access">
 
-**Varity manages these credentials automatically. Only use this if you need custom configuration.**
+For apps that need direct access to chain configuration, blockchain services, thirdweb integration, or gas tracking, the SDK provides subpath imports. These are separate from the main entry point and are primarily used by the UI Kit and CLI internally.
 
-For power users who need lower-level access to Varity's infrastructure, the SDK provides subpath imports:
+### Chains (`@varity-labs/sdk/chains`)
 
-### Infrastructure Configuration
-
-Chain configuration and utilities are available via subpath imports:
+Chain definitions for Varity L3, Arbitrum, and Base networks, plus USDC formatting utilities.
 
 ```typescript
-// Infrastructure configuration (not in main entry)
-import { varityL3Testnet, formatUSDC, parseUSDC } from '@varity-labs/sdk/chains';
+import {
+  varityL3,
+  varityL3Testnet,
+  formatUSDC,
+  parseUSDC,
+  formatAddress,
+  getVarityExplorerUrl,
+  USDC_DECIMALS,
+  VARITY_USDC_ADDRESS,
+  SUPPORTED_CHAINS,
+} from '@varity-labs/sdk/chains';
+
+// Format a raw USDC amount (6 decimals) for display
+const display = formatUSDC(BigInt(1500000)); // "1.50"
+
+// Parse a human-readable amount to raw
+const raw = parseUSDC('25.00'); // BigInt(25000000)
+
+// Get an explorer URL
+const url = getVarityExplorerUrl('0xabc...');
 ```
 
-### Contract Interaction
+### Blockchain Services (`@varity-labs/sdk/blockchain`)
+
+Direct blockchain interaction services for licensing and revenue splits.
 
 ```typescript
-import { createThirdwebClient, getContract, readContract } from 'thirdweb';
-import { varityL3Testnet } from '@varity-labs/sdk/chains';
-
-const client = createThirdwebClient({
-  clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID,
-});
-
-const contract = getContract({
-  client,
-  chain: varityL3Testnet,
-  address: '0x58618dcD2A4109854441B74a28C1dA4E58d7AF44', // TemplateMarketplace
-});
-
-const priceRaw = await readContract({
-  contract,
-  method: 'function getPrice(uint256) view returns (uint256)',
-  params: [BigInt('1')],
-});
+import {
+  BlockchainService,
+  NFTLicensingService,
+  RevenueSplitService,
+} from '@varity-labs/sdk/blockchain';
 ```
 
-### Engine Client
+### Thirdweb Integration (`@varity-labs/sdk/thirdweb`)
 
-| Client | Purpose |
-|--------|---------|
-| `EngineClient` | Production operation management |
-| `NebulaClient` | AI-powered interactions |
-| `StorageClient` | File storage |
-| `BridgeClient` | Cross-chain transfers |
-| `GatewayClient` | RPC infrastructure |
+Wrappers around thirdweb services including Engine, Nebula, Storage, Bridge, Gateway, and x402.
 
 ```typescript
-import { createEngineClient } from '@varity-labs/sdk';
-
-const engine = createEngineClient({
-  engineUrl: process.env.THIRDWEB_ENGINE_URL,
-  accessToken: process.env.THIRDWEB_ACCESS_TOKEN,
-  backendWallet: process.env.BACKEND_WALLET_ADDRESS,
-});
-
-const result = await engine.sendTransaction({
-  chainId: 33529,
-  to: contractAddress,
-  data: txData,
-});
+import {
+  createThirdwebWrapper,
+  createEngineClient,
+  createNebulaClient,
+  createStorageClient,
+  varietyTestnet,
+  getVarityChain,
+  isVarityChain,
+  VARITY_TESTNET_RPC,
+} from '@varity-labs/sdk/thirdweb';
 ```
+
+### Gas Tracking (`@varity-labs/sdk/tracking`)
+
+Track gas usage, calculate costs in USDC, and manage billing cycles.
+
+```typescript
+import {
+  trackGasUsage,
+  trackTransactionGasUsage,
+  waitForTransactionReceipt,
+  calculateGasInUSDC,
+  createGasTracker,
+} from '@varity-labs/sdk/tracking';
+```
+
+</Accordion>
+
+<Accordion title="What about createVaritySDK and the class-based SDK?">
+
+You may see references to a class-based SDK pattern (`createVaritySDK`, `sdk.connect()`, `sdk.storage`, `sdk.analytics`, etc.) in older code or documentation. This v1 API exists in the SDK source code but is **currently commented out** and not exported from the package.
+
+The current SDK (v2.0.0-alpha.1) uses a modular approach:
+- **Database**: Use the `db` singleton or create a `Database` instance directly
+- **Credentials**: Use the standalone credential functions
+- **Infrastructure**: Use subpath imports (`/chains`, `/blockchain`, `/thirdweb`, `/tracking`)
+
+The class-based API may be re-enabled in a future release once the underlying infrastructure is fully set up.
 
 </Accordion>
 
@@ -260,7 +251,7 @@ const result = await engine.sendTransaction({
     [View Guide](/packages/sdk/installation)
   </Card>
   <Card title="Infrastructure Config" icon="seti:config">
-    Learn about Varity's infrastructure and configuration.
+    Learn about chain configuration and utilities.
     [View Guide](/packages/sdk/chains)
   </Card>
 </CardGrid>
