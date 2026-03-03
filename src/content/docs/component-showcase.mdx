@@ -1,6 +1,6 @@
 ---
 title: Component Showcase
-description: Visual showcase of all Varity docs UI components
+description: Live examples of all Varity documentation components including CodeBlock, Callout, Tabs, StepHike, Card, and Accordion elements.
 ---
 
 import CodeBlock from '../../components/CodeBlock.astro'
@@ -27,20 +27,15 @@ Enhanced code blocks with copy buttons and file names.
 <CodeBlock
   lang="typescript"
   filename="lib/varity.ts"
-  code={`import { createClient } from '@varity-labs/sdk'
+  code={`import { db } from '@varity-labs/sdk'
 
-export const varity = createClient(
-  process.env.VARITY_URL!,
-  process.env.VARITY_KEY!
-)
+// Query data from a collection
+const result = await db.collection('documents').get()
 
-// Query data
-const { data, error } = await varity.storage.list('documents')
-
-if (error) {
-  console.error('Error:', error.message)
+if (!result.success) {
+  console.error('Error:', result.error)
 } else {
-  console.log('Files:', data)
+  console.log('Documents:', result.data)
 }`}
 />
 
@@ -61,8 +56,8 @@ Four semantic types for different message priorities.
 </Callout>
 
 <Callout type="warning" title="Breaking change in v2.0">
-  The `createClient()` function signature has changed. Update your code
-  to use the new format: `createClient(url, apiKey, options)`.
+  The SDK now uses a modular pattern. Use `db` for database operations
+  and standalone functions for credentials instead of a client instance.
 </Callout>
 
 <Callout type="danger" title="Security warning">
@@ -74,17 +69,18 @@ Four semantic types for different message priorities.
 ### Collapsible Callout
 
 <Callout type="tip" title="Advanced usage" collapsible={true} defaultOpen={false}>
-  You can pass additional options to customize the SDK behavior:
+  You can pass additional options to customize the database:
 
   ```typescript
-  const varity = createClient(url, key, {
-    network: 'ethereum',
-    timeout: 5000,
-    retries: 3
+  import { Database } from '@varity-labs/sdk'
+
+  const customDb = new Database({
+    proxyUrl: 'https://your-proxy.example.com',
+    appToken: 'your-app-token',
   })
   ```
 
-  See the [SDK Configuration Guide](/docs/packages/sdk/configuration) for all options.
+  See the [SDK Overview](/packages/sdk/overview) for all options.
 </Callout>
 
 ---
@@ -97,15 +93,14 @@ Multi-language code examples with keyboard navigation.
   <TabPanel id="js" label="JavaScript">
     ```js
     // JavaScript example
-    const { data, error } = await varity.auth.login({
-      email: 'user@example.com',
-      password: 'secure-password'
-    })
+    import { db } from '@varity-labs/sdk'
 
-    if (error) {
-      console.error('Login failed:', error.message)
+    const result = await db.collection('users').get()
+
+    if (!result.success) {
+      console.error('Query failed:', result.error)
     } else {
-      console.log('Logged in as:', data.user.email)
+      console.log('Users:', result.data)
     }
     ```
   </TabPanel>
@@ -113,33 +108,35 @@ Multi-language code examples with keyboard navigation.
   <TabPanel id="ts" label="TypeScript">
     ```typescript
     // TypeScript example with types
-    import type { LoginResult } from '@varity-labs/sdk'
+    import { db } from '@varity-labs/sdk'
+    import type { CollectionResponse } from '@varity-labs/sdk'
 
-    const { data, error }: LoginResult = await varity.auth.login({
-      email: 'user@example.com',
-      password: 'secure-password'
-    })
+    const result: CollectionResponse<{ email: string }> =
+      await db.collection('users').get()
 
-    if (error) {
-      console.error('Login failed:', error.message)
+    if (!result.success) {
+      console.error('Query failed:', result.error)
     } else {
-      console.log('Logged in as:', data.user.email)
+      console.log('Users:', result.data)
     }
     ```
   </TabPanel>
 
   <TabPanel id="py" label="Python">
     ```python
-    # Python example
-    result = varity.auth.login(
-        email='user@example.com',
-        password='secure-password'
+    # Python example (CLI)
+    # Use varitykit CLI for Python workflows
+    import subprocess
+
+    result = subprocess.run(
+        ['varitykit', 'app', 'deploy'],
+        capture_output=True, text=True
     )
 
-    if result.error:
-        print(f'Login failed: {result.error.message}')
+    if result.returncode != 0:
+        print(f'Deploy failed: {result.stderr}')
     else:
-        print(f'Logged in as: {result.data.user.email}')
+        print(f'Deployed: {result.stdout}')
     ```
   </TabPanel>
 </Tabs>
@@ -288,73 +285,47 @@ Collapsible content for advanced/optional sections.
   3. **Paymaster** (`0x579772Bfa5Ec1e8f33B81F304ffDbC55135db154`) sponsors usage fees
   4. **User operations** are bundled and executed efficiently
 
-  ```typescript
-  // Create a smart account
-  const account = await varity.accounts.create({
-    owner: privyUser.wallet.address
-  })
+  Smart accounts are created automatically when a user signs in through Privy.
+  Varity handles all the complexity behind the scenes -- developers just use
+  the `usePrivy` hook from `@varity-labs/ui-kit`.
 
-  // Grant session key for specific action
-  await account.grantSessionKey({
-    target: '0x...',
-    selector: '0x...',
-    validUntil: Date.now() + 3600000 // 1 hour
-  })
-  ```
-
-  [Learn more about smart accounts →](/docs/build/wallets/quickstart)
+  [Learn more about smart accounts](/docs/build/wallets/quickstart)
 </Accordion>
 
 ### Example Variant
 
 <Accordion title="Example: Complete authentication flow" variant="example" defaultOpen={true}>
-  Here's a complete example showing email login, session handling, and logout:
+  Here's a complete example showing login, user state, and logout using Privy:
 
-  ```typescript
-  import { createClient } from '@varity-labs/sdk'
+  ```tsx
+  import { PrivyStack, PrivyLoginButton, usePrivy } from '@varity-labs/ui-kit'
 
-  const varity = createClient(
-    process.env.VARITY_URL!,
-    process.env.VARITY_KEY!
-  )
+  // Wrap your app with PrivyStack
+  function App() {
+    return (
+      <PrivyStack appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID}>
+        <AuthExample />
+      </PrivyStack>
+    )
+  }
 
-  // Login
-  async function login(email: string, password: string) {
-    const { data, error } = await varity.auth.login({ email, password })
+  // Use the usePrivy hook for auth state
+  function AuthExample() {
+    const { ready, authenticated, user, logout } = usePrivy()
 
-    if (error) {
-      throw new Error(`Login failed: ${error.message}`)
+    if (!ready) return <p>Loading...</p>
+
+    if (!authenticated) {
+      return <PrivyLoginButton />
     }
 
-    // Session is automatically stored in cookies
-    console.log('User:', data.user.email)
-    console.log('Session expires:', data.session.expiresAt)
-
-    return data
+    return (
+      <div>
+        <p>Logged in as: {user?.email?.address}</p>
+        <button onClick={logout}>Log out</button>
+      </div>
+    )
   }
-
-  // Check session
-  async function getUser() {
-    const { data, error } = await varity.auth.getUser()
-
-    if (error || !data) {
-      return null
-    }
-
-    return data.user
-  }
-
-  // Logout
-  async function logout() {
-    await varity.auth.logout()
-    console.log('Logged out')
-  }
-
-  // Usage
-  await login('user@example.com', 'secure-password')
-  const user = await getUser()
-  console.log('Current user:', user?.email)
-  await logout()
   ```
 </Accordion>
 
@@ -402,11 +373,11 @@ Collapsible content for advanced/optional sections.
 
 <div class="api-card">
   <div class="api-card-header">
-    <code class="api-card-method">varity.auth.login()</code>
+    <code class="api-card-method">db.collection(name).get()</code>
     <span class="api-card-badge">async</span>
   </div>
   <p class="api-card-description">
-    Authenticate a user with email and password. Returns user data and session information.
+    Query all documents in a collection. Returns a CollectionResponse with success status and data.
   </p>
 </div>
 
@@ -476,25 +447,20 @@ Here's how components work together in a real docs page:
   </TabPanel>
 </Tabs>
 
-<Accordion title="🔧 Advanced: Custom configuration" variant="advanced">
-  For production deployments, you may want to customize the SDK configuration:
+<Accordion title="Advanced: Custom database configuration" variant="advanced">
+  For production deployments, you may want to customize the database configuration:
 
   ```typescript
-  const varity = createClient(url, key, {
-    // Network settings
-    network: 'ethereum',
-    chainId: 1,
+  import { Database } from '@varity-labs/sdk'
 
-    // Timeout settings
-    timeout: 10000,
-    retries: 3,
-
-    // Cache settings
-    cache: {
-      enabled: true,
-      ttl: 300
-    }
+  const customDb = new Database({
+    proxyUrl: 'https://your-proxy.example.com',
+    appToken: 'your-app-token',
   })
+
+  // Use the custom database instance
+  const users = customDb.collection('users')
+  const result = await users.get({ limit: 10 })
   ```
 </Accordion>
 

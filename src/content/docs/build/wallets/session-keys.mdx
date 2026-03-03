@@ -1,6 +1,6 @@
 ---
 title: Session Keys
-description: Planned support for session keys and delegated permissions
+description: Planned Varity feature for session keys with scoped permissions, batch operations, and time-limited access. Current status and roadmap.
 ---
 
 import { Aside } from '@astrojs/starlight/components';
@@ -93,9 +93,10 @@ The following is a preview of the planned session key API. This API is subject t
 
 ```tsx
 // PLANNED -- NOT YET AVAILABLE
-// This shows the intended API shape for session keys
+// This shows the intended API shape for session keys.
+// useSmartWallet is not currently exported from @varity-labs/ui-kit.
 
-import { useSmartWallet } from '@varity-labs/ui-kit';
+// import { useSmartWallet } from '@varity-labs/ui-kit';
 
 function SessionExample() {
   const { createSessionKey, revokeSessionKey } = useSmartWallet();

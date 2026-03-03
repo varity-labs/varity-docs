@@ -52,6 +52,34 @@ export default defineConfig({
           },
         },
         {
+          tag: "meta",
+          attrs: {
+            property: "og:type",
+            content: "website",
+          },
+        },
+        {
+          tag: "meta",
+          attrs: {
+            property: "og:site_name",
+            content: "Varity Docs",
+          },
+        },
+        {
+          tag: "meta",
+          attrs: {
+            name: "twitter:card",
+            content: "summary",
+          },
+        },
+        {
+          tag: "meta",
+          attrs: {
+            name: "twitter:site",
+            content: "@VarityHQ",
+          },
+        },
+        {
           tag: "link",
           attrs: {
             rel: "icon",

@@ -1,6 +1,6 @@
 ---
 title: "@varity-labs/types Overview"
-description: "TypeScript type definitions for building type-safe applications with Varity"
+description: "Install @varity-labs/types for TypeScript auto-completion and compile-time validation across all Varity SDK and UI Kit APIs."
 ---
 
 import { Tabs, TabItem, Aside, Card, CardGrid } from '@astrojs/starlight/components';
@@ -128,23 +128,21 @@ import {
 
 ### Varity L3 Chain Types
 
-Types for interacting with the Varity L3 network:
+Types for interacting with the Varity L3 network are currently available via the SDK subpath import rather than the types package:
 
 ```typescript
-import type {
-  VarityChain,              // Chain configuration
-  VarityWalletConfig,       // Wallet setup options
-  VarityDeploymentResult,   // Contract deployment result
-  USDCAmount,               // USDC with 6 decimals
-} from '@varity-labs/types';
-
+// Chain types and USDC utilities are available from the SDK:
 import {
-  VARITY_L3_TESTNET,  // Chain constants
-  USDC_DECIMALS,      // Always 6
-  formatUSDC,         // Convert raw to readable
-  parseUSDC,          // Convert readable to raw
-} from '@varity-labs/types';
+  varityL3Testnet,
+  USDC_DECIMALS,
+  formatUSDC,
+  parseUSDC,
+} from '@varity-labs/sdk/chains';
 ```
+
+<Aside type="note">
+The types package contains the source definitions for `VarityChain`, `VarityWalletConfig`, `VarityDeploymentResult`, `USDCAmount`, `formatUSDC`, `parseUSDC`, and `USDC_DECIMALS` in its thirdweb module, but these are not currently exported from the package entry point. Use `@varity-labs/sdk/chains` for USDC utilities.
+</Aside>
 
 ## USDC Amount Handling
 
@@ -153,7 +151,7 @@ import {
 </Aside>
 
 ```typescript
-import { formatUSDC, parseUSDC, USDC_DECIMALS } from '@varity-labs/types';
+import { formatUSDC, parseUSDC, USDC_DECIMALS } from '@varity-labs/sdk/chains';
 
 // Convert human-readable to raw (for transactions)
 const amount = parseUSDC("10.50");
@@ -196,34 +194,34 @@ Runtime type validation with TypeScript inference:
 
 ```typescript
 import {
-  isVarityChain,
-  isSIWEMessage,
   isAWSSignatureV4Credentials,
   isGCSServiceAccount,
 } from '@varity-labs/types';
 
-// Validate configuration at runtime
-if (isVarityChain(config)) {
-  // TypeScript knows config is VarityChain
-  console.log(config.nativeCurrency.decimals); // 6
+// Validate AWS credentials at runtime
+if (isAWSSignatureV4Credentials(creds)) {
+  // TypeScript knows creds has accessKeyId, secretAccessKey, region
+  console.log(creds.accessKeyId);
 }
 
-// Validate SIWE authentication
-if (isSIWEMessage(payload)) {
-  // TypeScript knows payload is SIWEMessage
-  console.log(payload.address, payload.chainId);
+// Validate GCS service account
+if (isGCSServiceAccount(account)) {
+  // TypeScript knows account has project_id, client_email, etc.
+  console.log(account.project_id);
 }
 ```
+
+<Aside type="note">
+`isVarityChain` and `isSIWEMessage` type guards exist in the types source but are not currently exported from the package entry point. They are planned for a future release.
+</Aside>
 
 ## Package Constants
 
 ```typescript
-import { VERSION, PACKAGE_NAME, SUPPORTED_STORAGE_BACKENDS } from '@varity-labs/types';
+import { VERSION, PACKAGE_NAME } from '@varity-labs/types';
 
-console.log(VERSION);  // "1.0.0"
+console.log(VERSION);  // "2.0.0-alpha.1"
 console.log(PACKAGE_NAME);  // "@varity-labs/types"
-console.log(SUPPORTED_STORAGE_BACKENDS);
-// ["filecoin-ipfs", "celestia", "s3-compatible", "gcs-compatible", "multi-tier"]
 ```
 
 ## Next Steps
