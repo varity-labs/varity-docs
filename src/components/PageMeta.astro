@@ -37,103 +37,91 @@ const stabilityBg = {
 
 <div class="page-meta">
   {author && (
-    <div class="meta-item author">
+    <span class="meta-item author">
       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
         <circle cx="12" cy="7" r="4"/>
       </svg>
-      <span class="meta-label">
-        <strong>{author}</strong>
-        {authorRole && <span class="author-role">{authorRole}</span>}
-      </span>
-    </div>
+      <strong>{author}</strong>
+      {authorRole && <span class="author-role">{authorRole}</span>}
+    </span>
   )}
 
   {lastUpdated && (
-    <div class="meta-item updated">
+    <span class="meta-item updated">
       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="12" cy="12" r="10"/>
         <polyline points="12 6 12 12 16 14"/>
       </svg>
-      <span class="meta-label">Updated {lastUpdated}</span>
-    </div>
+      Updated {lastUpdated}
+    </span>
   )}
 
   {version && (
-    <div class="meta-item version">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
-      </svg>
-      <span
-        class="version-badge"
-        style={`color: ${stabilityColors[stability]}; background: ${stabilityBg[stability]};`}
-      >
-        v{version} ({stability})
-      </span>
-    </div>
+    <span
+      class="version-badge"
+      style={`color: ${stabilityColors[stability]}; background: ${stabilityBg[stability]};`}
+    >
+      v{version} ({stability})
+    </span>
   )}
 </div>
 
 <style>
   .page-meta {
     display: flex;
-    flex-wrap: wrap;  /* Allow wrapping on overflow */
-    gap: var(--space-3);  /* Smaller gap for compact layout */
-    padding: var(--space-3) 0;
-    margin-bottom: var(--space-4);
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 0;
+    margin-bottom: 1rem;
     border-bottom: 1px solid var(--border-secondary);
-    font-size: 0.8125rem;  /* Slightly smaller */
+    font-size: 0.8125rem;
+    overflow-x: auto;
   }
 
   .meta-item {
-    display: inline-flex;  /* Inline-flex for proper baseline alignment */
-    align-items: baseline;  /* Baseline alignment - all text on same line */
-    gap: var(--space-2);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
     color: var(--text-tertiary);
-    vertical-align: baseline;  /* Ensure vertical alignment */
+    white-space: nowrap;
   }
 
   .meta-item svg {
     flex-shrink: 0;
     opacity: 0.7;
-    vertical-align: middle;  /* Align icons with text */
-    margin-top: 2px;  /* Fine-tune icon alignment */
+    width: 16px;
+    height: 16px;
   }
 
-  .meta-label {
-    display: inline;  /* Inline to prevent wrapping */
-    white-space: nowrap;  /* No wrapping within label */
-  }
-
-  .meta-label strong {
+  .meta-item strong {
     color: var(--text-secondary);
     font-weight: 500;
   }
 
   .author-role {
     color: var(--text-muted);
-    margin-left: var(--space-1);
-    display: inline;  /* Inline, no wrapping */
   }
 
   .author-role::before {
-    content: '·';
-    margin-right: var(--space-1);
+    content: ' · ';
   }
 
   .version-badge {
+    display: inline-block;
     padding: 0.15em 0.5em;
     border-radius: var(--radius-sm);
     font-size: 0.75rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.03em;
+    white-space: nowrap;
   }
 
   @media (max-width: 48rem) {
     .page-meta {
-      flex-direction: column;
-      gap: var(--space-2);
+      flex-wrap: wrap;
     }
   }
 </style>
