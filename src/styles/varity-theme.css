@@ -648,7 +648,9 @@ html[data-has-hero] .sl-markdown-content h2 {
 }
 
 html[data-has-hero] .sl-markdown-content .sl-heading-wrapper .sl-anchor-link {
-  display: none;
+  position: absolute;
+  right: -1.5em;
+  margin-inline-start: 0;
 }
 
 /* Card grids on homepage - centered */
