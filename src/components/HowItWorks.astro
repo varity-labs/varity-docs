@@ -40,9 +40,9 @@ const steps = [
           </div>
           {i < steps.length - 1 && <div class="connector connector-right" />}
         </div>
-        <h3 class="step-title">{step.title}</h3>
-        <p class="step-desc">{step.description}</p>
-        <code class="step-code">{step.code}</code>
+        <div class="step-title">{step.title}</div>
+        <div class="step-desc">{step.description}</div>
+        <div class="step-code">{step.code}</div>
       </div>
     ))}
   </div>
@@ -137,6 +137,7 @@ const steps = [
   .step-code {
     display: inline-block;
     font-family: var(--sl-font-mono, 'JetBrains Mono', monospace);
+    box-sizing: border-box;
     font-size: 0.8125rem;
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(63, 63, 70, 0.5);
