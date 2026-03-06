@@ -509,8 +509,8 @@ i {
 
 /* ----- LAYOUT CSS CUSTOM PROPERTIES ----- */
 :root {
-  /* TOC width - narrower, more professional */
-  --sl-toc-width: 11rem;  /* 176px - narrower like Supabase */
+  /* TOC width - wider to prevent heading wrapping */
+  --sl-toc-width: 14rem;  /* 224px - Supabase standard */
   /* Homepage content max width */
   --varity-homepage-max: 68rem;
 }
@@ -817,7 +817,7 @@ header.header {
 /* Sidebar section titles (uppercase labels) */
 nav.sidebar .top-level > li > details > summary:first-child,
 nav.sidebar .group-label {
-  font-size: 0.625rem;  /* 10px - smaller, less prominent */
+  font-size: 0.6875rem;  /* 11px - WCAG AA compliant */
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -1341,7 +1341,7 @@ site-search kbd {
   color: var(--text-muted);
   opacity: 0;
   transition: opacity var(--transition-fast);
-  margin-left: var(--space-3);  /* More space to prevent overlap */
+  margin-left: var(--space-4);  /* 16px - prevent text overlap */
   display: inline-block;
   width: 1.25rem;  /* Fixed width for consistent spacing */
   text-align: center;
