@@ -98,8 +98,10 @@ export default function RootLayout({ children }) {
 import { PrivyLoginButton, usePrivy } from '@varity-labs/ui-kit';
 
 export function LoginButton() {
+  // Get authentication state from Privy
   const { user, authenticated, logout } = usePrivy();
 
+  // Show user info and logout button when authenticated
   if (authenticated) {
     return (
       <div>
@@ -109,6 +111,8 @@ export function LoginButton() {
     );
   }
 
+  // Show login button when not authenticated
+  // Opens modal with email, Google, Twitter, Discord, GitHub options
   return <PrivyLoginButton />;
 }
 ```

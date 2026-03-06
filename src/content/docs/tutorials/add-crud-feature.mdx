@@ -81,41 +81,53 @@ import { notes } from './database';
 import type { Note } from '../types';
 
 export function useNotes() {
+  // Component state
   const [data, setData] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Fetch all notes from database
   const refresh = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const result = await notes().get();
+      const result = await notes().get();  // Get all notes (no server-side filtering)
       setData(result as Note[]);
     } catch (err) {
+      // Handle errors gracefully
       setError(err instanceof Error ? err.message : 'Failed to load notes');
+      console.error('Failed to load notes:', err);
     } finally {
       setLoading(false);
     }
   }, []);
 
+  // Load notes on component mount
   useEffect(() => { refresh(); }, [refresh]);
 
+  // Create note with optimistic UI update
   const create = async (input: Omit<Note, 'id' | 'createdAt' | 'updatedAt'>) => {
     const now = new Date().toISOString();
+    // Create temporary note for instant UI feedback
     const optimistic: Note = {
       ...input,
-      id: `temp-${Date.now()}`,
+      id: `temp-${Date.now()}`,  // Temporary ID (will be replaced by real ID)
       createdAt: now,
       updatedAt: now,
     };
+    // Add to UI immediately (before database confirms)
     setData(prev => [optimistic, ...prev]);
 
     try {
+      // Save to database
       await notes().add({ ...input, createdAt: now, updatedAt: now });
+      // Refresh to get real ID from server
       await refresh();
     } catch (err) {
+      // Rollback on error - remove the optimistic item
       setData(prev => prev.filter(n => n.id !== optimistic.id));
-      throw err;
+      console.error('Failed to create note:', err);
+      throw err;  // Re-throw so UI can show error message
     }
   };
 

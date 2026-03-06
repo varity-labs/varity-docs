@@ -105,7 +105,7 @@ Add email, social, and wallet login to your app. Users can sign in without insta
 
 </Steps>
 
-That's it. Users can now sign in with email or social accounts.
+Users can now sign in with email or social accounts.
 
 ## How It Works
 
@@ -128,18 +128,33 @@ import { usePrivy } from '@varity-labs/ui-kit';
 function Profile() {
   const { user, authenticated } = usePrivy();
 
+  // Always check authentication status first
   if (!authenticated) {
     return <p>Please sign in</p>;
   }
 
   return (
     <div>
+      {/* Email address (if user signed in with email) */}
       <p>Email: {user?.email?.address}</p>
+
+      {/* Auto-generated wallet address (always available) */}
       <p>Wallet: {user?.wallet?.address}</p>
+
+      {/* Authentication method (email, google, twitter, etc.) */}
       <p>Auth method: {user?.linkedAccounts?.[0]?.type}</p>
     </div>
   );
 }
+
+// Expected user object structure:
+// {
+//   id: "did:privy:...",
+//   email: { address: "user@example.com" },
+//   wallet: { address: "0x1234..." },
+//   linkedAccounts: [{ type: "email", ... }],
+//   createdAt: Date
+// }
 ```
 
 ## User Object

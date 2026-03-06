@@ -71,15 +71,30 @@
   --radius-sm: 4px;
   --radius-md: 6px;
   --radius-lg: 8px;
+  --radius-xl: 0.75rem;    /* 12px */
+  --radius-2xl: 1rem;      /* 16px */
+  --radius-full: 9999px;   /* pills, avatars */
 
   /* ----- TRANSITIONS ----- */
+  --duration-fast: 150ms;
+  --duration-base: 200ms;
+  --duration-slow: 300ms;
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
   --transition-fast: 150ms ease;
   --transition-base: 200ms ease;
+  --transition-colors: color var(--duration-base) var(--ease-in-out),
+                       background-color var(--duration-base) var(--ease-in-out),
+                       border-color var(--duration-base) var(--ease-in-out);
+  --transition-transform: transform var(--duration-base) var(--ease-out);
+  --transition-all: all var(--duration-base) var(--ease-in-out);
 
   /* ----- SHADOWS ----- */
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.25), 0 4px 6px -4px rgba(0, 0, 0, 0.15);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   --shadow-glow: 0 0 30px rgba(20, 184, 166, 0.15);
 
   /* ----- TYPOGRAPHY SCALE ----- */
@@ -94,9 +109,12 @@
   --text-5xl: 3rem;        /* 48px */
 
   /* Line heights */
+  --leading-none: 1;
   --leading-tight: 1.2;
+  --leading-snug: 1.375;
   --leading-normal: 1.5;
   --leading-relaxed: 1.65;
+  --leading-loose: 1.75;
 
   /* Letter spacing */
   --tracking-tighter: -0.03em;
@@ -133,9 +151,9 @@
   --sl-line-height-headings: var(--leading-tight);
 
   /* ----- COLORS: BACKGROUND ----- */
-  --sl-color-bg: var(--gray-950);
+  --sl-color-bg: #0f0f0f;  /* was #09090b */
   --sl-color-bg-nav: rgba(9, 9, 11, 0.85);
-  --sl-color-bg-sidebar: #0c0c0e;
+  --sl-color-bg-sidebar: #171717;  /* was #0c0c0e */
   --sl-color-bg-inline-code: rgba(39, 39, 42, 0.6);
 
   /* ----- COLORS: TEXT ----- */
@@ -170,14 +188,44 @@
   --sl-outline-focus: 2px solid var(--color-brand);
 
   /* ----- LAYOUT ----- */
-  --sl-content-width: 52rem;
-  --sl-sidebar-width: 16rem;
+  --header-height: 64px;
+  --sl-content-width: 48rem;  /* 768px - optimal reading width */
+  --sl-sidebar-width: 16.25rem;  /* 260px */
   --sl-content-pad-x: 1.5rem;
 
   --text-primary: var(--gray-50);
   --text-secondary: var(--gray-400);
   --text-tertiary: var(--gray-500);
   --text-muted: var(--gray-600);
+}
+
+/* ========================================
+   SECTION 3: LIGHT MODE COLOR PALETTE
+   Optional light theme support
+   ======================================== */
+[data-theme="light"] {
+  /* Backgrounds */
+  --color-bg-base: #ffffff;
+  --color-bg-surface: #f9fafb;
+  --color-bg-elevated: #ffffff;
+  --color-bg-hover: #f3f4f6;
+  --color-bg-active: #e5e7eb;
+
+  /* Borders */
+  --color-border-default: #e5e7eb;
+  --color-border-subtle: #f3f4f6;
+  --color-border-emphasis: #d1d5db;
+
+  /* Text */
+  --color-text-primary: #111827;
+  --color-text-secondary: #4b5563;
+  --color-text-tertiary: #6b7280;
+  --color-text-disabled: #9ca3af;
+
+  /* Code */
+  --color-code-bg: #f3f4f6;
+  --color-code-border: #e5e7eb;
+  --color-inline-code-bg: #f3f4f6;
 }
 
 
@@ -320,11 +368,10 @@ i {
   font-family: var(--sl-font-mono);
   font-size: 0.875em;
   font-weight: var(--font-medium);
-  color: var(--color-brand-light);
-  background: var(--sl-color-bg-inline-code);
-  padding: 0.15em 0.4em;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-secondary);
+  color: #fafafa;
+  background: #262626;
+  padding: 0.125em 0.375rem;
+  border-radius: 0.25rem;
 }
 
 /* ----- SELECTION ----- */
@@ -460,7 +507,7 @@ i {
 /* ----- LAYOUT CSS CUSTOM PROPERTIES ----- */
 :root {
   /* TOC width - narrower than default sidebar */
-  --sl-toc-width: 13rem;
+  --sl-toc-width: 13.75rem;  /* 220px */
   /* Homepage content max width */
   --varity-homepage-max: 68rem;
 }
@@ -652,6 +699,13 @@ html[data-has-sidebar] .sl-markdown-content :is(pre, table, .expressive-code, .c
   border-left-color: var(--color-brand);
 }
 
+/* TOC focus states for keyboard navigation */
+.right-sidebar-panel a:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
 /* Nested TOC items - indented */
 .right-sidebar-panel ul ul a {
   padding-left: 1.25rem;
@@ -757,6 +811,17 @@ header.header {
   padding-top: var(--space-4);
 }
 
+/* Sidebar section titles (uppercase labels) */
+nav.sidebar .top-level > li > details > summary:first-child,
+nav.sidebar .group-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #525252;
+  padding: 0.5rem 1rem 0.375rem;
+}
+
 /* Sidebar group labels */
 nav.sidebar .top-level > li > details > summary,
 nav.sidebar .top-level > li > a {
@@ -765,7 +830,7 @@ nav.sidebar .top-level > li > a {
   color: var(--text-secondary);
   padding: var(--space-2) var(--space-4);
   border-radius: var(--radius-md);
-  transition: all var(--transition-fast);
+  transition: var(--transition-colors);
 }
 
 /* Sidebar nested items */
@@ -775,7 +840,7 @@ nav.sidebar ul ul a {
   color: var(--text-tertiary);
   padding: var(--space-2) var(--space-4) var(--space-2) var(--space-6);
   border-radius: var(--radius-md);
-  transition: all var(--transition-fast);
+  transition: var(--transition-colors);
 }
 
 /* Sidebar hover states */
@@ -785,11 +850,12 @@ nav.sidebar summary:hover {
   color: var(--text-primary);
 }
 
-/* Active sidebar item - brand color indicator */
+/* Active sidebar item - teal brand color indicator */
 nav.sidebar a[aria-current="page"] {
   background: var(--color-brand-subtle);
   color: var(--color-brand-light);
   position: relative;
+  font-weight: var(--font-medium);
 }
 
 nav.sidebar a[aria-current="page"]::before {
@@ -802,6 +868,14 @@ nav.sidebar a[aria-current="page"]::before {
   height: 60%;
   background: var(--color-brand);
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+/* Sidebar focus states for keyboard navigation */
+nav.sidebar a:focus-visible,
+nav.sidebar summary:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+  border-radius: var(--radius-md);
 }
 
 /* ========================================
@@ -891,6 +965,11 @@ article.card .body {
   opacity: 1;
 }
 
+.sl-link-card:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+}
+
 .sl-link-card .title {
   font-weight: var(--font-semibold);
   color: var(--text-primary);
@@ -921,7 +1000,7 @@ article.card .body {
    ======================================== */
 
 .expressive-code {
-  --ec-codeBg: #0d0d0f;
+  --ec-codeBg: #0a0a0a;
   --ec-codeFg: var(--gray-200);
   --ec-codeBorder: var(--border-primary);
   --ec-brdRad: var(--radius-lg);
@@ -1058,7 +1137,7 @@ tr:last-child td {
 }
 
 tr:hover td {
-  background: var(--color-brand-muted);
+  background: #262626;
 }
 
 /* ========================================
@@ -1158,6 +1237,11 @@ tr:hover td {
   border-color: var(--border-primary);
 }
 
+.sl-link-button:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 3px;
+}
+
 /* ========================================
    SECTION 20: BADGES
    Status and label badges
@@ -1213,6 +1297,11 @@ tr:hover td {
   background: rgba(255, 255, 255, 0.04);
   border-color: rgba(20, 184, 166, 0.3);
   transform: translateY(-1px);
+}
+
+.pagination-links a:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
 }
 
 /* ========================================

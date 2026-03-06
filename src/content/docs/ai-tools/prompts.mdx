@@ -44,6 +44,175 @@ Copy these prompts into your AI assistant to build Varity apps faster. Each prom
 
 ---
 
+## Example Prompts for Building with Varity
+
+These ready-to-use prompts help you build specific features. Copy them into ChatGPT, Claude, or Cursor to get started quickly.
+
+### Create a SaaS Dashboard
+
+```
+I'm building a SaaS app with Varity. I need:
+- A dashboard layout with sidebar navigation
+- User authentication (email + Google login)
+- Protected routes that redirect unauthenticated users to /login
+- A user profile page showing email and account info
+
+Use @varity-labs/sdk for the database and @varity-labs/ui-kit for auth components.
+```
+
+**Expected result:** A complete dashboard setup with PrivyStack authentication and protected routes.
+
+---
+
+### Add a Database Collection
+
+```
+Add a "customers" collection to my Varity app with these fields:
+- name (string)
+- email (string)
+- plan (one of: 'free', 'pro', 'enterprise')
+- createdAt (ISO date string)
+
+Include:
+1. TypeScript interface in src/types/index.ts
+2. Collection accessor in src/lib/database.ts
+3. React hook with CRUD operations and optimistic updates
+4. A simple page component to list and create customers
+```
+
+**Expected result:** Full CRUD implementation following the Type → Collection → Hook → Page pattern.
+
+---
+
+### Add Payment Processing
+
+```
+Integrate payments into my Varity app:
+- Add a "Pro" pricing tier at $29/month
+- Show an upgrade button on the dashboard
+- Use the Varity App Store for payment processing
+- Handle the 90/10 revenue split automatically
+
+Include instructions for submitting to the App Store.
+```
+
+**Expected result:** Payment configuration and App Store submission guide.
+
+---
+
+### Build a File Upload Feature
+
+```
+Add file upload to my Varity app:
+- Users can upload images and PDFs
+- Files are stored securely
+- Display uploaded files in a gallery
+- Include download and delete functionality
+
+Use @varity-labs/sdk storage API.
+```
+
+**Expected result:** Complete file upload/download implementation with UI components.
+
+---
+
+### Add Real-Time Notifications
+
+```
+Add a notification system to my Varity dashboard:
+- Toast notifications for success/error messages
+- Notification bell icon with unread count
+- Store notifications in the database
+- Mark as read functionality
+
+Use optimistic updates for instant UI feedback.
+```
+
+**Expected result:** Notification system with database persistence and real-time UI updates.
+
+---
+
+### Create a Multi-Step Form
+
+```
+Build a 3-step onboarding form for my Varity app:
+1. User profile (name, company)
+2. Plan selection (free, pro, enterprise)
+3. Team invites (email list)
+
+Store the data in the database and show a completion page.
+Use Varity's database API for persistence.
+```
+
+**Expected result:** Multi-step form with state management and database integration.
+
+---
+
+### Add Search and Filtering
+
+```
+Add search and filter capabilities to my projects page:
+- Search by project name and description
+- Filter by status (active, paused, completed)
+- Filter by owner (show "My Projects" vs "All Projects")
+- Client-side filtering since Varity db.get() returns all documents
+
+Keep the UI responsive with optimistic updates.
+```
+
+**Expected result:** Search input and filter dropdowns with client-side data filtering.
+
+---
+
+### Customize the SaaS Template
+
+```
+Customize the Varity SaaS Starter template:
+- Change app name to "TaskFlow"
+- Update primary color to purple (#8b5cf6)
+- Replace the Projects feature with a "Workflows" feature
+- Keep the same database pattern (Type → Collection → Hook → Page)
+
+Update all branding in src/lib/constants.ts and src/app/globals.css.
+```
+
+**Expected result:** Rebranded template with custom feature replacing Projects.
+
+---
+
+### Deploy and Go Live
+
+```
+Deploy my Varity app to production:
+- Build the Next.js static export
+- Deploy using varitykit CLI
+- Submit to the Varity App Store
+- Set up a free tier and $19/month pro tier
+
+Provide the exact commands and configuration needed.
+```
+
+**Expected result:** Step-by-step deployment commands and App Store configuration.
+
+---
+
+### Add Analytics Dashboard
+
+```
+Build an analytics dashboard for my Varity app:
+- Total users count
+- Active projects count
+- Tasks completed this week
+- Revenue chart (if using paid tiers)
+
+Fetch data from the database and display using charts.
+Include responsive design for mobile.
+```
+
+**Expected result:** Analytics page with data visualizations and responsive layout.
+
+---
+
 ## Varity App Development (Full Context)
 
 This is the comprehensive prompt. It covers everything: SDK, database, auth, deployment, and template patterns. Use this as your `.cursor/rules/varity.mdc` or `CLAUDE.md`.

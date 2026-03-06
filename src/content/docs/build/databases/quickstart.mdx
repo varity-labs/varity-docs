@@ -80,7 +80,7 @@ Each call to `db.collection<T>('name')` returns a typed collection with full CRU
 import { projects } from './database';
 
 // Insert a single document
-await projects().add({
+const newProject = await projects().add({
   name: 'My Project',
   description: 'A new project',
   status: 'active',
@@ -89,6 +89,18 @@ await projects().add({
   dueDate: '2026-03-01',
   createdAt: new Date().toISOString(),
 });
+
+// Expected output:
+// {
+//   id: "550e8400-e29b-41d4-a716-446655440000",  // Auto-generated ID
+//   name: "My Project",
+//   description: "A new project",
+//   status: "active",
+//   owner: "user@example.com",
+//   members: ["user@example.com"],
+//   dueDate: "2026-03-01",
+//   createdAt: "2026-03-05T14:23:11.000Z"
+// }
 ```
 
 ### Query Documents
@@ -96,21 +108,30 @@ await projects().add({
 ```typescript
 // Get all documents in a collection
 const allProjects = await projects().get();
+// Returns: Array of all project documents
 
-// Get with pagination
-const page1 = await projects().get({ limit: 10, offset: 0 });
-const page2 = await projects().get({ limit: 10, offset: 10 });
+// Get with pagination (useful for large datasets)
+const page1 = await projects().get({ limit: 10, offset: 0 });   // First 10 items
+const page2 = await projects().get({ limit: 10, offset: 10 });  // Next 10 items
 
 // Get with ordering (prefix with - for descending)
 const newest = await projects().get({ orderBy: '-createdAt' });
+// Returns: Projects sorted by creation date, newest first
 ```
 
 **Filtering:** The `.get()` method returns all documents. Filter on the client side:
 
 ```typescript
+// Fetch all projects first
 const allProjects = await projects().get();
+
+// Filter by status
 const activeProjects = allProjects.filter(p => p.status === 'active');
+// Returns: Only projects with status === 'active'
+
+// Filter tasks by project ID (relational filtering)
 const projectTasks = (await tasks().get()).filter(t => t.projectId === 'proj-123');
+// Returns: Only tasks belonging to project 'proj-123'
 ```
 
 ### Update Documents
@@ -137,7 +158,7 @@ await projects().delete('proj-123');
 
 ## Build a React Hook
 
-The recommended pattern is to wrap database operations in a custom React hook. This gives you loading states, error handling, and optimistic UI updates:
+The recommended pattern is to wrap database operations in a custom React hook. This provides loading states, error handling, and optimistic UI updates:
 
 ```typescript title="src/lib/hooks.ts"
 'use client';
@@ -159,29 +180,38 @@ export function useProjects() {
       const result = await projects().get();
       setData(result as Project[]);
     } catch (err) {
+      // Proper error handling with fallback message
       setError(err instanceof Error ? err.message : 'Failed to load');
+      console.error('Failed to load projects:', err);
     } finally {
+      // Always set loading to false, even on error
       setLoading(false);
     }
   }, []);
 
   useEffect(() => { refresh(); }, [refresh]);
 
-  // Create with optimistic UI
+  // Create with optimistic UI (instantly show new item before server confirms)
   const create = async (input: Omit<Project, 'id' | 'createdAt'>) => {
+    // Generate temporary ID for optimistic update
     const optimistic: Project = {
       ...input,
       id: `temp-${Date.now()}`,
       createdAt: new Date().toISOString(),
     };
+    // Add to UI immediately
     setData(prev => [optimistic, ...prev]);
 
     try {
+      // Save to database
       await projects().add({ ...input, createdAt: optimistic.createdAt });
-      await refresh(); // Refresh to get real ID
+      // Refresh to get real ID from server
+      await refresh();
     } catch (err) {
-      setData(prev => prev.filter(p => p.id !== optimistic.id)); // Rollback
-      throw err;
+      // Rollback on failure - remove the optimistic item
+      setData(prev => prev.filter(p => p.id !== optimistic.id));
+      console.error('Failed to create project:', err);
+      throw err; // Re-throw so UI can show error
     }
   };
 
