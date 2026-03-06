@@ -3,8 +3,7 @@
  * HowItWorks Component
  *
  * Visual 3-step flow: Install → Build → Deploy.
- * Numbered teal circles with connecting lines.
- * Uses simple flexbox with fixed heights for cross-column alignment.
+ * Rendered as horizontal rows (not columns) to guarantee alignment.
  */
 
 const steps = [
@@ -29,20 +28,39 @@ const steps = [
 ]
 ---
 
-<div class="how-it-works">
-  <div class="steps-row">
+<div class="how-it-works not-content">
+  {/* Row 1: Circles with connectors */}
+  <div class="row row-circles">
     {steps.map((step, i) => (
-      <div class="step-col">
-        <div class="step-top">
-          {i > 0 && <div class="connector connector-left" />}
-          <div class="step-circle">
-            <span>{step.number}</span>
-          </div>
-          {i < steps.length - 1 && <div class="connector connector-right" />}
+      <div class="cell cell-circle">
+        {i > 0 && <div class="connector connector-left" />}
+        <div class="circle">
+          <span>{step.number}</span>
         </div>
-        <div class="step-title">{step.title}</div>
-        <div class="step-desc">{step.description}</div>
-        <div class="step-code">{step.code}</div>
+        {i < steps.length - 1 && <div class="connector connector-right" />}
+      </div>
+    ))}
+  </div>
+
+  {/* Row 2: Titles */}
+  <div class="row row-titles">
+    {steps.map((step) => (
+      <div class="cell cell-title">{step.title}</div>
+    ))}
+  </div>
+
+  {/* Row 3: Descriptions */}
+  <div class="row row-descs">
+    {steps.map((step) => (
+      <div class="cell cell-desc">{step.description}</div>
+    ))}
+  </div>
+
+  {/* Row 4: Code snippets */}
+  <div class="row row-codes">
+    {steps.map((step) => (
+      <div class="cell cell-code-wrapper">
+        <span class="cell-code">{step.code}</span>
       </div>
     ))}
   </div>
@@ -53,32 +71,31 @@ const steps = [
     margin: 2.5rem 0;
   }
 
-  .steps-row {
+  /* Every row is a simple 3-column flex — items MUST align */
+  .row {
     display: flex;
     gap: 2rem;
   }
 
-  .step-col {
+  .cell {
     flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
     text-align: center;
   }
 
-  /* Circle row — fixed height so all circles align */
-  .step-top {
+  /* Row 1: Circles */
+  .row-circles {
+    margin-bottom: 12px;
+  }
+
+  .cell-circle {
     position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 100%;
     height: 48px;
-    margin-bottom: 12px;
-    flex-shrink: 0;
   }
 
-  .step-circle {
+  .circle {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -112,32 +129,37 @@ const steps = [
     right: 0;
   }
 
-  /* Title — fixed height so descriptions start at same level */
-  .step-title {
+  /* Row 2: Titles */
+  .row-titles {
+    margin-bottom: 4px;
+  }
+
+  .cell-title {
     font-size: 1.125rem;
     font-weight: 600;
     color: #fafafa;
-    margin: 0 0 4px 0;
-    height: 1.5em;
-    display: flex;
-    align-items: center;
-    flex-shrink: 0;
   }
 
-  /* Description — flex: 1 pushes code to bottom */
-  .step-desc {
+  /* Row 3: Descriptions */
+  .row-descs {
+    margin-bottom: 12px;
+  }
+
+  .cell-desc {
     font-size: 0.9375rem;
     color: #a1a1aa;
     line-height: 1.6;
-    margin: 0 0 12px 0;
-    flex: 1;
   }
 
-  /* Code — anchored at bottom by flex: 1 on desc */
-  .step-code {
+  /* Row 4: Code */
+  .cell-code-wrapper {
+    display: flex;
+    justify-content: center;
+  }
+
+  .cell-code {
     display: inline-block;
     font-family: var(--sl-font-mono, 'JetBrains Mono', monospace);
-    box-sizing: border-box;
     font-size: 0.8125rem;
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(63, 63, 70, 0.5);
@@ -145,42 +167,71 @@ const steps = [
     padding: 8px 12px;
     color: #14b8a6;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 100%;
-    flex-shrink: 0;
   }
 
   /* Light mode */
-  :global([data-theme="light"]) .step-title {
+  :global([data-theme="light"]) .cell-title {
     color: #18181b;
   }
 
-  :global([data-theme="light"]) .step-desc {
+  :global([data-theme="light"]) .cell-desc {
     color: #52525b;
   }
 
-  :global([data-theme="light"]) .step-code {
+  :global([data-theme="light"]) .cell-code {
     background: rgba(0, 0, 0, 0.03);
     border-color: rgba(0, 0, 0, 0.1);
   }
 
+  /* Mobile: stack vertically */
   @media (max-width: 48rem) {
-    .steps-row {
+    .how-it-works {
+      display: flex;
       flex-direction: column;
+      align-items: center;
       gap: 2rem;
     }
 
-    .connector {
+    .row {
       display: none;
     }
+  }
+</style>
 
-    .step-desc {
-      flex: 0;
+{/* Mobile: column layout per step (only visible on small screens) */}
+<div class="how-it-works-mobile">
+  {steps.map((step) => (
+    <div class="mobile-step">
+      <div class="circle">
+        <span>{step.number}</span>
+      </div>
+      <div class="cell-title">{step.title}</div>
+      <div class="cell-desc">{step.description}</div>
+      <span class="cell-code">{step.code}</span>
+    </div>
+  ))}
+</div>
+
+<style>
+  .how-it-works-mobile {
+    display: none;
+  }
+
+  @media (max-width: 48rem) {
+    .how-it-works-mobile {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2rem;
+      margin: 2.5rem 0;
     }
 
-    .step-title {
-      height: auto;
+    .mobile-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 8px;
     }
   }
 </style>
