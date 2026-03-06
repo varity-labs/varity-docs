@@ -10,7 +10,7 @@ import PageMeta from '../../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="February 2026"
+  lastUpdated="March 2026"
   stability="stable"
 />
 
@@ -18,7 +18,7 @@ A React component library that handles authentication, payments, and account man
 
 ## What It Does
 
-- **Authentication:** Email, Google, Twitter, Discord, and GitHub login with no wallet popups
+- **Authentication:** Email, Google, Twitter, Discord, and GitHub login with no extra prompts
 - **Payments:** Accept payments through the App Store and in-app widgets
 - **Account Management:** Automatic account creation and session handling
 - **Free Operations:** Users never pay usage fees
@@ -52,7 +52,7 @@ That's it. Users can now sign in with email or social accounts.
 
 <CardGrid>
   <Card title="PrivyStack" icon="rocket">
-    All-in-one provider that sets up authentication, wallet management, and chain configuration. Wrap your app with this once.
+    All-in-one provider that sets up authentication and account management. Wrap your app with this once.
   </Card>
   <Card title="PrivyLoginButton" icon="user">
     Pre-built login button that opens the authentication modal. Supports email, Google, Twitter, Discord, and more.
@@ -98,7 +98,7 @@ When a user signs in with email or social login:
 
 | Behind the Scenes | What User Sees |
 |-------------------|----------------|
-| Smart account created | "Signed in successfully" |
+| Account created | "Signed in successfully" |
 | Account linked to profile | User profile with email |
 | Ready for operations | Can use your app immediately |
 
@@ -111,7 +111,7 @@ Users never see technical details or extra prompts unless you choose to show the
 | Export | Description |
 |--------|-------------|
 | `PrivyStack` | All-in-one provider (recommended) |
-| `VarityPrivyProvider` | Privy authentication with Wagmi |
+| `VarityPrivyProvider` | Authentication provider with Wagmi |
 | `VarityDashboardProvider` | Dashboard-specific provider setup |
 
 ### Components
@@ -129,7 +129,7 @@ Users never see technical details or extra prompts unless you choose to show the
 
 | Export | Description |
 |--------|-------------|
-| `usePrivy` | Core Privy authentication (re-exported) |
+| `usePrivy` | Core authentication hook (re-exported) |
 | `useLogin` | Trigger login programmatically |
 | `useLogout` | Trigger logout programmatically |
 
@@ -141,7 +141,7 @@ These exports provide lower-level access for advanced use cases. All are current
 
 | Export | Description |
 |--------|-------------|
-| `useWallets` | Access all connected accounts (re-exported from Privy) |
+| `useWallets` | Access all connected accounts (re-exported) |
 | `useToast` | Show toast notifications (success, error, info) |
 | `useTheme` | Access current theme and presets from ThemeProvider |
 | `useVarityPayment` | Payment state and actions for in-app purchases |

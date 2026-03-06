@@ -1,6 +1,6 @@
 ---
 title: "Authentication Quick Start"
-description: "Add email, social, and wallet login to your Varity app in 5 minutes with PrivyStack. Supports magic links, Google, GitHub, and Discord."
+description: "Add authentication to your Varity app in 5 minutes. Email magic links, Google, GitHub, Discord, and more."
 ---
 
 import { Steps, Tabs, TabItem, Aside } from '@astrojs/starlight/components';
@@ -9,21 +9,21 @@ import PageMeta from '../../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="February 2026"
+  lastUpdated="March 2026"
   stability="stable"
 />
 
-Add email, social, and wallet login to your app. Users can sign in without installing browser extensions or understanding cryptocurrency.
+Add authentication to your app in under 5 minutes. No configuration required for development.
 
-## What You Get
+## What you get
 
-- **Email login** - Magic link, no passwords
-- **Social login** - Google, Twitter, Discord, GitHub
-- **Browser wallet login** (optional)
-- **Automatic accounts** - Smart wallets created automatically
-- **Session management** - Handled for you
+- **Email login** — passwordless magic links
+- **Social login** — Google, Twitter, Discord, GitHub
+- **Automatic accounts** — created on first sign-in
+- **Session management** — persistent sessions, handled for you
+- **Protected routes** — restrict pages to signed-in users
 
-## Installation
+## Install
 
 <Tabs>
   <TabItem label="npm">
@@ -47,7 +47,9 @@ Add email, social, and wallet login to your app. Users can sign in without insta
 
 <Steps>
 
-1. **Wrap your app with PrivyStack**
+1. **Wrap your app with the auth provider**
+
+   Add `PrivyStack` to your root layout. This provides authentication context to your entire app.
 
    ```tsx title="app/layout.tsx"
    import { PrivyStack } from '@varity-labs/ui-kit';
@@ -56,10 +58,6 @@ Add email, social, and wallet login to your app. Users can sign in without insta
      return (
        <html>
          <body>
-           {/*
-             PrivyStack uses shared dev credentials by default.
-             Add your own appId for production.
-           */}
            <PrivyStack appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID}>
              {children}
            </PrivyStack>
@@ -69,7 +67,13 @@ Add email, social, and wallet login to your app. Users can sign in without insta
    }
    ```
 
+   <Aside type="tip">
+   **No API keys needed for development.** Shared development credentials are used automatically. Add your own `NEXT_PUBLIC_PRIVY_APP_ID` before going to production.
+   </Aside>
+
 2. **Add a login button**
+
+   Use `PrivyLoginButton` to render a ready-made sign-in button. Use the `usePrivy()` hook to check auth state and sign users out.
 
    ```tsx title="components/Header.tsx"
    import { PrivyLoginButton, usePrivy } from '@varity-labs/ui-kit';
@@ -91,6 +95,8 @@ Add email, social, and wallet login to your app. Users can sign in without insta
 
 3. **Protect routes**
 
+   Wrap any page with `PrivyProtectedRoute`. Unauthenticated users are automatically redirected to sign in.
+
    ```tsx title="app/dashboard/page.tsx"
    import { PrivyProtectedRoute } from '@varity-labs/ui-kit';
 
@@ -105,22 +111,11 @@ Add email, social, and wallet login to your app. Users can sign in without insta
 
 </Steps>
 
-Users can now sign in with email or social accounts.
+That's it. Users can now sign in with email or social accounts.
 
-## How It Works
+## Access user data
 
-1. **User clicks "Sign In"** - Opens modal with login options
-2. **User authenticates** - Email code, Google, Twitter, etc.
-3. **Account created** - Smart wallet generated automatically
-4. **Session started** - User is logged in and ready
-
-Users never see wallet addresses or transaction confirmations unless you choose to show them.
-
-<Aside type="tip">
-**No API keys needed for development.** PrivyStack uses shared development credentials automatically. Add your own keys before production.
-</Aside>
-
-## Access User Data
+Use the `usePrivy()` hook anywhere in your app to read the current user.
 
 ```tsx
 import { usePrivy } from '@varity-labs/ui-kit';
@@ -128,50 +123,31 @@ import { usePrivy } from '@varity-labs/ui-kit';
 function Profile() {
   const { user, authenticated } = usePrivy();
 
-  // Always check authentication status first
   if (!authenticated) {
     return <p>Please sign in</p>;
   }
 
   return (
     <div>
-      {/* Email address (if user signed in with email) */}
       <p>Email: {user?.email?.address}</p>
-
-      {/* Auto-generated wallet address (always available) */}
-      <p>Wallet: {user?.wallet?.address}</p>
-
-      {/* Authentication method (email, google, twitter, etc.) */}
-      <p>Auth method: {user?.linkedAccounts?.[0]?.type}</p>
+      <p>Signed in via: {user?.linkedAccounts?.[0]?.type}</p>
     </div>
   );
 }
-
-// Expected user object structure:
-// {
-//   id: "did:privy:...",
-//   email: { address: "user@example.com" },
-//   wallet: { address: "0x1234..." },
-//   linkedAccounts: [{ type: "email", ... }],
-//   createdAt: Date
-// }
 ```
 
-## User Object
-
-The `user` object contains:
+### User object reference
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `id` | `string` | Unique user ID |
-| `email` | `object` | Email address if provided |
-| `wallet` | `object` | Auto-generated wallet |
-| `linkedAccounts` | `array` | All linked accounts |
-| `createdAt` | `Date` | Account creation date |
+| `id` | `string` | Unique user identifier |
+| `email` | `object` | Email address (`user.email.address`) |
+| `linkedAccounts` | `array` | All linked login methods (email, Google, etc.) |
+| `createdAt` | `Date` | When the account was created |
 
-## Next Steps
+## Next steps
 
-- [Email Login](/build/auth/email-login) - Deep dive into email auth
-- [Social Login](/build/auth/social-login) - Google, Twitter, Discord
-- [Protected Routes](/packages/ui-kit/components#privyprotectedroute) - Route protection
-- [Storage Guide](/build/storage/quickstart) - Upload and retrieve files
+- [Email Login](/build/auth/email-login) — configure magic link options
+- [Social Login](/build/auth/social-login) — Google, Twitter, Discord setup
+- [Protected Routes](/packages/ui-kit/components#privyprotectedroute) — route protection API
+- [Storage Guide](/build/storage/quickstart) — upload and retrieve files

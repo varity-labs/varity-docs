@@ -150,18 +150,18 @@ Perfect for quickstart guides with 5-6 numbered steps.
 <StepHikeCompact>
   <StepHikeCompactStep step={1}>
     <StepHikeCompactDetails title="Create a Varity account">
-      Go to [dashboard.varity.dev](https://dashboard.varity.dev) and sign up for free.
+      Go to [developer.store.varity.so](https://developer.store.varity.so) and sign up for free.
       No credit card required.
     </StepHikeCompactDetails>
   </StepHikeCompactStep>
 
   <StepHikeCompactStep step={2}>
     <StepHikeCompactDetails title="Install the Varity CLI">
-      Install `varitykit` globally using npm.
+      Install `varitykit` globally using pip.
     </StepHikeCompactDetails>
     <StepHikeCompactCode>
       ```bash
-      npm install -g @varity-labs/cli
+      pip install varitykit
       ```
     </StepHikeCompactCode>
   </StepHikeCompactStep>
@@ -191,12 +191,12 @@ Perfect for quickstart guides with 5-6 numbered steps.
 
   <StepHikeCompactStep step={5}>
     <StepHikeCompactDetails title="View your live app">
-      Varity will output your deployment URL. Your app is now live on Varity L3!
+      Varity will output your deployment URL. Your app is now live on the Varity platform!
 
       ```
       ✓ Deployed: https://my-app.varity.app
       ✓ Build time: 1m 23s
-      ✓ Free tier: 1,000 requests/month
+      ✓ See pricing at varity.so
       ```
     </StepHikeCompactDetails>
   </StepHikeCompactStep>
@@ -215,7 +215,7 @@ Feature showcases and navigation grids.
     icon="🔐"
     title="End-to-End Encryption"
     description="Your data is encrypted at rest and in transit with zero-knowledge architecture."
-    href="/docs/build/encryption"
+    href="/build/storage/quickstart"
     cta="Learn more"
   />
 
@@ -223,14 +223,14 @@ Feature showcases and navigation grids.
     icon="⚡"
     title="Lightning Fast"
     description="Deploy apps in under 2 minutes with automatic scaling and optimization."
-    href="/docs/deploy/quickstart"
+    href="/deploy/deploy-your-app"
   />
 
   <Card
     icon="💰"
     title="70% Cheaper"
     description="Save thousands compared to AWS with transparent, usage-based pricing."
-    href="/pricing"
+    href="/build/payments/quickstart"
   />
 </div>
 
@@ -241,14 +241,14 @@ Feature showcases and navigation grids.
     icon="🎨"
     title="UI Components"
     description="42+ pre-built React components with seamless integration out of the box."
-    href="/docs/packages/ui-kit/components"
+    href="/packages/ui-kit/components"
   />
 
   <Card
     icon="🔧"
     title="Developer Tools"
     description="CLI, SDK, and browser extensions for seamless development workflow."
-    href="/docs/cli/overview"
+    href="/cli/overview"
   />
 </div>
 
@@ -285,22 +285,22 @@ Collapsible content for advanced/optional sections.
   3. **Paymaster** (`0x579772Bfa5Ec1e8f33B81F304ffDbC55135db154`) sponsors usage fees
   4. **User operations** are bundled and executed efficiently
 
-  Smart accounts are created automatically when a user signs in through Privy.
+  Smart accounts are created automatically when a user signs in.
   Varity handles all the complexity behind the scenes -- developers just use
   the `usePrivy` hook from `@varity-labs/ui-kit`.
 
-  [Learn more about smart accounts](/docs/build/wallets/quickstart)
+  [Learn more about smart accounts](/build/wallets/quickstart)
 </Accordion>
 
 ### Example Variant
 
 <Accordion title="Example: Complete authentication flow" variant="example" defaultOpen={true}>
-  Here's a complete example showing login, user state, and logout using Privy:
+  Here's a complete example showing login, user state, and logout:
 
   ```tsx
   import { PrivyStack, PrivyLoginButton, usePrivy } from '@varity-labs/ui-kit'
 
-  // Wrap your app with PrivyStack
+  // Set up auth provider
   function App() {
     return (
       <PrivyStack appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID}>
@@ -309,7 +309,7 @@ Collapsible content for advanced/optional sections.
     )
   }
 
-  // Use the usePrivy hook for auth state
+  // Use the auth hook for state
   function AuthExample() {
     const { ready, authenticated, user, logout } = usePrivy()
 
@@ -473,13 +473,13 @@ Here's how components work together in a real docs page:
     icon="📚"
     title="Read Component Documentation"
     description="Learn how to use each component in your docs pages."
-    href="/COMPONENT_LIBRARY.md"
+    href="/packages/ui-kit/overview"
   />
 
   <Card
     icon="✍️"
     title="Start Writing Content"
     description="Use these components to create world-class documentation."
-    href="/docs/getting-started/quickstart"
+    href="/getting-started/quickstart"
   />
 </div>

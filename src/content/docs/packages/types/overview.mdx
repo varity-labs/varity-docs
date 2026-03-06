@@ -9,7 +9,7 @@ import PageMeta from '../../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="February 2026"
+  lastUpdated="March 2026"
   stability="stable"
 />
 
@@ -159,7 +159,7 @@ const amount = parseUSDC("10.50");
 
 // Convert raw to human-readable (for display)
 const display = formatUSDC(10500000n);
-// Returns: { raw: 10500000n, formatted: "10.50 USDC", value: 10.5, decimals: 6 }
+// Returns: "10.50" (string)
 
 // Always use the constant for decimals
 const scale = 10 ** USDC_DECIMALS; // 1,000,000

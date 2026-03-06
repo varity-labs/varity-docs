@@ -9,7 +9,7 @@ import PageMeta from '../../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="February 2026"
+  lastUpdated="March 2026"
   stability="stable"
 />
 
@@ -39,12 +39,11 @@ The doctor command performs 20+ checks:
 | Variable | Status |
 |----------|--------|
 | `THIRDWEB_CLIENT_ID` | Auto-provided (or set your own) |
-| `AKASH_WALLET_KEY` | Required for Akash deployments |
-| `WALLET_PRIVATE_KEY` | Required for contract deployments |
+| `VARITY_API_KEY` | Auto-provided via credential proxy |
 
 ### Network Connectivity
 
-- Varity L3 RPC connection
+- Varity platform connection
 - Storage API access
 - Storage gateway access
 
@@ -67,11 +66,10 @@ Checking system requirements...
 
 Checking environment variables...
   ✓ Credentials: Auto-provided
-  ✗ AKASH_WALLET_KEY: Not set (required for Akash deployments)
-  ✗ WALLET_PRIVATE_KEY: Not set (required for contract deployments)
+  ✓ Deployment credentials: Managed by Varity
 
 Checking network connectivity...
-  ✓ Varity L3 RPC: Connected
+  ✓ Varity platform: Connected
   ✓ Storage API: Accessible
   ✓ Storage Gateway: Accessible
 
@@ -81,12 +79,10 @@ Checking project structure...
   ✓ Dependencies: Installed
 
 Summary:
-  ✓ 10 checks passed
-  ✗ 2 checks failed
+  ✓ 12 checks passed
+  ✗ 0 checks failed
 
-Some features may not work:
-  - Akash deployments require AKASH_WALLET_KEY
-  - Contract deployments require WALLET_PRIVATE_KEY
+All checks passed! Your environment is ready.
 
 Run with --verbose for more details.
 ```
@@ -95,9 +91,12 @@ Run with --verbose for more details.
 
 | Option | Description |
 |--------|-------------|
-| `--verbose` | Show detailed output for each check |
-| `--json` | Output results as JSON |
-| `--fix` | Attempt to fix common issues |
+| `--fix` | Attempt to auto-fix common issues |
+| `--full` | Run full diagnostics including all infrastructure checks |
+
+<Aside type="note">
+`--verbose` and `--json` are global options available on all `varitykit` commands, not specific to `doctor`.
+</Aside>
 
 ## Exit Codes
 
@@ -125,11 +124,12 @@ sudo apt install -y nodejs
 
 ### Missing Environment Variables
 
-Storage and authentication credentials are auto-provided by Varity. For other variables, create a `.env` file in your project root:
+Storage, authentication, and deployment credentials are auto-provided by Varity's credential proxy. No manual credential setup is required.
 
-```bash title=".env"
-AKASH_WALLET_KEY=your_wallet_key
-WALLET_PRIVATE_KEY=your_private_key
+If you need to override the default app ID, create a `.env.local` file in your project root:
+
+```bash title=".env.local"
+NEXT_PUBLIC_VARITY_APP_ID=your-app-id
 ```
 
 ### Docker Not Running
@@ -163,7 +163,7 @@ Output:
   "checks": [
     {"name": "python_version", "status": "pass", "value": "3.11.0"},
     {"name": "node_version", "status": "pass", "value": "20.0.0"},
-    {"name": "akash_wallet_key", "status": "fail", "message": "Not set"}
+    {"name": "deploy_credentials", "status": "pass", "value": "managed"}
   ]
 }
 ```

@@ -9,7 +9,7 @@ import PageMeta from '../../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="February 2026"
+  lastUpdated="March 2026"
   stability="beta"
 />
 
@@ -47,10 +47,10 @@ Once credit card payments are available, add payment components directly in your
 
 ```tsx title="components/UpgradeButton.tsx"
 import { PaymentWidget } from '@varity-labs/ui-kit';
-import { usePrivy } from '@varity-labs/ui-kit';
+import { useAuth } from '@varity-labs/ui-kit';
 
 export function UpgradeButton() {
-  const { user } = usePrivy();
+  const { user } = useAuth();
 
   if (!user) {
     return <p>Please log in to upgrade</p>;
@@ -58,13 +58,15 @@ export function UpgradeButton() {
 
   return (
     <PaymentWidget
-      appId={process.env.NEXT_PUBLIC_VARITY_APP_ID}
-      amount={50}
-      buttonText="Upgrade to Pro - $50"
-      onSuccess={(result) => {
-        console.log('Upgrade complete!', result);
+      appId={123}
+      price={5000}
+      onSuccess={(txHash) => {
+        console.log('Upgrade complete!', txHash);
       }}
-    />
+      onError={(err) => console.error('Payment failed:', err)}
+    >
+      <button>Upgrade to Pro - $50.00</button>
+    </PaymentWidget>
   );
 }
 ```
@@ -75,11 +77,11 @@ For a complete payment experience:
 
 ```tsx title="pages/checkout.tsx"
 import { PaymentGate } from '@varity-labs/ui-kit';
-import { usePrivy } from '@varity-labs/ui-kit';
+import { useAuth } from '@varity-labs/ui-kit';
 import { useRouter } from 'next/navigation';
 
 export default function CheckoutPage() {
-  const { user, authenticated } = usePrivy();
+  const { user, authenticated } = useAuth();
   const router = useRouter();
 
   if (!authenticated) {
@@ -92,15 +94,20 @@ export default function CheckoutPage() {
       <h1 className="text-2xl font-bold mb-6">Upgrade Your Plan</h1>
 
       <PaymentGate
-        appId={process.env.NEXT_PUBLIC_VARITY_APP_ID}
-        amount={100}
-        tier="business"
-        onSuccess={(result) => {
-          if (result.status === 'completed') {
-            router.push('/dashboard?upgraded=true');
-          }
-        }}
-      />
+        appId={123}
+        price={10000}
+        fallback={
+          <div>
+            <p>Upgrade to Business for $100.00/month</p>
+            <p>Get access to premium features.</p>
+          </div>
+        }
+      >
+        <div>
+          <h2>Welcome, Business member!</h2>
+          <p>You have full access to all premium features.</p>
+        </div>
+      </PaymentGate>
     </div>
   );
 }

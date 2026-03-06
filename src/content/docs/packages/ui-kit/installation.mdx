@@ -1,6 +1,6 @@
 ---
 title: "@varity-labs/ui-kit Installation"
-description: "Install @varity-labs/ui-kit via npm, pnpm, or yarn. Includes peer dependencies, PrivyStack setup, and React 18+ configuration guide."
+description: "Install @varity-labs/ui-kit via npm, pnpm, or yarn. Includes peer dependencies, auth setup, and React 18+ configuration guide."
 ---
 
 import { Tabs, TabItem, Steps, Aside } from '@astrojs/starlight/components';
@@ -9,7 +9,7 @@ import PageMeta from '../../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="February 2026"
+  lastUpdated="March 2026"
   stability="stable"
 />
 
@@ -66,7 +66,7 @@ Just install the packages and start building. The UI Kit uses managed credential
 
 <Steps>
 
-1. **Wrap your app with PrivyStack**
+1. **Set up your auth provider**
 
    ```tsx title="app/layout.tsx"
    import { PrivyStack } from '@varity-labs/ui-kit';

@@ -204,6 +204,43 @@
    Optional light theme support
    ======================================== */
 [data-theme="light"] {
+  /* ----- STARLIGHT COLORS: BACKGROUND ----- */
+  --sl-color-bg: #ffffff;
+  --sl-color-bg-nav: rgba(255, 255, 255, 0.9);
+  --sl-color-bg-sidebar: #f9fafb;
+  --sl-color-bg-inline-code: rgba(229, 231, 235, 0.5);
+
+  /* ----- STARLIGHT COLORS: TEXT ----- */
+  --sl-color-text: #111827;
+  --sl-color-text-accent: var(--varity-brand-600);
+
+  /* ----- STARLIGHT COLORS: ACCENT ----- */
+  --sl-color-accent: var(--varity-brand-600);
+  --sl-color-accent-low: rgba(13, 148, 136, 0.1);
+  --sl-color-accent-high: var(--varity-brand-600);
+
+  /* ----- STARLIGHT COLORS: GRAYSCALE (inverted for light) ----- */
+  --sl-color-gray-1: #18181b;
+  --sl-color-gray-2: #3f3f46;
+  --sl-color-gray-3: #52525b;
+  --sl-color-gray-4: #71717a;
+  --sl-color-gray-5: #a1a1aa;
+  --sl-color-gray-6: #e4e4e7;
+  --sl-color-gray-7: #fafafa;
+
+  /* ----- STARLIGHT COLORS: BORDERS ----- */
+  --sl-color-hairline: rgba(209, 213, 219, 0.8);
+  --sl-color-hairline-light: rgba(229, 231, 235, 0.6);
+  --sl-color-hairline-shade: rgba(0, 0, 0, 0.06);
+
+  /* ----- CUSTOM ALIASES ----- */
+  --border-primary: var(--sl-color-hairline);
+  --border-secondary: var(--sl-color-hairline-light);
+  --text-primary: #111827;
+  --text-secondary: #4b5563;
+  --text-tertiary: #6b7280;
+  --text-muted: #9ca3af;
+
   /* Backgrounds */
   --color-bg-base: #ffffff;
   --color-bg-surface: #f9fafb;
@@ -226,6 +263,10 @@
   --color-code-bg: #f3f4f6;
   --color-code-border: #e5e7eb;
   --color-inline-code-bg: #f3f4f6;
+
+  /* Brand subtle (lighter for light mode) */
+  --color-brand-subtle: rgba(13, 148, 136, 0.08);
+  --color-brand-muted: rgba(13, 148, 136, 0.04);
 }
 
 

@@ -1,6 +1,6 @@
 ---
 title: Create Account
-description: Varity auto-creates secure embedded wallets when users sign in via Privy. No seed phrases, no browser extensions, no manual setup required.
+description: Varity automatically creates secure accounts when users sign in. No manual setup required.
 ---
 
 import { Aside } from '@astrojs/starlight/components';
@@ -16,46 +16,17 @@ import PageMeta from '../../../../components/PageMeta.astro';
 
 # Create Account
 
-Accounts are created automatically when users authenticate through Privy. No manual wallet creation is needed.
+Accounts are created automatically when users sign in. No manual setup is needed.
 
 ## How Account Creation Works
 
-When a user signs in through `PrivyStack`, Privy automatically:
+When a user signs in through `PrivyStack`, Varity automatically:
 
-1. **Authenticates the user** via email, social login, or external wallet
-2. **Creates an embedded wallet** -- a secure wallet managed by Privy, linked to the user's identity
-3. **Stores the wallet** -- encrypted and recoverable, no seed phrases for users to manage
+1. **Authenticates the user** via email or social login
+2. **Creates a secure account** linked to the user's identity
+3. **Manages account credentials** -- encrypted and recoverable, nothing for users to remember
 
-Users never see wallet addresses, seed phrases, or any blockchain terminology.
-
-## Accessing the User's Wallet
-
-After authentication, use `useWallets` to access the embedded wallet:
-
-```tsx title="src/components/AccountInfo.tsx"
-import { usePrivy, useWallets } from '@varity-labs/ui-kit';
-
-function AccountInfo() {
-  const { authenticated, user, ready } = usePrivy();
-  const { wallets } = useWallets();
-
-  if (!ready) return <p>Loading...</p>;
-  if (!authenticated) return <p>Please sign in first</p>;
-
-  // The Privy embedded wallet is created automatically
-  const embeddedWallet = wallets.find(w => w.walletClientType === 'privy');
-
-  return (
-    <div>
-      <p>User ID: {user?.id}</p>
-      <p>Email: {user?.email?.address || 'Not provided'}</p>
-      {embeddedWallet && (
-        <p>Account Address: {embeddedWallet.address}</p>
-      )}
-    </div>
-  );
-}
-```
+Users see a familiar sign-in experience, just like any other modern app.
 
 ## Displaying User Profile
 
@@ -74,6 +45,29 @@ function ProfilePage() {
 }
 ```
 
+## Accessing User Info
+
+After authentication, use `usePrivy` to access the current user's details:
+
+```tsx title="src/components/AccountInfo.tsx"
+import { usePrivy } from '@varity-labs/ui-kit';
+
+function AccountInfo() {
+  const { authenticated, user, ready } = usePrivy();
+
+  if (!ready) return <p>Loading...</p>;
+  if (!authenticated) return <p>Please sign in first</p>;
+
+  return (
+    <div>
+      <p>User ID: {user?.id}</p>
+      <p>Email: {user?.email?.address || 'Not provided'}</p>
+      <p>Name: {user?.google?.name || user?.twitter?.name || 'Not provided'}</p>
+    </div>
+  );
+}
+```
+
 ## Authentication Methods
 
 Users can create accounts through any supported login method:
@@ -81,13 +75,12 @@ Users can create accounts through any supported login method:
 | Method | Description |
 |--------|-------------|
 | **Email** | Magic link sent to email, no password needed |
-| **Google** | OAuth login via Google account |
-| **Twitter** | OAuth login via Twitter/X account |
-| **Discord** | OAuth login via Discord account |
-| **GitHub** | OAuth login via GitHub account |
-| **External wallet** | MetaMask, WalletConnect, etc. (optional) |
+| **Google** | Sign in via Google account |
+| **Twitter** | Sign in via Twitter/X account |
+| **Discord** | Sign in via Discord account |
+| **GitHub** | Sign in via GitHub account |
 
-All methods result in an embedded wallet being created automatically.
+All methods result in a secure account being created automatically.
 
 ## Checking Authentication State
 
@@ -121,15 +114,9 @@ function SignOutButton() {
 }
 ```
 
-<Accordion title="Advanced: Smart Account (Account Abstraction)">
+<Accordion title="Advanced: Account Infrastructure">
 
-The `@varity-labs/ui-kit` package contains a fully implemented `SmartWalletProvider` component (630+ lines) that wraps Privy embedded wallets with smart account (account abstraction) capabilities using thirdweb v5. This enables features like:
-
-- **Gasless transactions** -- Sponsored gas so users never pay fees
-- **Batch operations** -- Multiple transactions in a single user action
-- **Programmable accounts** -- Custom validation and execution logic
-
-**Current status:** The `SmartWalletProvider` and `useSmartWallet` hook exist in the UI Kit source code but are not yet exposed as public exports. They are being finalized for a future release. The Privy embedded wallet flow documented above is the current recommended approach.
+Varity automatically manages account infrastructure. For advanced use cases, see [Session Keys](/build/wallets/session-keys).
 
 </Accordion>
 

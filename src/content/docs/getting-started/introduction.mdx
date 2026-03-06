@@ -1,6 +1,6 @@
 ---
-title: Introduction to Varity
-description: Introduction to Varity, the developer platform for building, deploying, and monetizing apps. 70-85% cheaper than AWS with zero-config auth and database.
+title: Introduction
+description: Varity is a developer platform to build, deploy, and monetize apps — 70-85% cheaper than AWS, with auth, storage, and hosting included.
 ---
 
 import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
@@ -9,75 +9,60 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="February 7, 2026"
-  version="1.2.3"
-  stability="stable"
+  lastUpdated="March 2026"
+  version="2.0.0-beta"
+  stability="beta"
 />
 
-Varity is the easiest way to build, deploy, and monetize real-world applications. **No special infrastructure knowledge required.**
+Varity is a developer platform for building, deploying, and monetizing apps. Install two packages, run one command, and your app is live — with auth, storage, and hosting already configured.
 
 ```bash
 npm install @varity-labs/sdk @varity-labs/ui-kit
 varitykit deploy
 ```
 
-**That's it.** Your app is now running with:
-- Authentication (email, social login)
-- File storage (secure, globally distributed)
-- Payments (App Store monetization)
-- Free operations (users never pay usage fees)
+## Why Varity
 
-## What Makes Varity Different?
+| | AWS / GCP / Azure | Varity |
+|---|---|---|
+| **Cost** | $2,800/mo (100 users + AI) | ~$800/mo |
+| **Auth** | Configure Cognito / Auth0 | Included |
+| **Storage** | Configure S3 / GCS | Included |
+| **Hosting** | Configure EC2 / ECS / Vercel | Included (static + dynamic) |
+| **Payments** | Integrate Stripe | Coming soon |
+| **DevOps** | Docker, CI/CD, SSL, DNS | Zero config |
 
-### For Developers
-
-If you have built apps with React, Next.js, or any modern framework, you **already know how to use Varity**.
-
-- **Familiar login** - Users log in with email or social accounts
-- **No usage fees** - All operational costs are handled automatically
-- **Standard APIs** - Just familiar TypeScript APIs and React components
-- **70-85% cheaper** than AWS, GCP, or Azure
-
-### Seamless User Experience
-
-Your users experience a normal web app.
-
-- Login with email or Google (no extra prompts)
-- Pay with credit card (standard checkout)
-- Instant operations (no confirmation screens)
-- Works exactly like any other web app
-
-## Core Packages
+## What's Included
 
 <CardGrid>
   <Card title="@varity-labs/sdk" icon="rocket">
-    Core SDK with authentication, storage, payments, and configuration.
-    [View Package](/packages/sdk/overview)
+    Core SDK — auth, storage, payments, and app configuration.
+    [View SDK docs](/packages/sdk/overview)
   </Card>
   <Card title="@varity-labs/ui-kit" icon="puzzle">
-    React components for login, accounts, payments, and dashboards.
-    [View Package](/packages/ui-kit/overview)
+    React components — login, dashboards, account management.
+    [View UI Kit docs](/packages/ui-kit/overview)
   </Card>
   <Card title="@varity-labs/types" icon="document">
-    TypeScript type definitions for all Varity interfaces.
-    [View Package](/packages/types/overview)
+    TypeScript type definitions for all Varity APIs.
+    [View Types docs](/packages/types/overview)
   </Card>
-  <Card title="VarietyKit CLI" icon="terminal">
-    Command-line tool for deploying and managing your apps.
-    [View CLI](/cli/overview)
+  <Card title="VarityKit CLI" icon="terminal">
+    Deploy and manage apps from the command line.
+    [View CLI docs](/cli/overview)
   </Card>
 </CardGrid>
 
 ## Quick Example
 
-Here is how simple it is to add authentication to your React app:
+Add authentication to a React app in 5 lines:
 
 ```tsx
 import { PrivyStack, PrivyLoginButton } from '@varity-labs/ui-kit';
 
 function App() {
   return (
-    <PrivyStack appId={process.env.VARITY_APP_ID}>
+    <PrivyStack appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID}>
       <PrivyLoginButton />
       <YourApp />
     </PrivyStack>
@@ -85,38 +70,37 @@ function App() {
 }
 ```
 
-Users can now log in with:
-- Email (magic link)
-- Google, Twitter, Discord
-- GitHub
+Users log in with email, Google, GitHub, Twitter, or Discord. No extra configuration needed.
 
 ## Current Status
 
 :::note[Beta]
-Varity is currently in beta. Production launch is coming soon.
+Varity is in beta. Core features are live and stable. Production launch is planned for Q2 2026.
 :::
 
 **Available now:**
-- Authentication with Privy (email, social login)
+- Authentication (email, social login)
 - File storage (secure, globally distributed)
-- Free operations (users never pay usage fees)
+- Static app hosting (IPFS)
+- Dynamic app hosting (Akash)
 - App Store submission and listing
+- Free operations (users never pay usage fees)
+- VarityKit CLI with zero-config deploys
 
 **Coming soon:**
 - Credit card payments (post-beta)
-- Dynamic app hosting
-- Production environment
+- Usage analytics and billing dashboard
 
 ## Next Steps
 
 <LinkCard
   title="Quick Start"
-  description="Deploy your first app in 5 minutes"
+  description="Deploy your first app in 5 minutes."
   href="/getting-started/quickstart"
 />
 
 <LinkCard
   title="Installation"
-  description="Set up your development environment"
+  description="Set up your development environment."
   href="/getting-started/installation"
 />

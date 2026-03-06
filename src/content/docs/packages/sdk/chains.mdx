@@ -10,7 +10,7 @@ import PageMeta from '../../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="February 2026"
+  lastUpdated="March 2026"
   stability="stable"
 />
 
@@ -29,7 +29,7 @@ const amount = parseUSDC("10.50");
 
 // Convert raw to human-readable (for display)
 const display = formatUSDC(10500000n);
-// Returns: { raw: 10500000n, formatted: "10.50 USDC", value: 10.5, decimals: 6 }
+// Returns: "10.50" (string)
 
 // The decimal constant
 console.log(USDC_DECIMALS); // 6
@@ -55,7 +55,7 @@ The following contract addresses are pre-deployed on Varity's infrastructure:
 
 The platform uses a 90/10 revenue split:
 
-The revenue split is enforced by the `TemplateMarketplace` smart contract at `0x5EfAF2219F9957461125485Eae49Bac07505bB34`.
+The revenue split is enforced automatically by the platform.
 
 When users purchase your app:
 - **90%** goes to you (the developer)
@@ -140,5 +140,5 @@ const config = createConfig({
 ## Next Steps
 
 - [SDK Overview](/packages/sdk/overview) - Full SDK capabilities
-- [Deploy Your App](/deploy/varity-l3) - Deploy your app
+- [Deploy Your App](/deploy/deploy-your-app) - Deploy your app
 - [Free Operations](/build/payments/gasless) - How fee sponsorship works

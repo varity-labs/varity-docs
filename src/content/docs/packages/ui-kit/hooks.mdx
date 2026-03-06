@@ -1,6 +1,6 @@
 ---
 title: "Hooks Reference"
-description: "API reference for all @varity-labs/ui-kit React hooks including usePrivy, useWallets, useTheme, and authentication state management."
+description: "API reference for all @varity-labs/ui-kit React hooks including usePrivy, useTheme, useToast, and authentication state management."
 ---
 
 import Accordion from '../../../../components/Accordion.astro';
@@ -219,7 +219,7 @@ function PremiumFeature({ appId }: { appId: number }) {
 
 ## Authentication Hooks
 
-These hooks are re-exported from `@privy-io/react-auth`. They require `<VarityPrivyProvider>` in your component tree.
+These hooks are re-exported from the auth library. They require `<VarityPrivyProvider>` in your component tree.
 
 ### usePrivy
 
@@ -230,7 +230,7 @@ import { usePrivy } from '@varity-labs/ui-kit';
 
 function MyComponent() {
   const {
-    ready,          // boolean - Privy has initialized
+    ready,          // boolean - Auth has initialized
     authenticated,  // boolean - User is logged in
     user,           // User object or null
     login,          // () => void - Open login modal
@@ -256,7 +256,7 @@ function MyComponent() {
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `ready` | `boolean` | Privy has finished initializing |
+| `ready` | `boolean` | Auth has finished initializing |
 | `authenticated` | `boolean` | User is logged in |
 | `user` | `User \| null` | User object with profile data |
 | `login` | `() => void` | Opens the login modal |
@@ -290,7 +290,7 @@ function AuthControls() {
 
 ### useWallets
 
-Access all connected wallets/accounts. Most apps will not need this hook directly -- `usePrivy` provides the user profile for typical authentication flows.
+Access all connected accounts. Most apps will not need this hook directly — `usePrivy` provides the user profile for typical authentication flows.
 
 ```tsx
 import { useWallets } from '@varity-labs/ui-kit';

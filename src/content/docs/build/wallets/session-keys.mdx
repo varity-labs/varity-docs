@@ -1,6 +1,6 @@
 ---
 title: Session Keys
-description: Planned Varity feature for session keys with scoped permissions, batch operations, and time-limited access. Current status and roadmap.
+description: Planned Varity feature for temporary permissions, batch operations, and delegated actions on behalf of users.
 ---
 
 import { Aside } from '@astrojs/starlight/components';
@@ -16,43 +16,40 @@ import PageMeta from '../../../../components/PageMeta.astro';
 # Session Keys
 
 <Aside type="caution">
-**Planned Feature** -- Session keys are not yet implemented in the Varity SDK. This page describes the planned functionality and current status.
+**Planned Feature** -- Session keys are not yet available in the Varity SDK. This page describes planned functionality.
 </Aside>
 
 ## What Are Session Keys?
 
-Session keys are temporary, scoped credentials that allow your app to perform operations on behalf of users without requiring approval for each action. They are a feature of smart account (account abstraction) systems.
+Session keys are temporary permissions that let your app perform actions on behalf of a user without requiring approval for every single action. Think of them like scoped API tokens, but for user operations within your app.
 
 When available, session keys will enable:
 
-- **Batch operations** -- Execute multiple actions in one step
-- **Background operations** -- Perform tasks without repeated user prompts
-- **Scoped permissions** -- Limit what actions a session key can perform
-- **Time-limited access** -- Keys expire after a set duration
+- **Batch operations** -- Execute multiple actions in a single step
+- **Background actions** -- Perform tasks without repeated user prompts
+- **Scoped permissions** -- Limit exactly what actions a session can perform
+- **Time-limited access** -- Permissions automatically expire after a set duration
 
 ## Current Status
 
-Session keys require smart account (account abstraction) infrastructure. Here is the status of the underlying components:
+Session keys are planned for a future release. The underlying infrastructure is in place, and the session key API will be added on top of it.
 
-| Component | Status | Details |
-|-----------|--------|---------|
-| `SmartWalletProvider` | Source exists, not yet exported | 630+ line implementation using thirdweb v5, present in UI Kit source |
-| `useSmartWallet` | Source exists, not yet exported | Hook for smart wallet operations, present in UI Kit source |
-| Session key API | Not yet implemented | Will be added on top of smart account infrastructure |
-| Privy embedded wallets | Available now | Current account system, does not support session keys |
-
-The `SmartWalletProvider` and `useSmartWallet` are implemented in the `@varity-labs/ui-kit` source code but are currently commented out from the public exports. Session key functionality will be built on top of this smart account layer once it is publicly released.
+| Feature | Status |
+|---------|--------|
+| User authentication | Available now |
+| Automatic action handling | Available now |
+| Temporary scoped permissions | Planned |
+| Batch operations | Planned |
 
 ## What You Can Do Today
 
-While session keys are not yet available, you can use Privy's embedded wallet system for user authentication and transactions:
+Use the standard authentication system. Users sign in once, and your app handles actions automatically with no extra prompts:
 
 ```tsx title="src/components/UserActions.tsx"
-import { usePrivy, useWallets } from '@varity-labs/ui-kit';
+import { useAuth } from '@varity-labs/ui-kit';
 
 function UserActions() {
-  const { authenticated } = usePrivy();
-  const { wallets } = useWallets();
+  const { authenticated } = useAuth();
 
   if (!authenticated) {
     return <p>Please sign in first</p>;
@@ -60,62 +57,40 @@ function UserActions() {
 
   return (
     <div>
-      <p>You are signed in with an embedded wallet.</p>
-      <p>Each transaction requires user approval.</p>
+      <p>You are signed in.</p>
+      <p>Actions are handled automatically.</p>
     </div>
   );
 }
 ```
 
-For sending transactions, use the `useSendTransaction` hook from Privy:
+## Planned API Preview
 
-```tsx
-import { useSendTransaction } from '@privy-io/react-auth';
-
-function ActionButton() {
-  const { sendTransaction } = useSendTransaction();
-
-  const handleAction = async () => {
-    const result = await sendTransaction({
-      to: '0x...',
-      data: '0x...',
-    });
-    console.log('Transaction hash:', result.hash);
-  };
-
-  return <button onClick={handleAction}>Execute Action</button>;
-}
-```
-
-## Planned Session Key API
-
-The following is a preview of the planned session key API. This API is subject to change and is **not yet available**.
+The following is an early preview of the planned session key API. This is **not yet available** and subject to change.
 
 ```tsx
 // PLANNED -- NOT YET AVAILABLE
-// This shows the intended API shape for session keys.
-// useSmartWallet is not currently exported from @varity-labs/ui-kit.
 
-// import { useSmartWallet } from '@varity-labs/ui-kit';
+// import { useSessionKeys } from '@varity-labs/ui-kit';
 
 function SessionExample() {
-  const { createSessionKey, revokeSessionKey } = useSmartWallet();
+  const { createSession, revokeSession } = useSessionKeys();
 
   const handleCreate = async () => {
-    const session = await createSessionKey({
-      permissions: ['transfer', 'approve'],
+    const session = await createSession({
+      permissions: ['read', 'write', 'update'],
       duration: 3600, // seconds
-      maxTransactions: 100,
+      maxActions: 100,
     });
-    console.log('Session key created:', session.address);
+    console.log('Session created:', session.id);
   };
 
-  return <button onClick={handleCreate}>Create Session Key</button>;
+  return <button onClick={handleCreate}>Create Session</button>;
 }
 ```
 
 <Aside type="note">
-The planned API shown above is for illustration only. The actual API may differ when session keys are released.
+The API shown above is for illustration only. The actual API may differ when this feature is released.
 </Aside>
 
 ## Next steps

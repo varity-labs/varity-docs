@@ -9,12 +9,10 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="March 5, 2026"
+  lastUpdated="March 2026"
   version="2.0.0"
   stability="stable"
 />
-
-# Node.js Quick Start
 
 Build and deploy backend applications with Varity's database, authentication, and hosting. This guide gets you started in under 5 minutes.
 
@@ -118,14 +116,15 @@ export interface Post {
    async function getAllUsers() {
      const users = await db.collection<User>('users').get();
      console.log('All users:', users);
-     // Returns: [{ id: 'doc_123', data: {...} }, ...]
+     // Returns: [{ id: 'doc_123', name: 'Alice', email: '...', ... }, ...]
    }
 
-   // Get by ID
+   // Get a specific user by filtering
    async function getUserById(id: string) {
-     const user = await db.collection<User>('users').getById(id);
+     const users = await db.collection<User>('users').get();
+     const user = users.find((u) => u.id === id);
      console.log('User:', user);
-     // Returns: { id: 'doc_123', data: {...} }
+     // Returns: { id: 'doc_123', name: 'Alice', email: '...', ... }
    }
 
    // Get with pagination
@@ -195,12 +194,16 @@ app.get('/api/users', async (req, res) => {
 // Get user by ID
 app.get('/api/users/:id', async (req, res) => {
   try {
-    const user = await db.collection<User>('users').getById(req.params.id);
+    const users = await db.collection<User>('users').get();
+    const user = users.find((u) => u.id === req.params.id);
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
     res.json({ success: true, data: user });
   } catch (error) {
-    res.status(404).json({
+    res.status(500).json({
       success: false,
-      error: 'User not found',
+      error: error instanceof Error ? error.message : 'Failed to fetch user',
     });
   }
 });
@@ -309,8 +312,9 @@ import { db } from '@varity-labs/sdk';
 
 async function safeGetUser(id: string) {
   try {
-    const user = await db.collection('users').getById(id);
-    return { success: true, data: user };
+    const users = await db.collection('users').get();
+    const user = users.find((u) => u.id === id);
+    return { success: true, data: user ?? null };
   } catch (error) {
     console.error('Database error:', error);
     return {
@@ -332,18 +336,18 @@ The database `.get()` method returns all documents in a collection. Filter resul
 const allUsers = await db.collection<User>('users').get();
 
 // Filter by role
-const admins = allUsers.filter((user) => user.data.role === 'admin');
+const admins = allUsers.filter((user) => user.role === 'admin');
 
 // Filter by email domain
 const companyUsers = allUsers.filter((user) =>
-  user.data.email.endsWith('@company.com')
+  user.email.endsWith('@company.com')
 );
 
 // Combine filters
 const recentAdmins = allUsers
-  .filter((user) => user.data.role === 'admin')
+  .filter((user) => user.role === 'admin')
   .filter((user) => {
-    const created = new Date(user.data.createdAt);
+    const created = new Date(user.createdAt);
     const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     return created > weekAgo;
   });
@@ -359,21 +363,22 @@ import type { User } from './types';
 // Explicit type ensures type safety
 const users = await db.collection<User>('users').get();
 
-// TypeScript knows user.data is User
+// TypeScript knows user fields are typed as User
 users.forEach((user) => {
-  console.log(user.data.name); // ✓ Type-safe
-  console.log(user.data.invalid); // ✗ TypeScript error
+  console.log(user.name); // Type-safe
+  console.log(user.invalid); // TypeScript error
 });
 ```
 
 ### Define Return Types
 
 ```typescript
-async function getUser(id: string): Promise<{ id: string; data: User }> {
-  return await db.collection<User>('users').getById(id);
+async function getUser(id: string): Promise<(User & { id: string }) | undefined> {
+  const users = await db.collection<User>('users').get();
+  return users.find((u) => u.id === id);
 }
 
-async function getAllUsers(): Promise<Array<{ id: string; data: User }>> {
+async function getAllUsers(): Promise<Array<User & { id: string }>> {
   return await db.collection<User>('users').get();
 }
 ```

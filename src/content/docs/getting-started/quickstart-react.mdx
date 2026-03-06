@@ -1,6 +1,6 @@
 ---
 title: React Quick Start
-description: Set up a React + Vite app with Varity authentication and database. Step-by-step guide for adding PrivyStack and deploying your app.
+description: Set up a React + Vite app with Varity authentication and database. Step-by-step guide for adding auth and deploying your app.
 ---
 
 import { Steps, Tabs, TabItem, Aside } from '@astrojs/starlight/components';
@@ -9,11 +9,9 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="February 2026"
+  lastUpdated="March 2026"
   stability="stable"
 />
-
-# React Quick Start
 
 Set up a React app with Vite and add Varity authentication and database.
 
@@ -66,7 +64,7 @@ Set up a React app with Vite and add Varity authentication and database.
 
 <Steps>
 
-1. **Wrap your app with PrivyStack**
+1. **Set up your auth provider**
 
    ```tsx title="src/main.tsx"
    import React from 'react';
@@ -268,4 +266,4 @@ These are optional during development. The SDK uses shared credentials by defaul
 
 - [Database Quick Start](/build/databases/quickstart) — Full database API reference
 - [Authentication](/build/auth/quickstart) — Advanced auth configuration
-- [Deploy](/deploy/varity-l3) — Deployment options and configuration
+- [Deploy](/deploy/deploy-your-app) — Deployment options and configuration

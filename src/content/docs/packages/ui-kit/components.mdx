@@ -45,7 +45,7 @@ import { PrivyStack } from '@varity-labs/ui-kit';
 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
-| `appId` | `string` | Dev default | Privy App ID |
+| `appId` | `string` | Dev default | Auth App ID |
 | `thirdwebClientId` | `string` | Dev default | Thirdweb Client ID |
 | `loginMethods` | `string[]` | `['email', 'google', 'wallet']` | Login options |
 | `appearance` | `{ theme, accentColor, logo }` | Light theme | UI customization |
@@ -54,7 +54,7 @@ import { PrivyStack } from '@varity-labs/ui-kit';
 
 ### VarityDashboardProvider
 
-Full-featured provider for dashboards. Includes Privy auth, Thirdweb, React Query, and wallet sync.
+Full-featured provider for dashboards. Includes authentication, Thirdweb, React Query, and wallet sync.
 
 ```tsx
 import { VarityDashboardProvider } from '@varity-labs/ui-kit';
@@ -69,7 +69,7 @@ import { VarityDashboardProvider } from '@varity-labs/ui-kit';
 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
-| `privyAppId` | `string` | env var | Privy App ID |
+| `privyAppId` | `string` | env var | Auth App ID |
 | `thirdwebClientId` | `string` | env var | Thirdweb Client ID |
 | `appearance` | `{ theme, accentColor, logo }` | - | UI customization |
 | `loginMethods` | `string[]` | `['email', 'google', 'wallet']` | Login options |
@@ -77,7 +77,7 @@ import { VarityDashboardProvider } from '@varity-labs/ui-kit';
 
 ### VarityPrivyProvider
 
-Lower-level Privy wrapper. Most apps should use `PrivyStack` instead.
+Lower-level auth wrapper. Most apps should use `PrivyStack` instead.
 
 ```tsx
 import { VarityPrivyProvider } from '@varity-labs/ui-kit';
@@ -213,7 +213,7 @@ import { PrivyProtectedRoute } from '@varity-labs/ui-kit';
 
 ### PrivyReadyGate
 
-Prevents a blank screen during Privy initialization (5-15 seconds).
+Prevents a blank screen during auth initialization (5-15 seconds).
 
 ```tsx
 import { PrivyReadyGate } from '@varity-labs/ui-kit';
@@ -233,9 +233,9 @@ import { PrivyReadyGate } from '@varity-labs/ui-kit';
 | `initializingScreen` | `ReactNode` | Loading spinner | Shown during init |
 | `timeoutScreen` | `ReactNode` | Error message | Shown on timeout |
 
-### Re-exported Privy Hooks
+### Re-exported Auth Hooks
 
-For convenience, these hooks from `@privy-io/react-auth` are re-exported:
+For convenience, these authentication hooks are re-exported from `@varity-labs/ui-kit`:
 
 ```tsx
 import { usePrivy, useWallets, useLogin, useLogout } from '@varity-labs/ui-kit';
@@ -253,51 +253,59 @@ Credit card payments are not available during beta. Apps can use the free tier. 
 
 ### PaymentWidget
 
-In-app payment widget for purchases and upgrades (available post-beta).
+In-app payment widget for purchases and upgrades (available post-beta). Wrap any trigger element as a child.
 
 ```tsx
 import { PaymentWidget } from '@varity-labs/ui-kit';
 
 <PaymentWidget
-  appId={process.env.NEXT_PUBLIC_VARITY_APP_ID}
-  amount={50}
-  buttonText="Upgrade to Pro"
-  onSuccess={(result) => console.log('Paid:', result)}
-  onError={(error) => console.error(error)}
-/>
+  appId={123}
+  price={999}
+  onSuccess={(txHash) => console.log('Purchased!', txHash)}
+  onError={(err) => console.error('Payment failed:', err)}
+>
+  <button>Buy for $9.99</button>
+</PaymentWidget>
 ```
 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
-| `appId` | `string` | Required | Varity App ID |
-| `amount` | `number` | `100` | Payment amount in USD |
-| `buttonText` | `string` | "Purchase" | Button label |
-| `theme` | `'light' \| 'dark'` | `'light'` | Color theme |
-| `onSuccess` | `function` | - | Success callback |
-| `onError` | `function` | - | Error callback |
+| `appId` | `number` | Required | Varity App ID |
+| `price` | `number` | - | Price in cents (e.g., 999 = $9.99) |
+| `type` | `'one-time' \| 'subscription'` | - | Payment type |
+| `intervalDays` | `number` | `30` | Subscription interval in days |
+| `onSuccess` | `(txHash: string) => void` | - | Called with transaction hash on success |
+| `onCancel` | `() => void` | - | Called when user cancels |
+| `onError` | `(error: Error) => void` | - | Called on payment error |
+| `theme` | `'light' \| 'dark'` | - | Color theme |
+| `className` | `string` | - | CSS class name |
+| `children` | `ReactNode` | Required | Trigger element |
+| `disabled` | `boolean` | - | Disable the widget |
 
 ### PaymentGate
 
-Subscription and tier gate for paywalled content (available post-beta).
+Content gate that shows premium content after purchase. Shows `fallback` when not purchased, shows `children` after purchase (available post-beta).
 
 ```tsx
 import { PaymentGate } from '@varity-labs/ui-kit';
 
 <PaymentGate
-  appId={process.env.NEXT_PUBLIC_VARITY_APP_ID}
-  tier="business"
-  amount={99}
-  onSuccess={() => console.log('Subscribed!')}
-/>
+  appId={123}
+  price={999}
+  fallback={<p>Purchase to unlock premium content.</p>}
+>
+  <div>This content is only visible after purchase.</div>
+</PaymentGate>
 ```
 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
-| `appId` | `string` | Required | Varity App ID |
-| `tier` | `string` | Required | Subscription tier name |
-| `amount` | `number` | Required | Monthly price in USD |
-| `onSuccess` | `function` | - | Success callback |
-| `onError` | `function` | - | Error callback |
+| `appId` | `number` | Required | Varity App ID |
+| `price` | `number` | - | Price in cents (e.g., 999 = $9.99) |
+| `fallback` | `ReactNode` | Required | Content shown when not purchased |
+| `children` | `ReactNode` | Required | Premium content shown after purchase |
+| `theme` | `'light' \| 'dark'` | - | Color theme |
+| `className` | `string` | - | CSS class name |
 
 ### useVarityPayment
 
@@ -306,8 +314,18 @@ Hook for programmatic payment interactions.
 ```tsx
 import { useVarityPayment } from '@varity-labs/ui-kit';
 
-const { pay, status } = useVarityPayment({ appId: '...' });
+const { hasPurchased, purchase, isLoading, isPurchasing, pricing } = useVarityPayment({ appId: 123 });
 ```
+
+| Return Value | Type | Description |
+|------|------|-------------|
+| `hasPurchased` | `boolean` | Whether the user has purchased |
+| `isLoading` | `boolean` | Loading purchase status |
+| `isPurchasing` | `boolean` | Purchase in progress |
+| `error` | `string \| null` | Error message if any |
+| `pricing` | `AppPricing \| null` | App pricing information |
+| `purchase` | `() => Promise<string \| null>` | Initiate a purchase, returns tx hash |
+| `refresh` | `() => Promise<void>` | Refresh purchase status |
 
 ---
 
@@ -1339,7 +1357,7 @@ The `Attribution` component is required per the Varity licensing agreement and m
 |------|--------|-------------|
 | `useToast` | `@varity-labs/ui-kit` | Access toast notifications (`success`, `error`, `info`) |
 | `useTheme` | `@varity-labs/ui-kit` | Access current `VarityTheme` from `ThemeProvider` |
-| `usePrivy` | `@varity-labs/ui-kit` | Privy auth state (`authenticated`, `user`, `ready`) |
+| `usePrivy` | `@varity-labs/ui-kit` | Auth state (`authenticated`, `user`, `ready`) |
 | `useWallets` | `@varity-labs/ui-kit` | Connected wallet list |
 | `useLogin` | `@varity-labs/ui-kit` | Programmatic login trigger |
 | `useLogout` | `@varity-labs/ui-kit` | Programmatic logout trigger |
@@ -1418,7 +1436,7 @@ function DashboardPage() {
 ```
 
 :::note
-Smart account components (`SmartWalletProvider`, `SmartWalletConnectButton`, `GaslessBadge`) will be available in a future release.
+Smart account features are available via `ZeroDevProvider`, which enables gasless transactions automatically. Import from `@varity-labs/ui-kit`.
 :::
 
 ## Next Steps

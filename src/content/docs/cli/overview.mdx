@@ -1,6 +1,6 @@
 ---
-title: "VarietyKit CLI Overview"
-description: "VarietyKit CLI overview: scaffold projects, run diagnostics, deploy apps, and manage domains. Python-based tool similar to Vercel CLI."
+title: "VarityKit CLI Overview"
+description: "VarityKit CLI overview: scaffold projects, run diagnostics, deploy apps, and manage domains. Python-based tool similar to Vercel CLI."
 ---
 
 import { Card, CardGrid, Aside } from '@astrojs/starlight/components';
@@ -13,7 +13,7 @@ import PageMeta from '../../../components/PageMeta.astro';
   stability="stable"
 />
 
-VarietyKit is a Python-based CLI that helps you build, test, and deploy applications. If you have used tools like the Vercel CLI, Netlify CLI, or Firebase CLI, you will feel right at home.
+VarityKit is a Python-based CLI that helps you build, test, and deploy applications. If you have used tools like the Vercel CLI, Netlify CLI, or Firebase CLI, you will feel right at home.
 
 ## What You Can Do
 
@@ -118,7 +118,7 @@ varitykit init my-app
 # Deploy (static sites)
 varitykit app deploy
 
-# Deploy (dynamic apps - coming soon)
+# Deploy (dynamic apps)
 varitykit app deploy --hosting dynamic
 ```
 
@@ -160,7 +160,7 @@ varitykit app deploy
 - **Cost**: Free (sponsored by Varity)
 - **Speed**: Global CDN distribution
 
-### Dynamic Apps (Coming Soon)
+### Dynamic Apps
 
 Deploy full-stack applications with backend:
 
@@ -173,7 +173,7 @@ varitykit app deploy --hosting dynamic
 - **Features**: Containers, scaling, persistence
 
 <Aside type="note">
-Dynamic hosting is under active development and will be available soon.
+Dynamic hosting is available via managed deployment. The CLI handles containerization and deployment automatically — no Docker required on your machine.
 </Aside>
 
 ## Supported Frameworks

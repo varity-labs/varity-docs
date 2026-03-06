@@ -9,11 +9,9 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="February 2026"
+  lastUpdated="March 2026"
   stability="stable"
 />
-
-# AI Prompts for Varity
 
 Copy these prompts into your AI assistant to build Varity apps faster. Each prompt gives your AI the full context it needs — SDK patterns, database API, authentication setup, and deployment commands.
 
@@ -60,7 +58,7 @@ I'm building a SaaS app with Varity. I need:
 Use @varity-labs/sdk for the database and @varity-labs/ui-kit for auth components.
 ```
 
-**Expected result:** A complete dashboard setup with PrivyStack authentication and protected routes.
+**Expected result:** A complete dashboard setup with authentication and protected routes.
 
 ---
 
@@ -258,12 +256,12 @@ CLI: varitykit (Python, installed via pip)
 
 ## Auth Pattern
 ```tsx
-// Layout: Wrap app with PrivyStack
+// Layout: Set up auth provider
 <PrivyStack appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID}>
   {children}
 </PrivyStack>
 
-// Protected page: Wrap with PrivyProtectedRoute
+// Protected page: Wrap with route protection
 <PrivyProtectedRoute>
   <DashboardContent />
 </PrivyProtectedRoute>
@@ -392,7 +390,7 @@ export function useCustomers() {
 ## Install
 npm install @varity-labs/ui-kit
 
-## 1. Wrap app with PrivyStack (layout.tsx)
+## 1. Set up auth provider (layout.tsx)
 ```tsx
 import { PrivyStack } from '@varity-labs/ui-kit';
 

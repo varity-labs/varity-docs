@@ -10,11 +10,9 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="February 2026"
+  lastUpdated="March 2026"
   stability="stable"
 />
-
-# Environment Variables
 
 Varity manages most credentials automatically. You only need to set environment variables for services you manage yourself.
 
@@ -36,21 +34,11 @@ These variables are only needed for specific use cases:
 | Variable | Required For | Default |
 |----------|--------------|---------|
 | `NEXT_PUBLIC_VARITY_APP_ID` | App identity | Dev default |
-| `VARITY_API_URL` | Custom API endpoint | `https://api.varity.io` |
+| `VARITY_API_URL` | Custom API endpoint | `https://varity.app` |
 | `VARITY_API_KEY` | API authentication | Auto-provided |
-| `AKASH_WALLET_KEY` | Akash deployments | Not set |
-| `WALLET_PRIVATE_KEY` | Contract deployments | Not set |
 
-### Akash Deployments
-
-Required only for deploying dynamic applications:
-
-```bash title=".env"
-AKASH_WALLET_KEY=your_akash_wallet_private_key
-```
-
-<Aside type="caution">
-Never commit your `AKASH_WALLET_KEY` to version control. Use environment variables or a secrets manager.
+<Aside type="tip">
+Deployment credentials for hosting (both static and dynamic) are managed automatically by the Varity credential proxy. No manual credential setup is needed.
 </Aside>
 
 ## Example .env Files
@@ -68,11 +56,8 @@ Never commit your `AKASH_WALLET_KEY` to version control. Use environment variabl
     ```bash title=".env.production"
     # Varity SDK
     NEXT_PUBLIC_VARITY_APP_ID=your-app-id
-    VARITY_API_URL=https://api.varity.io
+    VARITY_API_URL=https://varity.app
     VARITY_API_KEY=your_production_api_key
-
-    # Akash (for dynamic app deployment)
-    AKASH_WALLET_KEY=your_akash_wallet_key
     ```
 
     Production credentials for authentication and storage are auto-provided by the CLI during deployment.

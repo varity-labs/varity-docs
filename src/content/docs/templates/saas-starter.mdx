@@ -1,6 +1,6 @@
 ---
 title: SaaS Starter Template
-description: Production-ready SaaS template with Privy auth, Varity database, team management, CRUD pages, and a full dashboard. One-command scaffold.
+description: Production-ready SaaS template with authentication, Varity database, team management, CRUD pages, and a full dashboard. One-command scaffold.
 ---
 
 import { Steps, Tabs, TabItem, Aside, Card, CardGrid } from '@astrojs/starlight/components';
@@ -9,11 +9,9 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="February 2026"
+  lastUpdated="March 2026"
   stability="stable"
 />
-
-# SaaS Starter Template
 
 A production-ready SaaS application with authentication, database, team management, and a full dashboard. Scaffold it in one command and deploy in 5 minutes.
 
@@ -37,7 +35,7 @@ varitykit init my-app
 
 ### Built-in Features
 
-- **Authentication** — Privy-powered login (email magic link + social providers)
+- **Authentication** — Built-in login (email magic link + social providers)
 - **Database** — Typed collections with CRUD operations and optimistic updates
 - **Dashboard layout** — Responsive sidebar with mobile hamburger menu
 - **Command palette** — Cmd+K / Ctrl+K to search projects, tasks, and team
@@ -89,7 +87,7 @@ export interface TeamMember {
 src/
 ├── app/
 │   ├── page.tsx                    # Landing page
-│   ├── layout.tsx                  # Root layout (PrivyStack wrapper)
+│   ├── layout.tsx                  # Root layout (auth provider)
 │   ├── login/page.tsx              # Login page
 │   └── dashboard/
 │       ├── layout.tsx              # Dashboard layout (sidebar + mobile nav)
@@ -143,7 +141,7 @@ interface UseCollectionReturn<T> {
 ### Authentication Pattern
 
 ```tsx
-// Root layout wraps app with auth provider
+// Root layout sets up auth provider
 <PrivyStack appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID}>
   {children}
 </PrivyStack>

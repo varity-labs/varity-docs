@@ -9,11 +9,9 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="February 2026"
+  lastUpdated="March 2026"
   stability="stable"
 />
-
-# Next.js Quick Start
 
 Build a full-stack Next.js app with authentication, database, and deployment in 5 minutes.
 
@@ -80,7 +78,7 @@ my-app/
 │   ├── app/                     # Next.js App Router pages
 │   │   ├── page.tsx             # Landing page
 │   │   ├── login/page.tsx       # Login page
-│   │   ├── layout.tsx           # Root layout (PrivyStack)
+│   │   ├── layout.tsx           # Root layout (auth provider)
 │   │   └── dashboard/
 │   │       ├── layout.tsx       # Dashboard layout (sidebar + mobile nav)
 │   │       ├── page.tsx         # Dashboard home
@@ -106,7 +104,7 @@ my-app/
 
 ### Authentication (already configured)
 
-The root layout wraps everything with `PrivyStack`:
+The root layout wraps everything with the auth provider:
 
 ```tsx title="src/app/layout.tsx"
 import { PrivyStack } from '@varity-labs/ui-kit';

@@ -9,12 +9,10 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="February 7, 2026"
-  version="1.2.3"
-  stability="stable"
+  lastUpdated="March 2026"
+  version="2.0.0-beta"
+  stability="beta"
 />
-
-# Quick Start
 
 Get your first Varity app running in 5 minutes.
 
@@ -76,8 +74,8 @@ export default function RootLayout({ children }) {
     <html>
       <body>
         {/*
-          PrivyStack uses shared dev credentials by default.
-          Add your own appId and thirdwebClientId for production.
+          Uses shared dev credentials by default.
+          Add your own credentials for production.
         */}
         <PrivyStack appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID}>
           {children}
@@ -98,7 +96,7 @@ export default function RootLayout({ children }) {
 import { PrivyLoginButton, usePrivy } from '@varity-labs/ui-kit';
 
 export function LoginButton() {
-  // Get authentication state from Privy
+  // Get authentication state
   const { user, authenticated, logout } = usePrivy();
 
   // Show user info and logout button when authenticated
@@ -160,7 +158,7 @@ Now that your app is running, you can:
 
 - [Add file storage](/build/storage/quickstart) - Upload and retrieve files
 - [Add payments](/build/payments/quickstart) - Monetize your app
-- [Submit to App Store](/deploy/varity-l3) - List your app for users to discover
+- [Submit to App Store](/deploy/deploy-your-app) - List your app for users to discover
 
 ---
 
@@ -206,7 +204,7 @@ function Home() {
 
 export default function App() {
   return (
-    // PrivyStack uses shared dev credentials by default (no appId needed for development)
+    // Uses shared dev credentials by default (no appId needed for development)
     <PrivyStack appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID}>
       <Home />
     </PrivyStack>

@@ -1,6 +1,6 @@
 ---
 title: "CLI Installation"
-description: "Install the VarietyKit CLI via pip, pipx, or from source. Includes verification steps and troubleshooting for macOS, Linux, and Windows."
+description: "Install the VarityKit CLI via pip, pipx, or from source. Includes verification steps and troubleshooting for macOS, Linux, and Windows."
 ---
 
 import { Tabs, TabItem, Steps, Aside } from '@astrojs/starlight/components';
@@ -9,11 +9,11 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="February 2026"
+  lastUpdated="March 2026"
   stability="stable"
 />
 
-Get the VarietyKit CLI installed on your system.
+Get the VarityKit CLI installed on your system.
 
 ## Install with pip
 
@@ -50,7 +50,7 @@ varitykit --version
 You should see output like:
 
 ```
-varitykit 1.0.0
+varitykit 1.1.4
 ```
 
 ## Run Diagnostics
@@ -86,8 +86,7 @@ Expected output:
 
 | Requirement | Needed For |
 |-------------|------------|
-| Docker | Local development network |
-| Akash CLI | Akash deployments |
+| Git | Version control |
 
 ## Environment Setup
 
@@ -95,15 +94,12 @@ Expected output:
 
 1. **Create a .env file** (optional) in your project root:
 
-   ```bash title=".env"
-   # Required for Akash deployments
-   AKASH_WALLET_KEY=your_wallet_key
-
-   # Optional: for contract deployments
-   WALLET_PRIVATE_KEY=your_private_key
+   ```bash title=".env.local"
+   # Your Varity App ID (from developer portal)
+   NEXT_PUBLIC_VARITY_APP_ID=your-app-id
    ```
 
-   Storage and authentication credentials are provided automatically by Varity. See [Managed Credentials](/deploy/managed-credentials).
+   All deployment credentials (storage, authentication, hosting) are managed automatically by the Varity credential proxy. See [Managed Credentials](/deploy/managed-credentials).
 
 2. **Verify your setup**:
 

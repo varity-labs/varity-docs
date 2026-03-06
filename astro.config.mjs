@@ -211,7 +211,7 @@ export default defineConfig({
               collapsed: false,
               items: [
                 {
-                  label: "Quick Start (Privy)",
+                  label: "Quick Start",
                   slug: "build/auth/quickstart",
                   badge: { text: "Recommended", variant: "success" },
                 },
@@ -314,7 +314,7 @@ export default defineConfig({
           items: [
             {
               label: "Deploy Your App",
-              slug: "deploy/varity-l3",
+              slug: "deploy/deploy-your-app",
               badge: { text: "Beta", variant: "note" },
             },
             { label: "Managed Credentials", slug: "deploy/managed-credentials" },

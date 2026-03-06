@@ -10,7 +10,7 @@ import PageMeta from '../../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="February 2026"
+  lastUpdated="March 2026"
   stability="stable"
 />
 
@@ -44,7 +44,7 @@ varitykit app deploy
 - Permanent deployment URLs
 - Automatic SSL
 
-### Dynamic Apps (Coming Soon)
+### Dynamic Apps
 
 Deploy full-stack applications with compute resources:
 
@@ -64,7 +64,7 @@ varitykit app deploy --hosting dynamic
 - 70-85% cheaper than AWS
 
 <Aside type="note">
-Dynamic hosting is under active development and will be available soon.
+Dynamic hosting is available via managed deployment. The CLI handles containerization and deployment automatically — no Docker required on your machine.
 </Aside>
 
 ## Options
@@ -74,7 +74,9 @@ Dynamic hosting is under active development and will be available soon.
 | `--hosting` | `static` | Hosting type: `static` or `dynamic` |
 | `--path` | `.` | Project directory |
 | `--submit-to-store` | `false` | Submit to Varity App Store |
-| `--tier` | - | Pricing tier: `free`, `starter`, `growth`, `enterprise` |
+| `--tier` | - | Pricing tier: `free`, `starter`, `growth`, `enterprise`, `scale` |
+| `--name` | - | Custom app name for `varity.app/{name}` |
+| `--mode` | `auto` | Deployment mode: `auto`, `guided`, or `expert` |
 
 ## Basic Deployment
 
@@ -217,7 +219,7 @@ After deployment, a manifest file is created:
 
 ## Next Steps
 
-- [Deploy Your App](/deploy/varity-l3) - Deployment details
+- [Deploy Your App](/deploy/deploy-your-app) - Deployment details
 - [Configure environment variables](/deploy/env-variables) - Required setup
 - [CLI Overview](/cli/overview) - All CLI commands
 

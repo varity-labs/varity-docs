@@ -9,7 +9,7 @@ import PageMeta from '../../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="February 2026"
+  lastUpdated="March 2026"
   stability="stable"
 />
 
@@ -46,13 +46,12 @@ The `saas-starter` template includes everything you need: authentication, dashbo
 
 ## Options
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `--template` | `saas-starter` | Template to use |
-| `--skip-install` | `false` | Skip `npm install` |
-| `--skip-git` | `false` | Skip git initialization |
-| `--typescript` | `true` | Use TypeScript |
-| `--package-manager` | `npm` | npm, pnpm, or yarn |
+| Option | Short | Default | Description |
+|--------|-------|---------|-------------|
+| `--template` | `-t` | `saas-starter` | Template to use |
+| `--path` | `-p` | `.` | Path where project should be created |
+| `--yes` | `-y` | `false` | Skip confirmation prompts |
+| `--github` | | `false` | Add GitHub Actions workflow for deployment |
 
 ## Interactive Mode
 
@@ -63,14 +62,11 @@ $ varitykit init
 
 ? Project name: my-app
 ? Select a template: saas-starter
-? Package manager: npm
-? Initialize git repository? Yes
 
 Creating project...
 ✓ Created project directory
 ✓ Copied template files
 ✓ Installed dependencies
-✓ Initialized git repository
 
 Your project is ready!
 
@@ -92,7 +88,7 @@ my-app/
 ├── next.config.mjs
 ├── src/
 │   ├── app/
-│   │   ├── layout.tsx    # Root layout with PrivyStack
+│   │   ├── layout.tsx    # Root layout with auth provider
 │   │   ├── page.tsx      # Home page
 │   │   └── dashboard/
 │   │       └── page.tsx  # Protected dashboard
@@ -109,8 +105,8 @@ my-app/
 
 The SaaS starter template includes:
 
-- **Authentication** - PrivyStack pre-configured
-- **Protected Routes** - PrivyProtectedRoute examples
+- **Authentication** - Auth provider pre-configured
+- **Protected Routes** - Route protection examples
 - **Dashboard Layout** - Responsive sidebar and navigation
 - **Analytics** - Data tables, charts, and KPIs
 - **Environment Variables** - `.env.local.example` with all variables
@@ -169,16 +165,9 @@ varitykit template list
 
 ### "npm install failed"
 
-Try with a different package manager:
+Try installing dependencies manually:
 
 ```bash
-varitykit init my-app --package-manager pnpm
-```
-
-Or skip install and do it manually:
-
-```bash
-varitykit init my-app --skip-install
 cd my-app
 npm install
 ```

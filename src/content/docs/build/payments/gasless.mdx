@@ -1,6 +1,6 @@
 ---
 title: "Free Operations"
-description: "Varity sponsors all gas fees automatically. Your users never see transaction costs, wallet popups, or blockchain terminology."
+description: "Varity covers all operational costs automatically. Your users never see usage fees or extra steps."
 ---
 
 import { Steps, Aside } from '@astrojs/starlight/components';
@@ -16,26 +16,26 @@ import PageMeta from '../../../../components/PageMeta.astro';
 
 # Free Operations
 
-Your users never pay gas fees or usage costs. Varity sponsors all operational costs so your app works like any normal web app.
+Your users never pay usage fees or operational costs. Varity covers everything automatically so your app works like any normal web app.
 
 ## How It Works
 
-Traditional blockchain platforms charge gas fees for every operation. With Varity, those fees are sponsored automatically:
+Some platforms charge usage fees for every operation. With Varity, those costs are covered automatically:
 
 1. User performs an action (save data, make a payment, etc.)
-2. Varity's paymaster sponsors the gas cost behind the scenes
+2. Varity covers the operational cost behind the scenes
 3. The operation completes instantly
-4. User sees success — no fee prompts, no wallet popups, no extra steps
+4. User sees success — no fee prompts, no extra steps
 
-Your users never see gas fees, wallet confirmations, or blockchain terminology. It just works.
+Your users never see usage fees or extra confirmation screens. It just works.
 
 <Aside type="tip">
-**No configuration needed.** Gas sponsorship is built into the platform. When you deploy with `varitykit deploy`, your app automatically gets free operations for end users.
+**No configuration needed.** Free operations are built into the platform. When you deploy with `varitykit deploy`, your app automatically gets free operations for end users.
 </Aside>
 
 ## For Developers: Zero Setup Required
 
-Gas sponsorship is handled entirely by the Varity platform. You do not need to configure a paymaster, bundler, or smart wallet provider. When your app is deployed on Varity, all write operations are gas-sponsored automatically.
+Free operations are handled entirely by the Varity platform. No extra configuration needed. When your app is deployed on Varity, all operations are free for your users automatically.
 
 <Steps>
 
@@ -59,7 +59,7 @@ Gas sponsorship is handled entirely by the Varity platform. You do not need to c
    varitykit deploy
    ```
 
-   Gas sponsorship is enabled automatically. No extra flags or configuration.
+   Free operations are enabled automatically. No extra flags or configuration.
 
 3. **Users interact for free**
 
@@ -153,11 +153,11 @@ When users pay for your app, the revenue is split automatically:
 - **90%** goes to you (the developer)
 - **10%** goes to Varity (platform fee)
 
-This is enforced by the on-chain payment contract. No invoices, no payment processing — it happens automatically.
+This is enforced automatically by the platform. No invoices, no payment processing — it happens automatically.
 
 ## Billing for Developers
 
-- **Beta**: Free — gas is sponsored using shared development credentials
+- **Beta**: Free — all operational costs are covered using shared development credentials
 - **Production**: Usage-based billing through your Varity account
 
 <Accordion title="How Gas Sponsorship Works Under the Hood">
@@ -168,10 +168,10 @@ Varity uses ERC-4337 account abstraction to sponsor gas fees:
 2. **Smart account encodes the operation** — a UserOperation is created
 3. **Bundler submission** — the operation is sent to the bundler network (Conduit)
 4. **Paymaster approval** — Varity's paymaster agrees to cover the gas cost
-5. **Execution** — the operation executes on Varity L3
+5. **Execution** — the operation executes on Varity infrastructure
 6. **Confirmation** — user sees success
 
-All of this happens in seconds, completely invisible to users. The smart wallet infrastructure (Privy for authentication, Conduit for bundler and paymaster) is managed by Varity. Developers do not need to configure any of these components.
+All of this happens in seconds, completely invisible to users. The smart wallet infrastructure (ZeroDev Kernel smart accounts, authentication, Conduit for bundler and paymaster) is managed by Varity. Developers do not need to configure any of these components.
 
 </Accordion>
 

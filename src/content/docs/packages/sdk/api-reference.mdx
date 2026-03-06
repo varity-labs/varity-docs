@@ -23,6 +23,25 @@ Complete API reference for all exports from `@varity-labs/sdk`. All signatures, 
 
 The database API provides zero-config access to Varity's distributed database.
 
+### Exports
+
+```typescript
+import {
+  db,                  // Pre-configured database singleton
+  Database,            // Database class for custom configs
+  Collection,          // Type-safe collection class
+} from '@varity-labs/sdk';
+
+import type {
+  DatabaseConfig,      // Database configuration options
+  QueryOptions,        // Query options for .get()
+  Document,            // Base document type (id, timestamps)
+  CollectionResponse,  // Response wrapper type
+} from '@varity-labs/sdk';
+```
+
+---
+
 ### `db`
 
 Pre-configured database singleton for immediate use.
@@ -32,8 +51,8 @@ Pre-configured database singleton for immediate use.
 **Description:** Ready-to-use database instance that automatically resolves credentials from environment variables.
 
 **Auto-Configuration Sources:**
-- `NEXT_PUBLIC_VARITY_DB_URL` or `VITE_VARITY_DB_URL` or `REACT_APP_VARITY_DB_URL` (base URL)
-- `NEXT_PUBLIC_VARITY_JWT` or `VITE_VARITY_JWT` or `REACT_APP_VARITY_JWT` (authentication)
+- `NEXT_PUBLIC_VARITY_DB_PROXY_URL` or `VITE_VARITY_DB_PROXY_URL` or `REACT_APP_VARITY_DB_PROXY_URL` (proxy URL)
+- `NEXT_PUBLIC_VARITY_APP_TOKEN` or `VITE_VARITY_APP_TOKEN` or `REACT_APP_VARITY_APP_TOKEN` (authentication)
 - Fallback: Development credentials (automatic)
 
 **Example:**
@@ -42,28 +61,28 @@ Pre-configured database singleton for immediate use.
 import { db } from '@varity-labs/sdk';
 
 // Add a document
-const result = await db.collection('users').add({
+const user = await db.collection('users').add({
   name: 'Alice',
   email: 'alice@example.com'
 });
-console.log('Created:', result.id);
+console.log('Created:', user.id);
 // Output: Created: doc_abc123
+console.log('Name:', user.name);
+// Output: Name: Alice
 
 // Get all documents
 const users = await db.collection('users').get();
 console.log('Users:', users.length);
 
-// Get by ID
-const user = await db.collection('users').getById(result.id);
-console.log('User:', user.data.name);
-
 // Update
-await db.collection('users').update(result.id, {
+const updated = await db.collection('users').update(user.id, {
   name: 'Alice Smith'
 });
+console.log('Updated name:', updated.name);
 
 // Delete
-await db.collection('users').delete(result.id);
+const success = await db.collection('users').delete(user.id);
+console.log('Deleted:', success); // true
 ```
 
 ---
@@ -84,8 +103,8 @@ Database client class for custom configurations.
 
 ```typescript
 interface DatabaseConfig {
-  baseUrl?: string;    // Database proxy URL
-  jwtToken?: string;   // JWT authentication token
+  proxyUrl?: string;   // Database proxy URL
+  appToken?: string;   // JWT authentication token
 }
 ```
 
@@ -98,8 +117,8 @@ import { Database } from '@varity-labs/sdk';
 
 // Custom database instance
 const customDb = new Database({
-  baseUrl: 'https://custom-db.example.com',
-  jwtToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+  proxyUrl: 'https://custom-db.example.com',
+  appToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
 });
 
 const users = await customDb.collection('users').get();
@@ -137,6 +156,8 @@ const result = await products.add({
   price: 99,
   stock: 100
 });
+// result has type: Product & Document
+// Access fields directly: result.name, result.price, result.id
 ```
 
 ---
@@ -148,7 +169,7 @@ Type-safe collection interface for CRUD operations.
 **Type Parameter:**
 - `T` - Document data type
 
-#### `add(data: T): Promise<{ id: string; success: boolean }>`
+#### `add(data: Partial<T>): Promise<T & Document>`
 
 Adds a new document to the collection.
 
@@ -156,55 +177,62 @@ Adds a new document to the collection.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `data` | `T` | Yes | Document data to add |
+| `data` | `Partial<T>` | Yes | Document data to add |
 
-**Returns:** `Promise<{ id: string; success: boolean }>`
+**Returns:** `Promise<T & Document>` — The full inserted document with all fields at the top level.
 
 **Example:**
 
 ```typescript
 const users = db.collection<{ name: string; email: string }>('users');
 
-const result = await users.add({
+const user = await users.add({
   name: 'Bob',
   email: 'bob@example.com'
 });
 
-console.log(result);
-// Output: { id: 'doc_xyz789', success: true }
+// Fields are flat — access directly, NOT via .data
+console.log(user.id);    // 'doc_xyz789'
+console.log(user.name);  // 'Bob'
+console.log(user.email); // 'bob@example.com'
 ```
 
 ---
 
-#### `get(options?: QueryOptions): Promise<Document<T>[]>`
+#### `get(options?: QueryOptions): Promise<(T & Document)[]>`
 
-Retrieves all documents from the collection.
+Retrieves documents from the collection.
 
 **Parameters:**
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `options` | `QueryOptions` | No | Query options (limit, orderBy) |
+| `options` | `QueryOptions` | No | Query options (limit, offset, orderBy) |
 
 **QueryOptions Type:**
 
 ```typescript
 interface QueryOptions {
   limit?: number;      // Maximum number of documents to return
-  orderBy?: string;    // Field to sort by
+  offset?: number;     // Number of documents to skip
+  orderBy?: string;    // Field to sort by ("field" ascending, "-field" descending)
 }
 ```
 
-**Returns:** `Promise<Document<T>[]>`
+**Returns:** `Promise<(T & Document)[]>` — Array of flat documents.
 
 **Document Type:**
 
 ```typescript
-interface Document<T> {
-  id: string;          // Document ID
-  data: T;             // Document data
+interface Document {
+  id: string;
+  created_at?: string;
+  updated_at?: string;
+  [key: string]: any;
 }
 ```
+
+Documents returned are `T & Document` — all user fields and system fields exist at the same level. Access `doc.name`, NOT `doc.data.name`.
 
 <Aside type="caution">
 **No `.where()` Filtering** — The database returns all documents. Filter results client-side if needed.
@@ -216,48 +244,27 @@ interface Document<T> {
 // Get all documents
 const allUsers = await users.get();
 
-// Get with limit
-const recentUsers = await users.get({ limit: 10 });
+// Get with limit and offset
+const page2 = await users.get({ limit: 10, offset: 10 });
 
-// Get with ordering
+// Get with ordering (ascending)
 const sortedUsers = await users.get({
   limit: 20,
-  orderBy: 'createdAt'
+  orderBy: 'name'
+});
+
+// Get with descending order (prefix with -)
+const newestFirst = await users.get({
+  orderBy: '-created_at'
 });
 
 // Client-side filtering (since .where() is not available)
-const admins = allUsers.filter(doc => doc.data.role === 'admin');
+const admins = allUsers.filter(user => user.role === 'admin');
 ```
 
 ---
 
-#### `getById(id: string): Promise<Document<T> | null>`
-
-Retrieves a single document by ID.
-
-**Parameters:**
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `id` | `string` | Yes | Document ID |
-
-**Returns:** `Promise<Document<T> | null>` - Document if found, `null` if not found
-
-**Example:**
-
-```typescript
-const user = await users.getById('doc_abc123');
-
-if (user) {
-  console.log('User found:', user.data.name);
-} else {
-  console.log('User not found');
-}
-```
-
----
-
-#### `update(id: string, data: Partial<T>): Promise<void>`
+#### `update(id: string, data: Partial<T>): Promise<T & Document>`
 
 Updates an existing document.
 
@@ -268,26 +275,29 @@ Updates an existing document.
 | `id` | `string` | Yes | Document ID |
 | `data` | `Partial<T>` | Yes | Fields to update |
 
-**Returns:** `Promise<void>`
+**Returns:** `Promise<T & Document>` — The updated document.
 
 **Example:**
 
 ```typescript
 // Update single field
-await users.update('doc_abc123', {
+const updated = await users.update('doc_abc123', {
   name: 'Alice Updated'
 });
+console.log(updated.name); // 'Alice Updated'
 
 // Update multiple fields
-await users.update('doc_abc123', {
+const result = await users.update('doc_abc123', {
   name: 'Alice Smith',
   email: 'alice.smith@example.com'
 });
+console.log(result.name);  // 'Alice Smith'
+console.log(result.email); // 'alice.smith@example.com'
 ```
 
 ---
 
-#### `delete(id: string): Promise<void>`
+#### `delete(id: string): Promise<boolean>`
 
 Deletes a document from the collection.
 
@@ -297,13 +307,13 @@ Deletes a document from the collection.
 |-----------|------|----------|-------------|
 | `id` | `string` | Yes | Document ID |
 
-**Returns:** `Promise<void>`
+**Returns:** `Promise<boolean>` — `true` on success.
 
 **Example:**
 
 ```typescript
-await users.delete('doc_abc123');
-console.log('User deleted');
+const success = await users.delete('doc_abc123');
+console.log('Deleted:', success); // true
 ```
 
 ---
@@ -316,26 +326,27 @@ Functions for managing authentication credentials. Used internally by UI-Kit.
 
 Automatically resolves credentials from environment variables with fallback to dev credentials.
 
-**Signature:** `resolveCredentials(config?: CredentialConfig): CredentialConfig`
+**Signature:** `resolveCredentials(appId?: string, clientId?: string): CredentialConfig`
 
 **Parameters:**
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `config` | `CredentialConfig` | No | Partial credential config |
+| `appId` | `string` | No | Privy App ID (falls back to dev credentials) |
+| `clientId` | `string` | No | Thirdweb Client ID (falls back to dev credentials) |
 
 **CredentialConfig Type:**
 
 ```typescript
 interface CredentialConfig {
-  privyAppId?: string;
-  thirdwebClientId?: string;
+  privy: {
+    appId: string;
+  };
+  thirdweb: {
+    clientId: string;
+  };
 }
 ```
-
-**Environment Variable Resolution:**
-- `privyAppId`: `NEXT_PUBLIC_PRIVY_APP_ID` or `VITE_PRIVY_APP_ID` or `REACT_APP_PRIVY_APP_ID`
-- `thirdwebClientId`: `NEXT_PUBLIC_THIRDWEB_CLIENT_ID` or `VITE_THIRDWEB_CLIENT_ID` or `REACT_APP_THIRDWEB_CLIENT_ID`
 
 **Returns:** `CredentialConfig` - Fully resolved credentials
 
@@ -344,14 +355,16 @@ interface CredentialConfig {
 ```typescript
 import { resolveCredentials } from '@varity-labs/sdk';
 
-// Auto-resolve from environment
+// Auto-resolve with dev credential fallback
 const creds = resolveCredentials();
-console.log('Privy App ID:', creds.privyAppId);
+console.log('Privy App ID:', creds.privy.appId);
+console.log('Thirdweb Client ID:', creds.thirdweb.clientId);
 
 // Override specific credentials
-const customCreds = resolveCredentials({
-  privyAppId: 'custom-app-id'
-});
+const customCreds = resolveCredentials(
+  'custom-privy-app-id',
+  'custom-thirdweb-client-id'
+);
 ```
 
 ---
@@ -360,25 +373,24 @@ const customCreds = resolveCredentials({
 
 Checks if the provided credentials match development credentials.
 
-**Signature:** `isUsingDevCredentials(config: CredentialConfig): boolean`
+**Signature:** `isUsingDevCredentials(appId?: string, clientId?: string): boolean`
 
 **Parameters:**
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `config` | `CredentialConfig` | Yes | Credentials to check |
+| `appId` | `string` | No | Privy App ID to check |
+| `clientId` | `string` | No | Thirdweb Client ID to check |
 
 **Returns:** `boolean` - `true` if using dev credentials
 
 **Example:**
 
 ```typescript
-import { resolveCredentials, isUsingDevCredentials } from '@varity-labs/sdk';
+import { isUsingDevCredentials } from '@varity-labs/sdk';
 
-const creds = resolveCredentials();
-
-if (isUsingDevCredentials(creds)) {
-  console.warn('⚠️ Using shared dev credentials - set your own for production!');
+if (isUsingDevCredentials()) {
+  console.warn('Using shared dev credentials - set your own for production!');
 }
 ```
 
@@ -388,26 +400,112 @@ if (isUsingDevCredentials(creds)) {
 
 Checks if credentials are production-ready (opposite of `isUsingDevCredentials`).
 
-**Signature:** `isProductionCredentials(config: CredentialConfig): boolean`
+**Signature:** `isProductionCredentials(appId?: string, clientId?: string): boolean`
 
 **Parameters:**
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `config` | `CredentialConfig` | Yes | Credentials to check |
+| `appId` | `string` | No | Privy App ID to check |
+| `clientId` | `string` | No | Thirdweb Client ID to check |
 
 **Returns:** `boolean` - `true` if using production credentials
 
 **Example:**
 
 ```typescript
-import { resolveCredentials, isProductionCredentials } from '@varity-labs/sdk';
+import { isProductionCredentials } from '@varity-labs/sdk';
 
-const creds = resolveCredentials();
+const appId = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
+const clientId = process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID;
 
-if (!isProductionCredentials(creds)) {
+if (!isProductionCredentials(appId, clientId)) {
   throw new Error('Production credentials required');
 }
+```
+
+---
+
+### `getCredentialWarning()`
+
+Returns a warning message if using dev credentials.
+
+**Signature:** `getCredentialWarning(environment: 'development' | 'staging' | 'production'): string | null`
+
+**Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `environment` | `string` | Yes | Current environment (`'development'`, `'staging'`, or `'production'`) |
+
+**Returns:** `string | null` - Warning message or `null` if in development environment
+
+**Example:**
+
+```typescript
+import { getCredentialWarning } from '@varity-labs/sdk';
+
+const warning = getCredentialWarning('production');
+
+if (warning) {
+  console.warn(warning);
+  // Output: "Using shared Varity development credentials in production environment..."
+}
+```
+
+---
+
+### `logCredentialUsage()`
+
+Logs credential usage information to the console (with deduplication to avoid spam).
+
+**Signature:** `logCredentialUsage(): void`
+
+**Example:**
+
+```typescript
+import { logCredentialUsage } from '@varity-labs/sdk';
+
+logCredentialUsage();
+```
+
+---
+
+### `validateCredentials()`
+
+Validates that the provided credentials are well-formed.
+
+**Signature:** `validateCredentials(appId?: string, clientId?: string): boolean`
+
+**Example:**
+
+```typescript
+import { validateCredentials } from '@varity-labs/sdk';
+
+const valid = validateCredentials(
+  process.env.NEXT_PUBLIC_PRIVY_APP_ID,
+  process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID
+);
+
+if (!valid) {
+  console.error('Invalid credentials format');
+}
+```
+
+---
+
+### `getUpgradeInstructions()`
+
+Returns instructions for upgrading from dev credentials to production credentials.
+
+**Signature:** `getUpgradeInstructions(): string`
+
+**Example:**
+
+```typescript
+import { getUpgradeInstructions } from '@varity-labs/sdk';
+
+console.log(getUpgradeInstructions());
 ```
 
 ---
@@ -416,14 +514,22 @@ if (!isProductionCredentials(creds)) {
 
 Shared development credentials for zero-config testing.
 
-**Type:** `CredentialConfig`
+**Type:** `object` (contains `privy`, `thirdweb`, and `rateLimits`)
 
 **Value:**
 
 ```typescript
 {
-  privyAppId: 'cmhwbozxu004fjr0cicfz0tf8',
-  thirdwebClientId: 'a35636133eb5ec6f30eb9f4c15fce2f3'
+  privy: {
+    appId: 'cmhwbozxu004fjr0cicfz0tf8',
+  },
+  thirdweb: {
+    clientId: 'a35636133eb5ec6f30eb9f4c15fce2f3',
+  },
+  rateLimits: {
+    privy: { monthlyActiveUsers: 1000 },
+    thirdweb: { requestsPerSecond: 100 },
+  },
 }
 ```
 
@@ -432,43 +538,13 @@ Shared development credentials for zero-config testing.
 ```typescript
 import { VARITY_DEV_CREDENTIALS } from '@varity-labs/sdk';
 
-console.log('Dev Privy App ID:', VARITY_DEV_CREDENTIALS.privyAppId);
+console.log('Dev Privy App ID:', VARITY_DEV_CREDENTIALS.privy.appId);
 // Output: cmhwbozxu004fjr0cicfz0tf8
 ```
 
 <Aside type="caution">
 **Development Only** — These credentials are shared across all Varity developers. Never use in production.
 </Aside>
-
----
-
-### `getCredentialWarning()`
-
-Returns a warning message if using dev credentials.
-
-**Signature:** `getCredentialWarning(config: CredentialConfig): string | null`
-
-**Parameters:**
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `config` | `CredentialConfig` | Yes | Credentials to check |
-
-**Returns:** `string | null` - Warning message or `null` if production credentials
-
-**Example:**
-
-```typescript
-import { resolveCredentials, getCredentialWarning } from '@varity-labs/sdk';
-
-const creds = resolveCredentials();
-const warning = getCredentialWarning(creds);
-
-if (warning) {
-  console.warn(warning);
-  // Output: "⚠️ Using shared Varity dev credentials..."
-}
-```
 
 ---
 
@@ -520,22 +596,25 @@ For advanced use cases, the SDK provides subpath imports that expose infrastruct
 **Advanced Usage Only** — These APIs are for power users who need direct infrastructure access. Most apps should use the main database API.
 </Aside>
 
-### Chain Configuration (`@varity-labs/sdk/chains`)
+### Platform Configuration (`@varity-labs/sdk/chains`)
 
-Access Varity L3 network configuration.
+Access Varity platform network configuration.
 
 **Exports:**
 
 ```typescript
 import {
-  VARITY_L3_TESTNET,     // Chain object for Varity L3 testnet
-  varityL3Testnet,       // Alias for VARITY_L3_TESTNET
-  formatUSDC,            // Format USDC amount (6 decimals)
+  varityL3,              // Chain object for Varity L3
+  varityL3Testnet,       // Chain object for Varity L3 testnet
+  varityL3Wagmi,         // Wagmi-compatible chain config
+  formatUSDC,            // Format USDC amount (6 decimals) — returns a string
   parseUSDC,             // Parse USDC string to bigint
+  USDC_DECIMALS,         // 6
+  VARITY_USDC_ADDRESS,   // USDC contract address on Varity L3
 } from '@varity-labs/sdk/chains';
 ```
 
-**Chain Object:**
+**Chain Object (`varityL3Testnet`):**
 
 ```typescript
 {
@@ -563,35 +642,39 @@ import {
 **Example:**
 
 ```typescript
-import { VARITY_L3_TESTNET, formatUSDC, parseUSDC } from '@varity-labs/sdk/chains';
+import { varityL3Testnet, formatUSDC, parseUSDC, USDC_DECIMALS } from '@varity-labs/sdk/chains';
 
-console.log('Chain ID:', VARITY_L3_TESTNET.id); // 33529
-console.log('RPC URL:', VARITY_L3_TESTNET.rpcUrls.default.http[0]);
+console.log('Chain ID:', varityL3Testnet.id); // 33529
+console.log('RPC URL:', varityL3Testnet.rpcUrls.default.http[0]);
+console.log('USDC Decimals:', USDC_DECIMALS); // 6
 
-// Format USDC (6 decimals, not 18!)
+// Parse a USDC amount to its raw bigint value
 const amount = parseUSDC('99.50');
 console.log('Raw amount:', amount); // 99500000n
 
+// Format a raw bigint back to a human-readable string
 const formatted = formatUSDC(99500000n);
-console.log('Formatted:', formatted); // "99.50"
+console.log('Formatted:', formatted); // "99.50" (returns a string)
 ```
 
 ---
 
-### Blockchain Utilities (`@varity-labs/sdk/blockchain`)
+### Infrastructure Utilities (`@varity-labs/sdk/blockchain`)
 
-Low-level blockchain utilities (rarely needed).
+Low-level infrastructure utilities (rarely needed).
 
 **Exports:**
 
 ```typescript
 import {
-  // Currently no active exports in MVP
+  BlockchainService,       // Contract reading/writing service
+  NFTLicensingService,     // ERC-1155 NFT licensing
+  RevenueSplitService,     // Revenue split distribution
 } from '@varity-labs/sdk/blockchain';
 ```
 
-<Aside type="note">
-**Dormant Module** — Blockchain utilities are hidden in the MVP. This subpath exists for future expansion.
+<Aside type="caution">
+**Advanced Usage** — These services require direct infrastructure interaction knowledge. Most apps should use the main database API instead.
 </Aside>
 
 ---
@@ -604,26 +687,35 @@ Utilities for working with thirdweb SDK.
 
 ```typescript
 import {
-  createThirdwebClient,  // Create thirdweb client
-  getContract,           // Get contract instance
-  // Additional thirdweb utilities
+  ThirdwebWrapper,        // Contract operations wrapper
+  createThirdwebWrapper,  // Create a ThirdwebWrapper instance
+  EngineClient,           // Production transaction management
+  createEngineClient,     // Create an EngineClient instance
+  NebulaClient,           // Natural language blockchain AI
+  createNebulaClient,     // Create a NebulaClient instance
+  StorageClient,          // IPFS/Arweave storage
+  createStorageClient,    // Create a StorageClient instance
+  BridgeClient,           // Cross-chain transfers
+  createBridgeClient,     // Create a BridgeClient instance
+  GatewayClient,          // RPC infrastructure
+  createGatewayClient,    // Create a GatewayClient instance
+  x402Client,             // API monetization
+  createx402Client,       // Create an x402Client instance
+  x402Middleware,          // Express middleware for x402
+  varietyTestnet,          // Legacy chain export
+  getVarityChain,         // Get Varity chain config
+  isVarityChain,          // Check if a chain is Varity
+  VARITY_TESTNET_RPC,     // Testnet RPC URL
 } from '@varity-labs/sdk/thirdweb';
 ```
 
 **Example:**
 
 ```typescript
-import { createThirdwebClient, getContract } from '@varity-labs/sdk/thirdweb';
-import { VARITY_L3_TESTNET } from '@varity-labs/sdk/chains';
+import { createThirdwebWrapper } from '@varity-labs/sdk/thirdweb';
 
-const client = createThirdwebClient({
+const wrapper = createThirdwebWrapper({
   clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID,
-});
-
-const contract = getContract({
-  client,
-  chain: VARITY_L3_TESTNET,
-  address: '0x5EfAF2219F9957461125485Eae49Bac07505bB34', // TemplateMarketplace
 });
 ```
 
@@ -637,63 +729,28 @@ Analytics and event tracking utilities.
 
 ```typescript
 import {
-  trackEvent,      // Track custom events
-  // Additional tracking utilities
+  trackGasUsage,               // Track gas usage for billing
+  trackTransactionGasUsage,    // Track gas from a transaction
+  waitForTransactionReceipt,   // Wait for tx confirmation
+  calculateGasInUSDC,          // Convert gas cost to USDC
+  createGasTracker,            // Create a gas tracker instance
 } from '@varity-labs/sdk/tracking';
 ```
 
 **Example:**
 
 ```typescript
-import { trackEvent } from '@varity-labs/sdk/tracking';
+import { createGasTracker, calculateGasInUSDC } from '@varity-labs/sdk/tracking';
 
-trackEvent('user_signup', {
-  method: 'email',
-  timestamp: Date.now()
-});
+const tracker = createGasTracker({ appId: 'my-app' });
+
+// Calculate gas cost in USDC
+const cost = calculateGasInUSDC(21000n, 1000000n);
 ```
 
 <Aside type="note">
-**Beta Environment** — Tracking is available but analytics dashboard is not yet live.
+**Beta Environment** — Gas tracking is available but the billing dashboard is not yet live.
 </Aside>
-
----
-
-### Contract ABIs (`@varity-labs/sdk/contracts`)
-
-Smart contract ABIs for Varity infrastructure.
-
-**Exports:**
-
-```typescript
-import {
-  TEMPLATE_MARKETPLACE_ABI,
-  TEMPLATE_REGISTRY_ABI,
-  VARITY_APP_REGISTRY_ABI,
-  SIMPLIFIED_PAYMASTER_ABI,
-  VARITY_WALLET_FACTORY_ABI,
-} from '@varity-labs/sdk/contracts';
-```
-
-**Example:**
-
-```typescript
-import { TEMPLATE_MARKETPLACE_ABI } from '@varity-labs/sdk/contracts';
-import { getContract, readContract } from 'thirdweb';
-
-const marketplace = getContract({
-  client,
-  chain: VARITY_L3_TESTNET,
-  address: '0x5EfAF2219F9957461125485Eae49Bac07505bB34',
-  abi: TEMPLATE_MARKETPLACE_ABI,
-});
-
-const price = await readContract({
-  contract: marketplace,
-  method: 'getPrice',
-  params: [BigInt(1)],
-});
-```
 
 ---
 
@@ -705,7 +762,7 @@ All TypeScript types are re-exported from `@varity-labs/types`:
 import type {
   DatabaseConfig,      // Database configuration
   QueryOptions,        // Query options for .get()
-  Document,            // Document with ID + data
+  Document,            // Base document type (id, created_at, updated_at)
   CollectionResponse,  // Response from collection operations
   CredentialConfig,    // Auth credentials
 } from '@varity-labs/sdk';
@@ -732,7 +789,7 @@ interface Product {
 
 const products = db.collection<Product>('products');
 
-// Add products
+// Add products — returns the full document (flat, with id)
 const laptop = await products.add({
   name: 'Pro Laptop 15"',
   description: 'High-performance laptop',
@@ -753,19 +810,16 @@ const keyboard = await products.add({
 const allProducts = await products.get();
 console.log(`Total products: ${allProducts.length}`);
 
-// Filter by category (client-side)
+// Filter by category (client-side) — fields are flat, NOT nested
 const electronics = allProducts.filter(
-  p => p.data.category === 'electronics'
+  p => p.category === 'electronics'
 );
 
-// Update stock
-await products.update(laptop.id, {
+// Update stock — returns the updated document
+const updated = await products.update(laptop.id, {
   stock: 45  // Sold 5 units
 });
-
-// Get updated product
-const updatedLaptop = await products.getById(laptop.id);
-console.log(`Laptop stock: ${updatedLaptop?.data.stock}`);
+console.log(`Laptop stock: ${updated.stock}`); // 45
 ```
 
 ---
@@ -780,12 +834,15 @@ import {
 } from '@varity-labs/sdk';
 
 // Auto-resolve credentials
-const creds = resolveCredentials();
+const creds = resolveCredentials(
+  process.env.NEXT_PUBLIC_PRIVY_APP_ID,
+  process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID
+);
 
 // Check environment
-if (isUsingDevCredentials(creds)) {
-  const warning = getCredentialWarning(creds);
-  console.warn(warning);
+if (isUsingDevCredentials(creds.privy.appId, creds.thirdweb.clientId)) {
+  const warning = getCredentialWarning('production');
+  if (warning) console.warn(warning);
 
   // Prevent production deployment with dev credentials
   if (process.env.NODE_ENV === 'production') {
@@ -794,8 +851,8 @@ if (isUsingDevCredentials(creds)) {
 }
 
 // Use credentials
-console.log('Privy App ID:', creds.privyAppId);
-console.log('Thirdweb Client ID:', creds.thirdwebClientId);
+console.log('Privy App ID:', creds.privy.appId);
+console.log('Thirdweb Client ID:', creds.thirdweb.clientId);
 ```
 
 ---
@@ -808,8 +865,8 @@ import { Database } from '@varity-labs/sdk';
 // Custom database for multi-tenant app
 const createTenantDatabase = (tenantId: string) => {
   return new Database({
-    baseUrl: `https://${tenantId}.db.varity.app`,
-    jwtToken: process.env[`JWT_${tenantId.toUpperCase()}`],
+    proxyUrl: `https://${tenantId}.db.varity.app`,
+    appToken: process.env[`JWT_${tenantId.toUpperCase()}`],
   });
 };
 

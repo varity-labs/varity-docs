@@ -9,7 +9,7 @@ import PageMeta from '../../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="February 2026"
+  lastUpdated="March 2026"
   stability="beta"
 />
 
@@ -107,11 +107,13 @@ export function UpgradeButton({ appId }) {
   return (
     <PaymentWidget
       appId={appId}
-      amount={10}  // $10 USD
-      onSuccess={(result) => {
-        console.log('Payment complete!', result);
+      price={1000}  // $10.00 USD (in cents)
+      onSuccess={(txHash) => {
+        console.log('Payment complete!', txHash);
       }}
-    />
+    >
+      <button>Upgrade - $10</button>
+    </PaymentWidget>
   );
 }
 ```
@@ -134,4 +136,4 @@ Users pay in their local currency using familiar payment methods. No special set
 ## Next Steps
 
 - [Free Operations](/build/payments/gasless) — Users never pay usage fees
-- [Deploy Your App](/deploy/varity-l3) — Submit to the App Store
+- [Deploy Your App](/deploy/deploy-your-app) — Submit to the App Store
