@@ -39,11 +39,46 @@ export default defineConfig({
       editLink: {
         baseUrl: "https://github.com/varity-labs/varity-docs/edit/main/",
       },
+      components: {
+        ContentPanel: './src/components/overrides/ContentPanel.astro',
+      },
       customCss: [
         "./src/styles/varity-theme.css",
         "./src/styles/components.css"
       ],
       head: [
+        // Performance: DNS prefetch for external resources
+        {
+          tag: "link",
+          attrs: {
+            rel: "dns-prefetch",
+            href: "https://fonts.googleapis.com",
+          },
+        },
+        {
+          tag: "link",
+          attrs: {
+            rel: "dns-prefetch",
+            href: "https://fonts.gstatic.com",
+          },
+        },
+        {
+          tag: "link",
+          attrs: {
+            rel: "preconnect",
+            href: "https://fonts.googleapis.com",
+          },
+        },
+        {
+          tag: "link",
+          attrs: {
+            rel: "preconnect",
+            href: "https://fonts.gstatic.com",
+            crossorigin: "anonymous",
+          },
+        },
+        // Performance: Browser's preload scanner handles critical resource discovery
+        // (removed hardcoded preload tags - hashed filenames change on each build)
         {
           tag: "meta",
           attrs: {
@@ -69,7 +104,7 @@ export default defineConfig({
           tag: "meta",
           attrs: {
             name: "twitter:card",
-            content: "summary",
+            content: "summary_large_image",
           },
         },
         {
