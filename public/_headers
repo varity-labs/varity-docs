@@ -1,0 +1,35 @@
+# Cache-Control headers for static assets
+
+# Images - cache for 1 year
+/_astro/*.svg
+  Cache-Control: public, max-age=31536000, immutable
+
+# CSS and JS - cache for 1 year (content-hashed filenames)
+/_astro/*.css
+  Cache-Control: public, max-age=31536000, immutable
+
+/_astro/*.js
+  Cache-Control: public, max-age=31536000, immutable
+
+# Pagefind search index - cache for 1 hour (updates with builds)
+/pagefind/*
+  Cache-Control: public, max-age=3600, must-revalidate
+
+# HTML pages - cache for 5 minutes, must revalidate
+/*.html
+  Cache-Control: public, max-age=300, must-revalidate
+
+# Root index - cache for 5 minutes
+/
+  Cache-Control: public, max-age=300, must-revalidate
+
+# Favicon - cache for 1 week
+/favicon.svg
+  Cache-Control: public, max-age=604800
+
+# Sitemap and robots - cache for 1 day
+/sitemap-*.xml
+  Cache-Control: public, max-age=86400
+
+/robots.txt
+  Cache-Control: public, max-age=86400

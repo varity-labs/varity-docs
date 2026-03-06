@@ -1,0 +1,13 @@
+---
+import type { Props } from '@astrojs/starlight/props';
+import Default from '@astrojs/starlight/components/ContentPanel.astro';
+import Feedback from '../Feedback.astro';
+---
+
+<!-- Include the default Starlight content panel -->
+<Default {...Astro.props}>
+  <slot />
+
+  <!-- Add feedback widget after the main content -->
+  <Feedback />
+</Default>
