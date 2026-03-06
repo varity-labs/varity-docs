@@ -7,16 +7,6 @@ import AITools from '../AITools.astro';
 const isHomepage = Astro.props.entry?.data?.template === 'splash';
 ---
 
-{!isHomepage && (
-  <div class="ai-tools-sidebar">
-    <AITools {...Astro.props} />
-  </div>
-)}
+{!isHomepage && <AITools {...Astro.props} />}
 
 <Default {...Astro.props} />
-
-<style>
-  .ai-tools-sidebar {
-    margin-bottom: 1.5rem;
-  }
-</style>
