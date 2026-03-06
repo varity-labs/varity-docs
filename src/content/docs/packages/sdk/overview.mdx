@@ -11,12 +11,12 @@ import PageMeta from '../../../../components/PageMeta.astro';
   author="Varity Team"
   authorRole="Core Contributors"
   lastUpdated="March 2026"
-  stability="alpha"
+  stability="beta"
 />
 
 The Varity SDK provides the core building blocks for your application: a zero-config database, credential management, and infrastructure utilities. Install it once and start building immediately.
 
-<Badge text="v2.0.0-alpha.1" variant="caution" />
+<Badge text="v2.0.0-beta.2" variant="note" />
 
 ## What's Included
 
@@ -127,7 +127,7 @@ if (warning) {
 
 | Export | Type | Description |
 |--------|------|-------------|
-| `VERSION` | const (string) | SDK version (`'2.0.0-alpha.1'`) |
+| `VERSION` | const (string) | SDK version (`'2.0.0-beta.2'`) |
 | `SDK_VERSION` | const (string) | Same as `VERSION` |
 
 ```typescript
@@ -150,8 +150,8 @@ import type {
 } from '@varity-labs/sdk';
 ```
 
-<Aside type="caution">
-**Alpha release** -- The main SDK entry point currently exports database and credential utilities only. Additional modules (storage, analytics, notifications) are planned for future releases. See the subpath imports below for infrastructure access.
+<Aside type="note">
+**Beta release** -- The main SDK entry point currently exports database and credential utilities only. Additional modules (storage, analytics, notifications) are planned for future releases. See the subpath imports below for infrastructure access.
 </Aside>
 
 <Accordion title="Advanced: Subpath Imports for Infrastructure Access">
@@ -234,7 +234,7 @@ import {
 
 You may see references to a class-based SDK pattern (`createVaritySDK`, `sdk.connect()`, `sdk.storage`, `sdk.analytics`, etc.) in older code or documentation. This v1 API exists in the SDK source code but is **currently commented out** and not exported from the package.
 
-The current SDK (v2.0.0-alpha.1) uses a modular approach:
+The current SDK (v2.0.0-beta.2) uses a modular approach:
 - **Database**: Use the `db` singleton or create a `Database` instance directly
 - **Credentials**: Use the standalone credential functions
 - **Infrastructure**: Use subpath imports (`/chains`, `/blockchain`, `/thirdweb`, `/tracking`)
