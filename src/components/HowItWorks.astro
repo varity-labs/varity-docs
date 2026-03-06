@@ -4,7 +4,7 @@
  *
  * Visual 3-step flow: Install → Build → Deploy.
  * Numbered teal circles with connecting lines.
- * Uses CSS subgrid to align all steps on the same baseline.
+ * Uses simple flexbox with fixed heights for cross-column alignment.
  */
 
 const steps = [
@@ -33,7 +33,7 @@ const steps = [
   <div class="steps-row">
     {steps.map((step, i) => (
       <div class="step-col">
-        <div class="step-circle-wrapper">
+        <div class="step-top">
           {i > 0 && <div class="connector connector-left" />}
           <div class="step-circle">
             <span>{step.number}</span>
@@ -50,47 +50,45 @@ const steps = [
 
 <style>
   .how-it-works {
-    margin: var(--space-5) 0;
+    margin: 2.5rem 0;
   }
 
-  /* Parent grid: 3 columns x 4 rows. Rows are shared across all columns. */
   .steps-row {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    grid-template-rows: 3rem auto auto auto;
-    column-gap: var(--space-6);
-    row-gap: var(--space-2);
+    display: flex;
+    gap: 2rem;
   }
 
-  /* Each step spans all 4 rows and uses subgrid to align with siblings */
   .step-col {
-    display: grid;
-    grid-row: span 4;
-    grid-template-rows: subgrid;
-    justify-items: center;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     text-align: center;
   }
 
-  .step-circle-wrapper {
+  /* Circle row — fixed height so all circles align */
+  .step-top {
     position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
     width: 100%;
-    height: 3rem;
+    height: 48px;
+    margin-bottom: 12px;
+    flex-shrink: 0;
   }
 
   .step-circle {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 3rem;
-    height: 3rem;
-    background: var(--color-brand-subtle);
-    border: 2px solid var(--color-brand);
+    width: 48px;
+    height: 48px;
+    background: rgba(20, 184, 166, 0.1);
+    border: 2px solid #14b8a6;
     border-radius: 50%;
-    color: var(--color-brand);
-    font-weight: var(--font-bold);
+    color: #14b8a6;
+    font-weight: 700;
     font-size: 1.125rem;
     position: relative;
     z-index: 1;
@@ -101,77 +99,87 @@ const steps = [
     position: absolute;
     top: 50%;
     height: 2px;
-    background: var(--border-secondary);
+    background: rgba(63, 63, 70, 0.5);
   }
 
   .connector-left {
     left: 0;
-    right: calc(50% + 1.5rem + var(--space-2));
+    right: calc(50% + 32px);
   }
 
   .connector-right {
-    left: calc(50% + 1.5rem + var(--space-2));
+    left: calc(50% + 32px);
     right: 0;
   }
 
+  /* Title — fixed height so descriptions start at same level */
   .step-title {
-    font-size: var(--text-lg);
-    font-weight: var(--font-semibold);
-    color: var(--text-primary);
-    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #fafafa;
+    margin: 0 0 4px 0;
+    height: 1.5em;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
   }
 
+  /* Description — flex: 1 pushes code to bottom */
   .step-desc {
     font-size: 0.9375rem;
-    color: var(--text-secondary);
-    line-height: var(--leading-relaxed);
-    margin: 0;
+    color: #a1a1aa;
+    line-height: 1.6;
+    margin: 0 0 12px 0;
+    flex: 1;
   }
 
+  /* Code — anchored at bottom by flex: 1 on desc */
   .step-code {
     display: inline-block;
-    font-family: var(--sl-font-mono);
+    font-family: var(--sl-font-mono, 'JetBrains Mono', monospace);
     font-size: 0.8125rem;
     background: rgba(255, 255, 255, 0.04);
-    border: 1px solid var(--border-secondary);
-    border-radius: var(--radius-md);
-    padding: var(--space-2) var(--space-3);
+    border: 1px solid rgba(63, 63, 70, 0.5);
+    border-radius: 6px;
+    padding: 8px 12px;
     color: #14b8a6;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 100%;
-    align-self: end;
+    flex-shrink: 0;
+  }
+
+  /* Light mode */
+  :global([data-theme="light"]) .step-title {
+    color: #18181b;
+  }
+
+  :global([data-theme="light"]) .step-desc {
+    color: #52525b;
+  }
+
+  :global([data-theme="light"]) .step-code {
+    background: rgba(0, 0, 0, 0.03);
+    border-color: rgba(0, 0, 0, 0.1);
   }
 
   @media (max-width: 48rem) {
     .steps-row {
-      grid-template-columns: 1fr;
-      grid-template-rows: auto;
-      row-gap: var(--space-8);
-    }
-
-    .step-col {
-      grid-row: auto;
-      grid-template-rows: auto auto auto auto;
-      gap: var(--space-2);
-      position: relative;
-      padding-bottom: var(--space-6);
+      flex-direction: column;
+      gap: 2rem;
     }
 
     .connector {
       display: none;
     }
 
-    .step-col:not(:last-child)::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 2px;
-      height: var(--space-6);
-      background: var(--border-secondary);
+    .step-desc {
+      flex: 0;
+    }
+
+    .step-title {
+      height: auto;
     }
   }
 </style>
