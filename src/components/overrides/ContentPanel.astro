@@ -2,6 +2,7 @@
 import type { Props } from '@astrojs/starlight/props';
 import Default from '@astrojs/starlight/components/ContentPanel.astro';
 import Feedback from '../Feedback.astro';
+import AITools from '../AITools.astro';
 ---
 
 <!-- Include the default Starlight content panel -->
@@ -10,4 +11,7 @@ import Feedback from '../Feedback.astro';
 
   <!-- Add feedback widget after the main content -->
   <Feedback />
+
+  <!-- Add AI Tools section (like Supabase) -->
+  <AITools {...Astro.props} />
 </Default>
