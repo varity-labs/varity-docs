@@ -65,6 +65,7 @@
     grid-template-columns: 1fr 1fr;
     gap: var(--space-5);
     margin: var(--space-5) 0;
+    align-items: start;  /* Align to top, don't stretch */
   }
 
   @media (max-width: 48rem) {
@@ -78,6 +79,8 @@
     overflow: hidden;
     border: 1px solid var(--border-primary);
     background: #0d0d0f;
+    width: 100%;  /* Force equal width */
+    min-height: 140px;  /* Ensure minimum height match */
   }
 
   .panel-header {

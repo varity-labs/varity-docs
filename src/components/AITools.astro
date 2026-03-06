@@ -39,25 +39,27 @@ const pageUrl = `https://docs.varity.so${pathname}`;
 <style>
   .ai-tools {
     margin-top: 2rem;
-    padding: 1rem;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
-    border: 1px solid var(--border-primary, rgba(63, 63, 70, 0.5));
-    border-radius: 8px;
+    padding: 0;  /* No padding - match TOC style */
+    background: none;  /* No background - match TOC */
+    border: none;  /* No border - match TOC */
+    border-radius: 0;
   }
 
   .ai-tools-title {
-    font-size: 0.75rem;
+    font-size: 0.6875rem;  /* 11px - match TOC heading size */
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     color: var(--text-secondary, #a1a1aa);
-    margin: 0 0 0.25rem 0;
+    margin: 0 0 0.5rem 0;
+    padding: 0;
   }
 
   .ai-tools-subtitle {
     font-size: 0.8125rem;
     color: var(--text-tertiary, #71717a);
     margin: 0 0 0.75rem 0;
+    display: none;  /* Hide subtitle - cleaner like TOC */
   }
 
   .ai-tools-buttons {

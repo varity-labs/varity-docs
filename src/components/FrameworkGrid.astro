@@ -69,11 +69,12 @@ const frameworks = [
     justify-content: center;
     width: 3.5rem;
     height: 3.5rem;
-    border-radius: 50%;
-    font-size: 1.25rem;
+    border-radius: 0.5rem;  /* Rounded square, not circle - more professional */
+    font-size: 1.5rem;  /* Larger text */
     font-weight: var(--font-bold);
-    box-shadow: var(--shadow-md);
-    transition: box-shadow var(--transition-fast);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);  /* Subtle shadow */
+    transition: all var(--transition-fast);
+    border: 2px solid rgba(255, 255, 255, 0.1);  /* Subtle border */
   }
 
   .framework-item:hover .framework-circle {

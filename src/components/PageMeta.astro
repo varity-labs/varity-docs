@@ -86,15 +86,23 @@ const stabilityBg = {
   }
 
   .meta-item {
-    display: flex;
-    align-items: center;
+    display: inline-flex;  /* Inline-flex for proper baseline alignment */
+    align-items: baseline;  /* Baseline alignment - all text on same line */
     gap: var(--space-2);
     color: var(--text-tertiary);
+    vertical-align: baseline;  /* Ensure vertical alignment */
   }
 
   .meta-item svg {
     flex-shrink: 0;
     opacity: 0.7;
+    vertical-align: middle;  /* Align icons with text */
+    margin-top: 2px;  /* Fine-tune icon alignment */
+  }
+
+  .meta-label {
+    display: inline;  /* Inline to prevent wrapping */
+    white-space: nowrap;  /* No wrapping within label */
   }
 
   .meta-label strong {
@@ -105,6 +113,7 @@ const stabilityBg = {
   .author-role {
     color: var(--text-muted);
     margin-left: var(--space-1);
+    display: inline;  /* Inline, no wrapping */
   }
 
   .author-role::before {
