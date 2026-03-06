@@ -1,0 +1,517 @@
+---
+title: Node.js Quick Start
+description: Get started with Varity in Node.js applications - database, auth, and deployment in under 5 minutes
+---
+
+import { Steps, Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+import PageMeta from '../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="March 5, 2026"
+  version="2.0.0"
+  stability="stable"
+/>
+
+# Node.js Quick Start
+
+Build and deploy backend applications with Varity's database, authentication, and hosting. This guide gets you started in under 5 minutes.
+
+## Prerequisites
+
+- Node.js 18 or later
+- npm or yarn
+- TypeScript knowledge (recommended)
+
+## Installation
+
+Install the Varity SDK and types:
+
+<Tabs>
+  <TabItem label="npm">
+    ```bash
+    npm install @varity-labs/sdk @varity-labs/types
+    ```
+  </TabItem>
+  <TabItem label="yarn">
+    ```bash
+    yarn add @varity-labs/sdk @varity-labs/types
+    ```
+  </TabItem>
+  <TabItem label="pnpm">
+    ```bash
+    pnpm add @varity-labs/sdk @varity-labs/types
+    ```
+  </TabItem>
+</Tabs>
+
+For TypeScript projects, install type definitions:
+
+```bash
+npm install --save-dev @types/node typescript
+```
+
+## Quick Start: Database CRUD
+
+The fastest way to get started is with Varity's built-in database. No configuration required.
+
+### 1. Import the Database
+
+```typescript title="src/index.ts"
+import { db } from '@varity-labs/sdk';
+
+// The db instance is ready to use immediately
+// No connection strings, no setup required
+```
+
+### 2. Define Your Data Types
+
+```typescript title="src/types.ts"
+export interface User {
+  id?: string;
+  name: string;
+  email: string;
+  role: 'admin' | 'user';
+  createdAt: string;
+}
+
+export interface Post {
+  id?: string;
+  title: string;
+  content: string;
+  authorId: string;
+  published: boolean;
+  createdAt: string;
+}
+```
+
+### 3. Basic CRUD Operations
+
+<Steps>
+
+1. **Create (Add Documents)**
+
+   ```typescript
+   import { db } from '@varity-labs/sdk';
+   import type { User } from './types';
+
+   async function createUser(name: string, email: string) {
+     const result = await db.collection<User>('users').add({
+       name,
+       email,
+       role: 'user',
+       createdAt: new Date().toISOString(),
+     });
+
+     console.log('Created user:', result);
+     // Returns: { id: 'doc_abc123', success: true }
+   }
+
+   createUser('Alice Johnson', 'alice@example.com');
+   ```
+
+2. **Read (Get Documents)**
+
+   ```typescript
+   // Get all documents
+   async function getAllUsers() {
+     const users = await db.collection<User>('users').get();
+     console.log('All users:', users);
+     // Returns: [{ id: 'doc_123', data: {...} }, ...]
+   }
+
+   // Get by ID
+   async function getUserById(id: string) {
+     const user = await db.collection<User>('users').getById(id);
+     console.log('User:', user);
+     // Returns: { id: 'doc_123', data: {...} }
+   }
+
+   // Get with pagination
+   async function getRecentUsers() {
+     const users = await db.collection<User>('users').get({
+       limit: 10,
+       offset: 0,
+       orderBy: '-createdAt', // Prefix with - for descending
+     });
+     return users;
+   }
+   ```
+
+3. **Update Documents**
+
+   ```typescript
+   async function updateUser(id: string, updates: Partial<User>) {
+     await db.collection<User>('users').update(id, updates);
+     console.log('User updated successfully');
+   }
+
+   // Update specific fields
+   updateUser('doc_abc123', {
+     name: 'Alice Updated',
+     role: 'admin',
+   });
+   ```
+
+4. **Delete Documents**
+
+   ```typescript
+   async function deleteUser(id: string) {
+     await db.collection<User>('users').delete(id);
+     console.log('User deleted successfully');
+   }
+
+   deleteUser('doc_abc123');
+   ```
+
+</Steps>
+
+## Complete Example: REST API
+
+Here's a complete Express.js API with CRUD operations:
+
+```typescript title="src/server.ts"
+import express from 'express';
+import { db } from '@varity-labs/sdk';
+import type { User } from './types';
+
+const app = express();
+app.use(express.json());
+
+// Get all users
+app.get('/api/users', async (req, res) => {
+  try {
+    const users = await db.collection<User>('users').get();
+    res.json({ success: true, data: users });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to fetch users',
+    });
+  }
+});
+
+// Get user by ID
+app.get('/api/users/:id', async (req, res) => {
+  try {
+    const user = await db.collection<User>('users').getById(req.params.id);
+    res.json({ success: true, data: user });
+  } catch (error) {
+    res.status(404).json({
+      success: false,
+      error: 'User not found',
+    });
+  }
+});
+
+// Create user
+app.post('/api/users', async (req, res) => {
+  try {
+    const { name, email, role } = req.body;
+
+    // Validation
+    if (!name || !email) {
+      return res.status(400).json({
+        success: false,
+        error: 'Name and email are required',
+      });
+    }
+
+    const result = await db.collection<User>('users').add({
+      name,
+      email,
+      role: role || 'user',
+      createdAt: new Date().toISOString(),
+    });
+
+    res.status(201).json({ success: true, data: result });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to create user',
+    });
+  }
+});
+
+// Update user
+app.patch('/api/users/:id', async (req, res) => {
+  try {
+    const updates = req.body;
+    await db.collection<User>('users').update(req.params.id, updates);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to update user',
+    });
+  }
+});
+
+// Delete user
+app.delete('/api/users/:id', async (req, res) => {
+  try {
+    await db.collection<User>('users').delete(req.params.id);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to delete user',
+    });
+  }
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+});
+```
+
+Run the server:
+
+```bash
+npx tsx src/server.ts
+```
+
+## Environment Setup
+
+### Development (Local)
+
+During development, Varity uses shared development credentials automatically. No configuration needed.
+
+```typescript
+// Works immediately - no env vars required
+import { db } from '@varity-labs/sdk';
+
+const users = await db.collection('users').get();
+```
+
+### Production
+
+For production deployments, configure these environment variables:
+
+```bash title=".env"
+VARITY_APP_ID=your-app-id
+VARITY_APP_TOKEN=your-app-token
+VARITY_DB_PROXY_URL=your-db-proxy-url
+```
+
+<Aside type="tip">
+**Auto-configured on deployment:** When you deploy with `varitykit app deploy`, these credentials are automatically generated and injected into your production environment. No manual setup required.
+</Aside>
+
+## Error Handling Best Practices
+
+Always wrap database operations in try-catch blocks:
+
+```typescript
+import { db } from '@varity-labs/sdk';
+
+async function safeGetUser(id: string) {
+  try {
+    const user = await db.collection('users').getById(id);
+    return { success: true, data: user };
+  } catch (error) {
+    console.error('Database error:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
+```
+
+## Filtering and Querying
+
+<Aside type="note">
+The database `.get()` method returns all documents in a collection. Filter results client-side using array methods.
+</Aside>
+
+```typescript
+// Get all users, then filter
+const allUsers = await db.collection<User>('users').get();
+
+// Filter by role
+const admins = allUsers.filter((user) => user.data.role === 'admin');
+
+// Filter by email domain
+const companyUsers = allUsers.filter((user) =>
+  user.data.email.endsWith('@company.com')
+);
+
+// Combine filters
+const recentAdmins = allUsers
+  .filter((user) => user.data.role === 'admin')
+  .filter((user) => {
+    const created = new Date(user.data.createdAt);
+    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    return created > weekAgo;
+  });
+```
+
+## TypeScript Tips
+
+### Use Explicit Types
+
+```typescript
+import type { User } from './types';
+
+// Explicit type ensures type safety
+const users = await db.collection<User>('users').get();
+
+// TypeScript knows user.data is User
+users.forEach((user) => {
+  console.log(user.data.name); // ✓ Type-safe
+  console.log(user.data.invalid); // ✗ TypeScript error
+});
+```
+
+### Define Return Types
+
+```typescript
+async function getUser(id: string): Promise<{ id: string; data: User }> {
+  return await db.collection<User>('users').getById(id);
+}
+
+async function getAllUsers(): Promise<Array<{ id: string; data: User }>> {
+  return await db.collection<User>('users').get();
+}
+```
+
+### Non-Null Assertions for IDs
+
+```typescript
+// After adding a document
+const result = await db.collection<User>('users').add(userData);
+const userId = result.id; // string | undefined
+
+// Use non-null assertion if you know add() succeeded
+await db.collection<User>('users').update(result.id!, updates);
+
+// Or check explicitly
+if (result.id) {
+  await db.collection<User>('users').update(result.id, updates);
+}
+```
+
+## Common Patterns
+
+### Collection Factory
+
+Create reusable collection accessors:
+
+```typescript title="src/lib/database.ts"
+import { db } from '@varity-labs/sdk';
+import type { User, Post } from './types';
+
+export const users = () => db.collection<User>('users');
+export const posts = () => db.collection<Post>('posts');
+```
+
+Use in your app:
+
+```typescript
+import { users, posts } from './lib/database';
+
+// Clean, reusable syntax
+const allUsers = await users().get();
+const allPosts = await posts().get();
+
+await users().add({ name: 'Bob', email: 'bob@example.com', role: 'user', createdAt: new Date().toISOString() });
+```
+
+### Pagination Helper
+
+```typescript
+async function paginate<T>(
+  collection: string,
+  page: number,
+  pageSize: number = 20
+) {
+  const offset = (page - 1) * pageSize;
+  const items = await db.collection<T>(collection).get({
+    limit: pageSize,
+    offset,
+  });
+
+  return {
+    items,
+    page,
+    pageSize,
+    hasMore: items.length === pageSize,
+  };
+}
+
+// Usage
+const result = await paginate<User>('users', 1, 10);
+console.log(`Page ${result.page}:`, result.items);
+```
+
+### Batch Operations
+
+```typescript
+async function batchCreate(users: Array<Omit<User, 'id'>>) {
+  const promises = users.map((user) =>
+    db.collection<User>('users').add(user)
+  );
+
+  const results = await Promise.all(promises);
+  return results;
+}
+
+// Create 3 users in parallel
+await batchCreate([
+  { name: 'Alice', email: 'alice@example.com', role: 'user', createdAt: new Date().toISOString() },
+  { name: 'Bob', email: 'bob@example.com', role: 'admin', createdAt: new Date().toISOString() },
+  { name: 'Carol', email: 'carol@example.com', role: 'user', createdAt: new Date().toISOString() },
+]);
+```
+
+## Deploy Your App
+
+Once your Node.js app is ready, deploy it with one command:
+
+<Steps>
+
+1. **Install the CLI**
+
+   ```bash
+   pip install varitykit
+   ```
+
+2. **Deploy your app**
+
+   ```bash
+   varitykit app deploy
+   ```
+
+3. **Your app is live**
+
+   Varity automatically:
+   - Builds your app
+   - Generates production credentials
+   - Deploys to global infrastructure
+   - Provides a live URL
+
+</Steps>
+
+<Aside type="tip">
+The CLI detects your Node.js/Express app automatically and deploys it to Akash (decentralized compute). Your database credentials are injected at build time.
+</Aside>
+
+## Next Steps
+
+Now that you have a working Node.js backend:
+
+- [Authentication](/build/auth/quickstart) - Add user authentication to your API
+- [Deploy Guide](/deploy/deploy-your-app) - Advanced deployment options
+- [Database Guide](/build/databases/quickstart) - Full database documentation with React hooks
+- [Environment Variables](/deploy/env-variables) - Configure production credentials
+
+## Full SDK Reference
+
+For complete API documentation, see:
+
+- [Database Module](/packages/sdk/overview) - All database methods
+- [Types Package](/packages/types/overview) - TypeScript type definitions
+- [CLI Commands](/cli/overview) - All CLI commands and options

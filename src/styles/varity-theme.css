@@ -190,7 +190,7 @@
   /* ----- LAYOUT ----- */
   --header-height: 64px;
   --sl-content-width: 48rem;  /* 768px - optimal reading width */
-  --sl-sidebar-width: 18rem;  /* 288px - wider for better readability */
+  --sl-sidebar-width: 19rem;  /* 304px - even wider for better readability */
   --sl-content-pad-x: 1.5rem;
 
   --text-primary: var(--gray-50);
@@ -509,8 +509,8 @@ i {
 
 /* ----- LAYOUT CSS CUSTOM PROPERTIES ----- */
 :root {
-  /* TOC width - narrower for AI Tools section */
-  --sl-toc-width: 12rem;  /* 192px - narrower to fit AI Tools */
+  /* TOC width - narrower, more professional */
+  --sl-toc-width: 11rem;  /* 176px - narrower like Supabase */
   /* Homepage content max width */
   --varity-homepage-max: 68rem;
 }
@@ -817,7 +817,7 @@ header.header {
 /* Sidebar section titles (uppercase labels) */
 nav.sidebar .top-level > li > details > summary:first-child,
 nav.sidebar .group-label {
-  font-size: 0.6875rem;
+  font-size: 0.625rem;  /* 10px - smaller, less prominent */
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -1341,7 +1341,10 @@ site-search kbd {
   color: var(--text-muted);
   opacity: 0;
   transition: opacity var(--transition-fast);
-  margin-left: var(--space-2);
+  margin-left: var(--space-3);  /* More space to prevent overlap */
+  display: inline-block;
+  width: 1.25rem;  /* Fixed width for consistent spacing */
+  text-align: center;
 }
 
 :is(h1, h2, h3, h4):hover .heading-anchor {

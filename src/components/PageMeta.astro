@@ -77,12 +77,12 @@ const stabilityBg = {
 <style>
   .page-meta {
     display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-4);
-    padding: var(--space-4) 0;
-    margin-bottom: var(--space-6);
+    flex-wrap: nowrap;  /* Keep all on one line */
+    gap: var(--space-3);  /* Smaller gap for compact layout */
+    padding: var(--space-3) 0;
+    margin-bottom: var(--space-4);
     border-bottom: 1px solid var(--border-secondary);
-    font-size: 0.875rem;
+    font-size: 0.8125rem;  /* Slightly smaller */
   }
 
   .meta-item {

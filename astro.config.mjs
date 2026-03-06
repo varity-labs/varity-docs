@@ -41,6 +41,7 @@ export default defineConfig({
       },
       components: {
         ContentPanel: './src/components/overrides/ContentPanel.astro',
+        PageSidebar: './src/components/overrides/PageSidebar.astro',
       },
       customCss: [
         "./src/styles/varity-theme.css",
