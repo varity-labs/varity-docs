@@ -825,7 +825,7 @@ nav.sidebar .group-label {
 /* Sidebar group labels */
 nav.sidebar .top-level > li > details > summary,
 nav.sidebar .top-level > li > a {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;  /* 13px - reduced from 14px */
   font-weight: var(--font-medium);
   color: var(--text-secondary);
   padding: var(--space-2) var(--space-4);
@@ -835,7 +835,7 @@ nav.sidebar .top-level > li > a {
 
 /* Sidebar nested items */
 nav.sidebar ul ul a {
-  font-size: 0.875rem;
+  font-size: 0.75rem;  /* 12px - smaller than top-level for hierarchy */
   font-weight: var(--font-normal);
   color: var(--text-tertiary);
   padding: var(--space-2) var(--space-4) var(--space-2) var(--space-6);
