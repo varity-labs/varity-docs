@@ -29,17 +29,6 @@ const pageUrl = `https://docs.varity.so${pathname}`;
     </svg>
     <span>Ask Claude</span>
   </a>
-  <a
-    href={`https://gemini.google.com/app?q=${encodeURIComponent(`Help me understand this documentation: ${pageTitle}\n\n${pageUrl}`)}`}
-    target="_blank"
-    rel="noopener noreferrer"
-    class="ai-tool-link ai-tool-gemini"
-  >
-    <svg class="ai-tool-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M12 0C12 6.627 6.627 12 0 12c6.627 0 12 5.373 12 12 0-6.627 5.373-12 12-12-6.627 0-12-5.373-12-12z" fill="currentColor"/>
-    </svg>
-    <span>Ask Gemini</span>
-  </a>
 </div>
 
 <style>
@@ -48,7 +37,7 @@ const pageUrl = `https://docs.varity.so${pathname}`;
     flex-direction: column;
     gap: 0.25rem;
     padding-bottom: 1rem;
-    margin-bottom: 1rem;
+    margin-bottom: 0;
     border-bottom: 1px solid var(--sl-color-hairline, rgba(63, 63, 70, 0.25));
   }
 
@@ -92,9 +81,6 @@ const pageUrl = `https://docs.varity.so${pathname}`;
     color: #cc785c;
   }
 
-  .ai-tool-gemini:hover {
-    color: #4285f4;
-  }
 
   [data-theme="light"] .ai-tools-label {
     color: var(--sl-color-black, #18181b);

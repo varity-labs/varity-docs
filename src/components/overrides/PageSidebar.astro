@@ -7,6 +7,22 @@ import AITools from '../AITools.astro';
 const isHomepage = Astro.props.entry?.data?.template === 'splash';
 ---
 
-{!isHomepage && <AITools {...Astro.props} />}
+{!isHomepage && (
+  <div class="right-sidebar-panel ai-tools-panel sl-hidden lg:sl-block">
+    <div class="sl-container">
+      <AITools {...Astro.props} />
+    </div>
+  </div>
+)}
 
 <Default {...Astro.props} />
+
+<style>
+  .ai-tools-panel {
+    padding: 1rem var(--sl-sidebar-pad-x);
+    padding-bottom: 0;
+  }
+  .ai-tools-panel .sl-container {
+    width: calc(var(--sl-sidebar-width) - 2 * var(--sl-sidebar-pad-x));
+  }
+</style>
