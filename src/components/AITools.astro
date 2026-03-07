@@ -1,11 +1,12 @@
 ---
-// AI Tools - Subtle links above TOC (inspired by Supabase)
+// AI Tools - Vertical list above TOC (matching Supabase style)
 const { pathname } = Astro.url;
 const pageTitle = Astro.props.entry?.data?.title || 'Varity Docs';
 const pageUrl = `https://docs.varity.so${pathname}`;
 ---
 
 <div class="ai-tools">
+  <h2 class="ai-tools-label">AI Tools</h2>
   <a
     href={`https://chat.openai.com/?q=${encodeURIComponent(`Help me understand this documentation: ${pageTitle}\n\n${pageUrl}`)}`}
     target="_blank"
@@ -17,7 +18,6 @@ const pageUrl = `https://docs.varity.so${pathname}`;
     </svg>
     <span>Ask ChatGPT</span>
   </a>
-
   <a
     href={`https://claude.ai/new?q=${encodeURIComponent(`Help me understand this documentation: ${pageTitle}\n\n${pageUrl}`)}`}
     target="_blank"
@@ -29,33 +29,53 @@ const pageUrl = `https://docs.varity.so${pathname}`;
     </svg>
     <span>Ask Claude</span>
   </a>
+  <a
+    href={`https://gemini.google.com/app?q=${encodeURIComponent(`Help me understand this documentation: ${pageTitle}\n\n${pageUrl}`)}`}
+    target="_blank"
+    rel="noopener noreferrer"
+    class="ai-tool-link ai-tool-gemini"
+  >
+    <svg class="ai-tool-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 0C12 6.627 6.627 12 0 12c6.627 0 12 5.373 12 12 0-6.627 5.373-12 12-12-6.627 0-12-5.373-12-12z" fill="currentColor"/>
+    </svg>
+    <span>Ask Gemini</span>
+  </a>
 </div>
 
 <style>
   .ai-tools {
     display: flex;
-    gap: 0.5rem;
-    padding: 0.5rem 0 0.75rem;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding-bottom: 1rem;
     margin-bottom: 1rem;
     border-bottom: 1px solid var(--sl-color-hairline, rgba(63, 63, 70, 0.25));
+  }
+
+  .ai-tools-label {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--sl-color-white, #fafafa);
+    margin: 0 0 0.25rem;
+    padding: 0;
+    border: none;
   }
 
   .ai-tool-link {
     display: inline-flex;
     align-items: center;
-    gap: 0.375rem;
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
+    gap: 0.5rem;
+    padding: 0.2rem 0;
     color: var(--sl-color-gray-3, #a1a1aa);
     text-decoration: none;
-    font-size: 0.75rem;
-    font-weight: 500;
-    transition: color 150ms ease, background 150ms ease;
+    font-size: 0.8125rem;
+    transition: color 150ms ease;
   }
 
   .ai-tool-link:hover {
     color: var(--sl-color-white, #fafafa);
-    background: rgba(255, 255, 255, 0.05);
   }
 
   .ai-tool-icon {
@@ -72,7 +92,11 @@ const pageUrl = `https://docs.varity.so${pathname}`;
     color: #cc785c;
   }
 
-  [data-theme="light"] .ai-tool-link:hover {
-    background: rgba(0, 0, 0, 0.05);
+  .ai-tool-gemini:hover {
+    color: #4285f4;
+  }
+
+  [data-theme="light"] .ai-tools-label {
+    color: var(--sl-color-black, #18181b);
   }
 </style>
