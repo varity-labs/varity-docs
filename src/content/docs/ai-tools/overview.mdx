@@ -27,12 +27,10 @@ Varity provides AI tooling to help you build faster. Copy a prompt into your AI 
     `.mdc` rule files that teach Cursor how to write Varity code. Drop into your project for intelligent autocomplete.
   </Card>
   <Card title="LLM-Optimized Docs" icon="open-book">
-    A machine-readable summary of Varity for AI assistants to reference.
-
-    Available at `/llms.txt`
+    Machine-readable documentation for AI assistants. Available in two formats: `/llms.txt` (summary) and `/llms-full.txt` (detailed).
   </Card>
   <Card title="MCP Server" icon="rocket">
-    Model Context Protocol server for Claude Desktop — deploy, search docs, and debug from your AI assistant.
+    Model Context Protocol server for Cursor, Claude Code, VS Code, and Windsurf — deploy, search docs, and manage apps from your AI editor.
 
     [View Spec →](/ai-tools/mcp-server-spec)
   </Card>
@@ -43,7 +41,7 @@ Varity provides AI tooling to help you build faster. Copy a prompt into your AI 
 The fastest way to get AI assistance with Varity is to copy one of our [AI Prompts](/ai-tools/prompts) into your project.
 
 **For Cursor:**
-1. Download the Varity rules file
+1. Copy the Varity rules from our [AI Prompts page](/ai-tools/prompts)
 2. Save to `.cursor/rules/varity.mdc` in your project
 3. Cursor now understands Varity patterns automatically
 
@@ -96,20 +94,21 @@ Pre-configured rules that teach Cursor IDE how to write Varity code correctly.
 
 ```bash
 mkdir -p .cursor/rules
-# Download from the AI Prompts page
+# Copy rule content from the AI Prompts page into .cursor/rules/varity.mdc
 ```
 
 See the [AI Prompts page](/ai-tools/prompts) for the full rules file content.
 
 ## LLM-Optimized Documentation
 
-AI assistants can reference our documentation in a machine-readable format:
+AI assistants can reference our documentation in machine-readable formats:
 
-```
-https://docs.varity.so/llms.txt
-```
+| File | URL | Use Case |
+|------|-----|----------|
+| `llms.txt` | `https://docs.varity.so/llms.txt` | Summary — what Varity is, key APIs, common patterns |
+| `llms-full.txt` | `https://docs.varity.so/llms-full.txt` | Detailed — full documentation content for deep context |
 
-This file contains a structured summary of Varity: what it is, key APIs, CLI commands, and common patterns. Point any AI tool at this URL for instant Varity context.
+Point any AI tool at one of these URLs for instant Varity context. Use `llms.txt` for quick context in chat-based LLMs (ChatGPT, Gemini), and `llms-full.txt` when the AI needs comprehensive documentation.
 
 ## AI-Friendly Patterns
 
@@ -149,10 +148,12 @@ try {
 
 | Tool | Integration | Level |
 |------|------------|-------|
-| **Cursor** | `.mdc` rules + prompts | Full |
-| **Claude Code** | `CLAUDE.md` + prompts | Full |
-| **Windsurf** | Cursor-compatible rules | Full |
-| **Claude Desktop** | MCP Server (stdio) | Full |
+| **Cursor** | MCP Server + `.mdc` rules + prompts | Full |
+| **Claude Code** | MCP Server + `CLAUDE.md` + prompts | Full |
+| **VS Code (Copilot)** | MCP Server + `llms.txt` context | Full |
+| **Windsurf** | MCP Server + Cursor-compatible rules | Full |
+| **ChatGPT** | `llms.txt` context | Basic |
+| **Gemini** | `llms.txt` context | Basic |
 | **GitHub Copilot** | `llms.txt` context | Basic |
 
 ## What's Next

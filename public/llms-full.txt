@@ -1,0 +1,1349 @@
+# Varity
+
+> Build, deploy, and monetize apps with one command. Auth, database, storage, and payments included.
+
+## What is Varity
+
+Varity is a developer platform that provides open-source packages and a CLI for building, deploying, and monetizing production applications. Install two packages, run one command, and your app is live with auth, storage, database, and hosting already configured.
+
+- Target audience: Web developers (React, Next.js, TypeScript)
+- No blockchain knowledge required — infrastructure complexity is fully abstracted
+- 70% cheaper than AWS/GCP/Azure
+- Revenue split: 90% to developer, 10% to Varity platform
+
+### How It Works
+
+1. Developer installs `@varity-labs/sdk` and `@varity-labs/ui-kit`
+2. Developer builds their app using familiar React/Next.js patterns
+3. Developer runs `varitykit app deploy` — app is live with auth, database, and hosting
+4. Developer submits to Varity App Store — users pay with credit cards
+5. Developer earns 90% of revenue
+
+### Cost Comparison
+
+| Scenario | AWS | Varity | Savings |
+|----------|-----|--------|---------|
+| 100 users + AI | $2,800/mo | ~$800/mo | ~70% |
+
+---
+
+## Packages
+
+### @varity-labs/sdk (v2.0.0-beta.2)
+
+Core SDK for database, credentials, and app configuration.
+
+Install: `npm install @varity-labs/sdk`
+
+#### Database API
+
+```typescript
+import { db } from '@varity-labs/sdk';
+
+// Typed collection
+interface User {
+  name: string;
+  email: string;
+  role: 'admin' | 'member' | 'viewer';
+  createdAt: string;
+}
+
+const users = db.collection<User>('users');
+
+// Create — returns the full document with id at top level
+const user = await users.add({
+  name: 'Alice',
+  email: 'alice@example.com',
+  role: 'admin',
+  createdAt: new Date().toISOString(),
+});
+console.log(user.id);    // 'doc_abc123' (auto-generated)
+console.log(user.name);  // 'Alice' (flat, NOT user.data.name)
+
+// Read all
+const allUsers = await users.get();
+console.log(allUsers.length);
+
+// Read with pagination and sorting
+const page2 = await users.get({ limit: 10, offset: 10 });
+const newest = await users.get({ orderBy: '-createdAt' });
+const sorted = await users.get({ limit: 20, orderBy: 'name' });
+
+// Client-side filtering (NO .where() method)
+const admins = allUsers.filter(u => u.role === 'admin');
+
+// Update — returns updated document
+const updated = await users.update('doc_abc123', { name: 'Alice Smith' });
+console.log(updated.name); // 'Alice Smith'
+
+// Delete — returns boolean
+const success = await users.delete('doc_abc123');
+console.log(success); // true
+```
+
+#### QueryOptions
+
+```typescript
+interface QueryOptions {
+  limit?: number;      // Maximum number of documents to return
+  offset?: number;     // Number of documents to skip (pagination)
+  orderBy?: string;    // Field to sort by ("field" ascending, "-field" descending)
+}
+```
+
+#### Document Type
+
+```typescript
+interface Document {
+  id: string;
+  created_at?: string;
+  updated_at?: string;
+  [key: string]: any;
+}
+```
+
+Documents from `.add()`, `.get()`, `.update()` are `T & Document` — all fields are flat. Access `doc.name`, NOT `doc.data.name`.
+
+#### Custom Database Configuration
+
+```typescript
+import { Database } from '@varity-labs/sdk';
+
+const customDb = new Database({
+  proxyUrl: 'https://custom-db.example.com',
+  appToken: 'eyJhbGciOiJIUzI1NiJ9...',
+});
+
+const products = await customDb.collection('products').get();
+```
+
+#### Credentials API
+
+```typescript
+import {
+  resolveCredentials,        // Auto-resolve from env vars with dev fallback
+  isUsingDevCredentials,     // Check if using shared dev creds
+  isProductionCredentials,   // Check if using production creds
+  getCredentialWarning,      // Get warning message for dev creds
+  logCredentialUsage,        // Log credential info (deduplicated)
+  validateCredentials,       // Validate credential format
+  getUpgradeInstructions,    // Instructions for upgrading to prod creds
+  VARITY_DEV_CREDENTIALS,   // Shared dev credentials object
+} from '@varity-labs/sdk';
+
+// Auto-resolve credentials
+const creds = resolveCredentials(
+  process.env.NEXT_PUBLIC_PRIVY_APP_ID,
+  process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID
+);
+
+// Check environment
+if (isUsingDevCredentials(creds.privy.appId)) {
+  const warning = getCredentialWarning('production');
+  if (warning) console.warn(warning);
+}
+```
+
+#### Version
+
+```typescript
+import { VERSION, SDK_VERSION } from '@varity-labs/sdk';
+console.log(VERSION); // '2.0.0-beta.2'
+```
+
+#### Advanced Subpath Imports
+
+```typescript
+// Platform configuration
+import { varityL3Testnet, formatUSDC, parseUSDC, USDC_DECIMALS } from '@varity-labs/sdk/chains';
+console.log(varityL3Testnet.id); // 33529
+const amount = parseUSDC('99.50'); // 99500000n
+const formatted = formatUSDC(99500000n); // "99.50"
+
+// Infrastructure utilities (advanced)
+import { BlockchainService, NFTLicensingService, RevenueSplitService } from '@varity-labs/sdk/blockchain';
+
+// Thirdweb helpers (advanced)
+import { createThirdwebWrapper, StorageClient, BridgeClient } from '@varity-labs/sdk/thirdweb';
+
+// Event tracking (advanced)
+import { createGasTracker, calculateGasInUSDC } from '@varity-labs/sdk/tracking';
+```
+
+#### Auto-Configuration
+
+The `db` singleton auto-resolves credentials from environment variables:
+- `NEXT_PUBLIC_VARITY_DB_PROXY_URL` or `VITE_VARITY_DB_PROXY_URL` or `REACT_APP_VARITY_DB_PROXY_URL`
+- `NEXT_PUBLIC_VARITY_APP_TOKEN` or `VITE_VARITY_APP_TOKEN` or `REACT_APP_VARITY_APP_TOKEN`
+- Fallback: Development credentials (automatic)
+
+---
+
+### @varity-labs/ui-kit (v2.0.0-beta.3)
+
+React component library for auth, dashboards, analytics, forms, and UI primitives.
+
+Install: `npm install @varity-labs/ui-kit`
+
+All imports: `import { ComponentName } from '@varity-labs/ui-kit';`
+
+#### Providers
+
+**PrivyStack** — All-in-one auth provider. Wrap your app root.
+
+```tsx
+<PrivyStack
+  appId="your-privy-app-id"
+  loginMethods={['email', 'google', 'wallet']}
+  appearance={{ theme: 'light', accentColor: '#2563EB', logo: '/logo.png' }}
+>
+  {children}
+</PrivyStack>
+```
+
+Props: `appId` (string), `thirdwebClientId` (string), `loginMethods` (string[], default: ['email','google','wallet']), `appearance` ({theme, accentColor, logo}), `onAddressChange` ((address: string|null) => void), `children` (ReactNode, required).
+
+**VarityDashboardProvider** — Full-featured dashboard provider with auth, React Query, wallet sync.
+
+```tsx
+<VarityDashboardProvider
+  privyAppId={process.env.NEXT_PUBLIC_PRIVY_APP_ID}
+  appearance={{ theme: 'light', logo: '/logo.png' }}
+>
+  <Dashboard />
+</VarityDashboardProvider>
+```
+
+Props: `privyAppId` (string), `thirdwebClientId` (string), `appearance` ({theme, accentColor, logo}), `loginMethods` (string[]), `children` (ReactNode, required).
+
+**ThemeProvider** — CSS variable-based theming.
+
+```tsx
+import { ThemeProvider, defaultTheme, themePresets } from '@varity-labs/ui-kit';
+
+<ThemeProvider theme={{ ...defaultTheme, primaryColor: '#6a1b9a' }}>
+  <App />
+</ThemeProvider>
+
+// Or use presets: themePresets.finance, .healthcare, .retail, .tech
+```
+
+Props: `theme` (VarityTheme, required), `children` (ReactNode, required).
+
+**ToastProvider** — Toast notification context. Wrap app to enable `useToast()`.
+
+```tsx
+<ToastProvider>{children}</ToastProvider>
+
+// In any child:
+const toast = useToast();
+toast.success('Saved!');
+toast.error('Failed');
+toast.info('Processing...');
+```
+
+#### Authentication Components
+
+**PrivyLoginButton** — Pre-built login button that opens auth modal.
+
+```tsx
+<PrivyLoginButton />
+<PrivyLoginButton onSuccess={() => router.push('/dashboard')} onError={console.error} className="btn-primary">
+  Sign In to Continue
+</PrivyLoginButton>
+```
+
+Props: `children` (ReactNode, default: "Sign In"), `onSuccess` (function), `onError` (function), `className` (string).
+
+**PrivyUserProfile** — User info display with optional logout.
+
+```tsx
+<PrivyUserProfile showLogoutButton onLogout={() => router.push('/')} />
+```
+
+Props: `showLogoutButton` (boolean, default: false), `onLogout` (function), `className` (string).
+
+**PrivyProtectedRoute** — Shows content only when authenticated.
+
+```tsx
+<PrivyProtectedRoute fallback={<CustomLoginPage />} loadingComponent={<Spinner />}>
+  <Dashboard />
+</PrivyProtectedRoute>
+```
+
+Props: `children` (ReactNode), `fallback` (ReactNode, default: login prompt), `loadingComponent` (ReactNode, default: spinner).
+
+**PrivyReadyGate** — Prevents blank screen during auth init (5-15 seconds).
+
+```tsx
+<PrivyReadyGate timeout={10000} initializingScreen={<Splash />} timeoutScreen={<Error />}>
+  {children}
+</PrivyReadyGate>
+```
+
+Props: `timeout` (number, default: 10000), `initializingScreen` (ReactNode), `timeoutScreen` (ReactNode).
+
+**Re-exported hooks:** `usePrivy`, `useWallets`, `useLogin`, `useLogout` from @privy-io/react-auth.
+
+```tsx
+const { authenticated, user, ready, logout } = usePrivy();
+const email = user?.email?.address;
+```
+
+#### Payment Components (post-beta)
+
+**PaymentWidget** — In-app payment for purchases and upgrades.
+
+```tsx
+<PaymentWidget
+  appId={123}
+  price={999}
+  type="subscription"
+  intervalDays={30}
+  onSuccess={(txHash) => console.log('Paid!', txHash)}
+  onError={(err) => console.error(err)}
+  onCancel={() => console.log('Cancelled')}
+  theme="light"
+>
+  <button>Subscribe for $9.99/mo</button>
+</PaymentWidget>
+```
+
+Props: `appId` (number, required), `price` (number, cents), `type` ('one-time'|'subscription'), `intervalDays` (number, default: 30), `onSuccess` ((txHash: string) => void), `onCancel` (() => void), `onError` ((error: Error) => void), `theme` ('light'|'dark'), `className` (string), `children` (ReactNode, required), `disabled` (boolean).
+
+**PaymentGate** — Content gate that shows premium content after purchase.
+
+```tsx
+<PaymentGate appId={123} price={999} fallback={<p>Purchase to unlock.</p>}>
+  <PremiumContent />
+</PaymentGate>
+```
+
+Props: `appId` (number, required), `price` (number), `fallback` (ReactNode, required), `children` (ReactNode, required), `theme` ('light'|'dark'), `className` (string).
+
+**useVarityPayment** — Hook for programmatic payment.
+
+```tsx
+const { hasPurchased, purchase, isLoading, isPurchasing, pricing, error, refresh } = useVarityPayment({ appId: 123 });
+```
+
+#### Dashboard Components
+
+**DashboardLayout** — Main layout with sidebar, header, footer, content area. NO mobile support — implement mobile nav manually.
+
+```tsx
+<DashboardLayout
+  companyName="Acme Corp"
+  logoUrl="/logo.png"
+  user={{ name: 'Jane Doe', address: 'jane@acme.com' }}
+  navigationItems={[
+    { label: 'Dashboard', icon: 'dashboard', path: '/' },
+    { label: 'Analytics', icon: 'analytics', path: '/analytics' },
+    { label: 'Settings', icon: 'settings', path: '/settings' },
+  ]}
+  onNavigate={(path) => router.push(path)}
+  onLogout={() => logout()}
+  onSearchClick={() => setShowPalette(true)}
+  showSidebar={true}
+  showHeader={true}
+  showFooter={true}
+  sidebarWidth={240}
+  headerHeight={64}
+>
+  <YourContent />
+</DashboardLayout>
+```
+
+Props: `children` (required), `showSidebar` (boolean, true), `showHeader` (boolean, true), `showFooter` (boolean, true), `sidebarWidth` (number, 240), `headerHeight` (number, 64), `logoUrl` (string), `companyName` (string), `navigationItems` (NavigationItem[]), `user` (UserInfo), `onLogout` (() => void), `onNavigate` ((path: string) => void), `onSearchClick` (() => void), `searchPlaceholder` (string).
+
+Types: `NavigationItem: { label, icon?, path, active?, children? }`, `UserInfo: { name, address, avatarUrl? }`.
+
+**DashboardHeader** — Top nav bar with user menu, notifications, search.
+
+Props: `height` (number, 64), `user` (UserInfo), `onLogout` (() => void), `showNotifications` (boolean, true), `notificationCount` (number, 0), `onSearchClick` (() => void), `searchPlaceholder` (string, 'Search...').
+
+**DashboardSidebar** — Fixed sidebar with collapsible nav.
+
+Props: `width` (number, 240), `logoUrl` (string), `companyName` (string, 'Dashboard'), `navigationItems` (NavigationItem[]), `onNavigate` ((path: string) => void), `collapsed` (boolean, false).
+
+**DashboardFooter** — Footer with Varity attribution (required).
+
+Props: `companyName` (string), `showAttribution` (boolean, true), `links` (FooterLink[]). Type: `FooterLink: { label, url, external? }`.
+
+#### Analytics Components
+
+**KPICard** — Key performance indicator with trend.
+
+```tsx
+<KPICard title="Revenue" value="$12,345" trend="up" trendValue="+12%" variant="default" size="md" />
+```
+
+Props: `title` (required), `value` (string|number, required), `subtitle` (string), `icon` (ReactNode), `trend` ('up'|'down'|'neutral'), `trendValue` (string), `loading` (boolean), `onClick` (() => void), `variant` ('default'|'outlined'|'filled'), `size` ('sm'|'md'|'lg').
+
+**EnhancedKPICard** — Rich KPI with sparkline, trend badge, help tooltip, sync time.
+
+```tsx
+<EnhancedKPICard
+  title="Monthly Revenue"
+  value="$45,230"
+  icon="money"
+  trend="up"
+  color="green"
+  change={{ value: 12.5, period: 'vs last month' }}
+  showSparkline
+  sparklineData={[30, 35, 32, 40, 38, 45]}
+  helpText="Total revenue from all sources"
+  lastSynced="2 min ago"
+/>
+```
+
+Props: `title` (required), `value` (required), `icon` (string, required), `trend` ('up'|'down'|'neutral'), `color` ('blue'|'green'|'orange'|'purple'|'red'), `change` ({value: number, period: string}), `showSparkline` (boolean), `sparklineData` (number[]), `source` (string), `helpText` (string), `lastSynced` (string), `onClick` (() => void).
+
+**AnalyticsCard** — Metric card with mini chart.
+
+Props: `title` (required), `value` (string|number, required), `unit` (string), `trend` ('up'|'down'|'neutral'), `trendValue` (number), `comparisonPeriod` (string), `icon` (string), `loading` (boolean), `chartData` (number[]), `onClick` (() => void).
+
+**DataTable** — Sortable, paginated data table.
+
+```tsx
+<DataTable
+  columns={[
+    { key: 'name', header: 'Name', sortable: true },
+    { key: 'revenue', header: 'Revenue', align: 'right', render: (val) => `$${val.toLocaleString()}` },
+    { key: 'status', header: 'Status' },
+  ]}
+  data={[
+    { id: '1', name: 'Product A', revenue: 12000, status: 'Active' },
+    { id: '2', name: 'Product B', revenue: 8500, status: 'Draft' },
+  ]}
+  pagination
+  pageSize={10}
+  onRowClick={(row) => console.log(row)}
+  hoverable
+  striped
+/>
+```
+
+Props: `columns` (DataTableColumn[], required), `data` (T[], required), `loading` (boolean), `pagination` (boolean), `pageSize` (number, 10), `onRowClick` ((row: T) => void), `emptyMessage` (string), `hoverable` (boolean, true), `striped` (boolean, true). Column type: `{ key, header, width?, sortable?, render?, align? }`.
+
+**ChartContainer** — Chart wrapper with title, actions, loading/error/empty states.
+
+Props: `title` (required), `subtitle` (string), `children` (required), `actions` (ChartAction[]), `height` (number|string, 400), `loading` (boolean), `error` (string), `isEmpty` (boolean), `emptyMessage` (string). Type: `ChartAction: { label, icon?, onClick }`.
+
+**MetricDisplay** — Simple metric with formatting.
+
+```tsx
+<MetricDisplay label="Revenue" value={125000} format="currency" decimals={0} size="large" color="success" />
+<MetricDisplay label="Conversion" value={3.5} format="percentage" />
+```
+
+Props: `label` (required), `value` (string|number, required), `format` ('number'|'currency'|'percentage'|'custom'), `currencySymbol` (string, '$'), `decimals` (number, 0), `size` ('small'|'medium'|'large'), `color` ('default'|'primary'|'success'|'warning'|'error'), `icon` (string).
+
+**Sparkline** — SVG mini line chart.
+
+Props: `data` (number[], required, min 2), `width` (number, 100), `height` (number, 32), `strokeColor` (string, '#3b82f6'), `fillColor` (string), `strokeWidth` (number, 2), `showGradient` (boolean, true). Color presets: `SPARKLINE_COLORS.positive`, `.negative`, `.neutral`, `.blue`, `.purple`, `.orange`. Helper: `getSparklineColors('up'|'down'|'neutral')`.
+
+**StatusBadge** — Status indicator with colored dot.
+
+Props: `status` (StatusType, required), `label` (string), `showDot` (boolean, true), `size` ('sm'|'md'|'lg'), `icon` (ReactNode). StatusType: 'connected'|'disconnected'|'pending'|'syncing'|'error'|'warning'|'expired'|'active'|'inactive'.
+
+**IntegrationStatus** — Integration status with sync time.
+
+Props: `isConnected` (boolean, required), `needsReauth` (boolean), `isSyncing` (boolean), `lastSyncTime` (Date).
+
+**EmptyState** — Placeholder for empty views.
+
+```tsx
+<EmptyState
+  title="No projects yet"
+  description="Get started by creating your first project."
+  action={{ label: 'Create Project', onClick: () => setShowModal(true) }}
+/>
+
+// Presets
+<EmptyStatePresets.NoResults />
+<EmptyStatePresets.NoData action={{ label: 'Add', onClick: handleAdd }} />
+<EmptyStatePresets.NoIntegrations />
+<EmptyStatePresets.ConnectionRequired />
+<EmptyStatePresets.ComingSoon />
+```
+
+Props: `title` (required), `description` (string), `icon` (ReactNode), `action` ({label, onClick, variant?}), `secondaryAction` ({label, onClick}), `size` ('sm'|'md'|'lg').
+
+**LoadingSkeleton** — Animated loading placeholders.
+
+```tsx
+<LoadingSkeleton type="card" />
+<LoadingSkeleton type="table" items={5} />
+<LoadingSkeleton type="text" lines={3} />
+
+// Shorthand components
+<SkeletonCard />
+<SkeletonTable items={5} />
+<SkeletonText lines={4} />
+<SkeletonList items={3} />
+```
+
+Props: `type` ('text'|'circle'|'rect'|'card'|'table'|'list'), `width` (string|number), `height` (string|number), `lines` (number, 3), `items` (number, 3), `animate` (boolean, true).
+
+#### Form Components
+
+**Button** — Multi-variant button.
+
+```tsx
+<Button variant="primary" onClick={handleSave}>Save</Button>
+<Button variant="secondary" size="sm">Cancel</Button>
+<Button variant="danger" loading>Deleting...</Button>
+<Button variant="outline" icon={<PlusIcon />}>Add Item</Button>
+<Button variant="ghost" size="lg">Learn More</Button>
+```
+
+Props: `variant` ('primary'|'secondary'|'outline'|'ghost'|'danger', default: 'primary'), `size` ('sm'|'md'|'lg', default: 'md'), `loading` (boolean), `icon` (ReactNode), `disabled` (boolean). Also accepts all `<button>` HTML attributes.
+
+**Input** — Text input with label, error, hint.
+
+```tsx
+<Input label="Email" type="email" placeholder="you@example.com" required error={errors.email} hint="We'll never share your email." />
+```
+
+Props: `label` (string), `error` (string), `hint` (string). Also accepts all `<input>` HTML attributes.
+
+**Textarea** — Multi-line text input.
+
+Props: `label` (string), `error` (string). Also accepts all `<textarea>` HTML attributes.
+
+**Select** — Dropdown select.
+
+```tsx
+<Select
+  label="Role"
+  options={[
+    { value: 'admin', label: 'Admin' },
+    { value: 'member', label: 'Member' },
+  ]}
+  error={errors.role}
+/>
+```
+
+Props: `label` (string), `options` ({value: string, label: string}[], required), `error` (string). Also accepts all `<select>` HTML attributes.
+
+**Toggle** — Switch toggle.
+
+```tsx
+<Toggle checked={enabled} onChange={setEnabled} label="Email Notifications" description="Receive updates via email" />
+```
+
+Props: `checked` (boolean, required), `onChange` ((checked: boolean) => void, required), `label` (ReactNode), `description` (string), `disabled` (boolean), `size` ('sm'|'md').
+
+**Checkbox** — Checkbox with label, description, indeterminate.
+
+```tsx
+<Checkbox checked={agreed} onChange={setAgreed} label="I agree to the terms" />
+<Checkbox checked={false} indeterminate={true} onChange={handleChange} label="Select all" />
+```
+
+Props: `checked` (boolean, required), `onChange` ((checked: boolean) => void, required), `label` (string), `description` (string), `disabled` (boolean), `indeterminate` (boolean), `error` (string).
+
+**RadioGroup** — Radio button group.
+
+```tsx
+<RadioGroup
+  name="plan"
+  label="Select Plan"
+  value={selectedPlan}
+  onChange={setSelectedPlan}
+  options={[
+    { value: 'free', label: 'Free', description: 'Basic features' },
+    { value: 'pro', label: 'Pro', description: '$9/month' },
+  ]}
+  orientation="vertical"
+/>
+```
+
+Props: `value` (string, required), `onChange` ((value: string) => void, required), `options` (RadioOption[], required), `name` (string, required), `label` (string), `orientation` ('vertical'|'horizontal', default: 'vertical'), `disabled` (boolean), `error` (string). Type: `RadioOption: { value, label, description?, disabled? }`.
+
+#### Overlay Components
+
+**Dialog** — Modal dialog with backdrop, focus trap, escape-to-close.
+
+```tsx
+<Dialog open={showDialog} onClose={() => setShowDialog(false)} title="Edit Profile" description="Update your info.">
+  <form>
+    <Input label="Name" />
+    <Button onClick={handleSave}>Save</Button>
+  </form>
+</Dialog>
+```
+
+Props: `open` (boolean, required — NOT `isOpen`), `onClose` (() => void, required), `title` (string, required), `description` (string), `children` (ReactNode, required).
+
+**ConfirmDialog** — Confirmation dialog with confirm/cancel.
+
+```tsx
+<ConfirmDialog
+  open={showConfirm}
+  onClose={() => setShowConfirm(false)}
+  onConfirm={handleDelete}
+  title="Delete Project"
+  description="This action cannot be undone."
+  confirmLabel="Delete"
+  confirmVariant="danger"
+  loading={isDeleting}
+/>
+```
+
+Props: `open` (boolean, required), `onClose` (() => void, required), `onConfirm` (() => void, required), `title` (string, required), `description` (string, required), `confirmLabel` (string, 'Delete'), `confirmVariant` ('danger'|'primary', 'danger'), `loading` (boolean).
+
+**DropdownMenu** — Accessible dropdown with keyboard nav.
+
+```tsx
+<DropdownMenu
+  trigger={<Button variant="ghost">Actions</Button>}
+  items={[
+    { label: 'Edit', icon: EditIcon, onClick: handleEdit },
+    { label: 'Duplicate', icon: CopyIcon, onClick: handleDuplicate },
+    { type: 'separator' },
+    { label: 'Delete', icon: TrashIcon, onClick: handleDelete, variant: 'danger' },
+  ]}
+/>
+```
+
+**CommandPalette** — Cmd+K command palette with search, keyboard nav, sections.
+
+```tsx
+<CommandPalette
+  open={showPalette}
+  onClose={() => setShowPalette(false)}
+  onSelect={(item) => router.push(item.path)}
+  items={[
+    { id: '1', label: 'Dashboard', section: 'Navigation', path: '/dashboard' },
+    { id: '2', label: 'Settings', section: 'Navigation', path: '/settings' },
+    { id: '3', label: 'New Project', section: 'Actions', path: '/new' },
+  ]}
+  placeholder="Type a command or search..."
+/>
+```
+
+---
+
+### @varity-labs/types (v2.0.0-beta.2)
+
+TypeScript type definitions for all Varity interfaces.
+
+Install: `npm install @varity-labs/types`
+
+Key types:
+
+```typescript
+import type {
+  DatabaseConfig,      // { proxyUrl?: string; appToken?: string }
+  QueryOptions,        // { limit?: number; offset?: number; orderBy?: string }
+  Document,            // { id: string; created_at?: string; updated_at?: string }
+  CollectionResponse,  // Response wrapper type
+  CredentialConfig,    // { privy: { appId: string }; thirdweb: { clientId: string } }
+} from '@varity-labs/types';
+```
+
+---
+
+## CLI: varitykit (v1.1.4)
+
+Install: `pip install varitykit`
+Requires: Python 3.10+, Node.js 18+
+
+### All Commands
+
+**varitykit doctor** — Check environment and dependencies.
+```bash
+varitykit doctor
+```
+
+**varitykit init [name]** — Scaffold new project from template.
+```bash
+varitykit init my-app
+varitykit init my-app --template saas-starter
+```
+
+**varitykit app deploy** — Deploy to production.
+```bash
+varitykit app deploy
+varitykit app deploy --hosting static
+varitykit app deploy --hosting dynamic
+varitykit app deploy --submit-to-store
+varitykit app deploy --name my-cool-app
+varitykit app deploy --tier starter
+varitykit app deploy --mode guided
+```
+
+Options:
+- `--hosting` — `static` (default, CDN/IPFS) or `dynamic` (container hosting). Auto-detected.
+- `--path` — Project directory (default: `.`)
+- `--submit-to-store` — Submit to Varity App Store after deploy
+- `--tier` — Pricing tier: `free`, `starter`, `growth`, `enterprise`, `scale`
+- `--name` — Custom app name for `varity.app/{name}`
+- `--mode` — Deployment mode: `auto` (default), `guided`, or `expert`
+
+**varitykit app list** — List all deployments.
+```bash
+varitykit app list
+```
+
+**varitykit app info <id>** — Get deployment details.
+```bash
+varitykit app info deploy-1737492000
+```
+
+**varitykit app status** — View overall deployment status.
+```bash
+varitykit app status
+```
+
+**varitykit app rollback <id>** — Revert to a previous deployment.
+```bash
+varitykit app rollback deploy-1737491000
+```
+
+**varitykit platforms** — Show available deployment platforms.
+```bash
+varitykit platforms
+```
+
+### What Happens at Deploy Time
+
+1. CLI analyzes source code for database/auth usage
+2. If database detected: generates app_id + JWT token + db_proxy_url
+3. Creates temporary `.env.local` with credentials (all framework prefixes)
+4. Builds your app (env vars compiled in)
+5. Uploads built app to hosting
+6. Deletes `.env.local` (credentials embedded in build output)
+7. If `--submit-to-store`: opens Developer Portal in browser
+
+### Supported Frameworks
+
+| Framework | Detection | Build Command |
+|-----------|-----------|---------------|
+| Next.js | `next.config.*` | `npm run build` |
+| React (Vite) | `vite.config.*` | `npm run build` |
+| React (CRA) | `react-scripts` | `npm run build` |
+| Vue | `vue.config.*` | `npm run build` |
+| Custom | `package.json` | `npm run build` |
+
+---
+
+## Templates
+
+### SaaS Starter (default)
+
+Create: `npx create-varity-app my-app`
+
+Production-ready Next.js 14 template with:
+- Authentication (email, Google, GitHub, Twitter, Discord)
+- Dashboard with sidebar navigation
+- Settings page (profile, preferences, security, billing)
+- Landing page with animations
+- Command palette (Cmd+K)
+- 20+ UI components
+- Database integration
+- Projects, Tasks, Team CRUD pages
+
+#### Template Structure
+
+```
+src/
+  app/                    # Next.js pages
+    page.tsx             # Landing page
+    login/page.tsx       # Login page
+    dashboard/
+      layout.tsx         # Dashboard layout (sidebar + mobile nav)
+      page.tsx           # Dashboard home
+      projects/          # Projects CRUD
+      tasks/             # Tasks CRUD
+      team/              # Team management
+      settings/          # Settings
+  lib/
+    varity.ts            # SDK import (export { db } from '@varity-labs/sdk')
+    database.ts          # Collection helpers
+    hooks.ts             # React hooks for data
+    constants.ts         # App name, navigation items
+  types/
+    index.ts             # TypeScript interfaces
+  components/ui/         # Shared UI components
+```
+
+#### Customization
+
+**Change branding:**
+1. `src/lib/constants.ts` — Change `APP_NAME`
+2. `src/app/globals.css` — Change CSS variables (`:root { --color-primary-* }`)
+3. `tailwind.config.js` — Colors reference CSS variables
+
+**Add a new page:**
+1. Create `src/app/dashboard/new-page/page.tsx`
+2. Add to `NAVIGATION_ITEMS` in `src/lib/constants.ts`
+3. Available icons: dashboard, folder, list, people, settings
+
+**Add a new data model:**
+1. Define interface in `src/types/index.ts`
+2. Add collection in `src/lib/database.ts`: `export const items = () => db.collection<Item>('items')`
+3. Create hook in `src/lib/hooks.ts` (copy `useProjects` pattern with optimistic updates)
+4. Build page component using the hook
+
+**Navigation items:**
+```typescript
+// src/lib/constants.ts
+{ label: 'My Page', icon: 'star', path: '/dashboard/my-page' }
+```
+
+---
+
+## Development Pattern (Complete)
+
+### Type -> Collection -> Hook -> Page
+
+#### Step 1: Define TypeScript interface
+
+```typescript
+// src/types/index.ts
+export interface Customer {
+  id?: string;          // Auto-generated UUID, always optional
+  name: string;
+  email: string;
+  plan: 'free' | 'pro' | 'enterprise';
+  createdAt: string;    // ISO string
+}
+```
+
+Rules:
+- `id` is always `string | undefined` — auto-generated UUID
+- Use ISO strings for dates (`new Date().toISOString()`)
+- Collection names: snake_case plural (`customers`, `order_items`)
+- Keep interfaces flat — no nested objects
+
+#### Step 2: Create collection accessor
+
+```typescript
+// src/lib/database.ts
+import { db } from '@varity-labs/sdk';
+import type { Customer } from '../types';
+
+export const customers = () => db.collection<Customer>('customers');
+```
+
+#### Step 3: Build hook with optimistic updates
+
+```typescript
+// src/lib/hooks.ts
+'use client';
+import { useState, useEffect, useCallback } from 'react';
+import { customers } from './database';
+import type { Customer } from '../types';
+
+export function useCustomers() {
+  const [data, setData] = useState<Customer[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const refresh = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const result = await customers().get();
+      setData(result as Customer[]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { refresh(); }, [refresh]);
+
+  const create = async (input: Omit<Customer, 'id' | 'createdAt'>) => {
+    const optimistic = {
+      ...input,
+      id: `temp-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+    };
+    setData(prev => [optimistic, ...prev]); // Optimistic add
+    try {
+      await customers().add({ ...input, createdAt: optimistic.createdAt });
+      await refresh(); // Sync with server
+    } catch (err) {
+      setData(prev => prev.filter(c => c.id !== optimistic.id)); // Rollback
+      throw err;
+    }
+  };
+
+  const update = async (id: string, changes: Partial<Customer>) => {
+    const previous = data;
+    setData(prev => prev.map(c => c.id === id ? { ...c, ...changes } : c)); // Optimistic
+    try {
+      await customers().update(id, changes);
+      await refresh();
+    } catch (err) {
+      setData(previous); // Rollback
+      throw err;
+    }
+  };
+
+  const remove = async (id: string) => {
+    const previous = data;
+    setData(prev => prev.filter(c => c.id !== id)); // Optimistic
+    try {
+      await customers().delete(id);
+    } catch (err) {
+      setData(previous); // Rollback
+      throw err;
+    }
+  };
+
+  return { data, loading, error, create, update, remove, refresh };
+}
+```
+
+#### Step 4: Use hook in page component
+
+```tsx
+// src/app/dashboard/customers/page.tsx
+'use client';
+import { useCustomers } from '@/lib/hooks';
+import { DataTable, Button, EmptyState } from '@varity-labs/ui-kit';
+
+export default function CustomersPage() {
+  const { data, loading, error, create, remove } = useCustomers();
+
+  if (loading) return <LoadingSkeleton type="table" />;
+  if (error) return <p>Error: {error}</p>;
+  if (data.length === 0) return <EmptyState title="No customers yet" action={{ label: 'Add Customer', onClick: handleAdd }} />;
+
+  return (
+    <DataTable
+      columns={[
+        { key: 'name', header: 'Name', sortable: true },
+        { key: 'email', header: 'Email' },
+        { key: 'plan', header: 'Plan' },
+      ]}
+      data={data}
+      pagination
+      pageSize={10}
+    />
+  );
+}
+```
+
+---
+
+## Auth Pattern (Complete)
+
+```tsx
+// app/layout.tsx — wrap entire app
+import { PrivyStack } from '@varity-labs/ui-kit';
+
+export default function RootLayout({ children }) {
+  return (
+    <html>
+      <body>
+        <PrivyStack appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID}>
+          {children}
+        </PrivyStack>
+      </body>
+    </html>
+  );
+}
+```
+
+```tsx
+// app/dashboard/layout.tsx — protect dashboard routes
+import { PrivyProtectedRoute } from '@varity-labs/ui-kit';
+
+export default function DashboardLayout({ children }) {
+  return (
+    <PrivyProtectedRoute>
+      {children}
+    </PrivyProtectedRoute>
+  );
+}
+```
+
+```tsx
+// Any component — access user info
+'use client';
+import { usePrivy } from '@varity-labs/ui-kit';
+
+export function UserGreeting() {
+  const { user, authenticated, logout, ready } = usePrivy();
+
+  if (!ready) return <p>Loading...</p>;
+  if (!authenticated) return <PrivyLoginButton />;
+
+  const email = user?.email?.address;
+  return (
+    <div>
+      <p>Welcome, {email}</p>
+      <button onClick={logout}>Sign out</button>
+    </div>
+  );
+}
+```
+
+---
+
+## Deploy (Complete)
+
+### Static Hosting (default)
+
+```bash
+npm run build
+varitykit app deploy
+# App is live at https://your-app.varity.app
+```
+
+Best for: marketing sites, SPAs, dashboards, landing pages.
+Features: global CDN, free hosting, permanent URLs, automatic SSL.
+
+### Dynamic Hosting
+
+```bash
+npm run build
+varitykit app deploy --hosting dynamic
+```
+
+Best for: APIs, server-side rendering, full-stack apps.
+Features: container hosting, persistent storage, 70-85% cheaper than AWS.
+No Docker required on developer's machine — the CLI handles containerization.
+
+### Deploy + App Store
+
+```bash
+npm run build
+varitykit app deploy --submit-to-store
+```
+
+### Next.js Static Export
+
+For static hosting, add to `next.config.js`:
+
+```javascript
+const nextConfig = {
+  output: 'export',
+  typescript: { ignoreBuildErrors: true },
+};
+module.exports = nextConfig;
+```
+
+No dynamic routes (`[id]`) with static export. Use client-side state instead.
+
+---
+
+## Environment Variables
+
+### Required for Development
+
+```
+NEXT_PUBLIC_PRIVY_APP_ID=         # Auth (optional — shared dev creds used if omitted)
+NEXT_PUBLIC_VARITY_APP_ID=        # Your app ID (set after first deploy)
+NEXT_PUBLIC_VARITY_APP_TOKEN=     # JWT for DB access (auto-generated at deploy)
+NEXT_PUBLIC_VARITY_DB_PROXY_URL=  # DB proxy URL (auto-injected at deploy)
+```
+
+### Framework Prefixes
+
+The SDK auto-resolves from multiple prefixes:
+- Next.js: `NEXT_PUBLIC_*`
+- Vite: `VITE_*`
+- CRA: `REACT_APP_*`
+
+### Credential Injection at Deploy Time
+
+1. CLI generates: app_id, JWT token, db_proxy_url
+2. Written to `.env.local` with all framework prefixes
+3. Build compiles env vars into output
+4. `.env.local` deleted after build
+5. Credentials embedded in production build
+
+---
+
+## Monetization
+
+### App Store Submission
+
+```bash
+varitykit app deploy --submit-to-store
+```
+
+Or submit after deploying via the MCP server:
+```
+varity_submit_to_store(deployment_id, name, description, price)
+```
+
+### Revenue Split
+
+- 90% goes to the developer
+- 10% goes to Varity platform
+- Users pay with credit cards (no crypto required)
+
+### Pricing Tiers
+
+Set with `--tier` flag: `free`, `starter`, `growth`, `enterprise`, `scale`.
+
+---
+
+## MCP Server (@varity-labs/mcp v1.0.1)
+
+The Varity MCP server gives AI editors 7 tools for the full build -> deploy -> monetize workflow. Runs locally via stdio. No API keys, no accounts.
+
+### Setup
+
+**Cursor** — Add to `.cursor/mcp.json`:
+```json
+{
+  "mcpServers": {
+    "varity": {
+      "command": "npx",
+      "args": ["-y", "@varity-labs/mcp"]
+    }
+  }
+}
+```
+
+**Claude Code:**
+```bash
+claude mcp add varity -- npx -y @varity-labs/mcp
+```
+
+**VS Code (Copilot)** — Add to `.vscode/mcp.json`:
+```json
+{
+  "mcpServers": {
+    "varity": {
+      "command": "npx",
+      "args": ["-y", "@varity-labs/mcp"]
+    }
+  }
+}
+```
+
+**Windsurf** — Add to `~/.codeium/windsurf/mcp_config.json`:
+```json
+{
+  "mcpServers": {
+    "varity": {
+      "command": "npx",
+      "args": ["-y", "@varity-labs/mcp"]
+    }
+  }
+}
+```
+
+### Tools Reference
+
+**varity_search_docs** — Search Varity docs for guides, API references, tutorials. Read-only.
+- `query` (string, required) — Search query
+- `maxResults` (number, default: 3) — Max results
+
+**varity_cost_calculator** — Compare Varity costs against AWS/Vercel. Read-only.
+- `users` (number, required) — Monthly active users
+- `storage_gb` (number, default: 10) — Storage in GB
+- `has_database` (boolean, default: true)
+- `has_auth` (boolean, default: true)
+
+**varity_init** — Scaffold a new app. Creates files.
+- `name` (string, required) — Project name (lowercase, hyphens)
+- `template` ("saas-starter", default: "saas-starter")
+- `path` (string, default: current directory)
+
+**varity_deploy** — Build and deploy. Destructive.
+- `path` (string, default: workspace root)
+- `submit_to_store` (boolean, default: false)
+
+**varity_deploy_status** — Check deployments. Read-only.
+- `deployment_id` (string, optional — omit to list all)
+
+**varity_deploy_logs** — Get build logs. Read-only.
+- `deployment_id` (string, required)
+- `limit` (number, default: 100)
+
+**varity_submit_to_store** — Publish to App Store. Destructive.
+- `deployment_id` (string, required)
+- `name` (string, required) — Display name
+- `description` (string, required) — Short description
+- `price` (number, required) — Monthly price in USD (0 for free)
+
+### Response Format
+
+```typescript
+// Success
+{ success: true, data: { /* tool-specific */ }, message: "Human-readable summary" }
+
+// Error
+{ success: false, error: { code: "ERROR_CODE", message: "What went wrong", suggestion?: "How to fix" } }
+```
+
+### Typical Workflow
+
+1. "Create a Varity app called my-saas" -> varity_init
+2. "What will this cost for 200 users?" -> varity_cost_calculator
+3. (Build features)
+4. "Deploy this" -> varity_deploy
+5. "Did the deploy succeed?" -> varity_deploy_status
+6. "Show me the build logs" -> varity_deploy_logs
+7. "Submit to the app store at $14.99" -> varity_submit_to_store
+
+---
+
+## Cursor Rules
+
+AI-powered development assistance rules for Cursor IDE.
+
+Install:
+```bash
+curl -fsSL https://docs.varity.so/cursor-rules/install-varity-rules.sh | bash
+```
+
+Available rules: `varity-deploy.mdc`, `varity-auth.mdc`, `varity-storage.mdc`, `varity-errors.mdc`, `varity-testing.mdc`, `varity-typescript.mdc`, `varity-performance.mdc`, `varity-contracts.mdc`.
+
+---
+
+## System Prompts
+
+Downloadable prompts for AI assistants:
+- App Development: https://docs.varity.so/prompts/varity-app-development.md
+- Database Design: https://docs.varity.so/prompts/database-schema-design.md
+- Deployment Guide: https://docs.varity.so/prompts/deployment-guide.md
+- Template Customization: https://docs.varity.so/prompts/customize-template.md
+
+---
+
+## Key Rules for AI Assistants
+
+### Terminology
+- NEVER use blockchain/crypto terminology in user-facing code
+- Use "deploy" not "upload to IPFS"
+- Use "sign in" not "connect wallet"
+- Use "usage fees are covered" not "gasless transactions"
+- Use "platforms" not "chains"
+
+### Code Patterns
+- Use TypeScript interfaces for all data models
+- Use optimistic UI updates (update state first, then API, rollback on error)
+- Use `'use client'` directive for hooks and interactive components
+- `.get()` returns all docs — filter on client side
+- No `.where()` or `.find()` method — all filtering is client-side
+- `id` field is always `string | undefined` — auto-generated UUID
+- Collection names: snake_case plural (e.g., `customers`, `order_items`)
+- Keep interfaces flat — no nested objects
+- Use ISO strings for dates (`new Date().toISOString()`)
+
+### Component Gotchas
+- DashboardLayout has NO mobile support — implement mobile nav manually
+- Dialog prop is `open` (NOT `isOpen`)
+- Documents from `.add()`, `.get()`, `.update()` are flat — access `doc.name` NOT `doc.data.name`
+- Database credentials are auto-injected at deploy time
+- Static export: use `output: 'export'` in next.config.js
+- No dynamic routes (`[id]`) with static export — use client-side state
+- React 18/19 type conflict: fix with `typescript: { ignoreBuildErrors: true }` in next.config.js
+- DashboardFooter `showAttribution` must be `true` (required by license)
+
+### Database Limitations (Beta)
+- No `.where()` filtering — filter client-side
+- No real-time updates — use polling
+- `.get()` returns ALL documents — use `{ limit, offset }` for pagination
+
+---
+
+## Troubleshooting
+
+### Common Issues
+
+**"Module not found"**
+```bash
+npm install @varity-labs/sdk @varity-labs/ui-kit @varity-labs/types
+```
+
+**"CLI not found"**
+```bash
+pip install varitykit
+```
+
+**Build errors with TypeScript**
+```javascript
+// next.config.js
+{ typescript: { ignoreBuildErrors: true } }
+```
+
+**Static export with dynamic routes**
+Use `output: 'export'` in next.config.js. Replace `[id]` routes with client-side state.
+
+**Database not working in dev**
+Set `NEXT_PUBLIC_VARITY_APP_TOKEN` and `NEXT_PUBLIC_VARITY_DB_PROXY_URL` in `.env.local`.
+
+**MCP server "Cannot find module"**
+Ensure Node.js 18+ is installed: `node --version`.
+
+**MCP deploy tools "varitykit not found"**
+Install CLI: `pip install varitykit`. Verify: `varitykit doctor`.
+
+**MCP server not showing in Cursor**
+Restart Cursor after adding config. Validate `.cursor/mcp.json` is valid JSON.
+
+---
+
+## Documentation
+
+Full docs: https://docs.varity.so
+
+| Section | URL |
+|---------|-----|
+| Introduction | https://docs.varity.so/getting-started/introduction/ |
+| Why Varity | https://docs.varity.so/getting-started/why-varity/ |
+| Installation | https://docs.varity.so/getting-started/installation/ |
+| Quickstart | https://docs.varity.so/getting-started/quickstart/ |
+| Quickstart (Next.js) | https://docs.varity.so/getting-started/quickstart-nextjs/ |
+| Quickstart (React) | https://docs.varity.so/getting-started/quickstart-react/ |
+| Quickstart (Node.js) | https://docs.varity.so/getting-started/quickstart-nodejs/ |
+| Getting Help | https://docs.varity.so/getting-started/getting-help/ |
+| SDK Overview | https://docs.varity.so/packages/sdk/overview/ |
+| SDK Installation | https://docs.varity.so/packages/sdk/installation/ |
+| SDK API Reference | https://docs.varity.so/packages/sdk/api-reference/ |
+| UI Kit Overview | https://docs.varity.so/packages/ui-kit/overview/ |
+| UI Kit Installation | https://docs.varity.so/packages/ui-kit/installation/ |
+| UI Kit Components | https://docs.varity.so/packages/ui-kit/components/ |
+| UI Kit Hooks | https://docs.varity.so/packages/ui-kit/hooks/ |
+| Types Overview | https://docs.varity.so/packages/types/overview/ |
+| CLI Overview | https://docs.varity.so/cli/overview/ |
+| CLI Installation | https://docs.varity.so/cli/installation/ |
+| CLI Deploy | https://docs.varity.so/cli/commands/deploy/ |
+| CLI Doctor | https://docs.varity.so/cli/commands/doctor/ |
+| CLI Init | https://docs.varity.so/cli/commands/init/ |
+| CLI Auth | https://docs.varity.so/cli/commands/auth/ |
+| Database Quickstart | https://docs.varity.so/build/databases/quickstart/ |
+| Auth Quickstart | https://docs.varity.so/build/auth/quickstart/ |
+| Email Login | https://docs.varity.so/build/auth/email-login/ |
+| Social Login | https://docs.varity.so/build/auth/social-login/ |
+| Storage Quickstart | https://docs.varity.so/build/storage/quickstart/ |
+| File Upload | https://docs.varity.so/build/storage/upload/ |
+| File Retrieve | https://docs.varity.so/build/storage/retrieve/ |
+| Payments Quickstart | https://docs.varity.so/build/payments/quickstart/ |
+| Credit Card Payments | https://docs.varity.so/build/payments/credit-card/ |
+| Compute Overview | https://docs.varity.so/build/compute/overview/ |
+| Deploy Your App | https://docs.varity.so/deploy/deploy-your-app/ |
+| Env Variables | https://docs.varity.so/deploy/env-variables/ |
+| Managed Credentials | https://docs.varity.so/deploy/managed-credentials/ |
+| Templates Overview | https://docs.varity.so/templates/overview/ |
+| SaaS Starter | https://docs.varity.so/templates/saas-starter/ |
+| Build a SaaS App | https://docs.varity.so/tutorials/build-saas-app/ |
+| Add CRUD Feature | https://docs.varity.so/tutorials/add-crud-feature/ |
+| Customize Template | https://docs.varity.so/tutorials/customize-template/ |
+| Error Handling | https://docs.varity.so/guides/error-handling/ |
+| AI Tools Overview | https://docs.varity.so/ai-tools/overview/ |
+| MCP Server | https://docs.varity.so/ai-tools/mcp-server-spec/ |
+| Prompts | https://docs.varity.so/ai-tools/prompts/ |
+| Troubleshooting | https://docs.varity.so/resources/troubleshooting/ |
+| FAQ | https://docs.varity.so/resources/faq/ |
+| Glossary | https://docs.varity.so/resources/glossary/ |
+
+## Support
+
+- Discord: https://discord.gg/Uhjx6yhJ
+- GitHub: https://github.com/varity-labs/varity-sdk
+- Docs: https://docs.varity.so

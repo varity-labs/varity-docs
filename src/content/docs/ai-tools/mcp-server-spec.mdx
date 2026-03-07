@@ -15,6 +15,10 @@ import PageMeta from '../../../components/PageMeta.astro';
 
 The Varity MCP server (`@varity-labs/mcp`) gives AI editors 7 tools for the full build → deploy → monetize workflow. It runs locally via stdio — no API keys, no accounts.
 
+<Aside type="tip">
+The MCP server works with **any editor that supports MCP**: Cursor, Claude Code, VS Code (Copilot), Windsurf, and more. Setup takes under a minute.
+</Aside>
+
 ## Prerequisites
 
 - **Node.js 18+** — runs the MCP server
@@ -188,6 +192,8 @@ Submit a deployed app to the Varity App Store marketplace. Revenue split: 90% to
 
 **Example prompt:** "Submit my last deployment to the Varity App Store at $9.99/month"
 
+---
+
 ## Response Format
 
 All tools return JSON with a consistent structure:
@@ -236,6 +242,17 @@ Restart Cursor after adding the config. Check that `.cursor/mcp.json` is valid J
 
 **Server not showing in Claude Code**
 Run `claude mcp list` to verify the server is registered. Re-add with `claude mcp add varity -- npx -y @varity-labs/mcp`.
+
+## Using with ChatGPT and Browser-Based LLMs
+
+The MCP server currently supports **stdio transport only**, which works with local editors like Cursor, Claude Code, VS Code, and Windsurf.
+
+For browser-based LLMs like **ChatGPT** or **Gemini**, use the `llms.txt` files instead:
+
+- **Summary context:** `https://docs.varity.so/llms.txt`
+- **Full context:** `https://docs.varity.so/llms-full.txt`
+
+Paste the URL or its contents into your conversation to give the LLM full Varity context. The docs site also includes "Ask ChatGPT" links on each page that pre-load the relevant context.
 
 ## Support
 

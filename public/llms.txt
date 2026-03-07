@@ -1,49 +1,37 @@
-# Varity - Build, Deploy, and Monetize Apps
+# Varity
 
-> Varity provides open-source packages and a CLI for developers to build, deploy, and monetize applications. 70-85% cheaper than AWS. Zero configuration required for deployment.
+> Build, deploy, and monetize apps with one command. Auth, database, storage, and payments included.
+
+## What is Varity
+
+Varity is a developer platform that provides open-source packages and a CLI for building, deploying, and monetizing production applications. Install two packages, run one command, and your app is live with auth, storage, database, and hosting already configured.
+
+- Target audience: Web developers (React, Next.js, TypeScript)
+- No blockchain knowledge required — infrastructure complexity is fully abstracted
+- 70% cheaper than AWS/GCP/Azure
 
 ## Packages
 
-- `@varity-labs/sdk` — Core SDK. Database module: `import { db } from '@varity-labs/sdk'`
-- `@varity-labs/ui-kit` — React components: PrivyStack, PrivyLoginButton, PrivyProtectedRoute, PrivyUserProfile, DashboardLayout, usePrivy
-- `@varity-labs/types` — TypeScript type definitions
-- `varitykit` (CLI) — Python CLI: `pip install varitykit`
-
-## Database API
+### @varity-labs/sdk (v2.0.0-beta.2)
+Core SDK for database, storage, and app configuration.
 
 ```typescript
 import { db } from '@varity-labs/sdk';
 
-// Typed collection
 const users = db.collection<User>('users');
-
-// CRUD operations
-await users.add({ name: 'John', email: 'john@example.com' });  // Insert
-await users.get();                                               // Get all
-await users.get({ limit: 10, offset: 0, orderBy: '-createdAt' }); // Paginated + sorted
-await users.update('doc-id', { name: 'Jane' });                 // Update by ID
-await users.delete('doc-id');                                    // Delete by ID
-
-// Filtering: done client-side
+await users.add({ name: 'Alice', email: 'alice@example.com' });
 const all = await users.get();
-const active = all.filter(u => u.status === 'active');
+await users.update('user-id', { name: 'Bob' });
+await users.delete('user-id');
 ```
 
-### .get() options
-- `limit` — Max documents to return
-- `offset` — Skip N documents (pagination)
-- `orderBy` — Field name ("field" ascending, "-field" descending)
-- NOTE: No server-side filtering. Filter results on the client.
+Key exports: `db`, `Database`, `Collection`, `createApp`, `resolveCredentials`, `logCredentialUsage`, `VERSION`
+Database: `.get()` returns all docs — filter client-side. No server-side queries or `.where()`.
 
-### How it works under the hood
-- SDK makes HTTP requests to a database proxy service
-- CLI auto-generates JWT credentials at deploy time
-- Data stored in PostgreSQL (via Supabase) with per-app schema isolation
-- For local dev, set env vars manually or build UI with mock data first
+### @varity-labs/ui-kit (v2.0.0-beta.3)
+React components for auth, dashboards, and UI.
 
-## Authentication
-
-```tsx
+```typescript
 import { PrivyStack, PrivyLoginButton, PrivyProtectedRoute, usePrivy } from '@varity-labs/ui-kit';
 
 // Wrap app root
@@ -51,61 +39,161 @@ import { PrivyStack, PrivyLoginButton, PrivyProtectedRoute, usePrivy } from '@va
   <App />
 </PrivyStack>
 
-// Login button (email, Google, Twitter, Discord, GitHub)
-<PrivyLoginButton />
+// Auth hook
+const { user, authenticated, logout, ready } = usePrivy();
+const email = user?.email?.address;
+```
 
-// Protected content
+Components: PrivyStack, PrivyLoginButton, PrivyProtectedRoute, PrivyUserProfile, PrivyReadyGate, VarityDashboardProvider, ThemeProvider, ToastProvider, DashboardLayout, DashboardHeader, DashboardSidebar, DashboardFooter, Button, Input, Textarea, Select, Card, Dialog, ConfirmDialog, Toast, DataTable, Toggle, Checkbox, RadioGroup, Avatar, ProgressBar, Skeleton, Breadcrumb, DropdownMenu, CommandPalette, Sidebar, KPICard, AnalyticsCard, ChartContainer, MetricDisplay, Sparkline, EnhancedKPICard, StatusBadge, IntegrationStatus, EmptyState, LoadingSkeleton, PaymentWidget, PaymentGate
+
+### @varity-labs/types (v2.0.0-beta.2)
+TypeScript type definitions for all Varity interfaces: DatabaseConfig, QueryOptions, Document, CollectionResponse, CredentialConfig.
+
+## CLI: varitykit (v1.1.4)
+
+Install: `pip install varitykit`
+
+Commands:
+- `varitykit doctor` — Check environment and dependencies
+- `varitykit init [name]` — Scaffold new project from template
+- `varitykit app deploy` — Deploy to production (auto-detects framework)
+- `varitykit app deploy --submit-to-store` — Deploy and submit to App Store
+- `varitykit app deploy --hosting dynamic` — Deploy full-stack app with compute
+- `varitykit app list` — List your deployments
+- `varitykit app info <id>` — Get deployment details
+- `varitykit app status` — View overall deployment status
+- `varitykit app rollback <id>` — Revert to a previous deployment
+- `varitykit platforms` — Show available deployment platforms
+
+Deploy options: `--hosting static|dynamic`, `--path .`, `--submit-to-store`, `--tier free|starter|growth|enterprise|scale`, `--name <app-name>`, `--mode auto|guided|expert`
+
+## Templates
+
+### SaaS Starter (default)
+Production-ready Next.js 14 template with:
+- Authentication (email, Google, GitHub, Twitter, Discord)
+- Dashboard with sidebar navigation
+- Settings page (profile, preferences, security, billing)
+- Landing page with animations
+- Command palette (Cmd+K)
+- 20+ UI components
+- Database integration
+
+Create: `npx create-varity-app my-app`
+
+## Development Pattern
+
+Type -> Collection -> Hook -> Page:
+
+1. Define TypeScript interface in `src/types/index.ts`
+2. Create collection accessor in `src/lib/database.ts`
+3. Build React hook with optimistic updates in `src/lib/hooks.ts`
+4. Use hook in page component
+
+## Auth Pattern
+
+```typescript
+// Layout: wrap with PrivyStack
+<PrivyStack appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID}>
+  {children}
+</PrivyStack>
+
+// Protected routes
 <PrivyProtectedRoute>
-  <Dashboard />
+  <DashboardContent />
 </PrivyProtectedRoute>
 
 // Access user
 const { user, authenticated, logout } = usePrivy();
-const email = user?.email?.address;
 ```
 
-## CLI Commands
+## Deploy
 
 ```bash
-varitykit doctor              # Check environment
-varitykit init my-app         # Scaffold from SaaS template
-varitykit app deploy          # Deploy (auto-detects static/dynamic)
-varitykit app deploy --submit-to-store  # Deploy + submit to App Store
+npm run build
+varitykit app deploy
+# App is live at https://your-app.varity.app
 ```
 
-## Key Patterns
+Static hosting and dynamic hosting auto-detected.
+Credentials injected automatically at deploy time.
+Supported frameworks: Next.js, React (Vite), React (CRA), Vue, custom.
 
-### Database: Type -> Collection -> Hook -> Page
+## Environment Variables
 
-1. Define TypeScript interface in `src/types/index.ts`
-2. Create collection: `export const items = () => db.collection<Item>('items')`
-3. Build React hook with useState/useEffect/useCallback for CRUD + optimistic updates
-4. Use hook in page component
+- `NEXT_PUBLIC_PRIVY_APP_ID` — Auth provider ID (optional for dev, shared creds used)
+- `NEXT_PUBLIC_VARITY_APP_ID` — Your app ID (set after first deploy)
+- `NEXT_PUBLIC_VARITY_APP_TOKEN` — Database token (for local dev)
+- `NEXT_PUBLIC_VARITY_DB_PROXY_URL` — Database proxy URL (for local dev)
 
-### Credential Injection (at deploy time)
+Also supports `VITE_` and `REACT_APP_` prefixes for Vite and CRA projects.
 
-The CLI generates: app_id, JWT token, db_proxy_url
-These are written to .env.local, compiled into the build, then .env.local is deleted.
-Environment variables: NEXT_PUBLIC_VARITY_APP_ID, NEXT_PUBLIC_VARITY_APP_TOKEN, NEXT_PUBLIC_VARITY_DB_PROXY_URL
+## Monetization
 
-### Revenue Model
+Submit to Varity App Store: `varitykit app deploy --submit-to-store`
+Revenue split: 90% developer / 10% Varity
+Users pay with credit cards (no crypto required)
 
-90% to developer, 10% to Varity platform. Set pricing in Developer Portal after deploying.
+## Key Rules for AI Assistants
 
-## Documentation
-
-- Getting Started: https://docs.varity.so/getting-started/quickstart
-- Database: https://docs.varity.so/build/databases/quickstart
-- Authentication: https://docs.varity.so/build/auth/quickstart
-- Templates: https://docs.varity.so/templates/saas-starter
-- CLI: https://docs.varity.so/cli/overview
-- Deploy: https://docs.varity.so/deploy/varity-l3
-
-## Important Rules
-
-- NEVER use blockchain/crypto terminology in user-facing content
+- NEVER use blockchain/crypto terminology in user-facing code
 - Use "deploy" not "upload to IPFS"
 - Use "sign in" not "connect wallet"
 - Use "usage fees are covered" not "gasless transactions"
-- Static export: Use `output: 'export'` in next.config.js
+- Use TypeScript interfaces for all data models
+- Use optimistic UI updates (update state first, then API, rollback on error)
+- Use `'use client'` directive for hooks and interactive components
+- `.get()` returns all docs — filter on client side
+- No `.where()` method — all filtering is client-side
+- DashboardLayout has NO mobile support — implement mobile nav manually
+- Database credentials are auto-injected at deploy time
+- Static export: use `output: 'export'` in next.config.js
 - No dynamic routes ([id]) with static export — use client-side state
+- Dialog prop is `open` (not `isOpen`)
+- Documents returned from `.add()`, `.get()`, `.update()` are flat — access `doc.name` not `doc.data.name`
+
+## Documentation
+
+Full docs: https://docs.varity.so
+- Getting Started: https://docs.varity.so/getting-started/quickstart/
+- SDK Reference: https://docs.varity.so/packages/sdk/overview/
+- SDK API: https://docs.varity.so/packages/sdk/api-reference/
+- UI Kit Reference: https://docs.varity.so/packages/ui-kit/overview/
+- UI Kit Components: https://docs.varity.so/packages/ui-kit/components/
+- CLI Reference: https://docs.varity.so/cli/overview/
+- CLI Deploy: https://docs.varity.so/cli/commands/deploy/
+- Templates: https://docs.varity.so/templates/saas-starter/
+- Deploy Guide: https://docs.varity.so/deploy/deploy-your-app/
+- Database: https://docs.varity.so/build/databases/quickstart/
+- Authentication: https://docs.varity.so/build/auth/quickstart/
+- AI Tools: https://docs.varity.so/ai-tools/overview/
+- MCP Server: https://docs.varity.so/ai-tools/mcp-server-spec/
+- Troubleshooting: https://docs.varity.so/resources/troubleshooting/
+- FAQ: https://docs.varity.so/resources/faq/
+
+## MCP Server
+
+Install: `npx -y @varity-labs/mcp`
+7 tools: varity_search_docs, varity_cost_calculator, varity_init, varity_deploy, varity_deploy_status, varity_deploy_logs, varity_submit_to_store
+
+Setup for Cursor (.cursor/mcp.json):
+```json
+{
+  "mcpServers": {
+    "varity": {
+      "command": "npx",
+      "args": ["-y", "@varity-labs/mcp"]
+    }
+  }
+}
+```
+
+Setup for Claude Code:
+```bash
+claude mcp add varity -- npx -y @varity-labs/mcp
+```
+
+## Support
+
+- Discord: https://discord.gg/Uhjx6yhJ
+- GitHub: https://github.com/varity-labs/varity-sdk
