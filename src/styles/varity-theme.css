@@ -1153,6 +1153,7 @@ article.card .body {
    ======================================== */
 
 table {
+  display: table !important;
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
