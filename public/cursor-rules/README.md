@@ -76,6 +76,6 @@ Full documentation: [docs.varity.so/ai-tools](https://docs.varity.so/ai-tools/ov
 
 ## Support
 
-- **Discord**: [discord.gg/varity](https://discord.gg/varity) - #ai-tools
+- **Discord**: [discord.gg/7vWsdwa2Bg](https://discord.gg/7vWsdwa2Bg) - #ai-tools
 - **GitHub**: [github.com/varity-labs](https://github.com/varity-labs)
 - **Docs**: [docs.varity.so](https://docs.varity.so)

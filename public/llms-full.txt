@@ -1344,6 +1344,6 @@ Full docs: https://docs.varity.so
 
 ## Support
 
-- Discord: https://discord.gg/Uhjx6yhJ
+- Discord: https://discord.gg/7vWsdwa2Bg
 - GitHub: https://github.com/varity-labs/varity-sdk
 - Docs: https://docs.varity.so

@@ -1,6 +1,6 @@
 # Varity Documentation
 
-Official documentation for [Varity](https://varity.so) — the Web3 operating system that lets you deploy real-world apps on decentralized infrastructure in 60 seconds.
+Official documentation for [Varity](https://www.varity.so) — the Web3 operating system that lets you deploy real-world apps on decentralized infrastructure in 60 seconds.
 
 **Documentation Site:** [docs.varity.so](https://docs.varity.so)
 
@@ -79,13 +79,13 @@ src/content/docs/
 
 ## Links
 
-- **Website:** [varity.so](https://varity.so)
+- **Website:** [varity.so](https://www.varity.so)
 - **Documentation:** [docs.varity.so](https://docs.varity.so)
 - **GitHub:** [github.com/varity-labs](https://github.com/varity-labs)
-- **Discord:** [discord.gg/varity](https://discord.gg/Uhjx6yhJ)
-- **Twitter:** [@vaboratory](https://twitter.com/vaboratory)
+- **Discord:** [discord.gg/7vWsdwa2Bg](https://discord.gg/7vWsdwa2Bg)
+- **Twitter:** [@VarityHQ](https://x.com/VarityHQ)
 
 ## License
 
-MIT © [Varity Labs](https://varity.so)
+MIT © [Varity Labs](https://www.varity.so)
 

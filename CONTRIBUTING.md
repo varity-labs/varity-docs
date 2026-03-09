@@ -363,7 +363,7 @@ Include in your PR description:
 
 - **Questions?** Open a [GitHub Discussion](https://github.com/varity-labs/varity-docs/discussions)
 - **Bug Report?** Open an [Issue](https://github.com/varity-labs/varity-docs/issues)
-- **Chat?** Join our [Discord](https://discord.gg/Uhjx6yhJ)
+- **Chat?** Join our [Discord](https://discord.gg/7vWsdwa2Bg)
 
 ## License
 

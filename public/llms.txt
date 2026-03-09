@@ -195,5 +195,5 @@ claude mcp add varity -- npx -y @varity-labs/mcp
 
 ## Support
 
-- Discord: https://discord.gg/Uhjx6yhJ
+- Discord: https://discord.gg/7vWsdwa2Bg
 - GitHub: https://github.com/varity-labs/varity-sdk
