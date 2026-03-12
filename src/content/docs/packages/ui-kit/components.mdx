@@ -49,12 +49,12 @@ import { PrivyStack } from '@varity-labs/ui-kit';
 | `thirdwebClientId` | `string` | Dev default | Thirdweb Client ID |
 | `loginMethods` | `string[]` | `['email', 'google', 'wallet']` | Login options |
 | `appearance` | `{ theme, accentColor, logo }` | Light theme | UI customization |
-| `onAddressChange` | `(address: string \| null) => void` | - | Wallet address callback |
+| `onAddressChange` | `(address: string \| null) => void` | - | Account address callback |
 | `children` | `ReactNode` | Required | App content |
 
 ### VarityDashboardProvider
 
-Full-featured provider for dashboards. Includes authentication, Thirdweb, React Query, and wallet sync.
+Full-featured provider for dashboards. Includes authentication, React Query, and account sync.
 
 ```tsx
 import { VarityDashboardProvider } from '@varity-labs/ui-kit';
@@ -1436,7 +1436,7 @@ function DashboardPage() {
 ```
 
 :::note
-Smart account features are available via `ZeroDevProvider`, which enables gasless transactions automatically. Import from `@varity-labs/ui-kit`.
+Free operations are enabled automatically for all deployed Varity apps. No additional provider configuration is needed.
 :::
 
 ## Next Steps

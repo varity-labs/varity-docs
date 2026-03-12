@@ -64,14 +64,7 @@ Get your development environment ready for building with Varity.
    varitykit doctor
    ```
 
-   You should see output like:
-
-   ```
-   ✓ Python version: 3.11.0
-   ✓ Node.js version: 20.0.0
-   ✓ npm version: 10.0.0
-   ✓ All checks passed!
-   ```
+   You should see all checks passing with a `✓ All checks passed!` message.
 
 </Steps>
 
@@ -131,7 +124,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <PrivyStack appId={process.env.NEXT_PUBLIC_VARITY_APP_ID}>
+        <PrivyStack appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID}>
           {children}
         </PrivyStack>
       </body>
@@ -150,7 +143,7 @@ import App from './App';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <PrivyStack appId={import.meta.env.VITE_VARITY_APP_ID}>
+    <PrivyStack appId={import.meta.env.VITE_PRIVY_APP_ID}>
       <App />
     </PrivyStack>
   </React.StrictMode>

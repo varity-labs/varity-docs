@@ -30,13 +30,10 @@ Enhanced code blocks with copy buttons and file names.
   code={`import { db } from '@varity-labs/sdk'
 
 // Query data from a collection
-const result = await db.collection('documents').get()
+const documents = await db.collection('documents').get()
 
-if (!result.success) {
-  console.error('Error:', result.error)
-} else {
-  console.log('Documents:', result.data)
-}`}
+console.log('Documents:', documents)
+console.log('Count:', documents.length)`}
 />
 
 ---
@@ -95,13 +92,9 @@ Multi-language code examples with keyboard navigation.
     // JavaScript example
     import { db } from '@varity-labs/sdk'
 
-    const result = await db.collection('users').get()
-
-    if (!result.success) {
-      console.error('Query failed:', result.error)
-    } else {
-      console.log('Users:', result.data)
-    }
+    const users = await db.collection('users').get()
+    console.log('Users:', users)
+    console.log('Count:', users.length)
     ```
   </TabPanel>
 
@@ -109,16 +102,12 @@ Multi-language code examples with keyboard navigation.
     ```typescript
     // TypeScript example with types
     import { db } from '@varity-labs/sdk'
-    import type { CollectionResponse } from '@varity-labs/sdk'
 
-    const result: CollectionResponse<{ email: string }> =
-      await db.collection('users').get()
+    interface User { email: string }
 
-    if (!result.success) {
-      console.error('Query failed:', result.error)
-    } else {
-      console.log('Users:', result.data)
-    }
+    const users = await db.collection<User>('users').get()
+    console.log('Users:', users)
+    console.log('First user:', users[0]?.email)
     ```
   </TabPanel>
 
@@ -377,7 +366,7 @@ Collapsible content for advanced/optional sections.
     <span class="api-card-badge">async</span>
   </div>
   <p class="api-card-description">
-    Query all documents in a collection. Returns a CollectionResponse with success status and data.
+    Query all documents in a collection. Returns an array of documents.
   </p>
 </div>
 

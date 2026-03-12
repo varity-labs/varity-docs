@@ -36,6 +36,16 @@ Build a REST API with Express and Varity's zero-config database. No database set
    npm init -y
    ```
 
+   Then add `"type": "module"` to your `package.json` to enable ES module imports:
+
+   ```json title="package.json" {2}
+   {
+     "type": "module",
+     "name": "my-api",
+     ...
+   }
+   ```
+
 2. **Install dependencies**
 
    <Tabs>
@@ -66,14 +76,12 @@ Build a REST API with Express and Varity's zero-config database. No database set
 Create a file to set up your database collections:
 
 ```javascript title="database.js"
-const { db } = require('@varity-labs/sdk');
+import { db } from '@varity-labs/sdk';
 
 // Create collection helpers
 // Each collection is like a database table
-const products = () => db.collection('products');
-const orders = () => db.collection('orders');
-
-module.exports = { products, orders };
+export const products = () => db.collection('products');
+export const orders = () => db.collection('orders');
 ```
 
 <Aside type="tip">
@@ -83,8 +91,8 @@ No database setup required. The `db` singleton connects to Varity's managed data
 ### 2. Create the Express server
 
 ```javascript title="server.js"
-const express = require('express');
-const { products, orders } = require('./database');
+import express from 'express';
+import { products, orders } from './database.js';
 
 const app = express();
 app.use(express.json());

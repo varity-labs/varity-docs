@@ -89,7 +89,7 @@ Choose the right hosting for your application type:
     varitykit app deploy
     ```
   </Card>
-  <Card title="Dynamic Apps" icon="rocket">
+  <Card title="Dynamic Apps (Coming Soon)" icon="rocket">
     **Best for**: Full-stack apps, APIs, real-time applications, databases
 
     **Features**:
@@ -98,13 +98,9 @@ Choose the right hosting for your application type:
     - Database support
     - WebSocket support
 
-    :::note[Available]
-    Dynamic hosting is available via managed deployment.
+    :::caution[Coming Soon]
+    Dynamic hosting is not yet available during beta. Static hosting is available now.
     :::
-
-    ```bash
-    varitykit app deploy --hosting dynamic
-    ```
   </Card>
 </CardGrid>
 
@@ -147,7 +143,7 @@ This will:
 1. Deploy your app
 2. Submit it for listing in the App Store
 3. Make it discoverable by users
-4. Enable payments and subscriptions (optional)
+4. Enable monetization when available (coming soon)
 
 ### Revenue Share
 
@@ -248,7 +244,7 @@ varitykit app deploy --verbose
 |--------|---------|-------------|
 | `--hosting` | `static` | Hosting type: `static` or `dynamic` |
 | `--submit-to-store` | `false` | Submit to Varity App Store after deploy |
-| `--tier` | - | Pricing tier: `free`, `starter`, `growth`, `enterprise` |
+| `--tier` | - | Pricing tier: `free`, `starter`, `growth`, `scale`, `enterprise` |
 | `--path` | `.` | Project directory |
 
 <Accordion title="Advanced: Technical Architecture">
@@ -263,7 +259,7 @@ Varity runs on dedicated infrastructure optimized for application deployment:
 | **RPC URL** | `https://rpc-varity-testnet-rroe52pwjp.t.conduit.xyz` |
 | **Explorer** | `https://explorer-varity-testnet-rroe52pwjp.t.conduit.xyz` |
 | **Native Token** | Bridged USDC (6 decimals, NOT 18!) |
-| **Usage Fees** | Sponsored (free for users via ERC-4337) |
+| **Usage Fees** | Sponsored (free for users) |
 | **Status** | **Beta** - Production launch post-MVP |
 
 ## Backend Contracts
@@ -275,25 +271,25 @@ Pre-deployed on Varity's infrastructure:
 | **TemplateMarketplace** | `0x5EfAF2219F9957461125485Eae49Bac07505bB34` | 90/10 Revenue Split |
 | **TemplateRegistry** | `0x1697055bf6d135934F1F533f43eCE8CA469325Ed` | Template metadata |
 | **VarityAppRegistry** | `0xbf9f4849a5508e9f271c30205c1ce924328e5e1c` | App Store submissions |
-| **SimplifiedPaymaster** | `0x579772Bfa5Ec1e8f33B81F304ffDbC55135db154` | Fee sponsorship (ERC-4337) |
-| **VarityWalletFactory** | `0x23dcca8E063CB0Eea8Ec6e56657c07E11fFa4E78` | Smart accounts (ERC-4337) |
+| **SimplifiedPaymaster** | `0x579772Bfa5Ec1e8f33B81F304ffDbC55135db154` | Fee sponsorship |
+| **VarityWalletFactory** | `0x23dcca8E063CB0Eea8Ec6e56657c07E11fFa4E78` | Smart accounts |
 
 ## Storage Architecture
 
 Static deployments use:
-- **IPFS** for content-addressed storage
-- **Filecoin** for long-term archival
+- Content-addressed storage for integrity
+- Long-term archival for durability
 - **CDN** for global distribution
 
 Dynamic deployments use:
-- **Akash Network** for distributed compute
+- Distributed compute for reliability
 - **Persistent volumes** for databases
 - **Load balancing** across multiple providers
 
 ## Deployment Flow (Technical)
 
 1. **Build** - CLI detects framework and runs build
-2. **Upload** - Files uploaded to IPFS, deployment ID generated
+2. **Upload** - Files uploaded to storage, deployment ID generated
 3. **Register** - App registered via `VarityAppRegistry`
 4. **Paymaster** - Free operations enabled via `SimplifiedPaymaster`
 5. **CDN** - Files propagated to global CDN

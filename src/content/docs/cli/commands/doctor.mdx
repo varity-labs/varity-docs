@@ -1,6 +1,6 @@
 ---
 title: "varitykit doctor"
-description: "Run varitykit doctor to validate your development environment. Checks Node.js, Python, npm, and 20+ dependencies for Varity compatibility."
+description: "Run varitykit doctor to validate your development environment. Runs 8 checks across 4 categories: required tools, system resources, project config, and network."
 ---
 
 import { Aside } from '@astrojs/starlight/components';
@@ -23,7 +23,7 @@ varitykit doctor [OPTIONS]
 
 ## What It Checks
 
-The doctor command performs 20+ checks:
+The doctor command performs 8 checks across 4 categories:
 
 ### System Requirements
 
@@ -58,33 +58,36 @@ The doctor command performs 20+ checks:
 ```
 $ varitykit doctor
 
-Checking system requirements...
-  ✓ Python version: 3.11.0 (>= 3.8 required)
-  ✓ Node.js version: 20.0.0 (>= 18 required)
-  ✓ npm version: 10.0.0
-  ✓ Docker: Running
+╭──────────────────────────────────────╮
+│ Varity Environment Check             │
+│ Validating your development setup... │
+╰──────────────────────────────────────╯
 
-Checking environment variables...
-  ✓ Credentials: Auto-provided
-  ✓ Deployment credentials: Managed by Varity
+1/4 Checking required tools...
+2/4 Checking system resources...
+3/4 Checking project configuration...
+4/4 Checking network connectivity...
 
-Checking network connectivity...
-  ✓ Varity platform: Connected
-  ✓ Storage API: Accessible
-  ✓ Storage Gateway: Accessible
+                           Environment Check Results
+╭────────────────────────┬────────────────────────┬──────────────┬─────────────╮
+│ Category               │ Check                  │ Status       │ Details     │
+├────────────────────────┼────────────────────────┼──────────────┼─────────────┤
+│ Required Tools         │ node                   │ ✓ PASS       │ ...         │
+│ Required Tools         │ npm                    │ ✓ PASS       │ ...         │
+│ Required Tools         │ git                    │ ✓ PASS       │ ...         │
+│ System                 │ Disk Space             │ ✓ PASS       │ ...         │
+│ System                 │ Memory                 │ ✓ PASS       │ ...         │
+│ Project                │ varity.config.json     │ ⚠ WARN       │ Run init    │
+│ Project                │ .env File              │ ⚠ WARN       │ Optional    │
+│ Network                │ Internet               │ ✓ PASS       │ Connected   │
+╰────────────────────────┴────────────────────────┴──────────────┴─────────────╯
 
-Checking project structure...
-  ✓ package.json: Found
-  ✓ Build script: npm run build
-  ✓ Dependencies: Installed
+Total: 8 checks
 
-Summary:
-  ✓ 12 checks passed
-  ✗ 0 checks failed
-
-All checks passed! Your environment is ready.
-
-Run with --verbose for more details.
+╭─────────────────────────────────────────────────────────────────────────╮
+│ ✓ All checks passed!                                                    │
+│ Your environment is ready. Run varitykit app deploy to deploy your app. │
+╰─────────────────────────────────────────────────────────────────────────╯
 ```
 
 ## Options
@@ -95,7 +98,7 @@ Run with --verbose for more details.
 | `--full` | Run full diagnostics including all infrastructure checks |
 
 <Aside type="note">
-`--verbose` and `--json` are global options available on all `varitykit` commands, not specific to `doctor`.
+`--verbose` is a global option available on all `varitykit` commands.
 </Aside>
 
 ## Exit Codes
@@ -146,27 +149,15 @@ sudo systemctl start docker
 Run `varitykit doctor --fix` to automatically fix common issues like missing directories or configuration files.
 </Aside>
 
-## JSON Output
+## Verbose Output
 
-For CI/CD integration:
+For more detailed diagnostics:
 
 ```bash
-varitykit doctor --json
+varitykit doctor --full
 ```
 
-Output:
-
-```json
-{
-  "passed": 10,
-  "failed": 2,
-  "checks": [
-    {"name": "python_version", "status": "pass", "value": "3.11.0"},
-    {"name": "node_version", "status": "pass", "value": "20.0.0"},
-    {"name": "deploy_credentials", "status": "pass", "value": "managed"}
-  ]
-}
-```
+This runs all infrastructure checks in addition to the standard environment checks.
 
 ## Next Steps
 

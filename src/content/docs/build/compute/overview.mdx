@@ -58,7 +58,7 @@ Deploy containers and backend services:
 | Feature | Status |
 |---------|--------|
 | Static hosting | Available |
-| Dynamic hosting | Available (Beta) |
+| Dynamic hosting | Coming Soon |
 | Serverless functions | Planned |
 | Scheduled jobs | Planned |
 | GPU compute | Planned |
@@ -68,11 +68,11 @@ Deploy containers and backend services:
 Want early access to compute features? Deploy with:
 
 ```bash
-varitykit app deploy --hosting akash
+varitykit app deploy --hosting dynamic
 ```
 
 <Aside type="note">
-The `--hosting akash` flag is available in the CLI but compute features are still being finalized.
+The `--hosting dynamic` flag is available in the CLI but compute features are still being finalized.
 </Aside>
 
 ## Architecture Preview
@@ -89,7 +89,7 @@ varitykit app deploy --hosting dynamic --submit-to-store
 
 ## Cost Comparison
 
-| Workload | AWS | Varity (Akash) | Savings |
+| Workload | AWS | Varity | Savings |
 |----------|-----|----------------|---------|
 | Small API | $50/mo | ~$15/mo | 70% |
 | Medium app | $200/mo | ~$50/mo | 75% |

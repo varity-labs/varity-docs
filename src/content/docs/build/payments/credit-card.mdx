@@ -47,10 +47,10 @@ Once credit card payments are available, add payment components directly in your
 
 ```tsx title="components/UpgradeButton.tsx"
 import { PaymentWidget } from '@varity-labs/ui-kit';
-import { useAuth } from '@varity-labs/ui-kit';
+import { usePrivy } from '@varity-labs/ui-kit';
 
 export function UpgradeButton() {
-  const { user } = useAuth();
+  const { user } = usePrivy();
 
   if (!user) {
     return <p>Please log in to upgrade</p>;
@@ -77,11 +77,11 @@ For a complete payment experience:
 
 ```tsx title="pages/checkout.tsx"
 import { PaymentGate } from '@varity-labs/ui-kit';
-import { useAuth } from '@varity-labs/ui-kit';
+import { usePrivy } from '@varity-labs/ui-kit';
 import { useRouter } from 'next/navigation';
 
 export default function CheckoutPage() {
-  const { user, authenticated } = useAuth();
+  const { user, authenticated } = usePrivy();
   const router = useRouter();
 
   if (!authenticated) {

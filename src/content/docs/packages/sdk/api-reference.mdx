@@ -16,7 +16,7 @@ import PageMeta from '../../../../components/PageMeta.astro';
 Complete API reference for all exports from `@varity-labs/sdk`. All signatures, parameters, return types, and examples verified against source code.
 
 <Aside type="note">
-**Version:** 2.0.0-beta.2 | **Build Status:** 0 errors | **Test Status:** 74/74 pass
+**Version:** 2.0.0-beta.6 | **Build Status:** 0 errors | **Test Status:** 74/74 pass
 </Aside>
 
 ## Database API
@@ -459,7 +459,14 @@ if (warning) {
 
 Logs credential usage information to the console (with deduplication to avoid spam).
 
-**Signature:** `logCredentialUsage(): void`
+**Signature:** `logCredentialUsage(appId?: string, clientId?: string): void`
+
+**Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `appId` | `string` | No | Privy App ID to log |
+| `clientId` | `string` | No | Thirdweb Client ID to log |
 
 **Example:**
 
@@ -475,20 +482,30 @@ logCredentialUsage();
 
 Validates that the provided credentials are well-formed.
 
-**Signature:** `validateCredentials(appId?: string, clientId?: string): boolean`
+**Signature:** `validateCredentials(appId: string, clientId: string): void`
+
+Throws an error if the credentials are invalid or malformed.
+
+**Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `appId` | `string` | Yes | Privy App ID to validate |
+| `clientId` | `string` | Yes | Thirdweb Client ID to validate |
 
 **Example:**
 
 ```typescript
 import { validateCredentials } from '@varity-labs/sdk';
 
-const valid = validateCredentials(
-  process.env.NEXT_PUBLIC_PRIVY_APP_ID,
-  process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID
-);
-
-if (!valid) {
-  console.error('Invalid credentials format');
+try {
+  validateCredentials(
+    process.env.NEXT_PUBLIC_PRIVY_APP_ID!,
+    process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID!
+  );
+  console.log('Credentials are valid');
+} catch (error) {
+  console.error('Invalid credentials:', error.message);
 }
 ```
 
@@ -693,7 +710,7 @@ import {
   createEngineClient,     // Create an EngineClient instance
   NebulaClient,           // Natural language blockchain AI
   createNebulaClient,     // Create a NebulaClient instance
-  StorageClient,          // IPFS/Arweave storage
+  StorageClient,          // Distributed storage
   createStorageClient,    // Create a StorageClient instance
   BridgeClient,           // Cross-chain transfers
   createBridgeClient,     // Create a BridgeClient instance
@@ -885,7 +902,7 @@ const users = await acmeDb.collection('users').get();
 2. **No Real-time Updates** — Polling required for live data.
 3. **Database Proxy URL** — Default fallback URL may be unreachable (set `NEXT_PUBLIC_VARITY_DB_URL`).
 
-See [Known Issues](/troubleshooting/known-issues) for workarounds.
+See [Troubleshooting](/resources/troubleshooting) for workarounds.
 </Aside>
 
 ---

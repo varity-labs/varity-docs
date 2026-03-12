@@ -46,10 +46,10 @@ Session keys are planned for a future release. The underlying infrastructure is 
 Use the standard authentication system. Users sign in once, and your app handles actions automatically with no extra prompts:
 
 ```tsx title="src/components/UserActions.tsx"
-import { useAuth } from '@varity-labs/ui-kit';
+import { usePrivy } from '@varity-labs/ui-kit';
 
 function UserActions() {
-  const { authenticated } = useAuth();
+  const { authenticated } = usePrivy();
 
   if (!authenticated) {
     return <p>Please sign in first</p>;

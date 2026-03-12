@@ -1,6 +1,6 @@
 ---
 title: Varity MCP Server
-description: Install and configure the Varity MCP server for AI editors. 7 tools for deploying, searching docs, and managing apps via Cursor or Claude.
+description: Install and configure the Varity MCP server for AI editors. 8 tools for deploying, searching docs, and managing apps via Cursor or Claude.
 ---
 
 import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
@@ -13,7 +13,7 @@ import PageMeta from '../../../components/PageMeta.astro';
   stability="stable"
 />
 
-The Varity MCP server (`@varity-labs/mcp`) gives AI editors 7 tools for the full build → deploy → monetize workflow. It runs locally via stdio — no API keys, no accounts.
+The Varity MCP server (`@varity-labs/mcp`) gives AI editors 8 tools for the full build → deploy → monetize workflow. It runs locally via stdio — no API keys, no accounts.
 
 <Aside type="tip">
 The MCP server works with **any editor that supports MCP**: Cursor, Claude Code, VS Code (Copilot), Windsurf, and more. Setup takes under a minute.
@@ -22,7 +22,7 @@ The MCP server works with **any editor that supports MCP**: Cursor, Claude Code,
 ## Prerequisites
 
 - **Node.js 18+** — runs the MCP server
-- **Python 3.10+** — needed for `varitykit` CLI (used by deploy tools)
+- **Python 3.8+** — needed for `varitykit` CLI (used by deploy tools)
 - **varitykit** — install with `pip install varitykit`
 
 ## Setup
@@ -85,7 +85,7 @@ The MCP server works with **any editor that supports MCP**: Cursor, Claude Code,
 
 ## Tools Reference
 
-The server exposes 7 tools. Read-only tools run safely with no side effects. Destructive tools create files or deploy infrastructure.
+The server exposes 8 tools. Read-only tools run safely with no side effects. Destructive tools create files or deploy infrastructure.
 
 ### `varity_search_docs` — Search documentation
 
@@ -130,6 +130,24 @@ Scaffold a production-ready app with auth, database, and payments.
 | `path` | string | No | Current directory | Directory to create the project in |
 
 **Example prompt:** "Create a new Varity app called invoice-tracker"
+
+---
+
+### `varity_create_repo` — Create GitHub repository
+
+Create a new GitHub repository with the Varity SaaS template. Useful for browser-based workflows — create a repo, open in Gitpod/StackBlitz, and deploy.
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `name` | string | Yes | — | Repository name (lowercase, hyphens allowed) |
+| `description` | string | No | — | Short description for the repo |
+| `template` | `"saas-starter"` | No | `"saas-starter"` | Template to use |
+| `visibility` | `"public"` \| `"private"` | No | `"public"` | Repository visibility |
+| `github_token` | string | No | — | GitHub personal access token with `repo` scope |
+
+**Annotations:** `destructiveHint: true` — creates an external GitHub repository
+
+**Example prompt:** "Create a new GitHub repo called my-dashboard with the Varity template"
 
 ---
 
@@ -221,7 +239,7 @@ All tools return JSON with a consistent structure:
 
 Here's the full build-to-monetize flow using the MCP tools:
 
-1. **"Create a Varity app called my-saas"** → `varity_init`
+1. **"Create a Varity app called my-saas"** → `varity_init` (local) or `varity_create_repo` (GitHub)
 2. **"What will this cost for 200 users?"** → `varity_cost_calculator`
 3. *(Build your features)*
 4. **"Deploy this"** → `varity_deploy`
@@ -243,16 +261,47 @@ Restart Cursor after adding the config. Check that `.cursor/mcp.json` is valid J
 **Server not showing in Claude Code**
 Run `claude mcp list` to verify the server is registered. Re-add with `claude mcp add varity -- npx -y @varity-labs/mcp`.
 
-## Using with ChatGPT and Browser-Based LLMs
+## HTTP Transport (Claude.ai, ChatGPT, Browser-Based LLMs)
 
-The MCP server currently supports **stdio transport only**, which works with local editors like Cursor, Claude Code, VS Code, and Windsurf.
+The MCP server supports two transports:
 
-For browser-based LLMs like **ChatGPT** or **Gemini**, use the `llms.txt` files instead:
+- **stdio** (default) — for desktop editors like Cursor, Claude Code, VS Code, Windsurf
+- **HTTP** — for browser-based AI tools like Claude.ai and ChatGPT
 
-- **Summary context:** `https://docs.varity.so/llms.txt`
+### Hosted MCP
+
+Connect directly to the hosted Varity MCP at:
+
+```
+https://mcp.varity.so
+```
+
+**Claude.ai:** Settings → Connectors → Add MCP Server → URL: `https://mcp.varity.so`
+
+**ChatGPT:** Settings → Connectors → Create → MCP server URL: `https://mcp.varity.so`
+
+The first time you connect, you'll authenticate via the Varity login page.
+
+### Self-Hosted HTTP
+
+Run the HTTP server locally for development:
+
+```bash
+npx -y @varity-labs/mcp --transport http --port 3100
+```
+
+This starts the MCP server at `http://localhost:3100/mcp`.
+
+<Aside type="note">
+`varity_init` (scaffolding) is only available via stdio transport since it requires access to the local filesystem. All other tools work on both transports.
+</Aside>
+
+### llms.txt Alternative
+
+For LLMs without MCP support, use the docs context files:
+
+- **Summary:** `https://docs.varity.so/llms.txt`
 - **Full context:** `https://docs.varity.so/llms-full.txt`
-
-Paste the URL or its contents into your conversation to give the LLM full Varity context. The docs site also includes "Ask ChatGPT" links on each page that pre-load the relevant context.
 
 ## Support
 

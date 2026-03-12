@@ -30,7 +30,7 @@ Some platforms charge usage fees for every operation. With Varity, those costs a
 Your users never see usage fees or extra confirmation screens. It just works.
 
 <Aside type="tip">
-**No configuration needed.** Free operations are built into the platform. When you deploy with `varitykit deploy`, your app automatically gets free operations for end users.
+**No configuration needed.** Free operations are built into the platform. When you deploy with `varitykit app deploy`, your app automatically gets free operations for end users.
 </Aside>
 
 ## For Developers: Zero Setup Required
@@ -56,7 +56,7 @@ Free operations are handled entirely by the Varity platform. No extra configurat
 2. **Deploy with the CLI**
 
    ```bash
-   varitykit deploy
+   varitykit app deploy
    ```
 
    Free operations are enabled automatically. No extra flags or configuration.
@@ -76,9 +76,13 @@ Free operations are handled entirely by the Varity platform. No extra configurat
 | Account creation | Free (auto-created on first login) |
 | App interactions | Free |
 
-## Collecting Payments from Users
+## Collecting Payments from Users (Coming Soon)
 
-While operations are free, you can still charge users for your app or premium features using the payment components from `@varity-labs/ui-kit`.
+<Aside type="caution">
+**Coming Soon** — Payment components are under active development. The APIs below show what's planned but are not yet available for use.
+</Aside>
+
+While operations are free, you'll be able to charge users for your app or premium features using the payment components from `@varity-labs/ui-kit`.
 
 ### PaymentWidget
 

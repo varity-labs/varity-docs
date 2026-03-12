@@ -21,7 +21,7 @@ Store and retrieve structured data with zero configuration. The Varity SDK provi
 - **Zero config** — works immediately with shared dev credentials
 - **Simple API** — `add`, `get`, `update`, `delete` on collections
 - **Type-safe** — full TypeScript generics support
-- **Auto-provisioned** — deploy with `varitykit deploy` and get your own private database
+- **Auto-provisioned** — deploy with `varitykit app deploy` and get your own private database
 
 ## Installation
 
@@ -247,7 +247,7 @@ const tools = allProducts.filter(p => p.category === 'tools');
 - **Production**: Included with your Varity deployment (provisioned automatically)
 
 <Aside type="note">
-**File storage (images, videos, documents)** is not yet available through the SDK. The current storage API is for structured data (JSON records). File storage via IPFS/Filecoin is planned for a future release.
+**File storage (images, videos, documents)** is not yet available through the SDK. The current storage API is for structured data (JSON records). File storage is planned for a future release.
 </Aside>
 
 <Accordion title="Advanced: Custom Database Configuration">
@@ -276,7 +276,7 @@ const records = await customDb.collection('items').get();
 | `REACT_APP_VARITY_DB_PROXY_URL` | CRA | Database proxy URL |
 | `REACT_APP_VARITY_APP_TOKEN` | CRA | App authentication token |
 
-When you deploy with `varitykit deploy`, these are set automatically.
+When you deploy with `varitykit app deploy`, these are set automatically.
 
 </Accordion>
 

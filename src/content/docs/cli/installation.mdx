@@ -47,10 +47,10 @@ Get the VarityKit CLI installed on your system.
 varitykit --version
 ```
 
-You should see output like:
+You should see the current version number, for example:
 
 ```
-varitykit 1.1.4
+varitykit 1.1.13
 ```
 
 ## Run Diagnostics
@@ -61,16 +61,7 @@ Check that your environment is properly configured:
 varitykit doctor
 ```
 
-Expected output:
-
-```
-✓ Python version: 3.11.0 (>= 3.8 required)
-✓ Node.js version: 20.0.0 (>= 18 required)
-✓ npm version: 10.0.0
-✓ Docker: Running
-✓ Storage credentials: Set
-✓ All checks passed!
-```
+You should see a table of checks with a `✓ All checks passed!` message at the end.
 
 ## Requirements
 
@@ -113,25 +104,15 @@ Expected output:
 
 Enable tab completion for your shell:
 
-<Tabs>
-  <TabItem label="Bash">
-    ```bash
-    varitykit completions bash >> ~/.bashrc
-    source ~/.bashrc
-    ```
-  </TabItem>
-  <TabItem label="Zsh">
-    ```bash
-    varitykit completions zsh >> ~/.zshrc
-    source ~/.zshrc
-    ```
-  </TabItem>
-  <TabItem label="Fish">
-    ```bash
-    varitykit completions fish > ~/.config/fish/completions/varitykit.fish
-    ```
-  </TabItem>
-</Tabs>
+```bash
+# Auto-detect shell and install
+varitykit completions --install
+
+# Or specify a shell
+varitykit completions --shell bash --install
+```
+
+Run `varitykit completions` to see manual installation instructions for your shell.
 
 ## Troubleshooting
 
@@ -157,7 +138,7 @@ pip install --upgrade varitykit
 
 ### "Docker not found"
 
-Docker is required for the localnet command:
+Docker is optional and used for advanced local development:
 
 ```bash
 # macOS

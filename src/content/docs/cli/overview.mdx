@@ -22,7 +22,7 @@ VarityKit is a Python-based CLI that helps you build, test, and deploy applicati
     Scaffold new projects from starter templates with pre-configured auth and deployment.
   </Card>
   <Card title="Deploy Applications" icon="rocket">
-    Deploy static sites or dynamic apps with one command.
+    Deploy static sites with one command. Dynamic hosting coming soon.
   </Card>
   <Card title="Manage Templates" icon="seti:config">
     Create, test, validate, and publish templates to the marketplace.
@@ -118,8 +118,8 @@ varitykit init my-app
 # Deploy (static sites)
 varitykit app deploy
 
-# Deploy (dynamic apps)
-varitykit app deploy --hosting dynamic
+# Deploy (dynamic apps — coming soon)
+# varitykit app deploy --hosting dynamic
 ```
 
 ## Global Options
@@ -160,7 +160,7 @@ varitykit app deploy
 - **Cost**: Free (sponsored by Varity)
 - **Speed**: Global CDN distribution
 
-### Dynamic Apps
+### Dynamic Apps (Coming Soon)
 
 Deploy full-stack applications with backend:
 
@@ -172,20 +172,20 @@ varitykit app deploy --hosting dynamic
 - **Cost**: Pay for compute resources
 - **Features**: Containers, scaling, persistence
 
-<Aside type="note">
-Dynamic hosting is available via managed deployment. The CLI handles containerization and deployment automatically — no Docker required on your machine.
+<Aside type="caution">
+Dynamic hosting is coming soon. During beta, static hosting is available.
 </Aside>
 
 ## Supported Frameworks
 
-| Framework | Static | Dynamic |
+| Framework | Static | Dynamic (Coming Soon) |
 |-----------|---------------|-----------------|
-| Next.js 13+ | Yes | Yes |
-| React (Vite) | Yes | Yes |
-| React (CRA) | Yes | Yes |
-| Vue 3+ | Yes | Yes |
-| Node.js | No | Yes |
-| Python | No | Yes |
+| Next.js 13+ | Yes | Planned |
+| React (Vite) | Yes | Planned |
+| React (CRA) | Yes | Planned |
+| Vue 3+ | Yes | Planned |
+| Node.js | No | Planned |
+| Python | No | Planned |
 
 ## Additional Command Details
 

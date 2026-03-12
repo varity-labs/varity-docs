@@ -18,7 +18,7 @@ Varity is a developer platform for building, deploying, and monetizing apps. Ins
 
 ```bash
 npm install @varity-labs/sdk @varity-labs/ui-kit
-varitykit deploy
+varitykit app deploy
 ```
 
 ## Why Varity
@@ -28,7 +28,7 @@ varitykit deploy
 | **Cost** | $2,800/mo (100 users + AI) | ~$800/mo |
 | **Auth** | Configure Cognito / Auth0 | Included |
 | **Storage** | Configure S3 / GCS | Included |
-| **Hosting** | Configure EC2 / ECS / Vercel | Included (static + dynamic) |
+| **Hosting** | Configure EC2 / ECS / Vercel | Included (static) |
 | **Payments** | Integrate Stripe | Coming soon |
 | **DevOps** | Docker, CI/CD, SSL, DNS | Zero config |
 
@@ -81,13 +81,13 @@ Varity is in beta. Core features are live and stable. Production launch is plann
 **Available now:**
 - Authentication (email, social login)
 - File storage (secure, globally distributed)
-- Static app hosting (IPFS)
-- Dynamic app hosting (Akash)
+- Static app hosting (global CDN)
 - App Store submission and listing
 - Free operations (users never pay usage fees)
 - VarityKit CLI with zero-config deploys
 
 **Coming soon:**
+- Dynamic app hosting (container-based)
 - Credit card payments (post-beta)
 - Usage analytics and billing dashboard
 
