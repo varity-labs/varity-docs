@@ -1,17 +1,17 @@
 # Varity Documentation
 
-Official documentation for [Varity](https://www.varity.so) — the Web3 operating system that lets you deploy real-world apps on decentralized infrastructure in 60 seconds.
+Official documentation for [Varity](https://www.varity.so) — build, deploy, and sell business apps in 60 seconds. Auth, database, hosting, and payments included.
 
-**Documentation Site:** [docs.varity.so](https://docs.varity.so)
+**Live Site:** [docs.varity.so](https://docs.varity.so)
 
 ## Quick Start
 
 ```bash
 # Install Varity SDK
-npm install @varity/sdk @varity/ui-kit
+npm install @varity-labs/sdk @varity-labs/ui-kit
 
 # Deploy your app
-npx varietykit deploy
+npx varitykit deploy
 ```
 
 ## What's in the Docs
@@ -22,17 +22,17 @@ npx varietykit deploy
 - [Quick Start](https://docs.varity.so/getting-started/quickstart/) — Deploy your first app in 5 minutes
 
 ### Core Packages
-- **[@varity/sdk](https://docs.varity.so/packages/sdk/overview/)** — Core SDK with authentication, storage, and payments
-- **[@varity/ui-kit](https://docs.varity.so/packages/ui-kit/overview/)** — React components for login, wallets, and dashboards
-- **[@varity/types](https://docs.varity.so/packages/types/overview/)** — TypeScript definitions
+- **[@varity-labs/sdk](https://docs.varity.so/packages/sdk/overview/)** — Core SDK with authentication, storage, and payments
+- **[@varity-labs/ui-kit](https://docs.varity.so/packages/ui-kit/overview/)** — React components for login and dashboards
+- **[@varity-labs/types](https://docs.varity.so/packages/types/overview/)** — TypeScript definitions
 
 ### Build Guides
 - [Authentication](https://docs.varity.so/build/auth/quickstart/) — Email, social, and wallet login
 - [File Storage](https://docs.varity.so/build/storage/quickstart/) — Decentralized file uploads
-- [Payments](https://docs.varity.so/build/payments/quickstart/) — Credit card on-ramp and gasless transactions
+- [Payments](https://docs.varity.so/build/payments/quickstart/) — Credit card payments and free operations
 
 ### CLI Reference
-- [VarietyKit CLI](https://docs.varity.so/cli/overview/) — Command-line tool for deploying and managing apps
+- [VarityKit CLI](https://docs.varity.so/cli/overview/) — Command-line tool for deploying and managing apps
 
 ## Local Development
 

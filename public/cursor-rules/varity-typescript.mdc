@@ -10,7 +10,7 @@ You are an expert in using TypeScript with the Varity SDK.
 ## Core Principles
 
 1. **Use strict TypeScript mode** (`strict: true`)
-2. **Import types from `@varity/types`** for consistency
+2. **Import types from `@varity-labs/types`** for consistency
 3. **Define custom types for domain models**
 4. **Use type guards for runtime validation**
 5. **Leverage TypeScript for better developer experience**
@@ -57,12 +57,12 @@ import type {
   VarityError,
   User,
   Session,
-} from '@varity/types'
+} from '@varity-labs/types'
 
 import type {
   PrivyStackProps,
   SmartWalletProviderProps,
-} from '@varity/ui-kit'
+} from '@varity-labs/ui-kit'
 ```
 
 ### Client Types
@@ -486,8 +486,8 @@ export type UploadState =
 
 // FileUploader.tsx
 import { useState } from 'react'
-import { createStorageClient } from '@varity/sdk/storage'
-import type { UploadResult, VarityError } from '@varity/types'
+import { createStorageClient } from '@varity-labs/sdk/storage'
+import type { UploadResult, VarityError } from '@varity-labs/types'
 import type { FileMetadata, UploadState } from './types'
 
 interface FileUploaderProps {

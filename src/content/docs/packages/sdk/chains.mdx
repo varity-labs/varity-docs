@@ -1,6 +1,6 @@
 ---
 title: "Infrastructure Configuration"
-description: "Varity SDK infrastructure configuration: USDC handling with 6 decimals, formatUSDC/parseUSDC helpers, and auto-configured network settings."
+description: "Varity SDK infrastructure configuration: payment handling with 6 decimal precision, format/parse helpers, and auto-configured network settings."
 ---
 
 import { Aside } from '@astrojs/starlight/components';
@@ -16,9 +16,9 @@ import PageMeta from '../../../../components/PageMeta.astro';
 
 Varity SDK handles all infrastructure configuration automatically. You rarely need to configure anything manually.
 
-## USDC Handling
+## Payment Amount Handling
 
-USDC on Varity uses 6 decimals. Use the helpers to avoid errors:
+Payments on Varity use 6 decimal precision. Use the helpers to avoid errors:
 
 ```typescript
 import { formatUSDC, parseUSDC, USDC_DECIMALS } from '@varity-labs/sdk/chains';
@@ -36,7 +36,7 @@ console.log(USDC_DECIMALS); // 6
 ```
 
 <Aside type="caution">
-**Important:** USDC on Varity uses **6 decimals**, not 18. Always use the `formatUSDC` and `parseUSDC` helpers to avoid calculation errors.
+**Important:** Payment amounts on Varity use **6 decimals**, not 18. Always use the `formatUSDC` and `parseUSDC` helpers to avoid calculation errors.
 </Aside>
 
 ## Accessing Contract Addresses

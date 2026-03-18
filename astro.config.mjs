@@ -173,7 +173,7 @@ export default defineConfig({
           label: "Packages",
           items: [
             {
-              label: "@varity/sdk",
+              label: "@varity-labs/sdk",
               collapsed: false,
               items: [
                 { label: "Overview", slug: "packages/sdk/overview" },
@@ -182,7 +182,7 @@ export default defineConfig({
               ],
             },
             {
-              label: "@varity/ui-kit",
+              label: "@varity-labs/ui-kit",
               collapsed: false,
               items: [
                 { label: "Overview", slug: "packages/ui-kit/overview" },
@@ -192,7 +192,7 @@ export default defineConfig({
               ],
             },
             {
-              label: "@varity/types",
+              label: "@varity-labs/types",
               collapsed: true,
               items: [
                 { label: "Overview", slug: "packages/types/overview" },

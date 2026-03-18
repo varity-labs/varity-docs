@@ -390,7 +390,7 @@ catch (error) {
 'use client'
 
 import { useState } from 'react'
-import { createStorageClient } from '@varity/sdk/storage'
+import { createStorageClient } from '@varity-labs/sdk/storage'
 
 export function RobustFileUploader() {
   const [uploading, setUploading] = useState(false)

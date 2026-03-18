@@ -1,6 +1,6 @@
 ---
 title: "@varity-labs/sdk Overview"
-description: "@varity-labs/sdk provides a zero-config database, credential management, and USDC utilities. The core building block for all Varity apps."
+description: "@varity-labs/sdk provides a zero-config database, credential management, and payment utilities. The core building block for all Varity apps."
 ---
 
 import { Aside, Card, CardGrid, Badge } from '@astrojs/starlight/components';
@@ -156,11 +156,11 @@ import type {
 
 <Accordion title="Advanced: Subpath Imports for Infrastructure Access">
 
-For apps that need direct access to chain configuration, blockchain services, thirdweb integration, or gas tracking, the SDK provides subpath imports. These are separate from the main entry point and are primarily used by the UI Kit and CLI internally.
+For apps that need direct access to infrastructure configuration, platform services, thirdweb integration, or usage tracking, the SDK provides subpath imports. These are separate from the main entry point and are primarily used by the UI Kit and CLI internally.
 
 ### Chains (`@varity-labs/sdk/chains`)
 
-Chain definitions for Varity L3, Arbitrum, and Base networks, plus USDC formatting utilities.
+Network definitions for Varity infrastructure, plus payment formatting utilities.
 
 ```typescript
 import {
@@ -185,9 +185,9 @@ const raw = parseUSDC('25.00'); // BigInt(25000000)
 const url = getVarityExplorerUrl('0xabc...');
 ```
 
-### Blockchain Services (`@varity-labs/sdk/blockchain`)
+### Platform Services (`@varity-labs/sdk/blockchain`)
 
-Direct blockchain interaction services for licensing and revenue splits.
+Direct platform interaction services for licensing and revenue splits.
 
 ```typescript
 import {
