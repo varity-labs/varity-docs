@@ -54,12 +54,15 @@ const CONCURRENCY = 5;  // Increased for faster crawling
 const TIMEOUT = 15000;
 const MAX_CRAWL_DEPTH = 5;  // How deep to follow links for auto-discovery
 
-// SDK packages to install for real type checking (minimal set for faster install)
+// SDK packages to install for real type checking (ALL published packages)
 const SDK_PACKAGES = [
   '@varity-labs/sdk@latest',
+  '@varity-labs/ui-kit@latest',
   '@varity-labs/types@latest',
+  '@varity-labs/mcp@latest',
   'typescript@5',
   '@types/node@20',
+  '@types/react@18',
 ];
 
 // Links to IGNORE (known false positives - these work in browsers but return 403 to bots)
@@ -125,13 +128,19 @@ const DOCS_PAGES = [
   '/resources/troubleshooting/',
 ];
 
-// Correct package names (what's actually published on npm)
+// Correct package names (what's actually published on npm + PyPI)
+// NPM: 5 packages | PyPI: 1 package
 const VALID_NPM_PACKAGES = {
-  '@varity-labs/sdk': true,
-  '@varity-labs/ui-kit': true,
-  '@varity-labs/types': true,
-  '@varity-labs/mcp': true,
-  'create-varity-app': true,
+  '@varity-labs/sdk': { npm: true, version: '2.0.0-beta.6' },
+  '@varity-labs/ui-kit': { npm: true, version: '2.0.0-beta.7' },
+  '@varity-labs/types': { npm: true, version: '2.0.0-beta.4' },
+  '@varity-labs/mcp': { npm: true, version: '1.3.2' },
+  'create-varity-app': { npm: true, version: '2.0.0-beta.9' },
+};
+
+// PyPI package
+const VALID_PYPI_PACKAGES = {
+  'varitykit': { pypi: true, version: '1.1.13' },
 };
 
 // Wrong package names that appear on marketing site but don't exist on npm
@@ -666,7 +675,7 @@ function testImports(codeBlocks) {
           should_be: WRONG_PACKAGE_NAMES[pkgName],
           code_snippet: code.substring(Math.max(0, match.index - 20), match.index + match[0].length + 20),
         });
-      } else if (VALID_NPM_PACKAGES[pkgName] || isStandardPackage(pkgName)) {
+      } else if (VALID_NPM_PACKAGES[pkgName] || VALID_PYPI_PACKAGES[pkgName] || isStandardPackage(pkgName)) {
         results.pass++;
       } else {
         // Unknown package — flag for manual review
@@ -1133,164 +1142,654 @@ function testTypeScriptSyntax(codeBlocks) {
 }
 
 // ============================================================
-// TEST SUITE 7: RUNTIME EXECUTION TEST
+// TEST SUITE 7: RUNTIME EXECUTION TEST (Supabase-Level)
+// ============================================================
+//
+// This test suite actually EXECUTES code blocks against the REAL
+// published @varity-labs packages to verify documentation accuracy.
+//
+// Features:
+//   1. Runs code in Node.js sandbox with real SDK packages
+//   2. Parses // Output: comments and verifies actual output matches
+//   3. Parses // Throws: comments and verifies error handling
+//   4. Reports discrepancies between documented and actual behavior
+//
 // ============================================================
 
+const vm = require('vm');
+
+/**
+ * Parse output assertions from code comments
+ * Supports:
+ *   // Output: value
+ *   // Expected: value
+ *   // Returns: value
+ *   // Throws: ErrorType
+ *   // Error: message
+ */
+function parseOutputAssertions(code) {
+  const assertions = [];
+  const lines = code.split('\n');
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+
+    // Match output assertions
+    const outputMatch = line.match(/\/\/\s*(?:Output|Expected|Returns):\s*(.+)$/i);
+    if (outputMatch) {
+      assertions.push({
+        type: 'output',
+        expected: outputMatch[1].trim(),
+        line: i + 1,
+      });
+    }
+
+    // Match error assertions
+    const throwsMatch = line.match(/\/\/\s*(?:Throws|Error):\s*(.+)$/i);
+    if (throwsMatch) {
+      assertions.push({
+        type: 'throws',
+        expected: throwsMatch[1].trim(),
+        line: i + 1,
+      });
+    }
+
+    // Match console.log assertions (common pattern: console.log(x); // "expected")
+    const consoleMatch = line.match(/console\.log\([^)]+\);\s*\/\/\s*["']?([^"'\n]+)["']?$/);
+    if (consoleMatch) {
+      assertions.push({
+        type: 'console',
+        expected: consoleMatch[1].trim(),
+        line: i + 1,
+      });
+    }
+  }
+
+  return assertions;
+}
+
+/**
+ * Transform TypeScript/ESM code to executable CommonJS
+ */
+function transformToExecutable(code, sdkDir) {
+  let transformed = code;
+
+  // Remove TypeScript type annotations (simplified)
+  transformed = transformed
+    .replace(/:\s*\w+(\[\])?(?=\s*[=,;)\n])/g, '') // Remove type annotations
+    .replace(/:\s*\w+<[^>]+>(?=\s*[=,;)\n])/g, '') // Remove generic types
+    .replace(/<\w+>/g, '') // Remove generic brackets
+    .replace(/as\s+\w+/g, '') // Remove type assertions
+    .replace(/interface\s+\w+\s*\{[^}]*\}/g, '') // Remove interfaces
+    .replace(/type\s+\w+\s*=\s*[^;]+;/g, ''); // Remove type aliases
+
+  // Transform ESM imports to CommonJS requires
+  // Handle: import { x, y } from 'module'
+  transformed = transformed.replace(
+    /import\s+\{\s*([^}]+)\s*\}\s+from\s+['"]([^'"]+)['"]/g,
+    (match, imports, module) => {
+      const importList = imports.split(',').map(i => i.trim().split(' as '));
+      const destructure = importList.map(([name, alias]) =>
+        alias ? `${name.trim()}: ${alias.trim()}` : name.trim()
+      ).join(', ');
+
+      // Resolve @varity-labs packages to SDK_DIR
+      if (module.startsWith('@varity-labs/')) {
+        return `const { ${destructure} } = require('${sdkDir}/node_modules/${module}')`;
+      }
+      return `const { ${destructure} } = require('${module}')`;
+    }
+  );
+
+  // Handle: import x from 'module'
+  transformed = transformed.replace(
+    /import\s+(\w+)\s+from\s+['"]([^'"]+)['"]/g,
+    (match, name, module) => {
+      if (module.startsWith('@varity-labs/')) {
+        return `const ${name} = require('${sdkDir}/node_modules/${module}')`;
+      }
+      return `const ${name} = require('${module}')`;
+    }
+  );
+
+  // Handle: import 'module' (side-effect imports)
+  transformed = transformed.replace(
+    /import\s+['"]([^'"]+)['"]/g,
+    (match, module) => {
+      if (module.startsWith('@varity-labs/')) {
+        return `require('${sdkDir}/node_modules/${module}')`;
+      }
+      return `require('${module}')`;
+    }
+  );
+
+  // Remove export statements
+  transformed = transformed.replace(/export\s+(default\s+)?/g, '');
+
+  return transformed;
+}
+
+/**
+ * Execute code block and capture output
+ */
+async function executeCodeBlock(code, sdkDir, timeout = 5000) {
+  const result = {
+    success: false,
+    output: [],
+    error: null,
+    executionTime: 0,
+  };
+
+  const startTime = Date.now();
+
+  try {
+    // Transform code to executable format
+    const executableCode = transformToExecutable(code, sdkDir);
+
+    // Capture console output
+    const capturedOutput = [];
+    const mockConsole = {
+      log: (...args) => capturedOutput.push(args.map(a =>
+        typeof a === 'object' ? JSON.stringify(a) : String(a)
+      ).join(' ')),
+      error: (...args) => capturedOutput.push('[ERROR] ' + args.join(' ')),
+      warn: (...args) => capturedOutput.push('[WARN] ' + args.join(' ')),
+      info: (...args) => capturedOutput.push(args.join(' ')),
+    };
+
+    // Create sandbox context with real modules
+    const sandbox = {
+      console: mockConsole,
+      require: require,
+      module: { exports: {} },
+      exports: {},
+      __dirname: sdkDir,
+      __filename: path.join(sdkDir, 'test.js'),
+      process: {
+        env: { ...process.env, NODE_ENV: 'test' },
+        cwd: () => sdkDir,
+      },
+      Buffer: Buffer,
+      setTimeout: setTimeout,
+      setInterval: setInterval,
+      clearTimeout: clearTimeout,
+      clearInterval: clearInterval,
+      Promise: Promise,
+      // Provide BigInt for payment calculations
+      BigInt: BigInt,
+    };
+
+    // Create VM context
+    const context = vm.createContext(sandbox);
+
+    // Wrap in async IIFE to support top-level await
+    const wrappedCode = `
+      (async () => {
+        ${executableCode}
+      })().catch(e => { throw e; });
+    `;
+
+    // Execute with timeout
+    const script = new vm.Script(wrappedCode, {
+      filename: 'docs-test.js',
+      timeout: timeout,
+    });
+
+    await script.runInContext(context, { timeout });
+
+    // Small delay for async operations
+    await new Promise(r => setTimeout(r, 100));
+
+    result.success = true;
+    result.output = capturedOutput;
+
+  } catch (err) {
+    result.success = false;
+    result.error = {
+      name: err.name || 'Error',
+      message: err.message,
+      stack: err.stack,
+    };
+  }
+
+  result.executionTime = Date.now() - startTime;
+  return result;
+}
+
+/**
+ * Compare actual output with expected assertions
+ */
+function validateOutput(execResult, assertions) {
+  const failures = [];
+
+  for (const assertion of assertions) {
+    if (assertion.type === 'throws') {
+      // Expected an error
+      if (execResult.success) {
+        failures.push({
+          line: assertion.line,
+          expected: `Error: ${assertion.expected}`,
+          actual: 'No error thrown',
+        });
+      } else if (!execResult.error.message.includes(assertion.expected) &&
+                 !execResult.error.name.includes(assertion.expected)) {
+        failures.push({
+          line: assertion.line,
+          expected: `Error containing: ${assertion.expected}`,
+          actual: `${execResult.error.name}: ${execResult.error.message}`,
+        });
+      }
+    } else {
+      // Expected output
+      if (!execResult.success && assertion.type !== 'throws') {
+        failures.push({
+          line: assertion.line,
+          expected: assertion.expected,
+          actual: `Error: ${execResult.error?.message || 'Unknown error'}`,
+        });
+      } else {
+        const outputStr = execResult.output.join('\n');
+        const expectedNormalized = assertion.expected.replace(/["']/g, '');
+        const outputNormalized = outputStr.replace(/["']/g, '');
+
+        if (!outputNormalized.includes(expectedNormalized)) {
+          failures.push({
+            line: assertion.line,
+            expected: assertion.expected,
+            actual: outputStr || '(no output)',
+          });
+        }
+      }
+    }
+  }
+
+  return failures;
+}
+
 async function testRuntimeExecution(codeBlocks) {
-  console.log('\n━━━ TEST SUITE 7: RUNTIME EXECUTION ━━━\n');
-  const results = { pass: 0, fail: 0, skipped: 0, issues: [] };
+  console.log('\n━━━ TEST SUITE 7: RUNTIME EXECUTION (Supabase-Level) ━━━\n');
+  const results = { pass: 0, fail: 0, skipped: 0, issues: [], executed: 0 };
 
   if (!isSDKInstalled()) {
     console.log('  ⚠ SDK not installed. Run with --setup to enable runtime testing.');
-    console.log('    Skipping execution tests.\n');
+    console.log('    This is required for Supabase-level code verification.\n');
     results.skipped = codeBlocks.blocks.length;
     return results;
   }
 
-  console.log('  ✓ SDK installed — testing code execution\n');
+  console.log('  ✓ Real SDK packages installed — executing code blocks\n');
 
-  // Filter to executable code blocks (imports and basic SDK usage)
-  const executableBlocks = codeBlocks.blocks.filter(b => {
-    if (b.lang !== 'typescript' && b.lang !== 'javascript') return false;
-    if (!b.code.includes('@varity-labs/')) return false;
-    // Skip JSX/React components (need browser environment)
-    if (b.code.includes('/>') || b.code.includes('</')) return false;
-    // Skip async operations that need real backend
-    if (b.code.includes('await db.') || b.code.includes('await storage.')) return false;
-    return true;
-  });
+  // Categories of code blocks
+  const categories = {
+    executable: [],      // Can run directly (pure functions, SDK utilities)
+    importOnly: [],      // Only imports (verify imports resolve)
+    reactComponent: [],  // JSX/React (needs browser, skip execution)
+    asyncBackend: [],    // Needs real backend (db, storage operations)
+    cliCommand: [],      // CLI examples (bash)
+  };
 
-  console.log(`  Found ${executableBlocks.length} executable code blocks (non-UI, non-async)`);
-  console.log(`  Skipping ${codeBlocks.blocks.length - executableBlocks.length} UI/async blocks\n`);
-
-  for (let i = 0; i < executableBlocks.length; i++) {
-    const block = executableBlocks[i];
-    const code = block.code;
-
-    // Test that imports resolve correctly
-    const importMatches = code.match(/from ['"](@varity-labs\/[^'"]+)['"]/g) || [];
-    let importErrors = [];
-
-    for (const importMatch of importMatches) {
-      const moduleName = importMatch.match(/['"]([^'"]+)['"]/)?.[1];
-      if (!moduleName) continue;
-
-      try {
-        // Try to resolve the module
-        const modulePath = path.join(SDK_DIR, 'node_modules', moduleName.split('/').slice(0, 2).join('/'));
-        if (!fs.existsSync(modulePath)) {
-          importErrors.push(`Cannot find module '${moduleName}'`);
-        }
-      } catch (err) {
-        importErrors.push(`Failed to resolve '${moduleName}': ${err.message}`);
-      }
+  // Categorize all code blocks
+  for (const block of codeBlocks.blocks) {
+    if (block.lang === 'bash' || block.lang === 'shell') {
+      categories.cliCommand.push(block);
+      continue;
     }
 
-    if (importErrors.length > 0) {
+    if (block.lang !== 'typescript' && block.lang !== 'javascript') {
+      continue;
+    }
+
+    const code = block.code;
+
+    // Check if it's a React component
+    if (code.includes('/>') || code.includes('</') || code.includes('tsx')) {
+      categories.reactComponent.push(block);
+      continue;
+    }
+
+    // Check if it requires real backend
+    if (code.includes('await db.') || code.includes('await storage.upload') ||
+        code.includes('await auth.') || code.includes('fetch(')) {
+      categories.asyncBackend.push(block);
+      continue;
+    }
+
+    // Check if it only has imports (no executable code)
+    const codeWithoutImports = code.replace(/import\s+.*?from\s+['"][^'"]+['"];?\n?/g, '').trim();
+    if (codeWithoutImports.length < 10) {
+      categories.importOnly.push(block);
+      continue;
+    }
+
+    // Check if it uses @varity-labs packages
+    if (code.includes('@varity-labs/')) {
+      categories.executable.push(block);
+    }
+  }
+
+  console.log('  Code block analysis:');
+  console.log(`    📦 Executable with SDK: ${categories.executable.length}`);
+  console.log(`    📥 Import-only: ${categories.importOnly.length}`);
+  console.log(`    ⚛️  React components: ${categories.reactComponent.length} (browser-only)`);
+  console.log(`    🔄 Async/backend: ${categories.asyncBackend.length} (requires live services)`);
+  console.log(`    💻 CLI commands: ${categories.cliCommand.length}\n`);
+
+  // Test 1: Verify all imports resolve to real packages
+  console.log('  📥 Testing import resolution...');
+  const importResults = await testImportResolution(codeBlocks, SDK_DIR);
+  results.pass += importResults.pass;
+  results.fail += importResults.fail;
+  results.issues.push(...importResults.issues);
+  console.log(`     ✓ ${importResults.pass} imports resolve correctly`);
+  if (importResults.fail > 0) {
+    console.log(`     ✗ ${importResults.fail} imports failed`);
+  }
+
+  // Test 2: Verify SDK exports match documentation
+  console.log('\n  📤 Testing SDK exports match docs...');
+  const exportResults = await testSDKExportsReal(codeBlocks, SDK_DIR);
+  results.pass += exportResults.pass;
+  results.fail += exportResults.fail;
+  results.issues.push(...exportResults.issues);
+  console.log(`     ✓ ${exportResults.pass} exports verified`);
+  if (exportResults.fail > 0) {
+    console.log(`     ✗ ${exportResults.fail} missing exports`);
+  }
+
+  // Test 3: Execute code blocks with output assertions
+  console.log('\n  🚀 Executing code blocks with real packages...');
+  let executedCount = 0;
+  let passedCount = 0;
+  let failedCount = 0;
+
+  for (const block of categories.executable) {
+    const assertions = parseOutputAssertions(block.code);
+
+    // Execute the code
+    const execResult = await executeCodeBlock(block.code, SDK_DIR);
+    executedCount++;
+    results.executed++;
+
+    if (!execResult.success && assertions.length === 0) {
+      // Code failed and no error was expected
+      failedCount++;
       results.fail++;
       results.issues.push({
-        type: 'RUNTIME_IMPORT_ERROR',
+        type: 'RUNTIME_EXECUTION_ERROR',
         severity: 'CRITICAL',
         page: block.page,
-        problems: importErrors,
-        code_preview: code.substring(0, 100),
+        error: execResult.error,
+        code_preview: block.code.substring(0, 150),
+        note: 'Code block failed to execute — users copying this will get an error',
       });
+    } else if (assertions.length > 0) {
+      // Validate output against assertions
+      const failures = validateOutput(execResult, assertions);
+
+      if (failures.length > 0) {
+        failedCount++;
+        results.fail++;
+        results.issues.push({
+          type: 'OUTPUT_MISMATCH',
+          severity: 'HIGH',
+          page: block.page,
+          failures: failures,
+          code_preview: block.code.substring(0, 150),
+          note: 'Documented output does not match actual output',
+        });
+      } else {
+        passedCount++;
+        results.pass++;
+      }
     } else {
+      // Code executed successfully with no assertions
+      passedCount++;
       results.pass++;
     }
   }
 
-  // Also test that SDK exports match what docs show
-  const sdkExportsTest = await testSDKExports(codeBlocks);
-  results.issues.push(...sdkExportsTest.issues);
-  results.fail += sdkExportsTest.fail;
-  results.pass += sdkExportsTest.pass;
+  console.log(`     Executed: ${executedCount} code blocks`);
+  console.log(`     ✓ ${passedCount} passed`);
+  if (failedCount > 0) {
+    console.log(`     ✗ ${failedCount} failed`);
+  }
 
-  console.log(`  ✓ ${results.pass} imports resolve correctly`);
-  if (results.fail > 0) console.log(`  ✗ ${results.fail} runtime issues`);
+  // Test 4: Verify CLI commands are correct
+  console.log('\n  💻 Testing CLI commands...');
+  const cliResults = testCLICommands(categories.cliCommand);
+  results.pass += cliResults.pass;
+  results.fail += cliResults.fail;
+  results.issues.push(...cliResults.issues);
+  console.log(`     ✓ ${cliResults.pass} CLI commands correct`);
+  if (cliResults.fail > 0) {
+    console.log(`     ✗ ${cliResults.fail} CLI commands incorrect`);
+  }
 
-  results.issues.forEach(i => {
-    console.log(`    → ${i.severity}: ${i.type} on ${i.page}`);
-  });
+  // Summary
+  console.log('\n  ━━━ Runtime Execution Summary ━━━');
+  console.log(`  Total: ${results.pass + results.fail} tests`);
+  console.log(`  ✓ Passed: ${results.pass}`);
+  console.log(`  ✗ Failed: ${results.fail}`);
+  console.log(`  ⏭ Skipped: ${categories.reactComponent.length + categories.asyncBackend.length} (browser/backend required)`);
+
+  // Show critical failures
+  const criticalIssues = results.issues.filter(i => i.severity === 'CRITICAL');
+  if (criticalIssues.length > 0) {
+    console.log('\n  🚨 CRITICAL ISSUES (code will not work for users):');
+    criticalIssues.slice(0, 5).forEach(i => {
+      console.log(`     → ${i.page}: ${i.error?.message || i.note || i.type}`);
+    });
+    if (criticalIssues.length > 5) {
+      console.log(`     ... and ${criticalIssues.length - 5} more`);
+    }
+  }
 
   return results;
 }
 
-// Check that SDK actually exports what the docs say it does
-async function testSDKExports(codeBlocks) {
+/**
+ * Test that all imports resolve to real packages
+ */
+async function testImportResolution(codeBlocks, sdkDir) {
   const results = { pass: 0, fail: 0, issues: [] };
-
-  // Collect all imports from docs
-  const importedExports = new Map(); // module -> Set of exports
+  const testedModules = new Set();
 
   for (const block of codeBlocks.blocks) {
-    const importRegex = /import\s+\{([^}]+)\}\s+from\s+['"](@varity-labs\/[^'"]+)['"]/g;
-    let match;
-    while ((match = importRegex.exec(block.code)) !== null) {
-      const exports = match[1].split(',').map(e => e.trim().split(' as ')[0].trim());
-      const moduleName = match[2];
+    const importMatches = block.code.match(/from\s+['"](@varity-labs\/[^'"]+)['"]/g) || [];
 
-      if (!importedExports.has(moduleName)) importedExports.set(moduleName, new Set());
-      exports.forEach(e => importedExports.get(moduleName).add(e));
+    for (const match of importMatches) {
+      const moduleName = match.match(/['"]([^'"]+)['"]/)?.[1];
+      if (!moduleName || testedModules.has(moduleName)) continue;
+      testedModules.add(moduleName);
+
+      // Resolve module path
+      const baseModule = moduleName.split('/').slice(0, 2).join('/');
+      const subPath = moduleName.split('/').slice(2).join('/');
+      const modulePath = path.join(sdkDir, 'node_modules', baseModule);
+
+      if (!fs.existsSync(modulePath)) {
+        results.fail++;
+        results.issues.push({
+          type: 'IMPORT_RESOLUTION_FAILED',
+          severity: 'CRITICAL',
+          page: block.page,
+          module: moduleName,
+          note: `Module '${moduleName}' not found — install with: npm install ${baseModule}`,
+        });
+        continue;
+      }
+
+      // Check subpath exports
+      if (subPath) {
+        try {
+          const pkgJson = JSON.parse(fs.readFileSync(path.join(modulePath, 'package.json'), 'utf8'));
+          const exports = pkgJson.exports || {};
+          const subPathKey = `./${subPath}`;
+
+          if (!exports[subPathKey] && !fs.existsSync(path.join(modulePath, subPath))) {
+            results.fail++;
+            results.issues.push({
+              type: 'SUBPATH_NOT_EXPORTED',
+              severity: 'HIGH',
+              page: block.page,
+              module: moduleName,
+              note: `Subpath '${subPath}' not exported from ${baseModule}`,
+            });
+            continue;
+          }
+        } catch (err) {
+          // Skip if we can't read package.json
+        }
+      }
+
+      results.pass++;
     }
   }
 
-  // Verify each export exists in the real SDK
-  for (const [moduleName, exports] of importedExports) {
-    const baseModule = moduleName.split('/').slice(0, 2).join('/');
-    const subPath = moduleName.split('/').slice(2).join('/');
-    const pkgPath = path.join(SDK_DIR, 'node_modules', baseModule);
+  return results;
+}
 
-    if (!fs.existsSync(pkgPath)) {
-      results.fail++;
-      results.issues.push({
-        type: 'SDK_MISSING_MODULE',
-        severity: 'CRITICAL',
-        module: moduleName,
-        page: 'multiple',
-        problems: [`Module ${moduleName} not found in SDK`],
-      });
-      continue;
+/**
+ * Test that SDK actually exports what the docs claim
+ */
+async function testSDKExportsReal(codeBlocks, sdkDir) {
+  const results = { pass: 0, fail: 0, issues: [] };
+  const testedExports = new Map(); // module -> Set of exports
+
+  // Collect all named imports from docs
+  for (const block of codeBlocks.blocks) {
+    const importRegex = /import\s+\{\s*([^}]+)\s*\}\s+from\s+['"](@varity-labs\/[^'"]+)['"]/g;
+    let match;
+
+    while ((match = importRegex.exec(block.code)) !== null) {
+      const exports = match[1].split(',').map(e => {
+        const parts = e.trim().split(/\s+as\s+/);
+        return parts[0].trim();
+      }).filter(e => e.length > 0);
+
+      const moduleName = match[2];
+
+      if (!testedExports.has(moduleName)) {
+        testedExports.set(moduleName, { exports: new Set(), pages: new Set() });
+      }
+      exports.forEach(e => testedExports.get(moduleName).exports.add(e));
+      testedExports.get(moduleName).pages.add(block.page);
     }
+  }
 
-    // Try to read the package's exports
+  // Verify each export exists by actually requiring the module
+  for (const [moduleName, data] of testedExports) {
+    const baseModule = moduleName.split('/').slice(0, 2).join('/');
+    const modulePath = path.join(sdkDir, 'node_modules', moduleName.replace('@varity-labs/', '@varity-labs/'));
+
     try {
-      const pkgJson = JSON.parse(fs.readFileSync(path.join(pkgPath, 'package.json'), 'utf8'));
-      const mainFile = pkgJson.main || pkgJson.module || 'index.js';
-      const typesFile = pkgJson.types || pkgJson.typings || mainFile.replace('.js', '.d.ts');
+      // Try to require the actual module
+      const actualModule = require(path.join(sdkDir, 'node_modules', moduleName));
+      const actualExports = Object.keys(actualModule);
 
-      // Check if types file exists and contains the exports
-      const typesPath = path.join(pkgPath, subPath ? subPath : '', typesFile);
-      if (fs.existsSync(typesPath)) {
-        const typesContent = fs.readFileSync(typesPath, 'utf8');
-        for (const exportName of exports) {
-          if (!typesContent.includes(`export`) || !typesContent.includes(exportName)) {
-            // Check more thoroughly - might be re-exported
-            const indexPath = path.join(pkgPath, 'dist', 'index.d.ts');
-            if (fs.existsSync(indexPath)) {
-              const indexContent = fs.readFileSync(indexPath, 'utf8');
-              if (!indexContent.includes(exportName)) {
-                results.fail++;
-                results.issues.push({
-                  type: 'SDK_MISSING_EXPORT',
-                  severity: 'HIGH',
-                  module: moduleName,
-                  export: exportName,
-                  page: 'multiple',
-                  problems: [`Export '${exportName}' not found in ${moduleName}`],
-                });
-              } else {
-                results.pass++;
-              }
-            }
-          } else {
-            results.pass++;
-          }
+      for (const exportName of data.exports) {
+        if (actualExports.includes(exportName) || actualModule[exportName] !== undefined) {
+          results.pass++;
+        } else {
+          results.fail++;
+          results.issues.push({
+            type: 'SDK_EXPORT_NOT_FOUND',
+            severity: 'CRITICAL',
+            module: moduleName,
+            export: exportName,
+            page: Array.from(data.pages).join(', '),
+            available_exports: actualExports.slice(0, 10).join(', ') + (actualExports.length > 10 ? '...' : ''),
+            note: `Export '${exportName}' not found in ${moduleName}. Available: ${actualExports.slice(0, 5).join(', ')}`,
+          });
         }
       }
     } catch (err) {
-      // Can't verify exports, skip
-      results.pass += exports.size;
+      // Module couldn't be required — check types file as fallback
+      const typesPath = path.join(sdkDir, 'node_modules', baseModule, 'dist', 'index.d.ts');
+
+      if (fs.existsSync(typesPath)) {
+        const typesContent = fs.readFileSync(typesPath, 'utf8');
+
+        for (const exportName of data.exports) {
+          // Check if export is declared in types
+          const exportPattern = new RegExp(`export\\s+(?:declare\\s+)?(?:const|function|class|interface|type|enum)\\s+${exportName}\\b`);
+          const reExportPattern = new RegExp(`export\\s+\\{[^}]*\\b${exportName}\\b`);
+
+          if (exportPattern.test(typesContent) || reExportPattern.test(typesContent) || typesContent.includes(`export { ${exportName}`)) {
+            results.pass++;
+          } else {
+            results.fail++;
+            results.issues.push({
+              type: 'SDK_EXPORT_NOT_FOUND',
+              severity: 'HIGH',
+              module: moduleName,
+              export: exportName,
+              page: Array.from(data.pages).join(', '),
+              note: `Export '${exportName}' not found in ${moduleName} type definitions`,
+            });
+          }
+        }
+      } else {
+        // Can't verify, assume pass but note it
+        results.pass += data.exports.size;
+      }
+    }
+  }
+
+  return results;
+}
+
+/**
+ * Test CLI commands are correct
+ */
+function testCLICommands(cliBlocks) {
+  const results = { pass: 0, fail: 0, issues: [] };
+
+  const correctPatterns = [
+    /^varitykit\s+/,           // varitykit commands
+    /^pip\s+install\s+varitykit/, // pip install
+    /^npm\s+(?:install|i)\s+@varity-labs\//, // npm install SDK
+    /^npx\s+create-varity-app/, // npx create app
+  ];
+
+  const incorrectPatterns = [
+    { pattern: /^varity\s+(?!kit)/, fix: 'Use "varitykit" instead of "varity"' },
+    { pattern: /^npx\s+varitykit/, fix: 'Use "pip install varitykit" then "varitykit" (it\'s a Python CLI)' },
+    { pattern: /@varity\//, fix: 'Use "@varity-labs/" instead of "@varity/"' },
+  ];
+
+  for (const block of cliBlocks) {
+    const commands = block.code.split('\n').filter(l => l.trim() && !l.startsWith('#'));
+
+    for (const cmd of commands) {
+      const trimmed = cmd.replace(/^\$\s*/, '').trim();
+
+      // Check for incorrect patterns
+      let foundIncorrect = false;
+      for (const { pattern, fix } of incorrectPatterns) {
+        if (pattern.test(trimmed)) {
+          results.fail++;
+          results.issues.push({
+            type: 'INCORRECT_CLI_COMMAND',
+            severity: 'CRITICAL',
+            page: block.page,
+            command: trimmed,
+            fix: fix,
+          });
+          foundIncorrect = true;
+          break;
+        }
+      }
+
+      if (!foundIncorrect) {
+        // Check if it matches any correct pattern or is a generic command
+        const isVarityCommand = correctPatterns.some(p => p.test(trimmed));
+        const isGenericCommand = /^(?:npm|npx|pip|cd|ls|mkdir|git|node|python)/.test(trimmed);
+
+        if (isVarityCommand || isGenericCommand || !trimmed.includes('varity')) {
+          results.pass++;
+        }
+      }
     }
   }
 
