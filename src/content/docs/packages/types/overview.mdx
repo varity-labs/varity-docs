@@ -53,8 +53,8 @@ This package provides TypeScript interfaces and types for:
   <Card title="Authentication Types" icon="approve-check">
     Access keys, permissions, sessions, and policy management.
   </Card>
-  <Card title="Varity L3 Types" icon="rocket">
-    Chain configuration, wallet setup, contract interactions, and gas estimation.
+  <Card title="Network Types" icon="rocket">
+    Chain configuration, account setup, contract interactions, and cost estimation.
   </Card>
 </CardGrid>
 
@@ -126,9 +126,9 @@ import {
 } from '@varity-labs/types';
 ```
 
-### Varity L3 Chain Types
+### Network Types
 
-Types for interacting with the Varity L3 network are currently available via the SDK subpath import rather than the types package:
+Types for interacting with the Varity network are currently available via the SDK subpath import rather than the types package:
 
 ```typescript
 // Chain types and USDC utilities are available from the SDK:
@@ -141,13 +141,13 @@ import {
 ```
 
 <Aside type="note">
-The types package contains the source definitions for `VarityChain`, `VarityWalletConfig`, `VarityDeploymentResult`, `USDCAmount`, `formatUSDC`, `parseUSDC`, and `USDC_DECIMALS` in its thirdweb module, but these are not currently exported from the package entry point. Use `@varity-labs/sdk/chains` for USDC utilities.
+The types package contains the source definitions for `VarityChain`, `VarityAccountConfig`, `VarityDeploymentResult`, `PaymentAmount`, `formatPayment`, `parsePayment`, and `PAYMENT_DECIMALS` in its thirdweb module, but these are not currently exported from the package entry point. Use `@varity-labs/sdk/chains` for payment utilities.
 </Aside>
 
-## USDC Amount Handling
+## Payment Amount Handling
 
 <Aside type="caution">
-**Critical:** Varity L3 uses USDC with **6 decimals**, not 18 like ETH. The helpers prevent costly mistakes.
+**Critical:** Varity uses **6 decimals** for payments, not 18 like ETH. The helpers prevent costly mistakes.
 </Aside>
 
 ```typescript
