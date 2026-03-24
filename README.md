@@ -10,8 +10,9 @@ Official documentation for [Varity](https://www.varity.so) — build, deploy, an
 # Install Varity SDK
 npm install @varity-labs/sdk @varity-labs/ui-kit
 
-# Deploy your app
-npx varitykit deploy
+# Install CLI and deploy
+pip install varitykit
+varitykit app deploy
 ```
 
 ## What's in the Docs
