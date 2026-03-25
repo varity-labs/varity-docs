@@ -1,6 +1,6 @@
 ---
 title: Varity MCP Server
-description: Install and configure the Varity MCP server for AI editors. 8 tools for deploying, searching docs, and managing apps via Cursor or Claude.
+description: Install and configure the Varity MCP server for AI editors. 9 tools for deploying, searching docs, and managing apps via Cursor or Claude.
 ---
 
 import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
@@ -13,7 +13,7 @@ import PageMeta from '../../../components/PageMeta.astro';
   stability="stable"
 />
 
-The Varity MCP server (`@varity-labs/mcp`) gives AI editors 8 tools for the full build → deploy → monetize workflow. It runs locally via stdio — no API keys, no accounts.
+The Varity MCP server (`@varity-labs/mcp`) gives AI editors 9 tools for the full build → deploy → monetize workflow. It runs locally via stdio — no API keys, no accounts.
 
 <Aside type="tip">
 The MCP server works with **any editor that supports MCP**: Cursor, Claude Code, VS Code (Copilot), Windsurf, and more. Setup takes under a minute.
@@ -85,7 +85,7 @@ The MCP server works with **any editor that supports MCP**: Cursor, Claude Code,
 
 ## Tools Reference
 
-The server exposes 8 tools. Read-only tools run safely with no side effects. Destructive tools create files or deploy infrastructure.
+The server exposes 9 tools. Read-only tools run safely with no side effects. Destructive tools create files or deploy infrastructure.
 
 ### `varity_search_docs` — Search documentation
 
@@ -116,6 +116,20 @@ Compare Varity hosting costs against AWS, Vercel, and other platforms.
 **Annotations:** `readOnlyHint: true`
 
 **Example prompt:** "How much would it cost to host a SaaS app with 500 users on Varity?"
+
+---
+
+### `varity_doctor` — Check environment
+
+Verify that your machine is ready to build and deploy with Varity. Checks Node.js, npm, varitykit CLI, and authentication status.
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| *(none)* | — | — | — | No parameters needed |
+
+**Annotations:** `readOnlyHint: true`
+
+**Example prompt:** "Check if my environment is ready for Varity"
 
 ---
 
@@ -168,11 +182,13 @@ Build and deploy the current project. Auto-detects framework (Next.js, React, Vu
 
 ### `varity_deploy_status` — Check deployments
 
-List all deployments or get status of a specific one. Shows URL, status, framework, size, and creation time.
+List recent deployments or get status of a specific one. Shows URL, status, framework, size, and creation time.
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `deployment_id` | string | No | — | Specific deployment ID (omit to list all) |
+| `deployment_id` | string | No | — | Specific deployment ID (omit to list recent) |
+| `path` | string | No | — | Filter to deployments from this project directory |
+| `limit` | number | No | 10 | Maximum deployments to return (max 50) |
 
 **Annotations:** `readOnlyHint: true`
 
@@ -239,13 +255,14 @@ All tools return JSON with a consistent structure:
 
 Here's the full build-to-monetize flow using the MCP tools:
 
-1. **"Create a Varity app called my-saas"** → `varity_init` (local) or `varity_create_repo` (GitHub)
-2. **"What will this cost for 200 users?"** → `varity_cost_calculator`
-3. *(Build your features)*
-4. **"Deploy this"** → `varity_deploy`
-5. **"Did the deploy succeed?"** → `varity_deploy_status`
-6. **"Show me the build logs"** → `varity_deploy_logs`
-7. **"Submit to the app store at $14.99"** → `varity_submit_to_store`
+1. **"Check if my environment is ready"** → `varity_doctor`
+2. **"Create a Varity app called my-saas"** → `varity_init` (local) or `varity_create_repo` (GitHub)
+3. **"What will this cost for 200 users?"** → `varity_cost_calculator`
+4. *(Build your features with your AI coding tool)*
+5. **"Deploy this"** → `varity_deploy`
+6. **"Did the deploy succeed?"** → `varity_deploy_status`
+7. **"Show me the build logs"** → `varity_deploy_logs`
+8. **"Submit to the app store at $14.99"** → `varity_submit_to_store`
 
 ## Troubleshooting
 
