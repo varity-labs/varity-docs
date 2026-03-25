@@ -1,0 +1,123 @@
+---
+title: How Varity Works
+description: The complete picture — how consulting firms and agencies use Varity to build, deploy, and monetize enterprise apps for their clients.
+---
+
+import { Aside, Steps } from '@astrojs/starlight/components';
+import PageMeta from '../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="March 2026"
+  stability="stable"
+/>
+
+Varity gives developers everything they need to build, deploy, and monetize production apps — auth, database, hosting, and an app store — in one platform. No infrastructure to manage, no DevOps, 70-85% cheaper than AWS.
+
+## Who Varity is for
+
+Varity is built for **developers and agencies that create business applications** for clients:
+
+- **Consulting firms** building client portals, dashboards, and internal tools
+- **Agencies** delivering SaaS products for enterprises
+- **Freelance developers** shipping production apps quickly
+- **Startups** that want to launch without hiring a DevOps team
+
+If you build apps for businesses, Varity handles the infrastructure so you focus on the product.
+
+## The platform
+
+Varity has four parts:
+
+| Site | What it does | Who uses it |
+|------|-------------|-------------|
+| [**varity.so**](https://www.varity.so) | Marketing site — learn what Varity is | Everyone |
+| [**docs.varity.so**](https://docs.varity.so) | Documentation — tutorials, API reference, guides | Developers |
+| [**store.varity.so**](https://store.varity.so) | App Store — end users browse and use apps | Businesses and end users |
+| [**developer.store.varity.so**](https://developer.store.varity.so) | Developer Portal — submit and manage your apps | Developers |
+
+## The developer flow
+
+Here is how you go from idea to revenue:
+
+<Steps>
+
+1. **Set up your environment**
+
+   Install the Varity MCP server in your AI coding tool (Cursor, Claude Code, VS Code). Run `varity_doctor` to verify everything is ready.
+
+   ```bash
+   claude mcp add varity -- npx -y @varity-labs/mcp
+   ```
+
+2. **Create your app**
+
+   Ask your AI coding tool: "Create a new Varity app called client-dashboard". The `varity_init` tool scaffolds a production-ready project with auth, database, and a full dashboard already wired up.
+
+3. **Build your features**
+
+   Describe what you want to your AI coding tool. The scaffolded template includes authentication (email, Google, GitHub), a database, settings pages, and 20+ UI components. Your AI tool customizes everything to match your client's needs.
+
+4. **Deploy to production**
+
+   Ask: "Deploy this app". The `varity_deploy` tool builds your project and deploys it to a live URL at `varity.app`. Auth, database, and hosting are configured automatically — zero setup.
+
+5. **Submit to the App Store**
+
+   Ask: "Submit this to the app store at $99/month". The `varity_submit_to_store` tool generates a submission link to the Developer Portal where you review and confirm your listing.
+
+6. **Get paid**
+
+   Your app is listed on the Varity App Store. Businesses discover and purchase it. Revenue split: **90% to you, 10% to Varity**.
+
+</Steps>
+
+## What's included — zero configuration
+
+Every app deployed on Varity automatically gets:
+
+- **Authentication** — Email, Google, GitHub, Discord, Apple login. Users see a normal login screen.
+- **Database** — Document database for storing app data. No setup, no connection strings.
+- **Hosting** — Global CDN with custom `varity.app` subdomain. Live in under 2 minutes.
+- **App Store listing** — Submit your app for businesses to discover and purchase.
+
+You never configure infrastructure. It just works.
+
+## Cost comparison
+
+For a typical business app with 500 users:
+
+| | AWS | Vercel | Varity |
+|---|---|---|---|
+| Monthly cost | ~$125 | ~$75 | ~$13 |
+| Auth included | No | No | Yes |
+| Database included | No | No | Yes |
+| App Store | No | No | Yes |
+
+Use the `varity_cost_calculator` MCP tool to get an exact estimate for your project.
+
+## The MCP advantage
+
+The Varity MCP server gives your AI coding tool 9 tools that handle the entire workflow:
+
+| Tool | What it does |
+|------|-------------|
+| `varity_doctor` | Check if your environment is ready |
+| `varity_search_docs` | Search documentation |
+| `varity_cost_calculator` | Compare costs vs AWS/Vercel |
+| `varity_init` | Scaffold a new app |
+| `varity_create_repo` | Create a GitHub repo with template |
+| `varity_deploy` | Deploy to production |
+| `varity_deploy_status` | Check deployment status |
+| `varity_deploy_logs` | View build logs |
+| `varity_submit_to_store` | Submit to the App Store |
+
+[Set up the MCP server](/ai-tools/mcp-server-spec) to get started.
+
+## Next steps
+
+- [Quick Start](/getting-started/quickstart) — Deploy your first app in 5 minutes
+- [MCP Server Setup](/ai-tools/mcp-server-spec) — Connect your AI coding tool
+- [App Store Guide](/deploy/app-store) — Learn how the App Store works
+- [SaaS Starter Template](/templates/saas-starter) — What's in the template
