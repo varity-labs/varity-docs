@@ -1,0 +1,113 @@
+# .github/workflows/test-docs.yml
+# Runs the docs tester on every push, PR, and daily schedule.
+
+name: Docs Quality Check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Run daily at 8am UTC to catch external link rot
+    - cron: '0 8 * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  test-docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run all docs tests
+        run: npm test
+        continue-on-error: true
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs-test-report
+          path: tests/reports/
+
+      - name: Check for critical issues
+        run: |
+          if [ -f tests/reports/*.json ]; then
+            CRITICAL=$(cat tests/reports/*.json | node -e "
+              const fs = require('fs');
+              const data = JSON.parse(fs.readFileSync('/dev/stdin','utf8'));
+              console.log(data.summary.critical);
+            ")
+            if [ "$CRITICAL" -gt 0 ]; then
+              echo "::error::$CRITICAL critical issues found in docs. See test report."
+              exit 1
+            fi
+          fi
+
+      - name: Comment on PR with results
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const reportsDir = 'tests/reports';
+
+            if (!fs.existsSync(reportsDir)) {
+              console.log('No reports directory found');
+              return;
+            }
+
+            const reports = fs.readdirSync(reportsDir).filter(f => f.endsWith('.json'));
+            if (reports.length === 0) {
+              console.log('No report files found');
+              return;
+            }
+
+            const report = JSON.parse(fs.readFileSync(path.join(reportsDir, reports[0]), 'utf8'));
+            const s = report.summary;
+
+            let body = `## 📋 Docs Quality Check\n\n`;
+            body += `| Metric | Count |\n|--------|-------|\n`;
+            body += `| Pages crawled | ${report.pages_crawled} |\n`;
+            body += `| Tests passed | ${s.pass} |\n`;
+            body += `| Critical issues | ${s.critical} |\n`;
+            body += `| High issues | ${s.high} |\n`;
+            body += `| Medium issues | ${s.medium} |\n`;
+            body += `| Low issues | ${s.low} |\n\n`;
+
+            if (s.critical > 0) {
+              body += `### 🚨 Critical Issues\n\n`;
+              report.all_issues.filter(i => i.severity === 'CRITICAL').forEach(i => {
+                body += `- **${i.type}** on ${i.page || 'multiple pages'}: ${i.found || i.word || ''}\n`;
+              });
+              body += `\n`;
+            }
+
+            if (s.high > 0) {
+              body += `### ⚠️ High Issues\n\n`;
+              report.all_issues.filter(i => i.severity === 'HIGH').slice(0, 5).forEach(i => {
+                body += `- **${i.type}** on ${i.page || 'multiple pages'}: ${i.found || i.word || ''}\n`;
+              });
+              if (s.high > 5) body += `- ... and ${s.high - 5} more\n`;
+            }
+
+            body += `\n---\n*Full report available in workflow artifacts*`;
+
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body
+            });

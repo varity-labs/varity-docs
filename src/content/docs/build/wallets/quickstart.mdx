@@ -1,0 +1,131 @@
+---
+title: Accounts Quick Start
+description: Learn how Varity automatically creates user accounts on sign-in. No extra setup, no browser extensions, no configuration needed.
+---
+
+import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+import Accordion from '../../../../components/Accordion.astro';
+import PageMeta from '../../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="March 2026"
+  stability="stable"
+/>
+
+# Accounts Quick Start
+
+When users sign in to your Varity app, they automatically get a fully capable account. No extra setup needed.
+
+:::tip[How it works]
+- Users sign in with email or social login
+- An account is created automatically behind the scenes
+- All capabilities (payments, storage, actions) are enabled by default
+- No browser extensions or special apps required
+:::
+
+## Prerequisites
+
+- A Varity project with authentication set up ([Auth Quick Start](/build/auth/quickstart))
+- Node.js 18 or later
+
+## What Happens When Users Sign In
+
+When a user logs in via `PrivyStack`, Varity automatically:
+
+1. Authenticates the user via email or social login
+2. Creates a secure account linked to their identity
+3. Enables all app capabilities (payments, storage, etc.)
+4. Sets up session handling
+
+You don't need to configure anything extra -- `PrivyStack` handles everything.
+
+## Checking Account Status
+
+Use the `usePrivy` hook to check if a user is signed in and access their account info:
+
+```tsx title="src/components/AccountStatus.tsx"
+import { usePrivy } from '@varity-labs/ui-kit';
+
+function AccountStatus() {
+  const { authenticated, user, ready } = usePrivy();
+
+  if (!ready) return <p>Loading...</p>;
+  if (!authenticated) return <p>Not signed in</p>;
+
+  return (
+    <div>
+      <p>Signed in as: {user?.email?.address || 'User'}</p>
+      <p>Account active</p>
+    </div>
+  );
+}
+```
+
+## Protecting Routes
+
+Show content only to signed-in users:
+
+```tsx title="src/components/ProtectedDashboard.tsx"
+import { PrivyProtectedRoute } from '@varity-labs/ui-kit';
+
+function App() {
+  return (
+    <PrivyProtectedRoute>
+      <Dashboard />
+    </PrivyProtectedRoute>
+  );
+}
+```
+
+You can also check authentication status programmatically:
+
+```tsx title="src/components/ConditionalContent.tsx"
+import { usePrivy } from '@varity-labs/ui-kit';
+
+function ConditionalContent() {
+  const { authenticated, login } = usePrivy();
+
+  if (!authenticated) {
+    return <button onClick={login}>Sign in to continue</button>;
+  }
+
+  return <p>Welcome back! Your account is ready.</p>;
+}
+```
+
+<Aside type="note">
+**Beta** -- All operations run on Varity's beta environment. Production launch coming soon.
+</Aside>
+
+<Accordion title="Advanced: Account Infrastructure">
+
+Behind the scenes, Varity handles all account infrastructure automatically. When a user signs in, a secure account is created and configured with all capabilities enabled by default -- including sponsored operations so users never see unexpected fees.
+
+No configuration is required. Advanced users who need lower-level access to account features can see [Session Keys](/build/wallets/session-keys) for details.
+
+</Accordion>
+
+## Available Hooks and Components
+
+All of the following are exported from `@varity-labs/ui-kit`:
+
+| Export | Type | Description |
+|--------|------|-------------|
+| `PrivyStack` | Component | Wraps your app with authentication |
+| `VarityPrivyProvider` | Component | Lower-level auth provider |
+| `PrivyLoginButton` | Component | Pre-built sign-in button |
+| `PrivyUserProfile` | Component | Displays user profile info |
+| `PrivyProtectedRoute` | Component | Protects routes from unauthenticated access |
+| `PrivyReadyGate` | Component | Renders children only after auth initializes |
+| `usePrivy` | Hook | Access auth state, user data, login/logout |
+| `useWallets` | Hook | Access connected accounts |
+| `useLogin` | Hook | Programmatic login |
+| `useLogout` | Hook | Programmatic logout |
+
+## Next steps
+
+- [Authentication Quick Start](/build/auth/quickstart) -- Set up user login
+- [Create Account](/build/wallets/create-wallet) -- Account creation details
+- [Session Keys](/build/wallets/session-keys) -- Advanced operation patterns

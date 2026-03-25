@@ -1,0 +1,100 @@
+---
+title: Session Keys
+description: Planned Varity feature for temporary permissions, batch operations, and delegated actions on behalf of users.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+import PageMeta from '../../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="March 2026"
+  stability="planned"
+/>
+
+# Session Keys
+
+<Aside type="caution">
+**Planned Feature** -- Session keys are not yet available in the Varity SDK. This page describes planned functionality.
+</Aside>
+
+## What Are Session Keys?
+
+Session keys are temporary permissions that let your app perform actions on behalf of a user without requiring approval for every single action. Think of them like scoped API tokens, but for user operations within your app.
+
+When available, session keys will enable:
+
+- **Batch operations** -- Execute multiple actions in a single step
+- **Background actions** -- Perform tasks without repeated user prompts
+- **Scoped permissions** -- Limit exactly what actions a session can perform
+- **Time-limited access** -- Permissions automatically expire after a set duration
+
+## Current Status
+
+Session keys are planned for a future release. The underlying infrastructure is in place, and the session key API will be added on top of it.
+
+| Feature | Status |
+|---------|--------|
+| User authentication | Available now |
+| Automatic action handling | Available now |
+| Temporary scoped permissions | Planned |
+| Batch operations | Planned |
+
+## What You Can Do Today
+
+Use the standard authentication system. Users sign in once, and your app handles actions automatically with no extra prompts:
+
+```tsx title="src/components/UserActions.tsx"
+import { usePrivy } from '@varity-labs/ui-kit';
+
+function UserActions() {
+  const { authenticated } = usePrivy();
+
+  if (!authenticated) {
+    return <p>Please sign in first</p>;
+  }
+
+  return (
+    <div>
+      <p>You are signed in.</p>
+      <p>Actions are handled automatically.</p>
+    </div>
+  );
+}
+```
+
+## Planned API Preview
+
+The following is an early preview of the planned session key API. This is **not yet available** and subject to change.
+
+```tsx
+// PLANNED -- NOT YET AVAILABLE
+
+// import { useSessionKeys } from '@varity-labs/ui-kit';
+
+function SessionExample() {
+  const { createSession, revokeSession } = useSessionKeys();
+
+  const handleCreate = async () => {
+    const session = await createSession({
+      permissions: ['read', 'write', 'update'],
+      duration: 3600, // seconds
+      maxActions: 100,
+    });
+    console.log('Session created:', session.id);
+  };
+
+  return <button onClick={handleCreate}>Create Session</button>;
+}
+```
+
+<Aside type="note">
+The API shown above is for illustration only. The actual API may differ when this feature is released.
+</Aside>
+
+## Next steps
+
+- [Accounts Quick Start](/build/wallets/quickstart) -- Current account system
+- [Create Account](/build/wallets/create-wallet) -- How accounts work today
+- [Authentication Quick Start](/build/auth/quickstart) -- Set up user login

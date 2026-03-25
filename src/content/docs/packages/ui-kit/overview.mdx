@@ -1,0 +1,232 @@
+---
+title: "@varity-labs/ui-kit Overview"
+description: "Overview of @varity-labs/ui-kit: pre-built React components for auth, payments, dashboards, forms, and analytics. 20+ production-ready elements."
+---
+
+import { Card, CardGrid, Aside } from '@astrojs/starlight/components';
+import Accordion from '../../../../components/Accordion.astro';
+import PageMeta from '../../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="March 2026"
+  stability="stable"
+/>
+
+A React component library that handles authentication, payments, and account management so you can focus on building your application.
+
+## What It Does
+
+- **Authentication:** Email, Google, Twitter, Discord, and GitHub login with no extra prompts
+- **Payments:** Accept payments through the App Store and in-app widgets
+- **Account Management:** Automatic account creation and session handling
+- **Free Operations:** Users never pay usage fees
+
+<Aside type="tip">
+Users sign in with email or social accounts. They never need to install browser extensions or any special setup.
+</Aside>
+
+## Quick Start
+
+```bash
+npm install @varity-labs/ui-kit @varity-labs/sdk
+```
+
+```tsx
+import { PrivyStack, PrivyLoginButton } from '@varity-labs/ui-kit';
+
+function App() {
+  return (
+    <PrivyStack>
+      <PrivyLoginButton />
+      <YourApp />
+    </PrivyStack>
+  );
+}
+```
+
+That's it. Users can now sign in with email or social accounts.
+
+## Key Components
+
+<CardGrid>
+  <Card title="PrivyStack" icon="rocket">
+    All-in-one provider that sets up authentication and account management. Wrap your app with this once.
+  </Card>
+  <Card title="PrivyLoginButton" icon="user">
+    Pre-built login button that opens the authentication modal. Supports email, Google, Twitter, Discord, and more.
+  </Card>
+  <Card title="PaymentWidget" icon="document">
+    Payment widget for in-app purchases and upgrades (post-beta).
+  </Card>
+  <Card title="PrivyProtectedRoute" icon="approve-check">
+    Wrapper that shows content only to authenticated users. Shows login prompt otherwise.
+  </Card>
+</CardGrid>
+
+## How Authentication Works
+
+1. User clicks "Sign In"
+2. Modal appears with email and social options
+3. User enters email (receives code) or clicks social login
+4. Account is created automatically
+5. User is authenticated and ready to use your app
+
+```tsx
+import { usePrivy } from '@varity-labs/ui-kit';
+
+function Dashboard() {
+  const { authenticated, user, logout } = usePrivy();
+
+  if (!authenticated) {
+    return <PrivyLoginButton />;
+  }
+
+  return (
+    <div>
+      <p>Welcome, {user?.email?.address || 'User'}</p>
+      <button onClick={logout}>Sign Out</button>
+    </div>
+  );
+}
+```
+
+## What Gets Created Automatically
+
+When a user signs in with email or social login:
+
+| Behind the Scenes | What User Sees |
+|-------------------|----------------|
+| Account created | "Signed in successfully" |
+| Account linked to profile | User profile with email |
+| Ready for operations | Can use your app immediately |
+
+Users never see technical details or extra prompts unless you choose to show them.
+
+## Package Exports
+
+### Providers
+
+| Export | Description |
+|--------|-------------|
+| `PrivyStack` | All-in-one provider (recommended) |
+| `VarityPrivyProvider` | Authentication provider with Wagmi |
+| `VarityDashboardProvider` | Dashboard-specific provider setup |
+
+### Components
+
+| Export | Description |
+|--------|-------------|
+| `PrivyLoginButton` | Login button with modal |
+| `PrivyUserProfile` | Display user info with logout |
+| `PrivyProtectedRoute` | Auth-gated content wrapper |
+| `PrivyReadyGate` | Loading state during initialization |
+| `PaymentWidget` | In-app payment widget (post-beta) |
+| `PaymentGate` | Subscription/tier gate (post-beta) |
+
+### Hooks
+
+| Export | Description |
+|--------|-------------|
+| `usePrivy` | Core authentication hook (re-exported) |
+| `useLogin` | Trigger login programmatically |
+| `useLogout` | Trigger logout programmatically |
+
+<Accordion title="Advanced: Additional Exports">
+
+These exports provide lower-level access for advanced use cases. All are currently exported and available.
+
+### Additional Hooks
+
+| Export | Description |
+|--------|-------------|
+| `useWallets` | Access all connected accounts (re-exported) |
+| `useToast` | Show toast notifications (success, error, info) |
+| `useTheme` | Access current theme and presets from ThemeProvider |
+| `useVarityPayment` | Payment state and actions for in-app purchases |
+
+### Dashboard Components
+
+| Export | Description |
+|--------|-------------|
+| `DashboardLayout` | Full dashboard layout with sidebar, header, footer |
+| `DashboardHeader` | Dashboard header bar |
+| `DashboardSidebar` | Sidebar navigation |
+| `KPICard` | Key metric display card |
+| `StatusBadge` | Status indicator badge |
+| `EmptyState` | Empty state placeholder with presets |
+| `LoadingSkeleton` | Loading skeleton variants (text, card, table, list) |
+
+### Analytics Components
+
+| Export | Description |
+|--------|-------------|
+| `DataTable` | Sortable, paginated data table |
+| `AnalyticsCard` | Analytics display card |
+| `ChartContainer` | Chart wrapper with actions |
+| `MetricDisplay` | Metric with trend indicator |
+| `Sparkline` | Inline sparkline chart |
+
+### Branding
+
+| Export | Description |
+|--------|-------------|
+| `ThemeProvider` | Theme context provider with presets |
+| `Logo` | Varity logo component |
+| `Attribution` | Required "Powered by Varity" attribution |
+
+</Accordion>
+
+## Production Example
+
+```tsx
+import {
+  PrivyStack,
+  PrivyLoginButton,
+  PrivyUserProfile,
+  PrivyProtectedRoute,
+  usePrivy,
+} from '@varity-labs/ui-kit';
+
+function App() {
+  return (
+    <PrivyStack
+      appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID}
+      loginMethods={['email', 'google']}
+      appearance={{
+        theme: 'light',
+        accentColor: '#2563EB',
+        logo: '/logo.png',
+      }}
+    >
+      <Layout>
+        <Header />
+        <PrivyProtectedRoute>
+          <Dashboard />
+        </PrivyProtectedRoute>
+      </Layout>
+    </PrivyStack>
+  );
+}
+
+function Header() {
+  const { authenticated } = usePrivy();
+
+  return (
+    <header>
+      {authenticated ? (
+        <PrivyUserProfile showLogoutButton />
+      ) : (
+        <PrivyLoginButton>Sign In</PrivyLoginButton>
+      )}
+    </header>
+  );
+}
+```
+
+## Next Steps
+
+- [Installation Guide](/packages/ui-kit/installation) - Full setup instructions
+- [Components Reference](/packages/ui-kit/components) - All components with examples
+- [Hooks Reference](/packages/ui-kit/hooks) - Available hooks and usage

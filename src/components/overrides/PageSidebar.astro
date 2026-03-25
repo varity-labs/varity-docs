@@ -1,0 +1,28 @@
+---
+import type { Props } from '@astrojs/starlight/props';
+import Default from '@astrojs/starlight/components/PageSidebar.astro';
+import AITools from '../AITools.astro';
+
+// Don't show AI Tools on homepage (splash template)
+const isHomepage = Astro.props.entry?.data?.template === 'splash';
+---
+
+{!isHomepage && (
+  <div class="right-sidebar-panel ai-tools-panel sl-hidden lg:sl-block">
+    <div class="sl-container">
+      <AITools {...Astro.props} />
+    </div>
+  </div>
+)}
+
+<Default {...Astro.props} />
+
+<style>
+  .ai-tools-panel {
+    padding: 1rem var(--sl-sidebar-pad-x);
+    padding-bottom: 0;
+  }
+  .ai-tools-panel .sl-container {
+    width: calc(var(--sl-sidebar-width) - 2 * var(--sl-sidebar-pad-x));
+  }
+</style>

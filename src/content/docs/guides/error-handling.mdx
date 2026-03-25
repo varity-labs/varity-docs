@@ -1,0 +1,656 @@
+---
+title: Error Handling Guide
+description: Learn how to handle errors gracefully in your Varity applications
+---
+
+Building reliable applications requires robust error handling. This guide shows you how to handle errors effectively using Varity's type-safe utilities and best practices.
+
+## Common Error Types
+
+### Database Errors
+
+**Collection Not Found**
+```typescript
+import { db } from '@varity-labs/sdk';
+import { getErrorMessage } from '@varity-labs/types';
+
+try {
+  const users = await db.collection('users').get();
+} catch (error) {
+  const message = getErrorMessage(error);
+  console.error('Database error:', message);
+  // Expected: "Failed to query documents"
+}
+```
+
+**Insert Failed**
+```typescript
+try {
+  const product = await db.collection('products').add({
+    name: 'Widget',
+    price: 29.99
+  });
+} catch (error) {
+  const message = getErrorMessage(error);
+  // Handle validation errors, network errors, etc.
+  if (message.includes('Failed to insert')) {
+    // Show user-friendly error
+    alert('Could not save product. Please try again.');
+  }
+}
+```
+
+**Update Failed**
+```typescript
+try {
+  await db.collection('users').update(userId, { name: 'Alice Updated' });
+} catch (error) {
+  const message = getErrorMessage(error);
+  if (message.includes('Failed to update')) {
+    // Document might not exist
+    console.error('User not found or update failed');
+  }
+}
+```
+
+### Network Errors
+
+**Connection Timeout**
+```typescript
+import { getErrorMessage } from '@varity-labs/types';
+
+async function fetchWithTimeout(url: string, timeout = 5000) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+  try {
+    const response = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    return await response.json();
+  } catch (error) {
+    clearTimeout(timeoutId);
+    const message = getErrorMessage(error);
+
+    if (message.includes('aborted')) {
+      throw new Error('Request timed out after 5 seconds');
+    }
+    throw error;
+  }
+}
+```
+
+**API Request Failed**
+```typescript
+async function callAPI(endpoint: string) {
+  try {
+    const response = await fetch(`/api/${endpoint}`);
+
+    if (!response.ok) {
+      throw new Error(`API request failed: ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    const message = getErrorMessage(error);
+    console.error('API Error:', message);
+
+    // Return fallback data or re-throw
+    return { error: message };
+  }
+}
+```
+
+### Credential Errors
+
+**Missing Environment Variables**
+```typescript
+function getRequiredEnv(key: string): string {
+  const value = process.env[key];
+
+  if (!value) {
+    throw new Error(
+      `Missing required environment variable: ${key}\n` +
+      `Please set ${key} in your .env.local file`
+    );
+  }
+
+  return value;
+}
+
+// Usage
+try {
+  const apiKey = getRequiredEnv('NEXT_PUBLIC_VARITY_APP_ID');
+} catch (error) {
+  console.error(getErrorMessage(error));
+  // Show setup instructions to developer
+}
+```
+
+**Invalid Credentials**
+```typescript
+import { db } from '@varity-labs/sdk';
+
+try {
+  const data = await db.collection('products').get();
+} catch (error) {
+  const message = getErrorMessage(error);
+
+  if (message.includes('Unauthorized') || message.includes('401')) {
+    console.error('Invalid credentials. Check your VARITY_APP_TOKEN');
+    // Redirect to login or show error page
+  }
+}
+```
+
+## Error Handling Patterns
+
+### Type-Safe Error Utilities
+
+Varity provides three utilities in `@varity-labs/types` for safe error handling:
+
+```typescript
+import {
+  getErrorMessage,
+  isErrorWithMessage,
+  toError
+} from '@varity-labs/types';
+
+// 1. getErrorMessage - Extract error message safely
+try {
+  await riskyOperation();
+} catch (error) {
+  const message = getErrorMessage(error);
+  // Always returns a string, never crashes
+  console.error(message);
+}
+
+// 2. isErrorWithMessage - Type guard for error checking
+function handleError(error: unknown) {
+  if (isErrorWithMessage(error)) {
+    // TypeScript knows error.message exists
+    console.error(error.message);
+  } else {
+    console.error('Unknown error:', error);
+  }
+}
+
+// 3. toError - Convert unknown to Error instance
+try {
+  await operation();
+} catch (err) {
+  const error = toError(err);
+  // Now you have a real Error object
+  console.error(error.message);
+  console.error(error.stack);
+}
+```
+
+### Service Layer Pattern
+
+Create a dedicated service layer with custom error types:
+
+```typescript
+// services/dashboardService.ts
+import { getErrorMessage } from '@varity-labs/types';
+
+export class DashboardServiceError extends Error {
+  constructor(
+    message: string,
+    public statusCode?: number,
+    public originalError?: Error
+  ) {
+    super(message);
+    this.name = 'DashboardServiceError';
+  }
+}
+
+async function handleResponse<T>(response: Response): Promise<T> {
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => 'Unknown error');
+    throw new DashboardServiceError(
+      `API request failed: ${response.statusText}`,
+      response.status,
+      new Error(errorText)
+    );
+  }
+
+  try {
+    return await response.json();
+  } catch (error) {
+    throw new DashboardServiceError(
+      'Failed to parse API response',
+      response.status,
+      error instanceof Error ? error : undefined
+    );
+  }
+}
+
+export async function getKPIs(userId: string) {
+  try {
+    const response = await fetch(`/api/dashboard/kpis?userId=${userId}`);
+    return await handleResponse(response);
+  } catch (error) {
+    if (error instanceof DashboardServiceError) {
+      throw error;
+    }
+    throw new DashboardServiceError(
+      'Failed to fetch KPIs',
+      undefined,
+      error instanceof Error ? error : undefined
+    );
+  }
+}
+```
+
+### React Component Error Handling
+
+**Loading States with Error Boundaries**
+
+```tsx
+'use client';
+
+import { useState, useEffect } from 'react';
+import { db } from '@varity-labs/sdk';
+import { getErrorMessage } from '@varity-labs/types';
+
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+}
+
+export function ProductList() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function loadProducts() {
+      try {
+        const data = await db.collection('products').get();
+        setProducts(data as Product[]);
+        setError(null);
+      } catch (err) {
+        setError(getErrorMessage(err));
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadProducts();
+  }, []);
+
+  if (loading) {
+    return <div>Loading products...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="error">
+        <h2>Failed to load products</h2>
+        <p>{error}</p>
+        <button onClick={() => window.location.reload()}>
+          Try Again
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <ul>
+      {products.map((product) => (
+        <li key={product.id}>
+          {product.name} - ${product.price}
+        </li>
+      ))}
+    </ul>
+  );
+}
+```
+
+**Form Submission Errors**
+
+```tsx
+'use client';
+
+import { useState } from 'react';
+import { db } from '@varity-labs/sdk';
+import { getErrorMessage } from '@varity-labs/types';
+
+export function AddProductForm() {
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setSubmitting(true);
+    setError(null);
+    setSuccess(false);
+
+    const formData = new FormData(e.currentTarget);
+
+    try {
+      await db.collection('products').add({
+        name: formData.get('name'),
+        price: parseFloat(formData.get('price') as string),
+      });
+
+      setSuccess(true);
+      e.currentTarget.reset();
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input name="name" placeholder="Product name" required />
+      <input name="price" type="number" placeholder="Price" required />
+
+      {error && (
+        <div className="error-message">
+          {error}
+        </div>
+      )}
+
+      {success && (
+        <div className="success-message">
+          Product added successfully!
+        </div>
+      )}
+
+      <button type="submit" disabled={submitting}>
+        {submitting ? 'Saving...' : 'Add Product'}
+      </button>
+    </form>
+  );
+}
+```
+
+### Retry Strategies
+
+**Exponential Backoff**
+
+```typescript
+import { getErrorMessage } from '@varity-labs/types';
+
+async function withRetry<T>(
+  fn: () => Promise<T>,
+  maxRetries = 3,
+  delayMs = 1000
+): Promise<T> {
+  let lastError: Error | undefined;
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(getErrorMessage(error));
+
+      if (attempt < maxRetries) {
+        // Exponential backoff: 1s, 2s, 4s
+        const delay = delayMs * Math.pow(2, attempt);
+        console.log(`Retry attempt ${attempt + 1}/${maxRetries} after ${delay}ms`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+  }
+
+  throw lastError || new Error('Max retries exceeded');
+}
+
+// Usage
+try {
+  const products = await withRetry(() =>
+    db.collection('products').get()
+  );
+} catch (error) {
+  console.error('Failed after retries:', getErrorMessage(error));
+}
+```
+
+## Production Best Practices
+
+### 1. Never Expose Internal Errors to Users
+
+**Bad:**
+```tsx
+// DON'T: Shows technical details to users
+<div>Error: Failed to query documents from collection "users_internal_v2"</div>
+```
+
+**Good:**
+```tsx
+// DO: Show user-friendly messages
+<div>Unable to load your profile. Please try again.</div>
+```
+
+### 2. Log Errors Properly
+
+```typescript
+import { getErrorMessage, toError } from '@varity-labs/types';
+
+function logError(error: unknown, context: string) {
+  const errorObj = toError(error);
+
+  console.error(`[${context}] Error:`, {
+    message: errorObj.message,
+    stack: errorObj.stack,
+    timestamp: new Date().toISOString(),
+  });
+
+  // In production, send to error tracking service
+  if (process.env.NODE_ENV === 'production') {
+    // Send to Sentry, LogRocket, etc.
+  }
+}
+
+// Usage
+try {
+  await db.collection('users').get();
+} catch (error) {
+  logError(error, 'UserList.loadUsers');
+  // Show user-friendly error
+}
+```
+
+### 3. Validate Input Before API Calls
+
+```typescript
+import { z } from 'zod';
+import { getErrorMessage } from '@varity-labs/types';
+
+const ProductSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  price: z.number().positive('Price must be positive'),
+  stock: z.number().int().min(0, 'Stock cannot be negative'),
+});
+
+async function createProduct(input: unknown) {
+  try {
+    // Validate first
+    const validated = ProductSchema.parse(input);
+
+    // Then save
+    return await db.collection('products').add(validated);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      // Handle validation errors
+      return {
+        error: error.errors.map(e => e.message).join(', ')
+      };
+    }
+
+    // Handle database errors
+    return {
+      error: getErrorMessage(error)
+    };
+  }
+}
+```
+
+### 4. Provide Fallback UI
+
+```tsx
+import { useState, useEffect } from 'react';
+import { db } from '@varity-labs/sdk';
+
+export function Dashboard() {
+  const [data, setData] = useState(null);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    db.collection('stats').get()
+      .then(setData)
+      .catch(() => setError(true));
+  }, []);
+
+  // Show cached/fallback data instead of nothing
+  if (error) {
+    return (
+      <div>
+        <p>Unable to load live data.</p>
+        <p>Showing last known values:</p>
+        <FallbackDashboard />
+      </div>
+    );
+  }
+
+  return <LiveDashboard data={data} />;
+}
+```
+
+## Debugging Errors
+
+### Enable Verbose Logging
+
+```typescript
+// In development, log full error objects
+if (process.env.NODE_ENV === 'development') {
+  console.log('Full error object:', error);
+  console.log('Error stack:', error instanceof Error ? error.stack : 'N/A');
+}
+```
+
+### Check Credentials
+
+```bash
+# Verify environment variables are set
+echo $NEXT_PUBLIC_VARITY_APP_ID
+echo $VARITY_APP_TOKEN
+
+# Or in your app
+console.log('App ID:', process.env.NEXT_PUBLIC_VARITY_APP_ID);
+console.log('Token exists:', !!process.env.VARITY_APP_TOKEN);
+```
+
+### Verify Network Connectivity
+
+```typescript
+async function checkDBConnection() {
+  try {
+    await db.collection('_health').get();
+    console.log('✅ Database connection OK');
+  } catch (error) {
+    console.error('❌ Database connection failed:', getErrorMessage(error));
+  }
+}
+```
+
+### Test with Mock Data
+
+```typescript
+// Create a mock database for testing
+const mockDb = {
+  collection: (name: string) => ({
+    async get() {
+      return [
+        { id: '1', name: 'Test Product', price: 29.99 }
+      ];
+    },
+    async add(data: any) {
+      return { id: Math.random().toString(), ...data };
+    }
+  })
+};
+
+// Use in tests
+const db = process.env.NODE_ENV === 'test' ? mockDb : realDb;
+```
+
+## Common Solutions
+
+### "Module not found: @varity-labs/sdk"
+
+**Solution:**
+```bash
+# Install the SDK
+npm install @varity-labs/sdk @varity-labs/ui-kit @varity-labs/types
+
+# Clear cache and reinstall
+rm -rf node_modules package-lock.json
+npm install
+```
+
+### "Unauthorized" or 401 Errors
+
+**Solution:**
+1. Check your environment variables:
+   ```bash
+   # .env.local
+   NEXT_PUBLIC_VARITY_APP_ID=your_app_id
+   VARITY_APP_TOKEN=your_app_token
+   ```
+
+2. Verify credentials are loaded:
+   ```typescript
+   console.log('Credentials:', {
+     appId: process.env.NEXT_PUBLIC_VARITY_APP_ID,
+     tokenExists: !!process.env.VARITY_APP_TOKEN
+   });
+   ```
+
+3. Restart your dev server after changing .env files
+
+### "Failed to query documents" or Network Errors
+
+**Solution:**
+1. Run diagnostics:
+   ```bash
+   varitykit doctor
+   ```
+
+2. Verify your network connection
+
+3. Check if you're behind a firewall/VPN
+
+4. Try with retry logic (see Retry Strategies above)
+
+### "Cannot read property 'message' of undefined"
+
+**Solution:**
+Always use the type-safe error utilities:
+
+```typescript
+// Instead of this:
+catch (error) {
+  console.error(error.message); // Might crash
+}
+
+// Do this:
+import { getErrorMessage } from '@varity-labs/types';
+
+catch (error) {
+  console.error(getErrorMessage(error)); // Always safe
+}
+```
+
+## Next Steps
+
+- Learn about [Database Operations](/build/databases/quickstart)
+- Explore [Type-Safe Utilities](/packages/types/overview)
+- Read [Deployment Guide](/deploy/deploy-your-app)
+- See [Troubleshooting](/resources/troubleshooting)

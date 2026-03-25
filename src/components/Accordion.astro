@@ -1,0 +1,203 @@
+---
+/**
+ * Accordion Component
+ *
+ * Collapsible content section for advanced/optional content.
+ * Perfect for Layer 2 technical details that users can opt into.
+ *
+ * Usage:
+ * <Accordion title="🔧 Advanced: How this works" defaultOpen={false}>
+ *   Technical implementation details here...
+ * </Accordion>
+ */
+
+interface Props {
+  title: string
+  defaultOpen?: boolean
+  variant?: 'default' | 'advanced' | 'example'
+}
+
+const { title, defaultOpen = false, variant = 'default' } = Astro.props
+const accordionId = `accordion-${Math.random().toString(36).slice(2, 11)}`
+---
+
+<details class:list={["varity-accordion", `accordion-${variant}`]} open={defaultOpen} data-accordion-id={accordionId}>
+  <summary>
+    <span class="accordion-title">{title}</span>
+    <svg class="accordion-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <polyline points="6 9 12 15 18 9"></polyline>
+    </svg>
+  </summary>
+
+  <div class="accordion-content">
+    <slot />
+  </div>
+</details>
+
+<script>
+  // Smooth accordion animation
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.varity-accordion').forEach(accordion => {
+      const summary = accordion.querySelector('summary')
+      const content = accordion.querySelector('.accordion-content')
+
+      if (!summary || !content) return
+
+      // Store original max-height for animation
+      let isAnimating = false
+
+      summary.addEventListener('click', (e) => {
+        e.preventDefault()
+
+        if (isAnimating) return
+        isAnimating = true
+
+        const isOpen = accordion.hasAttribute('open')
+
+        if (isOpen) {
+          // Closing
+          const height = content.scrollHeight
+          content.style.maxHeight = `${height}px`
+
+          requestAnimationFrame(() => {
+            content.style.maxHeight = '0px'
+          })
+
+          setTimeout(() => {
+            accordion.removeAttribute('open')
+            isAnimating = false
+          }, 200)
+        } else {
+          // Opening
+          accordion.setAttribute('open', '')
+          const height = content.scrollHeight
+          content.style.maxHeight = '0px'
+
+          requestAnimationFrame(() => {
+            content.style.maxHeight = `${height}px`
+          })
+
+          setTimeout(() => {
+            content.style.maxHeight = 'none'
+            isAnimating = false
+          }, 200)
+        }
+      })
+    })
+  })
+</script>
+
+<style>
+  .varity-accordion {
+    margin: var(--space-6) 0;
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-lg);
+    background: rgba(255, 255, 255, 0.02);
+    overflow: hidden;
+  }
+
+  /* Variant styles */
+  .accordion-advanced {
+    border-left: 3px solid var(--color-brand);
+    background: var(--color-brand-muted);
+  }
+
+  .accordion-example {
+    border-left: 3px solid var(--color-info);
+    background: var(--color-info-subtle);
+  }
+
+  .varity-accordion summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-4) var(--space-5);
+    cursor: pointer;
+    user-select: none;
+    list-style: none;
+    transition: background var(--transition-fast);
+  }
+
+  .varity-accordion summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .varity-accordion summary:hover {
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .accordion-title {
+    font-size: 0.9375rem;
+    font-weight: var(--font-semibold);
+    color: var(--text-primary);
+    flex: 1;
+  }
+
+  .accordion-chevron {
+    flex-shrink: 0;
+    color: var(--text-tertiary);
+    transition: transform var(--transition-base);
+  }
+
+  .varity-accordion[open] .accordion-chevron {
+    transform: rotate(180deg);
+  }
+
+  .accordion-content {
+    padding: 0 var(--space-5) var(--space-5);
+    color: var(--text-secondary);
+    font-size: 0.9375rem;
+    line-height: var(--leading-relaxed);
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height var(--transition-base) ease-out;
+  }
+
+  .varity-accordion[open] .accordion-content {
+    max-height: none;
+  }
+
+  .accordion-content > :first-child {
+    margin-top: 0;
+  }
+
+  .accordion-content > :last-child {
+    margin-bottom: 0;
+  }
+
+  /* Nested content styling */
+  .accordion-content p {
+    margin-bottom: var(--space-3);
+  }
+
+  .accordion-content ul {
+    margin: var(--space-3) 0;
+    padding-left: var(--space-5);
+  }
+
+  .accordion-content li {
+    margin-bottom: var(--space-2);
+  }
+
+  .accordion-content code {
+    font-size: 0.875em;
+    background: var(--sl-color-bg-inline-code);
+    padding: 0.15em 0.4em;
+    border-radius: var(--radius-sm);
+  }
+
+  .accordion-content a {
+    color: var(--color-brand);
+    text-decoration: underline;
+  }
+
+  .accordion-content a:hover {
+    color: var(--color-brand-light);
+  }
+
+  /* Focus states */
+  .varity-accordion summary:focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: -2px;
+  }
+</style>

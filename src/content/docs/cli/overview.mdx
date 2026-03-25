@@ -1,0 +1,240 @@
+---
+title: "VarityKit CLI Overview"
+description: "VarityKit CLI overview: scaffold projects, run diagnostics, deploy apps, and manage domains. Python-based tool similar to Vercel CLI."
+---
+
+import { Card, CardGrid, Aside } from '@astrojs/starlight/components';
+import PageMeta from '../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="March 2026"
+  stability="stable"
+/>
+
+VarityKit is a Python-based CLI that helps you build, test, and deploy applications. If you have used tools like the Vercel CLI, Netlify CLI, or Firebase CLI, you will feel right at home.
+
+## What You Can Do
+
+<CardGrid>
+  <Card title="Initialize Projects" icon="document">
+    Scaffold new projects from starter templates with pre-configured auth and deployment.
+  </Card>
+  <Card title="Deploy Applications" icon="rocket">
+    Deploy static sites with one command. Dynamic hosting coming soon.
+  </Card>
+  <Card title="Manage Templates" icon="seti:config">
+    Create, test, validate, and publish templates to the marketplace.
+  </Card>
+  <Card title="Validate Setup" icon="approve-check">
+    Run diagnostics to ensure your development environment is ready.
+  </Card>
+</CardGrid>
+
+## Commands at a Glance
+
+### Core Commands
+
+| Command | Description |
+|---------|-------------|
+| [`varitykit login`](/cli/commands/auth) | Log in with your deploy key from the developer portal |
+| [`varitykit doctor`](/cli/commands/doctor) | Validate your development environment |
+| [`varitykit init`](/cli/commands/init) | Create a new project from a template |
+| [`varitykit dev`](#dev) | Start development servers (API + frontend) |
+| [`varitykit bootstrap`](#bootstrap) | Install project dependencies and set up environment |
+| [`varitykit completions`](#completions) | Set up shell completions (bash, zsh, fish) |
+
+### Authentication
+
+| Command | Description |
+|---------|-------------|
+| [`varitykit auth login`](/cli/commands/auth) | Log in with your deploy key |
+| [`varitykit auth logout`](/cli/commands/auth#logout) | Remove saved credentials |
+| [`varitykit auth status`](/cli/commands/auth#status) | Show current login status |
+
+### App Deployment
+
+| Command | Description |
+|---------|-------------|
+| [`varitykit app deploy`](/cli/commands/deploy) | Deploy your application |
+| `varitykit app list` | List all deployments |
+| `varitykit app info` | Show deployment details |
+| `varitykit app status` | Show deployment status |
+| `varitykit app rollback` | Rollback to a previous deployment |
+
+### Templates
+
+| Command | Description |
+|---------|-------------|
+| `varitykit template create` | Create a new template with AI assistance |
+| `varitykit template test` | Run automated tests for a template |
+| `varitykit template preview` | Preview a template in the browser |
+| `varitykit template validate` | Validate template quality (code, tests, a11y, security) |
+| `varitykit template list` | List available templates |
+| `varitykit template info` | Show detailed template information |
+
+### Marketplace
+
+| Command | Description |
+|---------|-------------|
+| `varitykit marketplace publish` | Publish a template to the marketplace |
+| `varitykit marketplace search` | Search for templates |
+| `varitykit marketplace install` | Install a template from the marketplace |
+| `varitykit marketplace stats` | View your marketplace statistics |
+| `varitykit marketplace unpublish` | Remove a template from the marketplace |
+| `varitykit marketplace update` | Update a published template |
+
+### Domains
+
+| Command | Description |
+|---------|-------------|
+| `varitykit domains list` | List all domains you own on `varity.app` |
+
+### Migration
+
+| Command | Description |
+|---------|-------------|
+| `varitykit migrate s3` | Migrate data from AWS S3 to Varity |
+| `varitykit migrate gcs` | Migrate data from Google Cloud Storage to Varity |
+| `varitykit migrate status` | Check migration job status |
+| `varitykit migrate verify` | Verify migration integrity |
+
+## Quick Start
+
+```bash
+# Install the CLI
+pip install varitykit
+
+# Check your environment
+varitykit doctor
+
+# Log in with your developer portal deploy key
+varitykit login
+
+# Create a new project
+varitykit init my-app
+
+# Deploy (static sites)
+varitykit app deploy
+
+# Deploy (dynamic apps — coming soon)
+# varitykit app deploy --hosting dynamic
+```
+
+## Global Options
+
+All commands support these global options:
+
+```bash
+varitykit [OPTIONS] COMMAND [ARGS]...
+
+Options:
+  --version        Show the CLI version
+  -v, --verbose    Enable verbose output
+  --debug          Enable debug output
+  --json           Output in JSON format
+  --help           Show help message
+```
+
+## Requirements
+
+- **Python**: 3.8 or higher
+- **Node.js**: 18+ (for building JavaScript projects)
+
+<Aside type="tip">
+Run `varitykit doctor` to automatically check all requirements and get installation guidance for missing dependencies.
+</Aside>
+
+## Hosting Options
+
+### Static Sites
+
+Deploy static websites and single-page applications:
+
+```bash
+varitykit app deploy
+```
+
+- **Best for**: Marketing sites, documentation, SPAs
+- **Cost**: Free (sponsored by Varity)
+- **Speed**: Global CDN distribution
+
+### Dynamic Apps (Coming Soon)
+
+Deploy full-stack applications with backend:
+
+```bash
+varitykit app deploy --hosting dynamic
+```
+
+- **Best for**: APIs, databases, server-side rendering
+- **Cost**: Pay for compute resources
+- **Features**: Containers, scaling, persistence
+
+<Aside type="caution">
+Dynamic hosting is coming soon. During beta, static hosting is available.
+</Aside>
+
+## Supported Frameworks
+
+| Framework | Static | Dynamic (Coming Soon) |
+|-----------|---------------|-----------------|
+| Next.js 13+ | Yes | Planned |
+| React (Vite) | Yes | Planned |
+| React (CRA) | Yes | Planned |
+| Vue 3+ | Yes | Planned |
+| Node.js | No | Planned |
+| Python | No | Planned |
+
+## Additional Command Details
+
+### dev
+
+Start development servers (API + frontend) with hot-reload:
+
+```bash
+varitykit dev [OPTIONS]
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--project` | `marketing` | Frontend project to run |
+| `--api-only` | `false` | Run only the API server |
+| `--frontend-only` | `false` | Run only the frontend |
+| `--port` | `3001` | API server port |
+
+### bootstrap
+
+Install project dependencies and set up the environment:
+
+```bash
+varitykit bootstrap [OPTIONS]
+```
+
+| Option | Description |
+|--------|-------------|
+| `--skip-npm` | Skip npm install |
+| `--skip-pip` | Skip pip install |
+| `--skip-docker` | Skip Docker setup |
+
+### completions
+
+Set up shell completions for the CLI:
+
+```bash
+varitykit completions [OPTIONS]
+```
+
+| Option | Description |
+|--------|-------------|
+| `--shell` | Shell type: `bash`, `zsh`, or `fish` (auto-detected if omitted) |
+| `--install` | Install completions to your shell config file |
+
+## Next Steps
+
+- [Install the CLI](/cli/installation) - Installation guide
+- [Log in](/cli/commands/auth) - Connect your developer account
+- [Run diagnostics](/cli/commands/doctor) - Check your setup
+- [Create your first project](/cli/commands/init) - Scaffold a project
+- [Deploy your application](/cli/commands/deploy) - Deploy to production

@@ -1,0 +1,237 @@
+---
+/**
+ * HowItWorks Component
+ *
+ * Visual 3-step flow: Install → Build → Deploy.
+ * Rendered as horizontal rows (not columns) to guarantee alignment.
+ */
+
+const steps = [
+  {
+    number: 1,
+    title: 'Install',
+    description: 'Add the SDK to any JavaScript project.',
+    code: 'npm install @varity-labs/sdk',
+  },
+  {
+    number: 2,
+    title: 'Build',
+    description: 'Use auth, database, storage, and payments.',
+    code: "const users = db.collection('users');",
+  },
+  {
+    number: 3,
+    title: 'Deploy',
+    description: 'Ship to production with one command.',
+    code: 'varitykit deploy',
+  },
+]
+---
+
+<div class="how-it-works not-content">
+  {/* Row 1: Circles with connectors */}
+  <div class="row row-circles">
+    {steps.map((step, i) => (
+      <div class="cell cell-circle">
+        {i > 0 && <div class="connector connector-left" />}
+        <div class="circle">
+          <span>{step.number}</span>
+        </div>
+        {i < steps.length - 1 && <div class="connector connector-right" />}
+      </div>
+    ))}
+  </div>
+
+  {/* Row 2: Titles */}
+  <div class="row row-titles">
+    {steps.map((step) => (
+      <div class="cell cell-title">{step.title}</div>
+    ))}
+  </div>
+
+  {/* Row 3: Descriptions */}
+  <div class="row row-descs">
+    {steps.map((step) => (
+      <div class="cell cell-desc">{step.description}</div>
+    ))}
+  </div>
+
+  {/* Row 4: Code snippets */}
+  <div class="row row-codes">
+    {steps.map((step) => (
+      <div class="cell cell-code-wrapper">
+        <span class="cell-code">{step.code}</span>
+      </div>
+    ))}
+  </div>
+</div>
+
+<style>
+  .how-it-works {
+    margin: 2.5rem 0;
+  }
+
+  /* Every row is a simple 3-column flex — items MUST align */
+  .row {
+    display: flex;
+    gap: 2rem;
+  }
+
+  .cell {
+    flex: 1;
+    text-align: center;
+  }
+
+  /* Row 1: Circles */
+  .row-circles {
+    margin-bottom: 12px;
+  }
+
+  .cell-circle {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 48px;
+  }
+
+  .circle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    background: rgba(20, 184, 166, 0.1);
+    border: 2px solid #14b8a6;
+    border-radius: 50%;
+    color: #14b8a6;
+    font-weight: 700;
+    font-size: 1.125rem;
+    position: relative;
+    z-index: 1;
+    flex-shrink: 0;
+  }
+
+  .connector {
+    position: absolute;
+    top: 50%;
+    height: 2px;
+    background: rgba(63, 63, 70, 0.5);
+  }
+
+  .connector-left {
+    left: 0;
+    right: calc(50% + 32px);
+  }
+
+  .connector-right {
+    left: calc(50% + 32px);
+    right: 0;
+  }
+
+  /* Row 2: Titles */
+  .row-titles {
+    margin-bottom: 4px;
+  }
+
+  .cell-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #fafafa;
+  }
+
+  /* Row 3: Descriptions */
+  .row-descs {
+    margin-bottom: 12px;
+  }
+
+  .cell-desc {
+    font-size: 0.9375rem;
+    color: #a1a1aa;
+    line-height: 1.6;
+  }
+
+  /* Row 4: Code */
+  .cell-code-wrapper {
+    display: flex;
+    justify-content: center;
+  }
+
+  .cell-code {
+    display: inline-block;
+    font-family: var(--sl-font-mono, 'JetBrains Mono', monospace);
+    font-size: 0.8125rem;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(63, 63, 70, 0.5);
+    border-radius: 6px;
+    padding: 8px 12px;
+    color: #14b8a6;
+    white-space: nowrap;
+  }
+
+  /* Light mode */
+  :global([data-theme="light"]) .cell-title {
+    color: #18181b;
+  }
+
+  :global([data-theme="light"]) .cell-desc {
+    color: #52525b;
+  }
+
+  :global([data-theme="light"]) .cell-code {
+    background: rgba(0, 0, 0, 0.03);
+    border-color: rgba(0, 0, 0, 0.1);
+  }
+
+  /* Mobile: stack vertically */
+  @media (max-width: 48rem) {
+    .how-it-works {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2rem;
+    }
+
+    .row {
+      display: none;
+    }
+  }
+</style>
+
+{/* Mobile: column layout per step (only visible on small screens) */}
+<div class="how-it-works-mobile">
+  {steps.map((step) => (
+    <div class="mobile-step">
+      <div class="circle">
+        <span>{step.number}</span>
+      </div>
+      <div class="cell-title">{step.title}</div>
+      <div class="cell-desc">{step.description}</div>
+      <span class="cell-code">{step.code}</span>
+    </div>
+  ))}
+</div>
+
+<style>
+  .how-it-works-mobile {
+    display: none;
+  }
+
+  @media (max-width: 48rem) {
+    .how-it-works-mobile {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2rem;
+      margin: 2.5rem 0;
+    }
+
+    .mobile-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 8px;
+    }
+  }
+</style>

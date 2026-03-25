@@ -1,0 +1,43 @@
+{
+  "name": "varity-docs",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "Official documentation for Varity - Build, deploy, and sell business apps",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/varity-labs/varity-docs.git"
+  },
+  "author": "Varity Labs",
+  "license": "MIT",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "lint": "astro check",
+    "test": "node tests/test-docs.cjs",
+    "test:links": "node tests/test-docs.cjs --only links",
+    "test:anchors": "node tests/test-docs.cjs --only anchors",
+    "test:imports": "node tests/test-docs.cjs --only imports",
+    "test:versions": "node tests/test-docs.cjs --only versions",
+    "test:positioning": "node tests/test-docs.cjs --only positioning",
+    "test:consistency": "node tests/test-docs.cjs --only consistency",
+    "test:typescript": "node tests/test-docs.cjs --only typescript",
+    "test:fast": "node tests/test-docs.cjs --no-discover",
+    "test:setup": "node tests/test-docs.cjs --setup"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "^0.37.4",
+    "astro": "^5.6.1"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.6",
+    "cheerio": "^1.0.0",
+    "node-fetch": "^2.7.0",
+    "typescript": "^5.7.0"
+  }
+}

@@ -1,0 +1,98 @@
+---
+description: Varity development patterns for building, deploying, and monetizing apps
+alwaysApply: true
+---
+
+# Varity Development Rules
+
+## What is Varity
+Varity provides packages and a CLI for building, deploying, and monetizing applications.
+Packages: @varity-labs/sdk, @varity-labs/ui-kit, @varity-labs/types
+CLI: varitykit (Python, installed via pip)
+
+## Core Packages
+
+### @varity-labs/sdk
+- `db` — Database module. Usage: `import { db } from '@varity-labs/sdk'`
+- `db.collection<T>('name')` — Returns typed collection
+- Collection methods: .add(data), .get(options?), .update(id, data), .delete(id)
+- .get() options: { limit?, offset?, orderBy? } — NO server-side filtering
+- Filter on client side: `(await collection.get()).filter(item => ...)`
+
+### @varity-labs/ui-kit
+- `PrivyStack` — Auth provider wrapper. Wrap your app root.
+- `PrivyLoginButton` — Drop-in login button (email, Google, Twitter, Discord, GitHub)
+- `PrivyProtectedRoute` — Wrapper that redirects unauthenticated users
+- `PrivyUserProfile` — User profile display component
+- `usePrivy()` — Hook returning { user, authenticated, logout, ready }
+- `DashboardLayout` — Sidebar dashboard layout (desktop only, add mobile nav manually)
+
+### @varity-labs/types
+- TypeScript type definitions for all Varity interfaces
+
+## Database Pattern
+
+Every feature follows: Type -> Collection -> Hook -> Page
+
+1. Define TypeScript interface in `src/types/index.ts`
+   - `id` is always `string | undefined` (auto-generated UUID)
+   - Use ISO strings for dates
+   - Collection names: snake_case plural
+
+2. Create collection accessor in `src/lib/database.ts`:
+   ```typescript
+   import { db } from '@varity-labs/sdk';
+   import type { MyType } from '../types';
+   export const myItems = () => db.collection<MyType>('my_items');
+   ```
+
+3. Build React hook in `src/lib/hooks.ts`:
+   - useState for data[], loading, error
+   - useCallback + useEffect for initial fetch via collection().get()
+   - Optimistic create: add to state -> API call -> refresh or rollback
+   - Optimistic update: modify state -> API call -> rollback on error
+   - Optimistic delete: remove from state -> API call -> rollback on error
+
+4. Use hook in page component with 'use client' directive
+
+## Auth Pattern
+```tsx
+// Root layout
+<PrivyStack appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID}>
+  {children}
+</PrivyStack>
+
+// Protected routes
+<PrivyProtectedRoute>
+  <DashboardContent />
+</PrivyProtectedRoute>
+
+// User data
+const { user, authenticated, logout } = usePrivy();
+const email = user?.email?.address;
+const name = email?.split('@')[0];
+```
+
+## Deployment
+```bash
+varitykit doctor                          # Check environment
+varitykit init my-app                     # Scaffold project
+varitykit app deploy                      # Deploy
+varitykit app deploy --submit-to-store    # Deploy + App Store
+```
+
+## Credential Injection
+- CLI auto-generates app_id + JWT token at deploy time
+- Written to .env.local, compiled into build, then deleted
+- Env vars: NEXT_PUBLIC_VARITY_APP_TOKEN, NEXT_PUBLIC_VARITY_DB_PROXY_URL
+- For local dev: set env vars manually or build UI with mock data first
+
+## Key Rules
+- NEVER use blockchain/crypto terminology
+- Use TypeScript interfaces for all data models
+- Use optimistic UI updates with rollback
+- Use 'use client' for hooks and interactive components
+- DashboardLayout has NO mobile support — build mobile nav manually
+- .get() returns ALL docs — filter on client side
+- Static export: `output: 'export'` in next.config.js
+- No dynamic routes — use client-side state instead of [id] params

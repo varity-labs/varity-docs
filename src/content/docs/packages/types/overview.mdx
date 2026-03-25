@@ -1,0 +1,232 @@
+---
+title: "@varity-labs/types Overview"
+description: "Install @varity-labs/types for TypeScript auto-completion and compile-time validation across all Varity SDK and UI Kit APIs."
+---
+
+import { Tabs, TabItem, Aside, Card, CardGrid } from '@astrojs/starlight/components';
+import PageMeta from '../../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="March 2026"
+  stability="stable"
+/>
+
+TypeScript type definitions that power the entire Varity SDK ecosystem. These types provide auto-completion, compile-time validation, and clear documentation for all Varity APIs.
+
+## Installation
+
+<Tabs>
+  <TabItem label="npm">
+    ```bash
+    npm install @varity-labs/types
+    ```
+  </TabItem>
+  <TabItem label="pnpm">
+    ```bash
+    pnpm add @varity-labs/types
+    ```
+  </TabItem>
+  <TabItem label="yarn">
+    ```bash
+    yarn add @varity-labs/types
+    ```
+  </TabItem>
+</Tabs>
+
+<Aside type="note">
+**Already using @varity-labs/sdk?** The types package is included as a dependency. You only need to install it separately if you want types without the full SDK.
+</Aside>
+
+## What's Included
+
+This package provides TypeScript interfaces and types for:
+
+<CardGrid>
+  <Card title="API Types" icon="document">
+    Request/response patterns, pagination, authentication tokens, and API errors.
+  </Card>
+  <Card title="Storage Types" icon="seti:folder">
+    Multi-tier storage configuration, upload options, file metadata, and cost tracking.
+  </Card>
+  <Card title="Authentication Types" icon="approve-check">
+    Access keys, permissions, sessions, and policy management.
+  </Card>
+  <Card title="Network Types" icon="rocket">
+    Chain configuration, account setup, contract interactions, and cost estimation.
+  </Card>
+</CardGrid>
+
+## Type Categories
+
+### Common Utility Types
+
+Type-safe alternatives to `any` that improve code quality:
+
+```typescript
+import type {
+  JSONValue,        // Any JSON-serializable value
+  JSONObject,       // Object with JSON values
+  Metadata,         // Key-value pairs for custom data
+  Nullable,         // T | null
+  Optional,         // T | undefined
+  DeepPartial,      // Make all nested properties optional
+} from '@varity-labs/types';
+```
+
+### API Response Types
+
+Standard patterns for API communication:
+
+```typescript
+import type {
+  APIResponse,        // Standard response wrapper
+  APIError,           // Error response format
+  PaginatedResponse,  // Paginated list results
+  AuthToken,          // JWT/session tokens
+  UserProfile,        // User account data
+} from '@varity-labs/types';
+```
+
+### Storage Types
+
+Configure file uploads, downloads, and multi-tier storage:
+
+```typescript
+import type {
+  UploadOptions,      // File upload configuration
+  StorageResult,      // Upload result with URL
+  StorageItem,        // File listing item
+  StorageMetrics,     // Usage statistics
+} from '@varity-labs/types';
+
+import {
+  StorageBackend,     // filecoin-ipfs, s3-compatible, etc.
+  StorageTier,        // hot, warm, cold, glacier
+  StorageLayer,       // varity-internal, industry-rag, customer-data
+} from '@varity-labs/types';
+```
+
+### Authentication Types
+
+Manage access control and permissions:
+
+```typescript
+import type {
+  AccessKey,          // API key credentials
+  Permission,         // Resource permissions
+  Session,            // User session data
+} from '@varity-labs/types';
+
+import {
+  AuthProvider,       // aws-signature-v4, gcs-oauth2, browser-wallet
+  PermissionEffect,   // allow, deny
+  Action,             // storage:GetObject, admin:ViewMetrics, etc.
+} from '@varity-labs/types';
+```
+
+### Network Types
+
+Types for interacting with the Varity network are currently available via the SDK subpath import rather than the types package:
+
+```typescript
+// Chain types and USDC utilities are available from the SDK:
+import {
+  varityL3Testnet,
+  USDC_DECIMALS,
+  formatUSDC,
+  parseUSDC,
+} from '@varity-labs/sdk/chains';
+```
+
+<Aside type="note">
+The types package contains the source definitions for `VarityChain`, `VarityAccountConfig`, `VarityDeploymentResult`, `PaymentAmount`, `formatPayment`, `parsePayment`, and `PAYMENT_DECIMALS` in its thirdweb module, but these are not currently exported from the package entry point. Use `@varity-labs/sdk/chains` for payment utilities.
+</Aside>
+
+## Payment Amount Handling
+
+<Aside type="caution">
+**Critical:** Varity uses **6 decimals** for payments, not 18 like ETH. The helpers prevent costly mistakes.
+</Aside>
+
+```typescript
+import { formatUSDC, parseUSDC, USDC_DECIMALS } from '@varity-labs/sdk/chains';
+
+// Convert human-readable to raw (for transactions)
+const amount = parseUSDC("10.50");
+// Returns: 10500000n (bigint)
+
+// Convert raw to human-readable (for display)
+const display = formatUSDC(10500000n);
+// Returns: "10.50" (string)
+
+// Always use the constant for decimals
+const scale = 10 ** USDC_DECIMALS; // 1,000,000
+```
+
+## Error Handling Utilities
+
+Type-safe error handling in catch blocks:
+
+```typescript
+import { toError, getErrorMessage, isErrorWithMessage } from '@varity-labs/types';
+
+try {
+  await riskyOperation();
+} catch (error) {
+  // Convert unknown error to Error instance
+  const safeError = toError(error);
+
+  // Or just get the message
+  const message = getErrorMessage(error);
+
+  // Type guard for error checking
+  if (isErrorWithMessage(error)) {
+    console.log(error.message); // TypeScript knows this is safe
+  }
+}
+```
+
+## Type Guards
+
+Runtime type validation with TypeScript inference:
+
+```typescript
+import {
+  isAWSSignatureV4Credentials,
+  isGCSServiceAccount,
+} from '@varity-labs/types';
+
+// Validate AWS credentials at runtime
+if (isAWSSignatureV4Credentials(creds)) {
+  // TypeScript knows creds has accessKeyId, secretAccessKey, region
+  console.log(creds.accessKeyId);
+}
+
+// Validate GCS service account
+if (isGCSServiceAccount(account)) {
+  // TypeScript knows account has project_id, client_email, etc.
+  console.log(account.project_id);
+}
+```
+
+<Aside type="note">
+`isVarityChain` and `isSIWEMessage` type guards exist in the types source but are not currently exported from the package entry point. They are planned for a future release.
+</Aside>
+
+## Package Constants
+
+```typescript
+import { VERSION, PACKAGE_NAME } from '@varity-labs/types';
+
+console.log(VERSION);  // "2.0.0-beta.4"
+console.log(PACKAGE_NAME);  // "@varity-labs/types"
+```
+
+## Next Steps
+
+- [@varity-labs/sdk Overview](/packages/sdk/overview) - Use types with the full SDK
+- [@varity-labs/ui-kit Overview](/packages/ui-kit/overview) - UI components with TypeScript
+- [Storage Guide](/build/storage/quickstart) - Upload and manage files
+- [Chain Support](/packages/sdk/chains) - Working with Varity L3

@@ -1,0 +1,171 @@
+---
+title: "varitykit doctor"
+description: "Run varitykit doctor to validate your development environment. Runs 8 checks across 4 categories: required tools, system resources, project config, and network."
+---
+
+import { Aside } from '@astrojs/starlight/components';
+import PageMeta from '../../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="March 2026"
+  stability="stable"
+/>
+
+Validate your development environment and identify any issues.
+
+## Usage
+
+```bash
+varitykit doctor [OPTIONS]
+```
+
+## What It Checks
+
+The doctor command performs 8 checks across 4 categories:
+
+### System Requirements
+
+| Check | Requirement |
+|-------|-------------|
+| Python version | >= 3.8 |
+| Node.js version | >= 18.0 |
+| npm version | Any |
+| Docker | Running (optional) |
+
+### Environment Variables
+
+| Variable | Status |
+|----------|--------|
+| `THIRDWEB_CLIENT_ID` | Auto-provided (or set your own) |
+| `VARITY_API_KEY` | Auto-provided via credential proxy |
+
+### Network Connectivity
+
+- Varity platform connection
+- Storage API access
+- Storage gateway access
+
+### Project Structure
+
+- `package.json` exists
+- Build script defined
+- Dependencies installed
+
+## Example Output
+
+```
+$ varitykit doctor
+
+╭──────────────────────────────────────╮
+│ Varity Environment Check             │
+│ Validating your development setup... │
+╰──────────────────────────────────────╯
+
+1/4 Checking required tools...
+2/4 Checking system resources...
+3/4 Checking project configuration...
+4/4 Checking network connectivity...
+
+                           Environment Check Results
+╭────────────────────────┬────────────────────────┬──────────────┬─────────────╮
+│ Category               │ Check                  │ Status       │ Details     │
+├────────────────────────┼────────────────────────┼──────────────┼─────────────┤
+│ Required Tools         │ node                   │ ✓ PASS       │ ...         │
+│ Required Tools         │ npm                    │ ✓ PASS       │ ...         │
+│ Required Tools         │ git                    │ ✓ PASS       │ ...         │
+│ System                 │ Disk Space             │ ✓ PASS       │ ...         │
+│ System                 │ Memory                 │ ✓ PASS       │ ...         │
+│ Project                │ varity.config.json     │ ⚠ WARN       │ Run init    │
+│ Project                │ .env File              │ ⚠ WARN       │ Optional    │
+│ Network                │ Internet               │ ✓ PASS       │ Connected   │
+╰────────────────────────┴────────────────────────┴──────────────┴─────────────╯
+
+Total: 8 checks
+
+╭─────────────────────────────────────────────────────────────────────────╮
+│ ✓ All checks passed!                                                    │
+│ Your environment is ready. Run varitykit app deploy to deploy your app. │
+╰─────────────────────────────────────────────────────────────────────────╯
+```
+
+## Options
+
+| Option | Description |
+|--------|-------------|
+| `--fix` | Attempt to auto-fix common issues |
+| `--full` | Run full diagnostics including all infrastructure checks |
+
+<Aside type="note">
+`--verbose` is a global option available on all `varitykit` commands.
+</Aside>
+
+## Exit Codes
+
+| Code | Meaning |
+|------|---------|
+| 0 | All checks passed |
+| 1 | Some checks failed |
+| 2 | Critical failure (cannot proceed) |
+
+## Fixing Common Issues
+
+### Missing Node.js
+
+```bash
+# macOS
+brew install node
+
+# Ubuntu
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt install -y nodejs
+
+# Windows
+# Download from nodejs.org
+```
+
+### Missing Environment Variables
+
+Storage, authentication, and deployment credentials are auto-provided by Varity's credential proxy. No manual credential setup is required.
+
+If you need to override the default app ID, create a `.env.local` file in your project root:
+
+```bash title=".env.local"
+NEXT_PUBLIC_VARITY_APP_ID=your-app-id
+```
+
+### Docker Not Running
+
+```bash
+# macOS/Windows
+# Open Docker Desktop
+
+# Linux
+sudo systemctl start docker
+```
+
+<Aside type="tip">
+Run `varitykit doctor --fix` to automatically fix common issues like missing directories or configuration files.
+</Aside>
+
+## Verbose Output
+
+For more detailed diagnostics:
+
+```bash
+varitykit doctor --full
+```
+
+This runs all infrastructure checks in addition to the standard environment checks.
+
+## Next Steps
+
+- [Initialize a project](/cli/commands/init) - Create a new project
+- [Deploy your app](/cli/commands/deploy) - Go to production
+
+## Related Resources
+
+- [CLI Installation](/cli/installation) - Install the CLI
+- [Troubleshooting](/resources/troubleshooting) - Fix common issues
+- [Environment Variables](/deploy/env-variables) - Required configuration

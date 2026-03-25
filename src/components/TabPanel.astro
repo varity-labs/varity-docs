@@ -1,0 +1,50 @@
+---
+/**
+ * TabPanel Component
+ *
+ * Individual tab panel for use with Tabs component.
+ * This is the content container for each tab.
+ *
+ * Usage:
+ * <TabPanel id="js" label="JavaScript">
+ *   Content here...
+ * </TabPanel>
+ */
+
+interface Props {
+  id: string
+  label: string
+  icon?: string
+}
+
+const { id, label, icon } = Astro.props
+---
+
+<button
+  slot="tabs"
+  role="tab"
+  data-tab-id={id}
+  aria-selected="false"
+  aria-controls={`panel-${id}`}
+  tabindex="-1"
+>
+  {icon && <span class="tab-icon">{icon}</span>}
+  <span>{label}</span>
+</button>
+
+<div
+  role="tabpanel"
+  data-panel-id={id}
+  id={`panel-${id}`}
+  aria-hidden="true"
+  aria-labelledby={`tab-${id}`}
+  tabindex="0"
+>
+  <slot />
+</div>
+
+<style>
+  .tab-icon {
+    margin-right: var(--space-2);
+  }
+</style>

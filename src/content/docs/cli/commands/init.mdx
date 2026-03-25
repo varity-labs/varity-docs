@@ -1,0 +1,185 @@
+---
+title: "varitykit init"
+description: "Use varitykit init to scaffold a new Varity project from a starter template. Includes auth, database, and deployment config out of the box."
+---
+
+import { Steps, Aside } from '@astrojs/starlight/components';
+import PageMeta from '../../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="March 2026"
+  stability="stable"
+/>
+
+Create a new Varity project from a starter template.
+
+## Usage
+
+```bash
+varitykit init [PROJECT_NAME] [OPTIONS]
+```
+
+## Quick Start
+
+```bash
+# Interactive mode
+varitykit init
+
+# With project name
+varitykit init my-app
+
+# With template
+varitykit init my-app --template saas-starter
+```
+
+## Available Templates
+
+| Template | Description | Best For |
+|----------|-------------|----------|
+| `saas-starter` | SaaS dashboard with auth, analytics, and billing | Most applications |
+
+<Aside type="tip">
+The `saas-starter` template includes everything you need: authentication, dashboard layout, analytics, and deployment-ready configuration.
+</Aside>
+
+## Options
+
+| Option | Short | Default | Description |
+|--------|-------|---------|-------------|
+| `--template` | `-t` | `saas-starter` | Template to use |
+| `--path` | `-p` | `.` | Path where project should be created |
+| `--yes` | `-y` | `false` | Skip confirmation prompts |
+| `--github` | | `false` | Add GitHub Actions workflow for deployment |
+
+## Interactive Mode
+
+Running without arguments starts interactive mode:
+
+```bash
+$ varitykit init
+
+? Project name: my-app
+? Select a template: saas-starter
+
+Creating project...
+✓ Created project directory
+✓ Copied template files
+✓ Installed dependencies
+
+Your project is ready!
+
+Next steps:
+  cd my-app
+  npm run dev
+```
+
+## Project Structure
+
+The generated project includes:
+
+```
+my-app/
+├── .env.local.example    # Environment variables template
+├── .gitignore
+├── package.json
+├── tsconfig.json
+├── next.config.mjs
+├── src/
+│   ├── app/
+│   │   ├── layout.tsx    # Root layout with auth provider
+│   │   ├── page.tsx      # Home page
+│   │   └── dashboard/
+│   │       └── page.tsx  # Protected dashboard
+│   ├── components/
+│   │   ├── Header.tsx
+│   │   └── LoginButton.tsx
+│   └── lib/
+│       └── varity.ts     # Varity SDK setup
+└── public/
+    └── logo.svg
+```
+
+## What's Included
+
+The SaaS starter template includes:
+
+- **Authentication** - Auth provider pre-configured
+- **Protected Routes** - Route protection examples
+- **Dashboard Layout** - Responsive sidebar and navigation
+- **Analytics** - Data tables, charts, and KPIs
+- **Environment Variables** - `.env.local.example` with all variables
+- **TypeScript** - Full type support
+- **Styling** - Tailwind CSS configured
+- **Deployment Ready** - Works with `varitykit app deploy`
+
+## Environment Setup
+
+After initialization, set up your environment:
+
+<Steps>
+
+1. **Copy the example environment file**
+
+   ```bash
+   cp .env.local.example .env.local
+   ```
+
+2. **Start development server**
+
+   ```bash
+   npm run dev
+   ```
+
+</Steps>
+
+<Aside type="tip">
+No credentials needed. Varity manages all credentials automatically. See [Managed Credentials](/deploy/managed-credentials).
+</Aside>
+
+## Custom Templates
+
+Create your own template:
+
+```bash
+# Create a new template from a project
+varitykit template create my-template
+
+# Use custom template
+varitykit init new-project --template my-template
+
+# List available templates
+varitykit template list
+```
+
+## Troubleshooting
+
+### "Template not found"
+
+List available templates:
+
+```bash
+varitykit template list
+```
+
+### "npm install failed"
+
+Try installing dependencies manually:
+
+```bash
+cd my-app
+npm install
+```
+
+## Next Steps
+
+- [Run your app locally](/getting-started/quickstart)
+- [Add authentication](/build/auth/quickstart)
+- [Deploy your app](/cli/commands/deploy)
+
+## Related Resources
+
+- [CLI Overview](/cli/overview) - All CLI commands
+- [Quick Start Guide](/getting-started/quickstart) - Complete tutorial
+- [Package Installation](/getting-started/installation) - SDK setup

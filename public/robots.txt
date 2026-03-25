@@ -1,0 +1,11 @@
+# Varity Documentation - robots.txt
+# https://docs.varity.so
+
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://docs.varity.so/sitemap-index.xml
+
+# AI/LLM-friendly documentation
+# See: https://docs.varity.so/llms.txt

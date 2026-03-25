@@ -1,0 +1,230 @@
+---
+title: "varitykit app deploy"
+description: "Deploy static sites and dynamic apps with varitykit app deploy. Supports static and dynamic hosting with automatic framework detection."
+---
+
+import { Tabs, TabItem, Steps, Aside } from '@astrojs/starlight/components';
+import Accordion from '../../../../components/Accordion.astro';
+import PageMeta from '../../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="March 2026"
+  stability="stable"
+/>
+
+Deploy your application to Varity's secure infrastructure.
+
+## Usage
+
+```bash
+varitykit app deploy [OPTIONS]
+```
+
+## Hosting Options
+
+### Static Sites
+
+Deploy static websites and single-page applications:
+
+```bash
+varitykit app deploy
+```
+
+**Best for:**
+- Marketing websites
+- Documentation sites
+- Single-page applications
+- Landing pages
+
+**Features:**
+- Global CDN distribution
+- Free hosting (sponsored by Varity)
+- Permanent deployment URLs
+- Automatic SSL
+
+### Dynamic Apps (Coming Soon)
+
+Deploy full-stack applications with compute resources:
+
+```bash
+varitykit app deploy --hosting dynamic
+```
+
+**Best for:**
+- APIs and backends
+- Server-side rendering
+- Database applications
+- Full-stack apps
+
+**Features:**
+- Container hosting
+- Persistent storage
+- 70-85% cost savings vs. AWS
+
+<Aside type="caution">
+Dynamic hosting is coming soon. During beta, static hosting is available. The `--hosting dynamic` flag is accepted by the CLI but the feature is not yet available.
+</Aside>
+
+## Options
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--hosting` | `static` | Hosting type: `static` or `dynamic` |
+| `--path` | `.` | Project directory |
+| `--submit-to-store` | `false` | Submit to Varity App Store |
+| `--tier` | - | Pricing tier: `free`, `starter`, `growth`, `enterprise`, `scale` |
+| `--name` | - | Custom app name for `varity.app/{name}` |
+| `--mode` | `auto` | Deployment mode: `auto`, `guided`, or `expert` |
+
+## Basic Deployment
+
+<Steps>
+
+1. **Build your project**
+
+   ```bash
+   npm run build
+   ```
+
+2. **Deploy**
+
+   ```bash
+   varitykit app deploy
+   ```
+
+3. **View your live app**
+
+   ```
+   ✓ Build complete
+   ✓ Deployed successfully
+   ✓ Registered on Varity
+
+   Your app is live at:
+   https://your-app.varity.app
+
+   Deployment ID: deploy-1737492000
+   ```
+
+</Steps>
+
+## Deploy with App Store Submission
+
+Submit your app to the Varity App Store during deployment:
+
+```bash
+varitykit app deploy --submit-to-store
+```
+
+This will:
+1. Build and deploy your app
+2. Register on Varity's infrastructure
+3. Submit to the App Store for review
+
+## Supported Frameworks
+
+The CLI automatically detects your framework:
+
+| Framework | Detection | Build Command |
+|-----------|-----------|---------------|
+| Next.js | `next.config.*` | `npm run build` |
+| React (Vite) | `vite.config.*` | `npm run build` |
+| React (CRA) | `react-scripts` | `npm run build` |
+| Vue | `vue.config.*` | `npm run build` |
+| Custom | `package.json` | `npm run build` |
+
+## Environment Variables
+
+Storage and authentication credentials are auto-provided by Varity. No manual credential setup is required. See [Managed Credentials](/deploy/managed-credentials).
+
+## Rollback
+
+Revert to a previous deployment:
+
+```bash
+varitykit app rollback deploy-1737491000
+```
+
+## List Deployments
+
+View all deployments:
+
+```bash
+varitykit app list
+```
+
+Output:
+
+```
+ID                  | Status  | URL
+--------------------|---------|---------------------------
+deploy-1737492000   | live    | https://your-app.varity.app
+deploy-1737491000   | archived| https://v2.your-app.varity.app
+```
+
+## View Deployment Details
+
+Get detailed information about a specific deployment:
+
+```bash
+varitykit app info deploy-1737492000
+```
+
+## Check Status
+
+View overall deployment status:
+
+```bash
+varitykit app status
+```
+
+## Troubleshooting
+
+### "Build failed"
+
+1. Verify your build works locally:
+   ```bash
+   npm run build
+   ```
+
+2. Check for missing dependencies:
+   ```bash
+   npm install
+   ```
+
+### "Upload failed"
+
+1. Verify network connectivity:
+   ```bash
+   varitykit doctor
+   ```
+
+2. Check your internet connection and try again
+
+<Accordion title="Advanced: Deployment Manifest">
+
+After deployment, a manifest file is created:
+
+```json title=".varity/deploy-1737492000.json"
+{
+  "deployment_id": "deploy-1737492000",
+  "timestamp": "2026-01-28T12:00:00Z",
+  "hosting": "static",
+  "url": "https://your-app.varity.app"
+}
+```
+
+</Accordion>
+
+## Next Steps
+
+- [Deploy Your App](/deploy/deploy-your-app) - Deployment details
+- [Configure environment variables](/deploy/env-variables) - Required setup
+- [CLI Overview](/cli/overview) - All CLI commands
+
+## Related Resources
+
+- [Quick Start](/getting-started/quickstart) - Complete tutorial
+- [Troubleshooting](/resources/troubleshooting) - Fix common issues
+- [File Storage](/build/storage/quickstart) - File storage guide

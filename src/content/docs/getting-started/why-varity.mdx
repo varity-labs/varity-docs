@@ -1,0 +1,114 @@
+---
+title: Why Varity
+description: Why Varity over AWS, Vercel, or Netlify? 70-85% cost savings, zero DevOps overhead, built-in auth and database, and one-command deploys.
+---
+
+import PageMeta from '../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="March 2026"
+  stability="stable"
+/>
+
+Build, deploy, and monetize production apps in minutes. Pay 70-85% less than AWS. No DevOps required.
+
+---
+
+## The problem
+
+Traditional cloud platforms are powerful but expensive and complex:
+
+- **Unpredictable pricing.** Hundreds of services, hidden costs, surprise bills.
+- **Infrastructure overhead.** You manage load balancers, databases, CDNs, and scaling yourself.
+- **DevOps tax.** Teams hire dedicated engineers just to keep infrastructure running.
+- **Vendor lock-in.** Migrating away is slow and costly.
+
+A typical app with 100 users, a database, storage, and AI features costs around **$2,800/month on AWS**.
+
+---
+
+## How Varity is different
+
+### 70-85% cheaper
+
+The same application costs ~$800/month on Varity. Our global infrastructure eliminates cloud markup while keeping enterprise-grade reliability.
+
+| Component | AWS | Varity | Savings |
+|-----------|-----|--------|---------|
+| Hosting + Database | $1,200/mo | $300/mo | 75% |
+| Storage (1TB) | $800/mo | $200/mo | 75% |
+| AI/LLM queries | $600/mo | $200/mo | 67% |
+| CDN + Functions | $200/mo | $100/mo | 50% |
+| **Total** | **$2,800/mo** | **$800/mo** | **71%** |
+
+### One-command deploys
+
+No server configuration. No infrastructure setup. One command:
+
+```bash
+varitykit app deploy
+```
+
+Your app is live in under 2 minutes with automatic scaling, authentication, and storage included.
+
+### Everything is built in
+
+Stop stitching together dozens of services. Varity includes what you need out of the box:
+
+| Feature | Traditional stack | Varity |
+|---------|-------------------|--------|
+| **Auth** | Auth0, Clerk, Firebase Auth | Built in (email, social login) |
+| **Storage** | AWS S3, Cloudflare R2 | Built in (encrypted) |
+| **Payments** | Stripe integration | Coming soon |
+| **Analytics** | Google Analytics, Mixpanel | Coming soon |
+| **Hosting** | Vercel, Netlify, AWS | Built in (static; dynamic coming soon) |
+
+### Built for web developers
+
+If you know React, Next.js, or any modern framework, you already know how to use Varity. No special infrastructure knowledge required.
+
+- Users sign in with email or social accounts
+- Credit card payments (coming soon)
+- Standard APIs and familiar patterns
+- No jargon, no extra configuration
+
+### Secure by default
+
+Your data is encrypted end-to-end. Even we cannot read it.
+
+- **Encryption at rest** for all stored data
+- **Encryption in transit** via TLS on every connection
+- **No single point of failure** across global infrastructure
+
+Suitable for healthcare, finance, and any application handling sensitive data.
+
+---
+
+## When to use Varity
+
+- **Startups** -- Get to market fast without DevOps overhead.
+- **Side projects** -- Ship without breaking the bank on infrastructure.
+- **Enterprise apps** -- Save 70% on cloud costs while maintaining security.
+- **Sensitive data** -- Healthcare, finance, or any regulated industry.
+
+## When NOT to use Varity
+
+- You need bare-metal access or extreme infrastructure customization.
+- You already have a large AWS investment with reserved instances.
+- You require specific compliance certifications we do not yet support (contact us for the roadmap).
+- You need direct low-level control over servers and networking.
+
+For most applications, Varity provides everything you need at a fraction of the cost.
+
+---
+
+## Next steps
+
+- [Quick Start](/getting-started/quickstart) -- Deploy your first app in 5 minutes
+- [Installation](/getting-started/installation) -- Set up your development environment
+
+:::tip[Free tier available]
+Varity offers a generous free tier perfect for development and small projects. No credit card required.
+:::

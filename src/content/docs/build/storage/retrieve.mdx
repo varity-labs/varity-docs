@@ -1,0 +1,262 @@
+---
+title: "Retrieving Data"
+description: "Query and display records from your Varity database. Fetch collections, access system fields, and render data in React components."
+---
+
+import { Aside } from '@astrojs/starlight/components';
+import Accordion from '../../../../components/Accordion.astro';
+import PageMeta from '../../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="March 2026"
+  stability="stable"
+/>
+
+# Retrieving Data
+
+Query records from your database collections using the Varity SDK.
+
+## Basic Query
+
+Fetch all records from a collection:
+
+```typescript
+import { db } from '@varity-labs/sdk';
+
+const products = await db.collection('products').get();
+
+products.forEach(product => {
+  console.log(`${product.name}: $${product.price}`);
+});
+```
+
+Each record includes system fields alongside your data:
+
+```typescript
+// Returned record shape
+{
+  id: "550e8400-e29b-41d4-a716-446655440000",  // UUID
+  name: "Widget",                                // your data
+  price: 29.99,                                  // your data
+  created_at: "2026-03-01T12:00:00Z",           // auto-generated
+  updated_at: "2026-03-01T12:00:00Z",           // auto-generated
+}
+```
+
+## Pagination
+
+Fetch records in pages using `limit` and `offset`:
+
+```typescript
+// First page (10 records)
+const page1 = await db.collection('products').get({
+  limit: 10,
+  offset: 0,
+});
+
+// Second page
+const page2 = await db.collection('products').get({
+  limit: 10,
+  offset: 10,
+});
+```
+
+## Ordering
+
+Sort records by any field. Prefix with `-` for descending order:
+
+```typescript
+// Newest first
+const recent = await db.collection('products').get({
+  orderBy: '-created_at',
+});
+
+// Cheapest first
+const cheapest = await db.collection('products').get({
+  orderBy: 'price',
+});
+```
+
+## Client-Side Filtering
+
+<Aside type="caution">
+The database API does not support server-side `where` filters. The `get()` method returns all records in the collection. Filter on the client side after fetching.
+</Aside>
+
+```typescript
+const allProducts = await db.collection('products').get();
+
+// Filter by field value
+const inStock = allProducts.filter(p => p.inStock === true);
+
+// Search by text
+const matches = allProducts.filter(p =>
+  p.name.toLowerCase().includes('widget')
+);
+
+// Filter by range
+const affordable = allProducts.filter(p => p.price < 50);
+```
+
+## Type-Safe Queries
+
+Use TypeScript generics to get typed results:
+
+```typescript
+import { db } from '@varity-labs/sdk';
+
+interface Product {
+  name: string;
+  price: number;
+  category: string;
+  inStock: boolean;
+}
+
+const products = await db.collection<Product>('products').get();
+
+// TypeScript knows: products is (Product & Document)[]
+products.forEach(p => {
+  console.log(p.name);    // string
+  console.log(p.price);   // number
+  console.log(p.id);      // string (from Document)
+});
+```
+
+## Display Records in React
+
+### Product List Example
+
+```tsx title="components/ProductList.tsx"
+import { db } from '@varity-labs/sdk';
+import { useState, useEffect } from 'react';
+
+interface Product {
+  name: string;
+  price: number;
+  category: string;
+}
+
+export function ProductList() {
+  const [products, setProducts] = useState<(Product & { id: string })[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadProducts() {
+      try {
+        const data = await db.collection<Product>('products').get({
+          orderBy: '-created_at',
+        });
+        setProducts(data);
+      } catch (error) {
+        console.error('Failed to load products:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadProducts();
+  }, []);
+
+  if (loading) return <p>Loading products...</p>;
+
+  return (
+    <div>
+      {products.map(product => (
+        <div key={product.id}>
+          <h3>{product.name}</h3>
+          <p>${product.price.toFixed(2)}</p>
+          <p>{product.category}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+### Paginated List Example
+
+```tsx title="components/PaginatedList.tsx"
+import { db } from '@varity-labs/sdk';
+import { useState, useEffect, useCallback } from 'react';
+
+interface Item {
+  title: string;
+  description: string;
+}
+
+const PAGE_SIZE = 10;
+
+export function PaginatedList() {
+  const [items, setItems] = useState<(Item & { id: string })[]>([]);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+
+  const loadPage = useCallback(async (pageNum: number) => {
+    const data = await db.collection<Item>('items').get({
+      limit: PAGE_SIZE,
+      offset: pageNum * PAGE_SIZE,
+      orderBy: '-created_at',
+    });
+    setItems(data);
+    setHasMore(data.length === PAGE_SIZE);
+  }, []);
+
+  useEffect(() => {
+    loadPage(page);
+  }, [page, loadPage]);
+
+  return (
+    <div>
+      {items.map(item => (
+        <div key={item.id}>
+          <h3>{item.title}</h3>
+          <p>{item.description}</p>
+        </div>
+      ))}
+      <div>
+        <button
+          onClick={() => setPage(p => Math.max(0, p - 1))}
+          disabled={page === 0}
+        >
+          Previous
+        </button>
+        <span>Page {page + 1}</span>
+        <button
+          onClick={() => setPage(p => p + 1)}
+          disabled={!hasMore}
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  );
+}
+```
+
+## Query Options Reference
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `limit` | `number` | Maximum number of records to return |
+| `offset` | `number` | Number of records to skip (for pagination) |
+| `orderBy` | `string` | Field to sort by. Prefix with `-` for descending |
+
+## Error Handling
+
+```typescript
+try {
+  const records = await db.collection('products').get();
+  console.log(`Loaded ${records.length} products`);
+} catch (error) {
+  if (error instanceof Error) {
+    console.error('Query failed:', error.message);
+  }
+}
+```
+
+## Next Steps
+
+- [Storing Data](/build/storage/upload) — Create and update records
+- [Data Storage Quick Start](/build/storage/quickstart) — Overview and setup
+- [Payments](/build/payments/quickstart) — Accept payments

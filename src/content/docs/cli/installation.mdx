@@ -1,0 +1,196 @@
+---
+title: "CLI Installation"
+description: "Install the VarityKit CLI via pip, pipx, or from source. Includes verification steps and troubleshooting for macOS, Linux, and Windows."
+---
+
+import { Tabs, TabItem, Steps, Aside } from '@astrojs/starlight/components';
+import PageMeta from '../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="March 2026"
+  stability="stable"
+/>
+
+Get the VarityKit CLI installed on your system.
+
+## Install with pip
+
+<Tabs>
+  <TabItem label="pip">
+    ```bash
+    pip install varitykit
+    ```
+  </TabItem>
+  <TabItem label="pipx (Recommended)">
+    ```bash
+    pipx install varitykit
+    ```
+  </TabItem>
+  <TabItem label="From Source">
+    ```bash
+    git clone https://github.com/varity-labs/varity-sdk.git
+    cd varity-sdk/cli
+    pip install -e .
+    ```
+  </TabItem>
+</Tabs>
+
+<Aside type="tip">
+**pipx** is recommended for CLI tools because it installs packages in isolated environments to avoid dependency conflicts.
+</Aside>
+
+## Verify Installation
+
+```bash
+varitykit --version
+```
+
+You should see the current version number, for example:
+
+```
+varitykit 1.1.13
+```
+
+## Run Diagnostics
+
+Check that your environment is properly configured:
+
+```bash
+varitykit doctor
+```
+
+You should see a table of checks with a `✓ All checks passed!` message at the end.
+
+## Requirements
+
+### Required
+
+| Requirement | Minimum | Recommended |
+|-------------|---------|-------------|
+| Python | 3.8 | 3.11+ |
+| Node.js | 18.0 | 20.0+ |
+| npm/pnpm/yarn | Any | Latest |
+
+### Optional
+
+| Requirement | Needed For |
+|-------------|------------|
+| Git | Version control |
+
+## Environment Setup
+
+<Steps>
+
+1. **Create a .env file** (optional) in your project root:
+
+   ```bash title=".env.local"
+   # Your Varity App ID (from developer portal)
+   NEXT_PUBLIC_VARITY_APP_ID=your-app-id
+   ```
+
+   All deployment credentials (storage, authentication, hosting) are managed automatically by the Varity credential proxy. See [Managed Credentials](/deploy/managed-credentials).
+
+2. **Verify your setup**:
+
+   ```bash
+   varitykit doctor
+   ```
+
+</Steps>
+
+## Shell Completions
+
+Enable tab completion for your shell:
+
+```bash
+# Auto-detect shell and install
+varitykit completions --install
+
+# Or specify a shell
+varitykit completions --shell bash --install
+```
+
+Run `varitykit completions` to see manual installation instructions for your shell.
+
+## Troubleshooting
+
+### "command not found: varitykit"
+
+The CLI is not in your PATH. Try:
+
+```bash
+# Option 1: Use python -m
+python -m varitykit --version
+
+# Option 2: Add to PATH
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+### "ModuleNotFoundError"
+
+Python dependencies are missing:
+
+```bash
+pip install --upgrade varitykit
+```
+
+### "Docker not found"
+
+Docker is optional and used for advanced local development:
+
+```bash
+# macOS
+brew install --cask docker
+
+# Ubuntu
+sudo apt install docker.io
+
+# Windows
+# Download from docker.com
+```
+
+### Permission denied
+
+On Linux/macOS, you may need to run:
+
+```bash
+pip install --user varitykit
+```
+
+Or use a virtual environment:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install varitykit
+```
+
+## Updating
+
+Update to the latest version:
+
+```bash
+pip install --upgrade varitykit
+```
+
+## Uninstalling
+
+Remove the CLI:
+
+```bash
+pip uninstall varitykit
+```
+
+## Next Steps
+
+- [Run diagnostics](/cli/commands/doctor) - Verify your setup
+- [Initialize a project](/cli/commands/init) - Create a new project
+- [Deploy your app](/cli/commands/deploy) - Go to production
+
+## Related Resources
+
+- [CLI Overview](/cli/overview) - All CLI features
+- [Quick Start](/getting-started/quickstart) - Build your first app
+- [Troubleshooting](/resources/troubleshooting) - Common issues

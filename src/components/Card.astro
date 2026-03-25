@@ -1,0 +1,167 @@
+---
+/**
+ * Card Component
+ *
+ * Feature showcase card with icon, title, description, and optional CTA.
+ * Used for feature grids, product highlights, etc.
+ *
+ * Usage:
+ * <Card
+ *   icon="🔐"
+ *   title="End-to-End Encryption"
+ *   description="Your data is encrypted at rest and in transit"
+ *   href="/docs/build/encryption"
+ *   cta="Learn more"
+ * />
+ */
+
+interface Props {
+  icon?: string
+  title: string
+  description: string
+  href?: string
+  cta?: string
+  external?: boolean
+}
+
+const { icon, title, description, href, cta = 'Learn more', external = false } = Astro.props
+const Tag = href ? 'a' : 'div'
+const linkProps = href ? {
+  href,
+  ...(external && { target: '_blank', rel: 'noopener noreferrer' })
+} : {}
+---
+
+<Tag class="varity-card" {...linkProps}>
+  {icon && (
+    <div class="card-icon-wrapper">
+      <span class="card-icon">{icon}</span>
+    </div>
+  )}
+
+  <div class="card-content">
+    <h3 class="card-title">{title}</h3>
+    <p class="card-description">{description}</p>
+
+    {href && (
+      <span class="card-cta">
+        {cta}
+        <svg class="card-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+      </span>
+    )}
+  </div>
+</Tag>
+
+<style>
+  .varity-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    padding: var(--space-6);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.02) 100%);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-lg);
+    transition: all var(--transition-base);
+    text-decoration: none;
+    color: inherit;
+    height: 100%;
+  }
+
+  a.varity-card {
+    cursor: pointer;
+  }
+
+  a.varity-card:hover {
+    border-color: rgba(20, 184, 166, 0.5);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg), var(--shadow-glow);
+  }
+
+  .card-icon-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;
+    height: 3rem;
+    background: var(--color-brand-subtle);
+    border: 1px solid var(--color-brand);
+    border-radius: var(--radius-lg);
+    flex-shrink: 0;
+  }
+
+  .card-icon {
+    font-size: 1.5rem;
+    line-height: 1;
+  }
+
+  .card-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    flex: 1;
+  }
+
+  .card-title {
+    font-size: var(--text-lg);
+    font-weight: var(--font-semibold);
+    color: var(--text-primary);
+    margin: 0;
+    line-height: var(--leading-tight);
+  }
+
+  .card-description {
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    line-height: var(--leading-relaxed);
+    margin: 0;
+    flex: 1;
+  }
+
+  .card-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--text-sm);
+    font-weight: var(--font-medium);
+    color: var(--color-brand);
+    margin-top: var(--space-2);
+    transition: gap var(--transition-fast);
+  }
+
+  a.varity-card:hover .card-cta {
+    gap: var(--space-3);
+  }
+
+  .card-arrow {
+    transition: transform var(--transition-fast);
+  }
+
+  a.varity-card:hover .card-arrow {
+    transform: translateX(2px);
+  }
+
+  /* Card grid layout */
+  :global(.card-grid) {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-5);
+    margin: var(--space-8) 0;
+  }
+
+  @media (max-width: 48rem) {
+    .varity-card {
+      padding: var(--space-5);
+    }
+
+    .card-icon-wrapper {
+      width: 2.5rem;
+      height: 2.5rem;
+    }
+
+    .card-icon {
+      font-size: 1.25rem;
+    }
+  }
+</style>

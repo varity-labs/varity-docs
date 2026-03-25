@@ -1,0 +1,318 @@
+---
+title: Node.js / Backend Quick Start
+description: Build a REST API with Express and the Varity SDK zero-config database. No connection strings, no ORM setup. Deploy in 5 minutes.
+---
+
+import { Steps, Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+import PageMeta from '../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="March 2026"
+  stability="stable"
+/>
+
+Build a REST API with Express and Varity's zero-config database. No database setup, no connection strings, no ORM configuration.
+
+<Aside type="note">
+**Building a full-stack app?** The [Next.js Quick Start](/getting-started/quickstart-nextjs) gives you a complete app with frontend, auth, and database pre-configured.
+</Aside>
+
+## Prerequisites
+
+- Node.js 18 or later
+- npm or pnpm
+- Python 3.8+ (for the CLI, needed at deploy time)
+
+## Set Up Your Project
+
+<Steps>
+
+1. **Create a new project**
+
+   ```bash
+   mkdir my-api && cd my-api
+   npm init -y
+   ```
+
+   Then add `"type": "module"` to your `package.json` to enable ES module imports:
+
+   ```json title="package.json" {2}
+   {
+     "type": "module",
+     "name": "my-api",
+     ...
+   }
+   ```
+
+2. **Install dependencies**
+
+   <Tabs>
+     <TabItem label="npm">
+       ```bash
+       npm install @varity-labs/sdk express
+       ```
+     </TabItem>
+     <TabItem label="pnpm">
+       ```bash
+       pnpm add @varity-labs/sdk express
+       ```
+     </TabItem>
+   </Tabs>
+
+3. **Install the CLI** (for deployment)
+
+   ```bash
+   pip install varitykit
+   ```
+
+</Steps>
+
+## Build Your API
+
+### 1. Define your data
+
+Create a file to set up your database collections:
+
+```javascript title="database.js"
+import { db } from '@varity-labs/sdk';
+
+// Create collection helpers
+// Each collection is like a database table
+export const products = () => db.collection('products');
+export const orders = () => db.collection('orders');
+```
+
+<Aside type="tip">
+No database setup required. The `db` singleton connects to Varity's managed database automatically. During development, your data is stored in an isolated dev schema.
+</Aside>
+
+### 2. Create the Express server
+
+```javascript title="server.js"
+import express from 'express';
+import { products, orders } from './database.js';
+
+const app = express();
+app.use(express.json());
+
+// ===== PRODUCTS =====
+
+// Create a product
+app.post('/api/products', async (req, res) => {
+  try {
+    const product = await products().add({
+      name: req.body.name,
+      price: req.body.price,
+      stock: req.body.stock || 0,
+      createdAt: new Date().toISOString(),
+    });
+    res.status(201).json(product);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// List all products
+app.get('/api/products', async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 50;
+    const offset = parseInt(req.query.offset) || 0;
+    const allProducts = await products().get({ limit, offset });
+    res.json(allProducts);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Update a product
+app.put('/api/products/:id', async (req, res) => {
+  try {
+    const updated = await products().update(req.params.id, req.body);
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Delete a product
+app.delete('/api/products/:id', async (req, res) => {
+  try {
+    await products().delete(req.params.id);
+    res.json({ deleted: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ===== ORDERS =====
+
+// Create an order
+app.post('/api/orders', async (req, res) => {
+  try {
+    const order = await orders().add({
+      productId: req.body.productId,
+      quantity: req.body.quantity,
+      status: 'pending',
+      createdAt: new Date().toISOString(),
+    });
+    res.status(201).json(order);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// List orders
+app.get('/api/orders', async (req, res) => {
+  try {
+    const allOrders = await orders().get({
+      limit: parseInt(req.query.limit) || 50,
+      orderBy: '-createdAt',
+    });
+    res.json(allOrders);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Start the server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`API running at http://localhost:${PORT}`);
+});
+```
+
+### 3. Run your server
+
+```bash
+node server.js
+```
+
+You should see:
+
+```
+[Varity Database] Using shared development database. Data is stored in an isolated dev schema.
+Deploy with `varitykit app deploy` to get your own private database.
+API running at http://localhost:3000
+```
+
+### 4. Test with curl
+
+```bash
+# Create a product
+curl -X POST http://localhost:3000/api/products \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Widget", "price": 29.99, "stock": 100}'
+
+# List products
+curl http://localhost:3000/api/products
+
+# Update a product (replace PRODUCT_ID with the id from the create response)
+curl -X PUT http://localhost:3000/api/products/PRODUCT_ID \
+  -H "Content-Type: application/json" \
+  -d '{"price": 24.99}'
+
+# Delete a product
+curl -X DELETE http://localhost:3000/api/products/PRODUCT_ID
+```
+
+## Database API Reference
+
+The Varity database provides four operations on every collection:
+
+| Method | Description | Returns |
+|--------|-------------|---------|
+| `collection.add(data)` | Insert a new document | The inserted document with `id`, `created_at` |
+| `collection.get(options?)` | Query documents | Array of documents |
+| `collection.update(id, data)` | Update a document by ID | The updated document |
+| `collection.delete(id)` | Delete a document by ID | `true` on success |
+
+### Query options
+
+The `get()` method accepts an options object:
+
+```javascript
+const results = await products().get({
+  limit: 10,          // Max documents to return
+  offset: 20,         // Skip N documents (for pagination)
+  orderBy: '-price',  // Sort field ("-" prefix for descending)
+});
+```
+
+### TypeScript support
+
+If you use TypeScript, collections are fully typed:
+
+```typescript title="database.ts"
+import { db } from '@varity-labs/sdk';
+
+interface Product {
+  name: string;
+  price: number;
+  stock: number;
+  createdAt: string;
+}
+
+const products = () => db.collection<Product>('products');
+
+// Fully typed - TypeScript knows product.name is a string
+const product = await products().add({
+  name: 'Widget',
+  price: 29.99,
+  stock: 100,
+  createdAt: new Date().toISOString(),
+});
+```
+
+## How Credentials Work
+
+Varity manages all database credentials automatically:
+
+| Environment | How it works |
+|-------------|--------------|
+| **Development** | The `db` singleton uses shared dev credentials. Your data is isolated in a dev schema. No configuration needed. |
+| **Production** | `varitykit app deploy` injects production credentials into your build. Each app gets its own private database schema. |
+
+You never need to set up a database, configure connection strings, or manage credentials.
+
+<Aside type="tip">
+To set custom credentials during development, use environment variables:
+```bash
+VARITY_DB_PROXY_URL=https://your-proxy.example.com
+VARITY_APP_TOKEN=your-jwt-token
+```
+The SDK checks `NEXT_PUBLIC_VARITY_*`, `VITE_VARITY_*`, and `REACT_APP_VARITY_*` prefixed variables as well.
+</Aside>
+
+## Deploy
+
+<Steps>
+
+1. **Install the CLI**
+
+   ```bash
+   pip install varitykit
+   ```
+
+2. **Deploy your API**
+
+   ```bash
+   varitykit app deploy
+   ```
+
+   Your API is live. Database credentials are injected automatically.
+
+3. **Submit to the App Store** (optional)
+
+   ```bash
+   varitykit app deploy --submit-to-store
+   ```
+
+</Steps>
+
+## Next Steps
+
+- [Database Quick Start](/build/databases/quickstart) -- Full database API deep dive
+- [Next.js Quick Start](/getting-started/quickstart-nextjs) -- Full-stack app with auth and UI
+- [Deploy Your App](/deploy/deploy-your-app) -- Deployment options and configuration

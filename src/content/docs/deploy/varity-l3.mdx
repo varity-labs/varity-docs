@@ -1,0 +1,187 @@
+---
+title: "Deploy Your App"
+description: "Deploy your app to Varity infrastructure with one command. Live in under 2 minutes with automatic builds, custom domains, and zero config."
+sidebar:
+  badge:
+    text: Beta
+    variant: note
+---
+
+import { Tabs, TabItem, Steps, Aside, Card, CardGrid } from '@astrojs/starlight/components';
+import Accordion from '../../../components/Accordion.astro';
+import PageMeta from '../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="March 2026"
+  stability="beta"
+/>
+
+Deploy your application to Varity with one command. Your app will be live in under 2 minutes.
+
+<Aside type="note">
+**Beta** - Varity is currently in beta. Your deployments work exactly as in production, but with test data.
+</Aside>
+
+## Quick Deploy
+
+<Steps>
+
+1. **Install the CLI**
+
+   ```bash
+   pip install varitykit
+   ```
+
+2. **Build your project**
+
+   ```bash
+   npm run build
+   ```
+
+3. **Deploy**
+
+   ```bash
+   varitykit app deploy
+   ```
+
+4. **Your app is live!**
+
+   Your app is now live at the URL shown in the terminal.
+
+</Steps>
+
+## What Happens During Deployment
+
+When you run `varitykit app deploy`:
+
+1. **Detects your framework** - Automatically identifies Next.js, React, Vue, etc.
+2. **Builds your app** - Runs your build command (`npm run build`)
+3. **Uploads your files** - Stores them securely with automatic backups
+4. **Makes your app live** - Generates a public URL
+5. **Enables free operations** - Users never pay usage fees
+
+All of this happens automatically in under 2 minutes.
+
+## Hosting Options
+
+<CardGrid>
+  <Card title="Static Sites" icon="document">
+    Static websites, SPAs, documentation, landing pages. Free hosting with global CDN.
+  </Card>
+  <Card title="Dynamic Apps (Coming Soon)" icon="rocket">
+    Full-stack apps, APIs, databases. Container-based compute with automatic scaling. Not yet available during beta.
+  </Card>
+</CardGrid>
+
+## Environment Variables
+
+Credentials are managed automatically by Varity. No manual setup needed for deployment.
+
+See [Environment Variables](/deploy/env-variables) for optional configuration and [Managed Credentials](/deploy/managed-credentials) for how it works.
+
+## Submit to App Store
+
+Submit your app for listing in the Varity App Store:
+
+```bash
+varitykit app deploy --submit-to-store
+```
+
+This will:
+1. Deploy your app
+2. Register it on Varity's infrastructure
+3. Submit to the App Store for review
+
+## Revenue Split
+
+When users purchase your app or pay for subscriptions:
+
+- **90/10 split** — you keep 90%
+- **10%** goes to the Varity platform
+
+This is handled automatically. You receive payouts monthly.
+
+## Verify Your Deployment
+
+After deployment, check status:
+
+```bash
+varitykit app list
+```
+
+## Rollback
+
+Revert to a previous deployment:
+
+```bash
+varitykit app rollback deploy-1737491000
+```
+
+## Troubleshooting
+
+### "Deployment failed"
+
+Run `varitykit doctor` to diagnose. Credentials are auto-provided — if deployment fails, check your network connection.
+
+### "Build failed"
+
+1. Verify your build works locally:
+   ```bash
+   npm run build
+   ```
+
+2. Check the build output directory exists
+
+### "Registration failed"
+
+Check network connectivity:
+
+```bash
+varitykit doctor
+```
+
+<Accordion title="Advanced: Technical Architecture">
+
+## Network Details
+
+Varity runs on a dedicated infrastructure layer optimized for application deployment:
+
+| Property | Value |
+|----------|-------|
+| **Chain ID** | `33529` |
+| **RPC URL** | `https://rpc-varity-testnet-rroe52pwjp.t.conduit.xyz` |
+| **Explorer** | `https://explorer-varity-testnet-rroe52pwjp.t.conduit.xyz` |
+| **Native Token** | Bridged USDC (6 decimals, NOT 18!) |
+| **Usage Fees** | Sponsored (free for users) |
+| **Status** | **Beta** - Production launch post-MVP |
+
+## Backend Contracts
+
+Pre-deployed backend contracts on Varity's infrastructure:
+
+| Contract | Address | Purpose |
+|----------|---------|---------|
+| **TemplateMarketplace** | `0x5EfAF2219F9957461125485Eae49Bac07505bB34` | 90/10 Revenue Split |
+| **TemplateRegistry** | `0x1697055bf6d135934F1F533f43eCE8CA469325Ed` | Template metadata |
+| **VarityAppRegistry** | `0xbf9f4849a5508e9f271c30205c1ce924328e5e1c` | App Store submissions |
+| **SimplifiedPaymaster** | `0x579772Bfa5Ec1e8f33B81F304ffDbC55135db154` | Fee sponsorship |
+| **VarityWalletFactory** | `0x23dcca8E063CB0Eea8Ec6e56657c07E11fFa4E78` | Smart accounts |
+
+## Deployment Flow (Technical)
+
+1. **Build** - CLI detects framework and runs build
+2. **Upload** - Files uploaded to secure storage, deployment ID generated
+3. **Register** - App registered via `VarityAppRegistry`
+4. **Paymaster** - Free operations enabled via `SimplifiedPaymaster`
+5. **CDN** - Files propagated to global CDN
+
+</Accordion>
+
+## Next Steps
+
+- [Configure environment variables](/deploy/env-variables)
+- [CLI Reference](/cli/overview)
+- [Quick Start Guide](/getting-started/quickstart)
+- [Troubleshooting](/resources/troubleshooting)

@@ -1,0 +1,266 @@
+---
+title: "Storing Data"
+description: "Create, update, and delete records using the Varity SDK database API. Includes code examples for add, update, and delete operations."
+---
+
+import { Aside } from '@astrojs/starlight/components';
+import Accordion from '../../../../components/Accordion.astro';
+import PageMeta from '../../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="March 2026"
+  stability="stable"
+/>
+
+# Storing Data
+
+Create, update, and delete records using the Varity database API.
+
+## Add a Record
+
+Insert a new record into a collection:
+
+```typescript
+import { db } from '@varity-labs/sdk';
+
+const product = await db.collection('products').add({
+  name: 'T-Shirt',
+  price: 29.99,
+  category: 'apparel',
+  inStock: true,
+});
+
+console.log('Created:', product.id);
+// "550e8400-e29b-41d4-a716-446655440000"
+```
+
+The returned record includes your data plus system fields:
+
+```typescript
+{
+  id: "550e8400-...",       // auto-generated UUID
+  name: "T-Shirt",          // your data
+  price: 29.99,             // your data
+  category: "apparel",      // your data
+  inStock: true,            // your data
+  created_at: "2026-03-01T12:00:00Z",
+  updated_at: "2026-03-01T12:00:00Z",
+}
+```
+
+## Update a Record
+
+Update specific fields of an existing record by its ID:
+
+```typescript
+await db.collection('products').update(product.id, {
+  price: 24.99,
+  inStock: false,
+});
+```
+
+Only the fields you pass are updated. Other fields remain unchanged.
+
+## Delete a Record
+
+Remove a record by its ID:
+
+```typescript
+await db.collection('products').delete(product.id);
+```
+
+## Store Different Data Types
+
+The database accepts any JSON-serializable data:
+
+```typescript
+// User profile
+await db.collection('users').add({
+  name: 'Jane Doe',
+  email: 'jane@example.com',
+  preferences: {
+    theme: 'dark',
+    notifications: true,
+  },
+});
+
+// Order with nested data
+await db.collection('orders').add({
+  customerId: 'user-123',
+  items: [
+    { productId: 'prod-1', quantity: 2, price: 29.99 },
+    { productId: 'prod-2', quantity: 1, price: 49.99 },
+  ],
+  total: 109.97,
+  status: 'pending',
+});
+
+// Application settings
+await db.collection('settings').add({
+  key: 'site-config',
+  siteName: 'My Store',
+  currency: 'USD',
+  features: ['dark-mode', 'analytics', 'notifications'],
+});
+```
+
+## Type-Safe Records
+
+Use TypeScript generics for compile-time safety:
+
+```typescript
+import { db } from '@varity-labs/sdk';
+
+interface Product {
+  name: string;
+  price: number;
+  category: string;
+  inStock: boolean;
+}
+
+const products = db.collection<Product>('products');
+
+// TypeScript enforces the shape
+const item = await products.add({
+  name: 'Widget',
+  price: 29.99,
+  category: 'tools',
+  inStock: true,
+});
+// item.name: string, item.price: number, item.id: string
+```
+
+## Complete CRUD Example
+
+```tsx title="components/ProductManager.tsx"
+import { db } from '@varity-labs/sdk';
+import { useState, useEffect } from 'react';
+
+interface Product {
+  name: string;
+  price: number;
+  inStock: boolean;
+}
+
+export function ProductManager() {
+  const [products, setProducts] = useState<(Product & { id: string })[]>([]);
+  const [name, setName] = useState('');
+  const [price, setPrice] = useState('');
+
+  useEffect(() => {
+    db.collection<Product>('products')
+      .get({ orderBy: '-created_at' })
+      .then(setProducts);
+  }, []);
+
+  const addProduct = async () => {
+    if (!name || !price) return;
+    const product = await db.collection<Product>('products').add({
+      name,
+      price: parseFloat(price),
+      inStock: true,
+    });
+    setProducts(prev => [product, ...prev]);
+    setName('');
+    setPrice('');
+  };
+
+  const toggleStock = async (id: string, currentStock: boolean) => {
+    await db.collection<Product>('products').update(id, {
+      inStock: !currentStock,
+    });
+    setProducts(prev =>
+      prev.map(p => (p.id === id ? { ...p, inStock: !currentStock } : p))
+    );
+  };
+
+  const removeProduct = async (id: string) => {
+    await db.collection<Product>('products').delete(id);
+    setProducts(prev => prev.filter(p => p.id !== id));
+  };
+
+  return (
+    <div>
+      <h2>Product Manager</h2>
+
+      <div>
+        <input value={name} onChange={e => setName(e.target.value)} placeholder="Name" />
+        <input value={price} onChange={e => setPrice(e.target.value)} placeholder="Price" type="number" />
+        <button onClick={addProduct}>Add Product</button>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Price</th>
+            <th>In Stock</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {products.map(product => (
+            <tr key={product.id}>
+              <td>{product.name}</td>
+              <td>${product.price.toFixed(2)}</td>
+              <td>
+                <button onClick={() => toggleStock(product.id, product.inStock)}>
+                  {product.inStock ? 'Yes' : 'No'}
+                </button>
+              </td>
+              <td>
+                <button onClick={() => removeProduct(product.id)}>Delete</button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+```
+
+## Error Handling
+
+Handle storage errors gracefully:
+
+```typescript
+async function safeAdd(collectionName: string, data: any) {
+  try {
+    const record = await db.collection(collectionName).add(data);
+    return { success: true, record };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error(`Failed to save to ${collectionName}:`, message);
+    return { success: false, error: message };
+  }
+}
+
+async function safeUpdate(collectionName: string, id: string, data: any) {
+  try {
+    const record = await db.collection(collectionName).update(id, data);
+    return { success: true, record };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error(`Failed to update ${id} in ${collectionName}:`, message);
+    return { success: false, error: message };
+  }
+}
+```
+
+<Aside type="note">
+**File uploads (images, videos, documents)** are not yet available through the SDK. The current storage API is for structured JSON data. File storage is planned for a future release. In the meantime, you can store file URLs from external services (e.g., Cloudinary, S3) as string fields in your records.
+</Aside>
+
+## Storage Costs
+
+- **Beta**: Free with shared development credentials
+- **Production**: Included with your Varity deployment (provisioned automatically)
+
+## Next Steps
+
+- [Retrieving Data](/build/storage/retrieve) — Query and display records
+- [Data Storage Quick Start](/build/storage/quickstart) — Overview and setup
+- [Payments](/build/payments/quickstart) — Accept payments

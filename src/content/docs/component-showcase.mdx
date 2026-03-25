@@ -1,0 +1,474 @@
+---
+title: Component Showcase
+description: Live examples of all Varity documentation components including CodeBlock, Callout, Tabs, StepHike, Card, and Accordion elements.
+---
+
+import CodeBlock from '../../components/CodeBlock.astro'
+import Callout from '../../components/Callout.astro'
+import Tabs from '../../components/Tabs.astro'
+import TabPanel from '../../components/TabPanel.astro'
+import StepHikeCompact from '../../components/StepHikeCompact.astro'
+import StepHikeCompactStep from '../../components/StepHikeCompactStep.astro'
+import StepHikeCompactDetails from '../../components/StepHikeCompactDetails.astro'
+import StepHikeCompactCode from '../../components/StepHikeCompactCode.astro'
+import Card from '../../components/Card.astro'
+import Accordion from '../../components/Accordion.astro'
+
+# Component Showcase
+
+Visual demonstration of all Supabase-quality UI components available in Varity docs.
+
+---
+
+## 1. CodeBlock Component
+
+Enhanced code blocks with copy buttons and file names.
+
+<CodeBlock
+  lang="typescript"
+  filename="lib/varity.ts"
+  code={`import { db } from '@varity-labs/sdk'
+
+// Query data from a collection
+const documents = await db.collection('documents').get()
+
+console.log('Documents:', documents)
+console.log('Count:', documents.length)`}
+/>
+
+---
+
+## 2. Callout Component
+
+Four semantic types for different message priorities.
+
+<Callout type="tip" title="Pro tip">
+  Use environment variables for all API keys and sensitive configuration.
+  Never commit credentials to Git.
+</Callout>
+
+<Callout type="note">
+  The default RPC endpoint is `https://rpc-varity-testnet.t.conduit.xyz`.
+  You can override this in your Varity SDK configuration.
+</Callout>
+
+<Callout type="warning" title="Breaking change in v2.0">
+  The SDK now uses a modular pattern. Use `db` for database operations
+  and standalone functions for credentials instead of a client instance.
+</Callout>
+
+<Callout type="danger" title="Security warning">
+  Never expose your service role key in client-side code. This key has
+  full access to your Varity project and should only be used in server
+  environments.
+</Callout>
+
+### Collapsible Callout
+
+<Callout type="tip" title="Advanced usage" collapsible={true} defaultOpen={false}>
+  You can pass additional options to customize the database:
+
+  ```typescript
+  import { Database } from '@varity-labs/sdk'
+
+  const customDb = new Database({
+    proxyUrl: 'https://your-proxy.example.com',
+    appToken: 'your-app-token',
+  })
+  ```
+
+  See the [SDK Overview](/packages/sdk/overview) for all options.
+</Callout>
+
+---
+
+## 3. Tabs Component
+
+Multi-language code examples with keyboard navigation.
+
+<Tabs defaultTab="ts" queryGroup="language">
+  <TabPanel id="js" label="JavaScript">
+    ```js
+    // JavaScript example
+    import { db } from '@varity-labs/sdk'
+
+    const users = await db.collection('users').get()
+    console.log('Users:', users)
+    console.log('Count:', users.length)
+    ```
+  </TabPanel>
+
+  <TabPanel id="ts" label="TypeScript">
+    ```typescript
+    // TypeScript example with types
+    import { db } from '@varity-labs/sdk'
+
+    interface User { email: string }
+
+    const users = await db.collection<User>('users').get()
+    console.log('Users:', users)
+    console.log('First user:', users[0]?.email)
+    ```
+  </TabPanel>
+
+  <TabPanel id="py" label="Python">
+    ```python
+    # Python example (CLI)
+    # Use varitykit CLI for Python workflows
+    import subprocess
+
+    result = subprocess.run(
+        ['varitykit', 'app', 'deploy'],
+        capture_output=True, text=True
+    )
+
+    if result.returncode != 0:
+        print(f'Deploy failed: {result.stderr}')
+    else:
+        print(f'Deployed: {result.stdout}')
+    ```
+  </TabPanel>
+</Tabs>
+
+---
+
+## 4. StepHikeCompact Component
+
+Perfect for quickstart guides with 5-6 numbered steps.
+
+<StepHikeCompact>
+  <StepHikeCompactStep step={1}>
+    <StepHikeCompactDetails title="Create a Varity account">
+      Go to [developer.store.varity.so](https://developer.store.varity.so) and sign up for free.
+      No credit card required.
+    </StepHikeCompactDetails>
+  </StepHikeCompactStep>
+
+  <StepHikeCompactStep step={2}>
+    <StepHikeCompactDetails title="Install the Varity CLI">
+      Install `varitykit` globally using pip.
+    </StepHikeCompactDetails>
+    <StepHikeCompactCode>
+      ```bash
+      pip install varitykit
+      ```
+    </StepHikeCompactCode>
+  </StepHikeCompactStep>
+
+  <StepHikeCompactStep step={3}>
+    <StepHikeCompactDetails title="Initialize your project">
+      Run the `init` command to set up your project structure and configuration.
+    </StepHikeCompactDetails>
+    <StepHikeCompactCode>
+      ```bash
+      varitykit init my-app
+      cd my-app
+      ```
+    </StepHikeCompactCode>
+  </StepHikeCompactStep>
+
+  <StepHikeCompactStep step={4}>
+    <StepHikeCompactDetails title="Deploy to Varity">
+      Deploy your app with a single command. Your app will be live in under 2 minutes.
+    </StepHikeCompactDetails>
+    <StepHikeCompactCode>
+      ```bash
+      varitykit app deploy
+      ```
+    </StepHikeCompactCode>
+  </StepHikeCompactStep>
+
+  <StepHikeCompactStep step={5}>
+    <StepHikeCompactDetails title="View your live app">
+      Varity will output your deployment URL. Your app is now live on the Varity platform!
+
+      ```
+      ✓ Deployed: https://my-app.varity.app
+      ✓ Build time: 1m 23s
+      ✓ See pricing at varity.so
+      ```
+    </StepHikeCompactDetails>
+  </StepHikeCompactStep>
+</StepHikeCompact>
+
+---
+
+## 5. Card Component
+
+Feature showcases and navigation grids.
+
+### Basic Cards
+
+<div class="card-grid">
+  <Card
+    icon="🔐"
+    title="End-to-End Encryption"
+    description="Your data is encrypted at rest and in transit with zero-knowledge architecture."
+    href="/build/storage/quickstart"
+    cta="Learn more"
+  />
+
+  <Card
+    icon="⚡"
+    title="Lightning Fast"
+    description="Deploy apps in under 2 minutes with automatic scaling and optimization."
+    href="/deploy/deploy-your-app"
+  />
+
+  <Card
+    icon="💰"
+    title="70% Cheaper"
+    description="Save thousands compared to AWS with transparent, usage-based pricing."
+    href="/build/payments/quickstart"
+  />
+</div>
+
+### Two Column Grid
+
+<div class="card-grid cols-2">
+  <Card
+    icon="🎨"
+    title="UI Components"
+    description="42+ pre-built React components with seamless integration out of the box."
+    href="/packages/ui-kit/components"
+  />
+
+  <Card
+    icon="🔧"
+    title="Developer Tools"
+    description="CLI, SDK, and browser extensions for seamless development workflow."
+    href="/cli/overview"
+  />
+</div>
+
+---
+
+## 6. Accordion Component
+
+Collapsible content for advanced/optional sections.
+
+### Default Variant
+
+<Accordion title="What is Varity L3?">
+  Varity L3 is the infrastructure layer that powers Varity applications.
+  It provides:
+
+  - **Free operations** for users (sponsored by developers)
+  - **Sub-second finality** for fast responses
+  - **Full compatibility** with existing development tools
+  - **Native USDC** as the payment token
+
+  Chain ID: `33529`
+
+  RPC: `https://rpc-varity-testnet-rroe52pwjp.t.conduit.xyz`
+</Accordion>
+
+### Advanced Variant (Layer 2 Content)
+
+<Accordion title="Advanced: How smart accounts work" variant="advanced">
+  Varity uses ERC-4337 Account Abstraction for smart accounts. When you create
+  an account:
+
+  1. **Factory** creates a new smart account at a deterministic address
+  2. **Session keys** enable free operations for specific actions
+  3. **Paymaster** (`0x579772Bfa5Ec1e8f33B81F304ffDbC55135db154`) sponsors usage fees
+  4. **User operations** are bundled and executed efficiently
+
+  Smart accounts are created automatically when a user signs in.
+  Varity handles all the complexity behind the scenes -- developers just use
+  the `usePrivy` hook from `@varity-labs/ui-kit`.
+
+  [Learn more about smart accounts](/build/wallets/quickstart)
+</Accordion>
+
+### Example Variant
+
+<Accordion title="Example: Complete authentication flow" variant="example" defaultOpen={true}>
+  Here's a complete example showing login, user state, and logout:
+
+  ```tsx
+  import { PrivyStack, PrivyLoginButton, usePrivy } from '@varity-labs/ui-kit'
+
+  // Set up auth provider
+  function App() {
+    return (
+      <PrivyStack appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID}>
+        <AuthExample />
+      </PrivyStack>
+    )
+  }
+
+  // Use the auth hook for state
+  function AuthExample() {
+    const { ready, authenticated, user, logout } = usePrivy()
+
+    if (!ready) return <p>Loading...</p>
+
+    if (!authenticated) {
+      return <PrivyLoginButton />
+    }
+
+    return (
+      <div>
+        <p>Logged in as: {user?.email?.address}</p>
+        <button onClick={logout}>Log out</button>
+      </div>
+    )
+  }
+  ```
+</Accordion>
+
+---
+
+## Utility Classes
+
+### Badges
+
+<div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 1.5rem 0;">
+  <span class="badge badge-new">New</span>
+  <span class="badge badge-beta">Beta</span>
+  <span class="badge badge-soon">Coming Soon</span>
+  <span class="badge badge-advanced">Advanced</span>
+  <span class="badge badge-deprecated">Deprecated</span>
+</div>
+
+### Status Indicators
+
+<div style="display: flex; flex-direction: column; gap: 1rem; margin: 1.5rem 0;">
+  <div class="status status-online">
+    <span class="status-dot"></span>
+    <span>Varity L3: Operational</span>
+  </div>
+
+  <div class="status status-warning">
+    <span class="status-dot"></span>
+    <span>Maintenance scheduled: Jan 31, 2026</span>
+  </div>
+
+  <div class="status status-error">
+    <span class="status-dot"></span>
+    <span>Deployment failed</span>
+  </div>
+
+  <div class="status status-offline">
+    <span class="status-dot"></span>
+    <span>Service unavailable</span>
+  </div>
+</div>
+
+---
+
+## API Documentation Card
+
+<div class="api-card">
+  <div class="api-card-header">
+    <code class="api-card-method">db.collection(name).get()</code>
+    <span class="api-card-badge">async</span>
+  </div>
+  <p class="api-card-description">
+    Query all documents in a collection. Returns an array of documents.
+  </p>
+</div>
+
+---
+
+## Combining Components
+
+Here's how components work together in a real docs page:
+
+<Callout type="tip">
+  This example shows the recommended pattern for quickstart pages.
+</Callout>
+
+<Tabs defaultTab="nextjs">
+  <TabPanel id="nextjs" label="Next.js">
+    <StepHikeCompact>
+      <StepHikeCompactStep step={1}>
+        <StepHikeCompactDetails title="Create Next.js app">
+          Create a new Next.js application.
+        </StepHikeCompactDetails>
+        <StepHikeCompactCode>
+          ```bash
+          npx create-next-app@latest my-varity-app
+          cd my-varity-app
+          ```
+        </StepHikeCompactCode>
+      </StepHikeCompactStep>
+
+      <StepHikeCompactStep step={2}>
+        <StepHikeCompactDetails title="Install dependencies">
+          Add Varity SDK and UI components.
+        </StepHikeCompactDetails>
+        <StepHikeCompactCode>
+          ```bash
+          npm install @varity-labs/sdk @varity-labs/ui-kit
+          ```
+        </StepHikeCompactCode>
+      </StepHikeCompactStep>
+    </StepHikeCompact>
+  </TabPanel>
+
+  <TabPanel id="react" label="React">
+    <StepHikeCompact>
+      <StepHikeCompactStep step={1}>
+        <StepHikeCompactDetails title="Create React app">
+          Create a new React application.
+        </StepHikeCompactDetails>
+        <StepHikeCompactCode>
+          ```bash
+          npx create-react-app my-varity-app
+          cd my-varity-app
+          ```
+        </StepHikeCompactCode>
+      </StepHikeCompactStep>
+
+      <StepHikeCompactStep step={2}>
+        <StepHikeCompactDetails title="Install dependencies">
+          Add Varity SDK and UI components.
+        </StepHikeCompactDetails>
+        <StepHikeCompactCode>
+          ```bash
+          npm install @varity-labs/sdk @varity-labs/ui-kit
+          ```
+        </StepHikeCompactCode>
+      </StepHikeCompactStep>
+    </StepHikeCompact>
+  </TabPanel>
+</Tabs>
+
+<Accordion title="Advanced: Custom database configuration" variant="advanced">
+  For production deployments, you may want to customize the database configuration:
+
+  ```typescript
+  import { Database } from '@varity-labs/sdk'
+
+  const customDb = new Database({
+    proxyUrl: 'https://your-proxy.example.com',
+    appToken: 'your-app-token',
+  })
+
+  // Use the custom database instance
+  const users = customDb.collection('users')
+  const result = await users.get({ limit: 10 })
+  ```
+</Accordion>
+
+---
+
+## Next Steps
+
+<div class="card-grid">
+  <Card
+    icon="📚"
+    title="Read Component Documentation"
+    description="Learn how to use each component in your docs pages."
+    href="/packages/ui-kit/overview"
+  />
+
+  <Card
+    icon="✍️"
+    title="Start Writing Content"
+    description="Use these components to create world-class documentation."
+    href="/getting-started/quickstart"
+  />
+</div>

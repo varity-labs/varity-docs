@@ -1,0 +1,140 @@
+---
+title: Credit Card Payments
+description: Accept credit card, Apple Pay, and Google Pay payments through the Varity App Store. 90/10 revenue split with automatic payouts.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+import PageMeta from '../../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="March 2026"
+  stability="beta"
+/>
+
+# Credit Card Payments
+
+Let users pay for your app using credit cards, Apple Pay, or Google Pay through the Varity App Store.
+
+<Aside type="caution" title="Beta Limitation">
+Credit card payments are not available during beta (development environment). Apps can use the free tier. Paid tiers with credit card support will be available after production launch.
+</Aside>
+
+## How It Works
+
+1. User finds your app in the Varity App Store
+2. User clicks "Purchase" or "Subscribe"
+3. Secure checkout opens with familiar payment options
+4. Payment is processed automatically
+5. Revenue is split 90/10 (you keep 90%)
+
+Users never need special accounts or knowledge. They just pay with their card.
+
+## Setting Up Pricing
+
+Configure your app pricing in the [Developer Portal](https://developer.store.varity.so):
+
+| Pricing Model | Description |
+|---------------|-------------|
+| **Free** | No charge. Great for building an audience. |
+| **One-time** | Single purchase. User gets lifetime access. |
+| **Subscription** | Monthly recurring payment. |
+
+## In-App Payments (Post-Beta)
+
+Once credit card payments are available, add payment components directly in your app:
+
+```tsx title="components/UpgradeButton.tsx"
+import { PaymentWidget } from '@varity-labs/ui-kit';
+import { usePrivy } from '@varity-labs/ui-kit';
+
+export function UpgradeButton() {
+  const { user } = usePrivy();
+
+  if (!user) {
+    return <p>Please log in to upgrade</p>;
+  }
+
+  return (
+    <PaymentWidget
+      appId={123}
+      price={5000}
+      onSuccess={(txHash) => {
+        console.log('Upgrade complete!', txHash);
+      }}
+      onError={(err) => console.error('Payment failed:', err)}
+    >
+      <button>Upgrade to Pro - $50.00</button>
+    </PaymentWidget>
+  );
+}
+```
+
+## Full Checkout Page (Post-Beta)
+
+For a complete payment experience:
+
+```tsx title="pages/checkout.tsx"
+import { PaymentGate } from '@varity-labs/ui-kit';
+import { usePrivy } from '@varity-labs/ui-kit';
+import { useRouter } from 'next/navigation';
+
+export default function CheckoutPage() {
+  const { user, authenticated } = usePrivy();
+  const router = useRouter();
+
+  if (!authenticated) {
+    router.push('/login');
+    return null;
+  }
+
+  return (
+    <div className="max-w-md mx-auto py-8">
+      <h1 className="text-2xl font-bold mb-6">Upgrade Your Plan</h1>
+
+      <PaymentGate
+        appId={123}
+        price={10000}
+        fallback={
+          <div>
+            <p>Upgrade to Business for $100.00/month</p>
+            <p>Get access to premium features.</p>
+          </div>
+        }
+      >
+        <div>
+          <h2>Welcome, Business member!</h2>
+          <p>You have full access to all premium features.</p>
+        </div>
+      </PaymentGate>
+    </div>
+  );
+}
+```
+
+## Payment Methods (Post-Beta)
+
+| Method | Availability |
+|--------|--------------|
+| Credit/Debit Card | All users |
+| Apple Pay | iOS/macOS users |
+| Google Pay | Android/Chrome users |
+
+## Revenue Split
+
+When users purchase your app:
+
+- **90/10 split** — you keep 90%
+- **10%** goes to the Varity platform
+
+Revenue is tracked in the [Developer Portal](https://developer.store.varity.so).
+
+<Aside type="tip">
+**No setup needed for payments** - The Varity App Store handles all payment processing, compliance, and payouts. You just set your price.
+</Aside>
+
+## Next Steps
+
+- [Free Operations](/build/payments/gasless) - Users never pay usage fees
+- [Authentication Quick Start](/build/auth/quickstart) - Set up user accounts

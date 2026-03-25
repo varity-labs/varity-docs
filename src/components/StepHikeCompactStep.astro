@@ -1,0 +1,76 @@
+---
+/**
+ * StepHikeCompact.Step Component
+ *
+ * Individual step in a StepHikeCompact guide.
+ * Shows numbered badge with content.
+ */
+
+interface Props {
+  step: number
+}
+
+const { step } = Astro.props
+---
+
+<div class="step-item" data-step={step}>
+  <div class="step-marker">
+    <span class="step-number">{step}</span>
+  </div>
+  <div class="step-content">
+    <slot />
+  </div>
+</div>
+
+<style>
+  .step-item {
+    display: flex;
+    gap: var(--space-4);
+    position: relative;
+  }
+
+  .step-item:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: 1rem;
+    top: 2.5rem;
+    bottom: calc(-1 * var(--space-6));
+    width: 2px;
+    background: var(--border-secondary);
+    z-index: 0;
+  }
+
+  .step-marker {
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+  }
+
+  .step-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    background: var(--sl-color-bg);
+    border: 2px solid var(--color-brand);
+    border-radius: 50%;
+    color: var(--color-brand);
+    font-weight: var(--font-bold);
+    font-size: 0.875rem;
+  }
+
+  .step-content {
+    flex: 1;
+    min-width: 0;
+    padding-top: 0.125rem;
+  }
+
+  .step-content > :first-child {
+    margin-top: 0;
+  }
+
+  .step-content > :last-child {
+    margin-bottom: 0;
+  }
+</style>

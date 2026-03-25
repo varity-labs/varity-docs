@@ -1,0 +1,372 @@
+---
+title: "Hooks Reference"
+description: "API reference for all @varity-labs/ui-kit React hooks including usePrivy, useTheme, useToast, and authentication state management."
+---
+
+import Accordion from '../../../../components/Accordion.astro';
+import PageMeta from '../../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="March 2026"
+  stability="stable"
+/>
+
+All React hooks exported by `@varity-labs/ui-kit`. Every hook listed here is verified as an active export from the package.
+
+## Quick Reference
+
+| Hook | Category | Provider Required |
+|------|----------|-------------------|
+| `useToast` | Feedback | `<ToastProvider>` |
+| `useTheme` | Branding | `<ThemeProvider>` |
+| `useVarityPayment` | Payments | None (uses thirdweb internally) |
+| `usePrivy` | Authentication | `<VarityPrivyProvider>` |
+| `useLogin` | Authentication | `<VarityPrivyProvider>` |
+| `useLogout` | Authentication | `<VarityPrivyProvider>` |
+| `useWallets` | Authentication | `<VarityPrivyProvider>` |
+
+---
+
+## Feedback
+
+### useToast
+
+Display toast notifications. Requires `<ToastProvider>` in your component tree.
+
+```tsx
+import { useToast, ToastProvider } from '@varity-labs/ui-kit';
+
+// Wrap your app with ToastProvider
+function App() {
+  return (
+    <ToastProvider>
+      <MyComponent />
+    </ToastProvider>
+  );
+}
+
+// Use the hook anywhere inside the provider
+function MyComponent() {
+  const toast = useToast();
+
+  const handleSave = async () => {
+    try {
+      await saveData();
+      toast.success('Changes saved successfully');
+    } catch (err) {
+      toast.error('Failed to save changes');
+    }
+  };
+
+  return (
+    <div>
+      <button onClick={handleSave}>Save</button>
+      <button onClick={() => toast.info('Processing your request...')}>
+        Process
+      </button>
+    </div>
+  );
+}
+```
+
+**Returns:** `ToastContextValue`
+
+| Method | Type | Description |
+|--------|------|-------------|
+| `success` | `(message: string) => void` | Show a success toast (green) |
+| `error` | `(message: string) => void` | Show an error toast (red) |
+| `info` | `(message: string) => void` | Show an info toast (blue) |
+
+Toasts auto-dismiss after a few seconds. A maximum of 3 toasts are visible at once.
+
+> Throws an error if used outside of `<ToastProvider>`.
+
+---
+
+## Branding
+
+### useTheme
+
+Access the current theme configuration. Requires `<ThemeProvider>` in your component tree.
+
+```tsx
+import { useTheme, ThemeProvider } from '@varity-labs/ui-kit';
+
+// Wrap your app with ThemeProvider
+function App() {
+  return (
+    <ThemeProvider theme={{ primaryColor: '#6a1b9a' }}>
+      <Dashboard />
+    </ThemeProvider>
+  );
+}
+
+// Access theme values anywhere inside the provider
+function Dashboard() {
+  const theme = useTheme();
+
+  return (
+    <div style={{
+      color: theme.text?.primary,
+      backgroundColor: theme.background?.primary,
+      fontFamily: theme.fontFamily,
+      borderRadius: theme.borderRadius,
+    }}>
+      <h1 style={{ color: theme.primaryColor }}>My Dashboard</h1>
+      <p style={{ color: theme.text?.secondary }}>Welcome back</p>
+    </div>
+  );
+}
+```
+
+**Returns:** `VarityTheme`
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `primaryColor` | `string` | Primary brand color |
+| `primaryDark` | `string?` | Darker variant of primary |
+| `accentColor` | `string?` | Accent color |
+| `successColor` | `string?` | Success state color |
+| `warningColor` | `string?` | Warning state color |
+| `errorColor` | `string?` | Error state color |
+| `background` | `object?` | Background colors (`primary`, `secondary`, `card`, `header`, `sidebar`, `footer`) |
+| `text` | `object?` | Text colors (`primary`, `secondary`) |
+| `borderColor` | `string?` | Border color |
+| `fontFamily` | `string?` | Font family |
+| `borderRadius` | `string?` | Border radius |
+
+The `ThemeProvider` merges your theme with the default theme, so you only need to override the values you want to change. It also sets CSS custom properties (e.g., `--varity-primary-color`) on the document root.
+
+**Built-in theme presets** are available via the `themePresets` export:
+
+```tsx
+import { ThemeProvider, themePresets } from '@varity-labs/ui-kit';
+
+// Use a preset: finance, healthcare, retail, or tech
+<ThemeProvider theme={themePresets.finance}>
+  <App />
+</ThemeProvider>
+```
+
+> Throws an error if used outside of `<ThemeProvider>`.
+
+---
+
+## Payments
+
+### useVarityPayment
+
+Manage app purchase state with the 90/10 revenue split. Checks whether the current user has purchased an app and provides a `purchase` function.
+
+```tsx
+import { useVarityPayment } from '@varity-labs/ui-kit';
+
+function PremiumFeature({ appId }: { appId: number }) {
+  const {
+    hasPurchased,
+    isLoading,
+    isPurchasing,
+    error,
+    pricing,
+    purchase,
+    refresh,
+  } = useVarityPayment({ appId });
+
+  if (isLoading) return <div>Checking access...</div>;
+
+  if (!hasPurchased) {
+    return (
+      <div>
+        {pricing && (
+          <p>Price: ${Number(pricing.priceUsdc) / 1_000_000}</p>
+        )}
+        <button onClick={purchase} disabled={isPurchasing}>
+          {isPurchasing ? 'Processing...' : 'Buy Now'}
+        </button>
+        {error && <p style={{ color: 'red' }}>{error}</p>}
+      </div>
+    );
+  }
+
+  return <div>Premium content here</div>;
+}
+```
+
+**Options:** `UseVarityPaymentOptions`
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `appId` | `number` | required | App ID from the Varity App Registry |
+| `autoFetch` | `boolean` | `true` | Auto-fetch pricing on mount |
+
+**Returns:** `UseVarityPaymentReturn`
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `hasPurchased` | `boolean` | Whether the current user has purchased this app |
+| `isLoading` | `boolean` | Loading state for the purchase check |
+| `isPurchasing` | `boolean` | Whether a purchase transaction is in progress |
+| `error` | `string \| null` | Error message if something failed |
+| `pricing` | `AppPricing \| null` | App pricing info (price, developer, subscription status) |
+| `purchase` | `() => Promise<string \| null>` | Trigger a purchase; returns transaction hash or null |
+| `refresh` | `() => Promise<void>` | Re-fetch pricing and purchase status |
+
+> For a simpler integration, consider using the `<PaymentGate>` or `<PaymentWidget>` components instead, which use this hook internally.
+
+---
+
+## Authentication Hooks
+
+These hooks are re-exported from the auth library. They require `<VarityPrivyProvider>` in your component tree.
+
+### usePrivy
+
+Core authentication hook. Provides login state, user profile, and auth actions.
+
+```tsx
+import { usePrivy } from '@varity-labs/ui-kit';
+
+function MyComponent() {
+  const {
+    ready,          // boolean - Auth has initialized
+    authenticated,  // boolean - User is logged in
+    user,           // User object or null
+    login,          // () => void - Open login modal
+    logout,         // () => Promise<void> - Log out
+  } = usePrivy();
+
+  if (!ready) return <div>Loading...</div>;
+
+  if (!authenticated) {
+    return <button onClick={login}>Sign In</button>;
+  }
+
+  return (
+    <div>
+      <p>Welcome, {user?.email?.address}</p>
+      <button onClick={logout}>Sign Out</button>
+    </div>
+  );
+}
+```
+
+**Returns:**
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `ready` | `boolean` | Auth has finished initializing |
+| `authenticated` | `boolean` | User is logged in |
+| `user` | `User \| null` | User object with profile data |
+| `login` | `() => void` | Opens the login modal |
+| `logout` | `() => Promise<void>` | Logs the user out |
+
+### useLogin / useLogout
+
+Programmatic login and logout with callbacks.
+
+```tsx
+import { useLogin, useLogout } from '@varity-labs/ui-kit';
+
+function AuthControls() {
+  const { login } = useLogin({
+    onComplete: (user) => console.log('Logged in:', user),
+    onError: (error) => console.error('Login failed:', error),
+  });
+
+  const { logout } = useLogout({
+    onSuccess: () => console.log('Logged out'),
+  });
+
+  return (
+    <>
+      <button onClick={login}>Sign In</button>
+      <button onClick={logout}>Sign Out</button>
+    </>
+  );
+}
+```
+
+### useWallets
+
+Access all connected accounts. Most apps will not need this hook directly — `usePrivy` provides the user profile for typical authentication flows.
+
+```tsx
+import { useWallets } from '@varity-labs/ui-kit';
+
+function AccountList() {
+  const { wallets, ready } = useWallets();
+
+  if (!ready) return <div>Loading accounts...</div>;
+
+  return (
+    <ul>
+      {wallets.map((wallet) => (
+        <li key={wallet.address}>
+          {wallet.walletClientType}: {wallet.address}
+        </li>
+      ))}
+    </ul>
+  );
+}
+```
+
+---
+
+## Complete Example
+
+```tsx
+import {
+  usePrivy,
+  useToast,
+  useTheme,
+  ToastProvider,
+  ThemeProvider,
+  VarityPrivyProvider,
+} from '@varity-labs/ui-kit';
+
+// App setup with all required providers
+function App() {
+  return (
+    <VarityPrivyProvider appId="your-privy-app-id">
+      <ThemeProvider theme={{ primaryColor: '#1976d2' }}>
+        <ToastProvider>
+          <Dashboard />
+        </ToastProvider>
+      </ThemeProvider>
+    </VarityPrivyProvider>
+  );
+}
+
+// Dashboard using all hooks
+function Dashboard() {
+  const { user, authenticated, logout } = usePrivy();
+  const toast = useToast();
+  const theme = useTheme();
+
+  if (!authenticated) {
+    return <p>Please sign in</p>;
+  }
+
+  const handleAction = () => {
+    toast.success('Action completed!');
+  };
+
+  return (
+    <div style={{ color: theme.text?.primary }}>
+      <h1 style={{ color: theme.primaryColor }}>
+        Welcome, {user?.email?.address}
+      </h1>
+      <button onClick={handleAction}>Do Something</button>
+      <button onClick={logout}>Sign Out</button>
+    </div>
+  );
+}
+```
+
+## Next Steps
+
+- [Components Reference](/packages/ui-kit/components) -- All components
+- [Authentication Guide](/build/auth/quickstart) -- Complete auth setup
+- [Payments Guide](/build/payments/quickstart) -- Accept payments

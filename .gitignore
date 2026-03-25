@@ -1,0 +1,47 @@
+# Build output
+dist/
+.astro/
+
+# Dependencies
+node_modules/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor directories
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+
+# Cache
+.cache/
+.turbo/
+.parcel-cache/
+
+# Test outputs
+tests/reports/
+tests/.sdk-test-env/
+tests/.tmp-ts-check/
+coverage/
+
+# TypeScript
+*.tsbuildinfo

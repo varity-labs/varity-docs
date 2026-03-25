@@ -1,0 +1,1446 @@
+---
+title: "Components Reference"
+description: "Full API reference for @varity-labs/ui-kit React components: Button, Card, DataTable, Modal, Toast, PrivyStack, and 20+ more."
+---
+
+import { Aside } from '@astrojs/starlight/components';
+import PageMeta from '../../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="March 2026"
+  stability="stable"
+/>
+
+All React components exported by `@varity-labs/ui-kit`. Every import uses:
+
+```tsx
+import { ComponentName } from '@varity-labs/ui-kit';
+```
+
+---
+
+## Providers
+
+### PrivyStack
+
+All-in-one provider that sets up authentication and account management. Wrap your app with this once.
+
+```tsx
+import { PrivyStack } from '@varity-labs/ui-kit';
+
+<PrivyStack
+  appId="your-privy-app-id"
+  loginMethods={['email', 'google', 'wallet']}
+  appearance={{
+    theme: 'light',
+    accentColor: '#2563EB',
+    logo: '/logo.png',
+  }}
+>
+  {children}
+</PrivyStack>
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `appId` | `string` | Dev default | Auth App ID |
+| `thirdwebClientId` | `string` | Dev default | Thirdweb Client ID |
+| `loginMethods` | `string[]` | `['email', 'google', 'wallet']` | Login options |
+| `appearance` | `{ theme, accentColor, logo }` | Light theme | UI customization |
+| `onAddressChange` | `(address: string \| null) => void` | - | Account address callback |
+| `children` | `ReactNode` | Required | App content |
+
+### VarityDashboardProvider
+
+Full-featured provider for dashboards. Includes authentication, React Query, and account sync.
+
+```tsx
+import { VarityDashboardProvider } from '@varity-labs/ui-kit';
+
+<VarityDashboardProvider
+  privyAppId={process.env.NEXT_PUBLIC_PRIVY_APP_ID}
+  appearance={{ theme: 'light', logo: '/logo.png' }}
+>
+  <Dashboard />
+</VarityDashboardProvider>
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `privyAppId` | `string` | env var | Auth App ID |
+| `thirdwebClientId` | `string` | env var | Thirdweb Client ID |
+| `appearance` | `{ theme, accentColor, logo }` | - | UI customization |
+| `loginMethods` | `string[]` | `['email', 'google', 'wallet']` | Login options |
+| `children` | `ReactNode` | Required | App content |
+
+### VarityPrivyProvider
+
+Lower-level auth wrapper. Most apps should use `PrivyStack` instead.
+
+```tsx
+import { VarityPrivyProvider } from '@varity-labs/ui-kit';
+
+<VarityPrivyProvider appId="your-privy-app-id">
+  {children}
+</VarityPrivyProvider>
+```
+
+### ThemeProvider
+
+Provides theme configuration throughout the component tree via CSS variables.
+
+```tsx
+import { ThemeProvider, defaultTheme, themePresets } from '@varity-labs/ui-kit';
+
+<ThemeProvider theme={{
+  ...defaultTheme,
+  primaryColor: '#6a1b9a',
+  accentColor: '#00bcd4',
+}}>
+  <App />
+</ThemeProvider>
+
+// Or use a preset
+<ThemeProvider theme={themePresets.finance}>
+  <App />
+</ThemeProvider>
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `theme` | `VarityTheme` | Required | Theme configuration |
+| `children` | `ReactNode` | Required | App content |
+
+Available presets: `themePresets.finance`, `themePresets.healthcare`, `themePresets.retail`, `themePresets.tech`.
+
+### ToastProvider
+
+Provides toast notification context. Wrap your app with this to enable `useToast()`.
+
+```tsx
+import { ToastProvider, useToast } from '@varity-labs/ui-kit';
+
+// In your root layout
+<ToastProvider>{children}</ToastProvider>
+
+// In any child component
+function SaveButton() {
+  const toast = useToast();
+  return (
+    <button onClick={() => toast.success('Saved!')}>Save</button>
+  );
+}
+```
+
+`useToast()` returns `{ success, error, info }` -- each takes a message string.
+
+---
+
+## Authentication Components
+
+### PrivyLoginButton
+
+Pre-built login button that opens the authentication modal.
+
+```tsx
+import { PrivyLoginButton } from '@varity-labs/ui-kit';
+
+<PrivyLoginButton />
+
+<PrivyLoginButton
+  onSuccess={() => router.push('/dashboard')}
+  onError={(error) => console.error(error)}
+  className="btn-primary"
+>
+  Sign In to Continue
+</PrivyLoginButton>
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `children` | `ReactNode` | "Sign In" | Button text |
+| `onSuccess` | `function` | - | Called on successful login |
+| `onError` | `function` | - | Called on login error |
+| `className` | `string` | - | CSS class name |
+
+### PrivyUserProfile
+
+Displays user information with optional logout button.
+
+```tsx
+import { PrivyUserProfile } from '@varity-labs/ui-kit';
+
+<PrivyUserProfile showLogoutButton />
+
+<PrivyUserProfile
+  showLogoutButton
+  onLogout={() => router.push('/')}
+/>
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `showLogoutButton` | `boolean` | `false` | Show logout button |
+| `onLogout` | `function` | - | Custom logout handler |
+| `className` | `string` | - | CSS class name |
+
+### PrivyProtectedRoute
+
+Shows content only to authenticated users.
+
+```tsx
+import { PrivyProtectedRoute } from '@varity-labs/ui-kit';
+
+<PrivyProtectedRoute>
+  <Dashboard />
+</PrivyProtectedRoute>
+
+<PrivyProtectedRoute
+  fallback={<CustomLoginPage />}
+  loadingComponent={<CustomSpinner />}
+>
+  <Dashboard />
+</PrivyProtectedRoute>
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `children` | `ReactNode` | - | Protected content |
+| `fallback` | `ReactNode` | Login prompt | Shown when not authenticated |
+| `loadingComponent` | `ReactNode` | Spinner | Shown while loading |
+
+### PrivyReadyGate
+
+Prevents a blank screen during auth initialization (5-15 seconds).
+
+```tsx
+import { PrivyReadyGate } from '@varity-labs/ui-kit';
+
+<PrivyReadyGate
+  timeout={10000}
+  initializingScreen={<SplashScreen />}
+  timeoutScreen={<ConnectionError />}
+>
+  {children}
+</PrivyReadyGate>
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `timeout` | `number` | `10000` | Timeout in milliseconds |
+| `initializingScreen` | `ReactNode` | Loading spinner | Shown during init |
+| `timeoutScreen` | `ReactNode` | Error message | Shown on timeout |
+
+### Re-exported Auth Hooks
+
+For convenience, these authentication hooks are re-exported from `@varity-labs/ui-kit`:
+
+```tsx
+import { usePrivy, useWallets, useLogin, useLogout } from '@varity-labs/ui-kit';
+
+const { authenticated, user, ready } = usePrivy();
+```
+
+---
+
+## Payment Components
+
+:::caution[Beta Limitation]
+Credit card payments are not available during beta. Apps can use the free tier. Paid tiers with credit card support will be available after production launch.
+:::
+
+### PaymentWidget
+
+In-app payment widget for purchases and upgrades (available post-beta). Wrap any trigger element as a child.
+
+```tsx
+import { PaymentWidget } from '@varity-labs/ui-kit';
+
+<PaymentWidget
+  appId={123}
+  price={999}
+  onSuccess={(txHash) => console.log('Purchased!', txHash)}
+  onError={(err) => console.error('Payment failed:', err)}
+>
+  <button>Buy for $9.99</button>
+</PaymentWidget>
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `appId` | `number` | Required | Varity App ID |
+| `price` | `number` | - | Price in cents (e.g., 999 = $9.99) |
+| `type` | `'one-time' \| 'subscription'` | - | Payment type |
+| `intervalDays` | `number` | `30` | Subscription interval in days |
+| `onSuccess` | `(txHash: string) => void` | - | Called with transaction hash on success |
+| `onCancel` | `() => void` | - | Called when user cancels |
+| `onError` | `(error: Error) => void` | - | Called on payment error |
+| `theme` | `'light' \| 'dark'` | - | Color theme |
+| `className` | `string` | - | CSS class name |
+| `children` | `ReactNode` | Required | Trigger element |
+| `disabled` | `boolean` | - | Disable the widget |
+
+### PaymentGate
+
+Content gate that shows premium content after purchase. Shows `fallback` when not purchased, shows `children` after purchase (available post-beta).
+
+```tsx
+import { PaymentGate } from '@varity-labs/ui-kit';
+
+<PaymentGate
+  appId={123}
+  price={999}
+  fallback={<p>Purchase to unlock premium content.</p>}
+>
+  <div>This content is only visible after purchase.</div>
+</PaymentGate>
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `appId` | `number` | Required | Varity App ID |
+| `price` | `number` | - | Price in cents (e.g., 999 = $9.99) |
+| `fallback` | `ReactNode` | Required | Content shown when not purchased |
+| `children` | `ReactNode` | Required | Premium content shown after purchase |
+| `theme` | `'light' \| 'dark'` | - | Color theme |
+| `className` | `string` | - | CSS class name |
+
+### useVarityPayment
+
+Hook for programmatic payment interactions.
+
+```tsx
+import { useVarityPayment } from '@varity-labs/ui-kit';
+
+const { hasPurchased, purchase, isLoading, isPurchasing, pricing } = useVarityPayment({ appId: 123 });
+```
+
+| Return Value | Type | Description |
+|------|------|-------------|
+| `hasPurchased` | `boolean` | Whether the user has purchased |
+| `isLoading` | `boolean` | Loading purchase status |
+| `isPurchasing` | `boolean` | Purchase in progress |
+| `error` | `string \| null` | Error message if any |
+| `pricing` | `AppPricing \| null` | App pricing information |
+| `purchase` | `() => Promise<string \| null>` | Initiate a purchase, returns tx hash |
+| `refresh` | `() => Promise<void>` | Refresh purchase status |
+
+---
+
+## Dashboard Components
+
+### DashboardLayout
+
+Main layout wrapper with sidebar, header, footer, and content area.
+
+```tsx
+import { DashboardLayout } from '@varity-labs/ui-kit';
+
+<DashboardLayout
+  companyName="Acme Corp"
+  logoUrl="/logo.png"
+  user={{ name: 'Jane Doe', address: 'jane@acme.com' }}
+  navigationItems={[
+    { label: 'Dashboard', icon: 'dashboard', path: '/' },
+    { label: 'Analytics', icon: 'analytics', path: '/analytics' },
+    { label: 'Settings', icon: 'settings', path: '/settings' },
+  ]}
+  onNavigate={(path) => router.push(path)}
+  onLogout={() => logout()}
+>
+  <YourContent />
+</DashboardLayout>
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `children` | `ReactNode` | Required | Main content |
+| `showSidebar` | `boolean` | `true` | Show sidebar |
+| `showHeader` | `boolean` | `true` | Show header |
+| `showFooter` | `boolean` | `true` | Show footer |
+| `sidebarWidth` | `number` | `240` | Sidebar width in px |
+| `headerHeight` | `number` | `64` | Header height in px |
+| `logoUrl` | `string` | - | Company logo URL |
+| `companyName` | `string` | - | Company name |
+| `navigationItems` | `NavigationItem[]` | `[]` | Sidebar nav items |
+| `user` | `UserInfo` | - | User info for header |
+| `onLogout` | `() => void` | - | Logout callback |
+| `onNavigate` | `(path: string) => void` | - | Navigation callback |
+| `onSearchClick` | `() => void` | - | Header search callback |
+| `searchPlaceholder` | `string` | - | Search input placeholder |
+
+`NavigationItem`: `{ label, icon?, path, active?, children? }`
+
+`UserInfo`: `{ name, address, avatarUrl? }`
+
+### DashboardHeader
+
+Top navigation bar with user menu, notifications, and search.
+
+```tsx
+import { DashboardHeader } from '@varity-labs/ui-kit';
+
+<DashboardHeader
+  user={{ name: 'Jane', address: 'jane@acme.com' }}
+  onLogout={() => logout()}
+  onSearchClick={() => setShowPalette(true)}
+  showNotifications
+  notificationCount={3}
+/>
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `height` | `number` | `64` | Header height in px |
+| `user` | `UserInfo` | - | User info |
+| `onLogout` | `() => void` | - | Logout callback |
+| `showNotifications` | `boolean` | `true` | Show notification icon |
+| `notificationCount` | `number` | `0` | Unread count |
+| `onSearchClick` | `() => void` | - | Search bar click |
+| `searchPlaceholder` | `string` | `'Search...'` | Search placeholder |
+
+### DashboardSidebar
+
+Fixed sidebar with collapsible navigation items.
+
+```tsx
+import { DashboardSidebar } from '@varity-labs/ui-kit';
+
+<DashboardSidebar
+  companyName="Acme Corp"
+  logoUrl="/logo.png"
+  navigationItems={navItems}
+  onNavigate={(path) => router.push(path)}
+  collapsed={false}
+/>
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `width` | `number` | `240` | Sidebar width in px |
+| `logoUrl` | `string` | - | Company logo URL |
+| `companyName` | `string` | `'Dashboard'` | Company name |
+| `navigationItems` | `NavigationItem[]` | `[]` | Nav items |
+| `onNavigate` | `(path: string) => void` | - | Navigation callback |
+| `collapsed` | `boolean` | `false` | Collapsed mode |
+
+### DashboardFooter
+
+Footer with company info, links, and required Varity attribution.
+
+```tsx
+import { DashboardFooter } from '@varity-labs/ui-kit';
+
+<DashboardFooter
+  companyName="Acme Corp"
+  links={[
+    { label: 'Privacy', url: '/privacy' },
+    { label: 'Docs', url: 'https://docs.acme.com', external: true },
+  ]}
+/>
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `companyName` | `string` | - | Company name |
+| `showAttribution` | `boolean` | `true` | Varity attribution (required) |
+| `links` | `FooterLink[]` | `[]` | Additional links |
+
+`FooterLink`: `{ label, url, external? }`
+
+### KPICard
+
+Display key performance indicator metrics with trend indicators.
+
+```tsx
+import { KPICard } from '@varity-labs/ui-kit';
+
+<KPICard
+  title="Revenue"
+  value="$12,345"
+  trend="up"
+  trendValue="+12%"
+  variant="default"
+  size="md"
+/>
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `title` | `string` | Required | Card title |
+| `value` | `string \| number` | Required | Main value |
+| `subtitle` | `string` | - | Description below value |
+| `icon` | `ReactNode` | - | Icon element |
+| `trend` | `'up' \| 'down' \| 'neutral'` | - | Trend direction |
+| `trendValue` | `string` | - | Trend text (e.g. "+12%") |
+| `loading` | `boolean` | `false` | Show loading skeleton |
+| `onClick` | `() => void` | - | Click handler |
+| `variant` | `'default' \| 'outlined' \| 'filled'` | `'default'` | Card style |
+| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | Card size |
+
+### StatusBadge
+
+Status indicator with colored dot and label.
+
+```tsx
+import { StatusBadge } from '@varity-labs/ui-kit';
+
+<StatusBadge status="connected" />
+<StatusBadge status="syncing" label="Importing data" />
+<StatusBadge status="error" size="lg" />
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `status` | `StatusType` | Required | Status type |
+| `label` | `string` | Auto from status | Custom label |
+| `showDot` | `boolean` | `true` | Show dot indicator |
+| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | Badge size |
+| `icon` | `ReactNode` | - | Optional icon |
+
+`StatusType`: `'connected' | 'disconnected' | 'pending' | 'syncing' | 'error' | 'warning' | 'expired' | 'active' | 'inactive'`
+
+### IntegrationStatus
+
+Specialized status badge for integrations with sync time display.
+
+```tsx
+import { IntegrationStatus } from '@varity-labs/ui-kit';
+
+<IntegrationStatus
+  isConnected={true}
+  isSyncing={false}
+  lastSyncTime={new Date()}
+/>
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `isConnected` | `boolean` | Required | Connection state |
+| `needsReauth` | `boolean` | - | Needs re-authentication |
+| `isSyncing` | `boolean` | - | Currently syncing |
+| `lastSyncTime` | `Date` | - | Last sync timestamp |
+
+### EmptyState
+
+Placeholder for empty data views with optional actions.
+
+```tsx
+import { EmptyState, EmptyStatePresets } from '@varity-labs/ui-kit';
+
+<EmptyState
+  title="No projects yet"
+  description="Get started by creating your first project."
+  action={{ label: 'Create Project', onClick: () => setShowModal(true) }}
+/>
+
+// Or use a preset
+<EmptyStatePresets.NoResults />
+<EmptyStatePresets.NoData action={{ label: 'Add Item', onClick: handleAdd }} />
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `title` | `string` | Required | Title text |
+| `description` | `string` | - | Description text |
+| `icon` | `ReactNode` | - | Icon to display |
+| `action` | `{ label, onClick, variant? }` | - | Primary action button |
+| `secondaryAction` | `{ label, onClick }` | - | Secondary action |
+| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | Component size |
+
+Presets: `EmptyStatePresets.NoResults`, `.NoData`, `.NoIntegrations`, `.ConnectionRequired`, `.ComingSoon`
+
+### LoadingSkeleton
+
+Animated loading placeholder with multiple types.
+
+```tsx
+import { LoadingSkeleton, SkeletonCard, SkeletonTable, SkeletonText, SkeletonList } from '@varity-labs/ui-kit';
+
+<LoadingSkeleton type="card" />
+<LoadingSkeleton type="table" items={5} />
+<LoadingSkeleton type="text" lines={3} />
+
+// Or use shorthand components
+<SkeletonCard />
+<SkeletonTable items={5} />
+<SkeletonText lines={4} />
+<SkeletonList items={3} />
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `type` | `'text' \| 'circle' \| 'rect' \| 'card' \| 'table' \| 'list'` | `'rect'` | Skeleton type |
+| `width` | `string \| number` | - | Custom width |
+| `height` | `string \| number` | - | Custom height |
+| `lines` | `number` | `3` | Lines for text type |
+| `items` | `number` | `3` | Rows for table/list |
+| `animate` | `boolean` | `true` | Show animation |
+
+---
+
+## Analytics Components
+
+### DataTable
+
+Sortable, paginated data table.
+
+```tsx
+import { DataTable } from '@varity-labs/ui-kit';
+
+<DataTable
+  columns={[
+    { key: 'name', header: 'Name', sortable: true },
+    { key: 'revenue', header: 'Revenue', align: 'right',
+      render: (val) => `$${val.toLocaleString()}` },
+    { key: 'status', header: 'Status' },
+  ]}
+  data={[
+    { id: '1', name: 'Product A', revenue: 12000, status: 'Active' },
+    { id: '2', name: 'Product B', revenue: 8500, status: 'Draft' },
+  ]}
+  pagination
+  pageSize={10}
+  onRowClick={(row) => console.log(row)}
+/>
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `columns` | `DataTableColumn[]` | Required | Column definitions |
+| `data` | `T[]` | Required | Table data |
+| `loading` | `boolean` | `false` | Show loading state |
+| `pagination` | `boolean` | `false` | Enable pagination |
+| `pageSize` | `number` | `10` | Rows per page |
+| `onRowClick` | `(row: T) => void` | - | Row click handler |
+| `emptyMessage` | `string` | `'No data available'` | Empty state text |
+| `hoverable` | `boolean` | `true` | Enable row hover |
+| `striped` | `boolean` | `true` | Striped rows |
+
+`DataTableColumn`: `{ key, header, width?, sortable?, render?, align? }`
+
+### AnalyticsCard
+
+Metric card with optional trend indicator and mini chart.
+
+```tsx
+import { AnalyticsCard } from '@varity-labs/ui-kit';
+
+<AnalyticsCard
+  title="Total Revenue"
+  value={125000}
+  unit="$"
+  trend="up"
+  trendValue={12.5}
+  comparisonPeriod="vs last month"
+  icon="💰"
+  chartData={[100, 120, 115, 130, 125]}
+/>
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `title` | `string` | Required | Card title |
+| `value` | `string \| number` | Required | Main metric |
+| `unit` | `string` | `''` | Value unit ($, %, etc.) |
+| `trend` | `'up' \| 'down' \| 'neutral'` | `'neutral'` | Trend direction |
+| `trendValue` | `number` | - | Trend percentage |
+| `comparisonPeriod` | `string` | - | Period text |
+| `icon` | `string` | - | Icon emoji |
+| `loading` | `boolean` | `false` | Loading state |
+| `chartData` | `number[]` | - | Mini bar chart data |
+| `onClick` | `() => void` | - | Click handler |
+
+### ChartContainer
+
+Wrapper for chart visualizations with title, actions, and loading/error/empty states.
+
+```tsx
+import { ChartContainer } from '@varity-labs/ui-kit';
+
+<ChartContainer
+  title="Revenue Trend"
+  subtitle="Last 30 days"
+  height={300}
+  actions={[
+    { label: 'Export', icon: '📥', onClick: handleExport }
+  ]}
+>
+  <YourChartLibraryComponent />
+</ChartContainer>
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `title` | `string` | Required | Chart title |
+| `subtitle` | `string` | - | Chart description |
+| `children` | `ReactNode` | Required | Chart content |
+| `actions` | `ChartAction[]` | `[]` | Action buttons |
+| `height` | `number \| string` | `400` | Container height |
+| `loading` | `boolean` | `false` | Show loading overlay |
+| `error` | `string` | - | Error message |
+| `isEmpty` | `boolean` | `false` | Show empty state |
+| `emptyMessage` | `string` | `'No data available'` | Empty text |
+
+`ChartAction`: `{ label, icon?, onClick }`
+
+### MetricDisplay
+
+Simple metric with label, formatted value, and color.
+
+```tsx
+import { MetricDisplay } from '@varity-labs/ui-kit';
+
+<MetricDisplay
+  label="Conversion Rate"
+  value={3.5}
+  format="percentage"
+  size="large"
+  color="success"
+/>
+
+<MetricDisplay
+  label="Revenue"
+  value={125000}
+  format="currency"
+  decimals={0}
+/>
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `label` | `string` | Required | Metric label |
+| `value` | `string \| number` | Required | Metric value |
+| `format` | `'number' \| 'currency' \| 'percentage' \| 'custom'` | `'number'` | Format type |
+| `currencySymbol` | `string` | `'$'` | Currency symbol |
+| `decimals` | `number` | `0` | Decimal places |
+| `size` | `'small' \| 'medium' \| 'large'` | `'medium'` | Display size |
+| `color` | `'default' \| 'primary' \| 'success' \| 'warning' \| 'error'` | `'default'` | Value color |
+| `icon` | `string` | - | Icon emoji |
+
+### Sparkline
+
+SVG mini line chart for inline trend visualization.
+
+```tsx
+import { Sparkline, SPARKLINE_COLORS, getSparklineColors } from '@varity-labs/ui-kit';
+
+<Sparkline
+  data={[10, 15, 12, 18, 22, 20, 25]}
+  width={100}
+  height={32}
+  strokeColor="#10b981"
+/>
+
+// Use color presets
+const colors = getSparklineColors('up');
+<Sparkline data={data} strokeColor={colors.stroke} fillColor={colors.fill} />
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `data` | `number[]` | Required | Data points (min 2) |
+| `width` | `number` | `100` | SVG width |
+| `height` | `number` | `32` | SVG height |
+| `strokeColor` | `string` | `'#3b82f6'` | Line color |
+| `fillColor` | `string` | `'#3b82f680'` | Gradient fill color |
+| `strokeWidth` | `number` | `2` | Line thickness |
+| `showGradient` | `boolean` | `true` | Show area gradient |
+
+`SPARKLINE_COLORS` presets: `positive`, `negative`, `neutral`, `blue`, `purple`, `orange`.
+
+### EnhancedKPICard
+
+Rich KPI card with sparkline, trend badge, help tooltip, and sync time.
+
+```tsx
+import { EnhancedKPICard } from '@varity-labs/ui-kit';
+
+<EnhancedKPICard
+  title="Monthly Revenue"
+  value="$45,230"
+  icon="💰"
+  trend="up"
+  color="green"
+  change={{ value: 12.5, period: 'vs last month' }}
+  showSparkline
+  sparklineData={[30, 35, 32, 40, 38, 45]}
+  helpText="Total revenue from all sources"
+  lastSynced="2 min ago"
+/>
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `title` | `string` | Required | Card title |
+| `value` | `string \| number` | Required | Main value |
+| `icon` | `string` | Required | Icon emoji |
+| `trend` | `'up' \| 'down' \| 'neutral'` | `'neutral'` | Trend direction |
+| `color` | `'blue' \| 'green' \| 'orange' \| 'purple' \| 'red'` | `'blue'` | Accent color |
+| `change` | `{ value: number, period: string }` | - | Change indicator |
+| `showSparkline` | `boolean` | `false` | Show sparkline chart |
+| `sparklineData` | `number[]` | Auto-generated | Sparkline data points |
+| `source` | `string` | - | Data source label |
+| `helpText` | `string` | - | Tooltip help text |
+| `lastSynced` | `string` | - | Last sync time |
+| `onClick` | `() => void` | - | Click handler |
+
+---
+
+## Form Components
+
+### Button
+
+Multi-variant button with loading state and icon support.
+
+```tsx
+import { Button } from '@varity-labs/ui-kit';
+
+<Button variant="primary" onClick={handleSave}>Save</Button>
+<Button variant="secondary" size="sm">Cancel</Button>
+<Button variant="danger" loading>Deleting...</Button>
+<Button variant="outline" icon={<PlusIcon />}>Add Item</Button>
+<Button variant="ghost" size="lg">Learn More</Button>
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `variant` | `'primary' \| 'secondary' \| 'outline' \| 'ghost' \| 'danger'` | `'primary'` | Button style |
+| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | Button size |
+| `loading` | `boolean` | `false` | Show loading spinner |
+| `icon` | `ReactNode` | - | Icon element |
+| `disabled` | `boolean` | `false` | Disabled state |
+
+Also accepts all standard `<button>` HTML attributes.
+
+### Input
+
+Text input with label, error, and hint support.
+
+```tsx
+import { Input } from '@varity-labs/ui-kit';
+
+<Input
+  label="Email"
+  type="email"
+  placeholder="you@example.com"
+  required
+  error={errors.email}
+  hint="We'll never share your email."
+/>
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `label` | `string` | - | Field label |
+| `error` | `string` | - | Error message |
+| `hint` | `string` | - | Helper text |
+
+Also accepts all standard `<input>` HTML attributes.
+
+### Textarea
+
+Multi-line text input with label and error support.
+
+```tsx
+import { Textarea } from '@varity-labs/ui-kit';
+
+<Textarea
+  label="Description"
+  rows={4}
+  placeholder="Enter a description..."
+  error={errors.description}
+/>
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `label` | `string` | - | Field label |
+| `error` | `string` | - | Error message |
+
+Also accepts all standard `<textarea>` HTML attributes.
+
+### Select
+
+Dropdown select with label and error support.
+
+```tsx
+import { Select } from '@varity-labs/ui-kit';
+
+<Select
+  label="Role"
+  options={[
+    { value: 'admin', label: 'Admin' },
+    { value: 'member', label: 'Member' },
+    { value: 'viewer', label: 'Viewer' },
+  ]}
+  error={errors.role}
+/>
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `label` | `string` | - | Field label |
+| `options` | `{ value: string, label: string }[]` | Required | Select options |
+| `error` | `string` | - | Error message |
+
+Also accepts all standard `<select>` HTML attributes.
+
+### Toggle
+
+Switch toggle with label and description.
+
+```tsx
+import { Toggle } from '@varity-labs/ui-kit';
+
+<Toggle
+  checked={emailNotifications}
+  onChange={setEmailNotifications}
+  label="Email Notifications"
+  description="Receive updates via email"
+/>
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `checked` | `boolean` | Required | Toggle state |
+| `onChange` | `(checked: boolean) => void` | Required | Change handler |
+| `label` | `ReactNode` | - | Toggle label |
+| `description` | `string` | - | Help text |
+| `disabled` | `boolean` | `false` | Disabled state |
+| `size` | `'sm' \| 'md'` | `'md'` | Toggle size |
+
+### Checkbox
+
+Checkbox with label, description, and indeterminate state.
+
+```tsx
+import { Checkbox } from '@varity-labs/ui-kit';
+
+<Checkbox
+  checked={agreeToTerms}
+  onChange={setAgreeToTerms}
+  label="I agree to the terms"
+/>
+
+<Checkbox
+  checked={false}
+  indeterminate={true}
+  onChange={handleChange}
+  label="Select all"
+/>
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `checked` | `boolean` | Required | Checked state |
+| `onChange` | `(checked: boolean) => void` | Required | Change handler |
+| `label` | `string` | - | Checkbox label |
+| `description` | `string` | - | Help text |
+| `disabled` | `boolean` | `false` | Disabled state |
+| `indeterminate` | `boolean` | `false` | Indeterminate state |
+| `error` | `string` | - | Error message |
+
+### RadioGroup
+
+Radio button group with vertical or horizontal layout.
+
+```tsx
+import { RadioGroup } from '@varity-labs/ui-kit';
+
+<RadioGroup
+  name="plan"
+  label="Select Plan"
+  value={selectedPlan}
+  onChange={setSelectedPlan}
+  options={[
+    { value: 'free', label: 'Free', description: 'Basic features' },
+    { value: 'pro', label: 'Pro', description: '$9/month' },
+    { value: 'enterprise', label: 'Enterprise', description: 'Custom pricing' },
+  ]}
+/>
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `value` | `string` | Required | Selected value |
+| `onChange` | `(value: string) => void` | Required | Change handler |
+| `options` | `RadioOption[]` | Required | Radio options |
+| `name` | `string` | Required | Input group name |
+| `label` | `string` | - | Group label |
+| `orientation` | `'vertical' \| 'horizontal'` | `'vertical'` | Layout direction |
+| `disabled` | `boolean` | `false` | Disabled state |
+| `error` | `string` | - | Error message |
+
+`RadioOption`: `{ value, label, description?, disabled? }`
+
+---
+
+## Overlay Components
+
+### Dialog
+
+Modal dialog with backdrop, focus trap, and escape-to-close.
+
+```tsx
+import { Dialog } from '@varity-labs/ui-kit';
+
+<Dialog
+  open={showDialog}
+  onClose={() => setShowDialog(false)}
+  title="Edit Profile"
+  description="Update your account information."
+>
+  <form>
+    <Input label="Name" />
+    <Button onClick={handleSave}>Save</Button>
+  </form>
+</Dialog>
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `open` | `boolean` | Required | Whether dialog is visible |
+| `onClose` | `() => void` | Required | Close handler |
+| `title` | `string` | Required | Dialog title |
+| `description` | `string` | - | Subtitle text |
+| `children` | `ReactNode` | Required | Dialog content |
+
+### ConfirmDialog
+
+Pre-built confirmation dialog with confirm/cancel actions.
+
+```tsx
+import { ConfirmDialog } from '@varity-labs/ui-kit';
+
+<ConfirmDialog
+  open={showConfirm}
+  onClose={() => setShowConfirm(false)}
+  onConfirm={handleDelete}
+  title="Delete Project"
+  description="This action cannot be undone."
+  confirmLabel="Delete"
+  confirmVariant="danger"
+  loading={isDeleting}
+/>
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `open` | `boolean` | Required | Whether dialog is visible |
+| `onClose` | `() => void` | Required | Close/cancel handler |
+| `onConfirm` | `() => void` | Required | Confirm handler |
+| `title` | `string` | Required | Dialog title |
+| `description` | `string` | Required | Confirmation message |
+| `confirmLabel` | `string` | `'Delete'` | Confirm button text |
+| `confirmVariant` | `'danger' \| 'primary'` | `'danger'` | Confirm button style |
+| `loading` | `boolean` | `false` | Loading state |
+
+### DropdownMenu
+
+Accessible dropdown menu with keyboard navigation.
+
+```tsx
+import { DropdownMenu } from '@varity-labs/ui-kit';
+import { Edit, Trash2, Copy } from 'lucide-react';
+
+<DropdownMenu
+  trigger={<Button variant="ghost">Actions</Button>}
+  items={[
+    { label: 'Edit', icon: Edit, onClick: handleEdit },
+    { label: 'Duplicate', icon: Copy, onClick: handleDuplicate },
+    'divider',
+    { label: 'Delete', icon: Trash2, onClick: handleDelete, danger: true },
+  ]}
+  align="right"
+/>
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `trigger` | `ReactNode` | Required | Trigger element |
+| `items` | `(DropdownMenuItem \| 'divider')[]` | Required | Menu items |
+| `align` | `'left' \| 'right'` | `'right'` | Menu alignment |
+
+`DropdownMenuItem`: `{ label, onClick, icon?, disabled?, danger? }`
+
+---
+
+## Feedback Components
+
+### Skeleton
+
+Generic loading skeleton with rectangle, circle, and text variants.
+
+```tsx
+import { Skeleton } from '@varity-labs/ui-kit';
+
+<Skeleton variant="rectangle" width="100%" height={20} />
+<Skeleton variant="circle" width={40} />
+<Skeleton variant="text" lines={3} />
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `variant` | `'rectangle' \| 'circle' \| 'text'` | `'rectangle'` | Shape type |
+| `width` | `string \| number` | `'100%'` | Element width |
+| `height` | `string \| number` | `'20px'` | Element height |
+| `lines` | `number` | `3` | Lines for text variant |
+
+---
+
+## Display Components
+
+### Badge
+
+Colored badge with optional dot indicator.
+
+```tsx
+import { Badge } from '@varity-labs/ui-kit';
+
+<Badge variant="green" dot>Active</Badge>
+<Badge variant="red">Overdue</Badge>
+<Badge variant="blue">New</Badge>
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `children` | `ReactNode` | Required | Badge content |
+| `variant` | `'green' \| 'blue' \| 'yellow' \| 'red' \| 'gray'` | `'gray'` | Color variant |
+| `dot` | `boolean` | `false` | Show dot indicator |
+
+### PriorityBadge
+
+Auto-colored badge based on priority level.
+
+```tsx
+import { PriorityBadge } from '@varity-labs/ui-kit';
+
+<PriorityBadge priority="high" />   {/* red */}
+<PriorityBadge priority="medium" /> {/* yellow */}
+<PriorityBadge priority="low" />    {/* gray */}
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `priority` | `string` | Required | `'high'`, `'medium'`, or `'low'` |
+
+### ProjectStatusBadge
+
+Auto-colored badge with dot for project status.
+
+```tsx
+import { ProjectStatusBadge } from '@varity-labs/ui-kit';
+
+<ProjectStatusBadge status="active" />    {/* blue + dot */}
+<ProjectStatusBadge status="paused" />    {/* yellow + dot */}
+<ProjectStatusBadge status="completed" /> {/* green + dot */}
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `status` | `string` | Required | `'active'`, `'paused'`, or `'completed'` |
+
+### TaskStatusBadge
+
+Auto-colored badge with dot for task status.
+
+```tsx
+import { TaskStatusBadge } from '@varity-labs/ui-kit';
+
+<TaskStatusBadge status="todo" />        {/* gray */}
+<TaskStatusBadge status="in_progress" /> {/* blue */}
+<TaskStatusBadge status="done" />        {/* green */}
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `status` | `string` | Required | `'todo'`, `'in_progress'`, or `'done'` |
+
+### RoleBadge
+
+Auto-colored badge for user roles.
+
+```tsx
+import { RoleBadge } from '@varity-labs/ui-kit';
+
+<RoleBadge role="admin" />  {/* blue */}
+<RoleBadge role="member" /> {/* green */}
+<RoleBadge role="viewer" /> {/* gray */}
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `role` | `string` | Required | `'admin'`, `'member'`, or `'viewer'` |
+
+### Avatar
+
+User avatar with image or initials fallback and optional status dot.
+
+```tsx
+import { Avatar } from '@varity-labs/ui-kit';
+
+<Avatar name="Jane Doe" src="/avatars/jane.jpg" size="md" status="online" />
+<Avatar name="John Smith" size="lg" /> {/* Shows "JS" initials */}
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `name` | `string` | Required | User name (for initials) |
+| `src` | `string` | - | Image URL |
+| `alt` | `string` | name | Alt text |
+| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | Avatar size |
+| `status` | `'online' \| 'offline' \| 'busy'` | - | Status indicator |
+
+### AvatarGroup
+
+Overlapping stack of avatars with overflow count.
+
+```tsx
+import { AvatarGroup } from '@varity-labs/ui-kit';
+
+<AvatarGroup
+  avatars={[
+    { name: 'Jane Doe', src: '/jane.jpg' },
+    { name: 'John Smith' },
+    { name: 'Alice Brown' },
+    { name: 'Bob Wilson' },
+  ]}
+  max={3}
+/>
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `avatars` | `{ src?, name }[]` | Required | Avatar data |
+| `max` | `number` | `3` | Max visible avatars |
+| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | Avatar size |
+
+### ProgressBar
+
+Animated progress bar with multiple variants.
+
+```tsx
+import { ProgressBar } from '@varity-labs/ui-kit';
+
+<ProgressBar value={75} variant="primary" showValue />
+<ProgressBar value={90} variant="success" size="sm" />
+<ProgressBar value={45} variant="warning" striped />
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `value` | `number` | Required | Progress 0-100 |
+| `variant` | `'primary' \| 'success' \| 'warning' \| 'danger'` | `'primary'` | Color variant |
+| `size` | `'sm' \| 'md'` | `'md'` | Bar thickness |
+| `showValue` | `boolean` | `false` | Show percentage text |
+| `striped` | `boolean` | `false` | Animated stripes |
+| `label` | `string` | - | Accessibility label |
+
+---
+
+## Navigation Components
+
+### CommandPalette
+
+Searchable command palette (Cmd+K style) with keyboard navigation.
+
+```tsx
+import { CommandPalette } from '@varity-labs/ui-kit';
+
+const [showPalette, setShowPalette] = useState(false);
+
+<CommandPalette
+  open={showPalette}
+  onClose={() => setShowPalette(false)}
+  onNavigate={(path) => router.push(path)}
+  projects={projects}
+  tasks={tasks}
+  team={teamMembers}
+/>
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `open` | `boolean` | Required | Whether palette is visible |
+| `onClose` | `() => void` | Required | Close handler |
+| `onNavigate` | `(path: string) => void` | Required | Navigation handler |
+| `projects` | `{ id, name, description?, status? }[]` | `[]` | Searchable projects |
+| `tasks` | `{ id, title, description?, status? }[]` | `[]` | Searchable tasks |
+| `team` | `{ id, name, email }[]` | `[]` | Searchable team members |
+
+Includes built-in navigation items (Dashboard, Projects, Tasks, Team, Settings).
+
+### Breadcrumb
+
+Navigation breadcrumb with home button and separators.
+
+```tsx
+import { Breadcrumb } from '@varity-labs/ui-kit';
+
+<Breadcrumb
+  items={[
+    { label: 'Projects', onClick: () => router.push('/projects') },
+    { label: 'Acme Corp' },
+  ]}
+  showHome
+  onHomeClick={() => router.push('/')}
+  separator="chevron"
+/>
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `items` | `BreadcrumbItem[]` | Required | Breadcrumb items |
+| `separator` | `'chevron' \| 'slash'` | `'chevron'` | Separator style |
+| `showHome` | `boolean` | `true` | Show home icon |
+| `onHomeClick` | `() => void` | - | Home click handler |
+
+`BreadcrumbItem`: `{ label, href?, onClick? }`
+
+---
+
+## Branding Components
+
+### Logo
+
+Customizable logo with image or initial fallback.
+
+```tsx
+import { Logo } from '@varity-labs/ui-kit';
+
+<Logo
+  src="/logo.png"
+  companyName="Acme Corp"
+  size="medium"
+  showName
+  onClick={() => router.push('/')}
+/>
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `src` | `string` | - | Logo image URL |
+| `companyName` | `string` | `'Dashboard'` | Company name |
+| `size` | `'small' \| 'medium' \| 'large' \| number` | `'medium'` | Logo size |
+| `showName` | `boolean` | `false` | Show name beside logo |
+| `onClick` | `() => void` | - | Click handler |
+
+### Attribution
+
+Required Varity attribution component (per licensing agreement).
+
+```tsx
+import { Attribution } from '@varity-labs/ui-kit';
+
+<Attribution position="footer" size="small" />
+<Attribution position="floating" />
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `position` | `'footer' \| 'header' \| 'floating'` | `'footer'` | Position mode |
+| `size` | `'small' \| 'medium' \| 'large'` | `'medium'` | Component size |
+| `showLogo` | `boolean` | `true` | Show Varity logo |
+
+:::note
+The `Attribution` component is required per the Varity licensing agreement and must be visible on all pages.
+:::
+
+---
+
+## Hooks Summary
+
+| Hook | Import | Description |
+|------|--------|-------------|
+| `useToast` | `@varity-labs/ui-kit` | Access toast notifications (`success`, `error`, `info`) |
+| `useTheme` | `@varity-labs/ui-kit` | Access current `VarityTheme` from `ThemeProvider` |
+| `usePrivy` | `@varity-labs/ui-kit` | Auth state (`authenticated`, `user`, `ready`) |
+| `useWallets` | `@varity-labs/ui-kit` | Connected wallet list |
+| `useLogin` | `@varity-labs/ui-kit` | Programmatic login trigger |
+| `useLogout` | `@varity-labs/ui-kit` | Programmatic logout trigger |
+| `useVarityPayment` | `@varity-labs/ui-kit` | Programmatic payment control |
+
+---
+
+## Complete Example
+
+```tsx
+import {
+  PrivyStack,
+  PrivyLoginButton,
+  PrivyUserProfile,
+  PrivyProtectedRoute,
+  DashboardLayout,
+  KPICard,
+  DataTable,
+  Button,
+  ToastProvider,
+  useToast,
+  usePrivy,
+} from '@varity-labs/ui-kit';
+
+function App() {
+  return (
+    <PrivyStack appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID}>
+      <ToastProvider>
+        <Header />
+        <main>
+          <PrivyProtectedRoute>
+            <DashboardPage />
+          </PrivyProtectedRoute>
+        </main>
+      </ToastProvider>
+    </PrivyStack>
+  );
+}
+
+function Header() {
+  const { authenticated } = usePrivy();
+  return (
+    <header className="flex justify-between p-4">
+      <h1>My App</h1>
+      {authenticated ? <PrivyUserProfile showLogoutButton /> : <PrivyLoginButton />}
+    </header>
+  );
+}
+
+function DashboardPage() {
+  const toast = useToast();
+  return (
+    <div>
+      <div className="grid grid-cols-3 gap-4 mb-6">
+        <KPICard title="Revenue" value="$12,345" trend="up" trendValue="+12%" />
+        <KPICard title="Users" value={1234} trend="up" trendValue="+8%" />
+        <KPICard title="Churn" value="2.3%" trend="down" trendValue="-0.5%" />
+      </div>
+      <DataTable
+        columns={[
+          { key: 'name', header: 'Customer', sortable: true },
+          { key: 'plan', header: 'Plan' },
+          { key: 'revenue', header: 'Revenue', align: 'right' },
+        ]}
+        data={[
+          { id: '1', name: 'Acme Corp', plan: 'Pro', revenue: '$500' },
+          { id: '2', name: 'Globex', plan: 'Free', revenue: '$0' },
+        ]}
+        pagination
+        pageSize={10}
+      />
+      <Button onClick={() => toast.success('Data refreshed!')}>Refresh</Button>
+    </div>
+  );
+}
+```
+
+:::note
+Free operations are enabled automatically for all deployed Varity apps. No additional provider configuration is needed.
+:::
+
+## Next Steps
+
+- [Hooks Reference](/packages/ui-kit/hooks) -- Available hooks
+- [Authentication Guide](/build/auth/quickstart) -- Complete auth setup
+- [Payments Guide](/build/payments/quickstart) -- Accept payments

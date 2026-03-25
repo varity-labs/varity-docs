@@ -1,0 +1,110 @@
+---
+title: App Store & Developer Portal
+description: How to submit, price, and manage your apps on the Varity App Store. Revenue split, review process, and the Developer Portal.
+---
+
+import { Aside, Steps } from '@astrojs/starlight/components';
+import PageMeta from '../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="March 2026"
+  stability="beta"
+/>
+
+The Varity App Store is where businesses discover and purchase apps built by developers. The Developer Portal is where you manage your listings.
+
+- **App Store** — [store.varity.so](https://store.varity.so) — for end users and businesses
+- **Developer Portal** — [developer.store.varity.so](https://developer.store.varity.so) — for developers
+
+## Revenue split
+
+| | Amount |
+|---|---|
+| **You (developer)** | **90%** |
+| Varity (platform) | 10% |
+
+You set the price. Varity handles billing, payment processing, and distribution.
+
+<Aside type="note">
+Payment processing is coming soon. During beta, you can submit and list apps on the store. Payments will be enabled in a future update.
+</Aside>
+
+## How it works
+
+<Steps>
+
+1. **Deploy your app**
+
+   Use `varity_deploy` or `varitykit app deploy` to get a live URL.
+
+2. **Submit to the store**
+
+   Use the `varity_submit_to_store` MCP tool or visit the Developer Portal directly. You'll provide:
+   - **App name** — what users see on the store
+   - **Description** — what your app does
+   - **Price** — monthly price in USD (or free)
+   - **Deployment ID** — links to your deployed app
+
+3. **Review**
+
+   Varity reviews your submission for quality and security. Most apps are approved within 24 hours.
+
+4. **Listed on the store**
+
+   Your app appears on [store.varity.so](https://store.varity.so). Businesses can discover, evaluate, and purchase it.
+
+</Steps>
+
+## Pricing your app
+
+You have full control over pricing:
+
+- **Free** — great for open-source tools or lead generation
+- **Monthly subscription** — recurring revenue per user (e.g., $49/month, $99/month)
+
+**Example:** You price your client dashboard at $79/month. For every paying user:
+- You receive **$71.10/month** (90%)
+- Varity receives $7.90/month (10%)
+
+## The Developer Portal
+
+The Developer Portal at [developer.store.varity.so](https://developer.store.varity.so) is where you:
+
+- **Submit new apps** — fill in details, link to your deployment
+- **Manage listings** — update descriptions, pricing, screenshots
+- **View analytics** — see how your apps are performing (coming soon)
+- **Track revenue** — monitor earnings across all your apps (coming soon)
+
+Log in with the same account you use for `varitykit auth login`.
+
+## Submitting via MCP
+
+The fastest way to submit is through your AI coding tool:
+
+**"Submit my last deployment to the app store at $99/month"**
+
+This calls the `varity_submit_to_store` tool, which generates a pre-filled submission link to the Developer Portal. Click the link, review your details, and confirm.
+
+## Submission requirements
+
+- Your app must be deployed on Varity (`varity_deploy`)
+- The app must load and function correctly at the deployed URL
+- Description must accurately represent what the app does
+- No malicious code or security vulnerabilities
+
+## For agencies and consulting firms
+
+The App Store is designed for agencies that build apps for multiple clients:
+
+- **Build once, sell many times** — create a client portal template, price it on the store, earn recurring revenue from every business that uses it
+- **White-label friendly** — businesses use your app at its own URL
+- **No infrastructure management** — Varity handles hosting, auth, database, and scaling for every user of your app
+- **Focus on your clients** — spend time on features, not DevOps
+
+## Next steps
+
+- [Deploy Your App](/deploy/deploy-your-app) — Get a live URL first
+- [How Varity Works](/getting-started/how-varity-works) — The full platform overview
+- [MCP Server](/ai-tools/mcp-server-spec) — Set up your AI coding tool

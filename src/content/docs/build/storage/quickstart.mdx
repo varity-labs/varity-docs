@@ -1,0 +1,287 @@
+---
+title: "Data Storage Quick Start"
+description: "Store and retrieve structured data with the Varity SDK. Zero-config MongoDB-like API with TypeScript generics and auto-provisioned collections."
+---
+
+import { Steps, Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+import Accordion from '../../../../components/Accordion.astro';
+import PageMeta from '../../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="March 2026"
+  stability="stable"
+/>
+
+Store and retrieve structured data with zero configuration. The Varity SDK provides a simple, MongoDB-like database API that works out of the box.
+
+## What You Get
+
+- **Zero config** — works immediately with shared dev credentials
+- **Simple API** — `add`, `get`, `update`, `delete` on collections
+- **Type-safe** — full TypeScript generics support
+- **Auto-provisioned** — deploy with `varitykit app deploy` and get your own private database
+
+## Installation
+
+<Tabs>
+  <TabItem label="npm">
+    ```bash
+    npm install @varity-labs/sdk
+    ```
+  </TabItem>
+  <TabItem label="pnpm">
+    ```bash
+    pnpm add @varity-labs/sdk
+    ```
+  </TabItem>
+  <TabItem label="yarn">
+    ```bash
+    yarn add @varity-labs/sdk
+    ```
+  </TabItem>
+</Tabs>
+
+## Store Your First Record
+
+<Steps>
+
+1. **Import the database**
+
+   ```typescript
+   import { db } from '@varity-labs/sdk';
+   ```
+
+   The `db` singleton is pre-configured and ready to use. No initialization needed.
+
+2. **Add a record to a collection**
+
+   ```typescript
+   const product = await db.collection('products').add({
+     name: 'T-Shirt',
+     price: 29.99,
+     inStock: true,
+   });
+
+   console.log('Saved with ID:', product.id);
+   // "550e8400-e29b-41d4-a716-446655440000"
+   ```
+
+3. **Retrieve your records**
+
+   ```typescript
+   const products = await db.collection('products').get();
+
+   products.forEach(p => {
+     console.log(`${p.name}: $${p.price}`);
+   });
+   ```
+
+</Steps>
+
+## CRUD Operations
+
+### Create
+
+```typescript
+const record = await db.collection('todos').add({
+  title: 'Buy groceries',
+  completed: false,
+});
+// Returns: { id, title, completed, created_at, updated_at }
+```
+
+### Read
+
+```typescript
+// Get all records
+const all = await db.collection('todos').get();
+
+// With pagination
+const page = await db.collection('todos').get({
+  limit: 10,
+  offset: 0,
+});
+
+// With ordering (prefix "-" for descending)
+const sorted = await db.collection('todos').get({
+  orderBy: '-created_at',
+});
+```
+
+### Update
+
+```typescript
+await db.collection('todos').update(record.id, {
+  completed: true,
+});
+```
+
+### Delete
+
+```typescript
+await db.collection('todos').delete(record.id);
+```
+
+## Type-Safe Collections
+
+Use TypeScript generics for full type safety:
+
+```typescript
+import { db } from '@varity-labs/sdk';
+
+interface Product {
+  name: string;
+  price: number;
+  category: string;
+  inStock: boolean;
+}
+
+const products = db.collection<Product>('products');
+
+// TypeScript knows the shape of your data
+const item = await products.add({
+  name: 'Widget',
+  price: 29.99,
+  category: 'tools',
+  inStock: true,
+});
+
+// item.name is string, item.price is number, item.id is string
+```
+
+## Complete Example
+
+```tsx title="components/TodoApp.tsx"
+import { db } from '@varity-labs/sdk';
+import { useState, useEffect } from 'react';
+
+interface Todo {
+  title: string;
+  completed: boolean;
+}
+
+export function TodoApp() {
+  const [todos, setTodos] = useState<(Todo & { id: string })[]>([]);
+  const [newTitle, setNewTitle] = useState('');
+
+  // Load todos on mount
+  useEffect(() => {
+    db.collection<Todo>('todos').get().then(setTodos);
+  }, []);
+
+  // Add a todo
+  const addTodo = async () => {
+    if (!newTitle.trim()) return;
+    const todo = await db.collection<Todo>('todos').add({
+      title: newTitle,
+      completed: false,
+    });
+    setTodos(prev => [...prev, todo]);
+    setNewTitle('');
+  };
+
+  // Toggle completion
+  const toggleTodo = async (id: string, completed: boolean) => {
+    await db.collection<Todo>('todos').update(id, { completed: !completed });
+    setTodos(prev =>
+      prev.map(t => (t.id === id ? { ...t, completed: !completed } : t))
+    );
+  };
+
+  // Delete a todo
+  const deleteTodo = async (id: string) => {
+    await db.collection<Todo>('todos').delete(id);
+    setTodos(prev => prev.filter(t => t.id !== id));
+  };
+
+  return (
+    <div>
+      <div>
+        <input
+          value={newTitle}
+          onChange={e => setNewTitle(e.target.value)}
+          placeholder="New todo..."
+        />
+        <button onClick={addTodo}>Add</button>
+      </div>
+      <ul>
+        {todos.map(todo => (
+          <li key={todo.id}>
+            <input
+              type="checkbox"
+              checked={todo.completed}
+              onChange={() => toggleTodo(todo.id, todo.completed)}
+            />
+            <span style={{ textDecoration: todo.completed ? 'line-through' : 'none' }}>
+              {todo.title}
+            </span>
+            <button onClick={() => deleteTodo(todo.id)}>Delete</button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+```
+
+## Filtering Data
+
+<Aside type="caution">
+The database API does not currently support server-side `where` filters. The `get()` method returns all documents in the collection. Apply filters on the client side after fetching.
+</Aside>
+
+```typescript
+// Fetch all, then filter client-side
+const allProducts = await db.collection<Product>('products').get();
+
+const inStock = allProducts.filter(p => p.inStock);
+const affordable = allProducts.filter(p => p.price < 50);
+const tools = allProducts.filter(p => p.category === 'tools');
+```
+
+## Storage Costs
+
+- **Beta**: Free with shared development credentials
+- **Production**: Included with your Varity deployment (provisioned automatically)
+
+<Aside type="note">
+**File storage (images, videos, documents)** is not yet available through the SDK. The current storage API is for structured data (JSON records). File storage is planned for a future release.
+</Aside>
+
+<Accordion title="Advanced: Custom Database Configuration">
+
+The `db` singleton auto-configures from environment variables. For custom setups, create your own `Database` instance:
+
+```typescript
+import { Database } from '@varity-labs/sdk';
+
+const customDb = new Database({
+  proxyUrl: 'https://your-proxy.example.com',
+  appToken: 'your-jwt-token',
+});
+
+const records = await customDb.collection('items').get();
+```
+
+**Environment variables** (auto-detected by the SDK):
+
+| Variable | Framework | Purpose |
+|----------|-----------|---------|
+| `NEXT_PUBLIC_VARITY_DB_PROXY_URL` | Next.js | Database proxy URL |
+| `NEXT_PUBLIC_VARITY_APP_TOKEN` | Next.js | App authentication token |
+| `VITE_VARITY_DB_PROXY_URL` | Vite | Database proxy URL |
+| `VITE_VARITY_APP_TOKEN` | Vite | App authentication token |
+| `REACT_APP_VARITY_DB_PROXY_URL` | CRA | Database proxy URL |
+| `REACT_APP_VARITY_APP_TOKEN` | CRA | App authentication token |
+
+When you deploy with `varitykit app deploy`, these are set automatically.
+
+</Accordion>
+
+## Next Steps
+
+- [Storing Data](/build/storage/upload) — Create and update records
+- [Retrieving Data](/build/storage/retrieve) — Query and filter records
+- [Authentication](/build/auth/quickstart) — Set up user login

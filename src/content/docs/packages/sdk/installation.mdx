@@ -1,0 +1,120 @@
+---
+title: "@varity-labs/sdk Installation"
+description: "Install @varity-labs/sdk via npm, pnpm, or yarn. Includes peer dependencies, environment setup, and verification for Node.js 18+ projects."
+---
+
+import { Tabs, TabItem, Steps, Aside } from '@astrojs/starlight/components';
+import PageMeta from '../../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="March 2026"
+  stability="stable"
+/>
+
+Get the Varity SDK installed and configured in your project.
+
+## Install the Package
+
+<Tabs>
+  <TabItem label="npm">
+    ```bash
+    npm install @varity-labs/sdk
+    ```
+  </TabItem>
+  <TabItem label="pnpm">
+    ```bash
+    pnpm add @varity-labs/sdk
+    ```
+  </TabItem>
+  <TabItem label="yarn">
+    ```bash
+    yarn add @varity-labs/sdk
+    ```
+  </TabItem>
+</Tabs>
+
+## Quick Setup
+
+<Steps>
+
+1. **Import the SDK**
+
+   ```typescript
+   import { db, resolveCredentials } from '@varity-labs/sdk';
+   ```
+
+2. **Use the database**
+
+   ```typescript
+   // Create a collection and add data
+   const users = db.collection('users');
+   await users.add({ name: 'Alice', email: 'alice@example.com' });
+
+   // Query data
+   const result = await users.get({ limit: 10 });
+   ```
+
+3. **Check credential status (optional)**
+
+   ```typescript
+   import { resolveCredentials, isUsingDevCredentials } from '@varity-labs/sdk';
+
+   const creds = resolveCredentials();
+   console.log('Using dev credentials:', isUsingDevCredentials());
+   ```
+
+</Steps>
+
+## Credentials
+
+Varity manages all credentials automatically. No environment variables are needed to start developing.
+
+<Aside type="tip">
+The SDK uses shared development credentials by default. When you deploy with `varitykit app deploy`, production credentials are provided automatically. See [Managed Credentials](/deploy/managed-credentials) for details.
+</Aside>
+
+## TypeScript Configuration
+
+The SDK is written in TypeScript. Recommended `tsconfig.json` settings:
+
+```json title="tsconfig.json"
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "esModuleInterop": true
+  }
+}
+```
+
+## Bundle Size
+
+The SDK supports tree-shaking. Import only what you need.
+
+```typescript
+// Good - imports only what's needed
+import { db, resolveCredentials } from '@varity-labs/sdk';
+
+// Avoid - imports the entire package
+import * as VaritySDK from '@varity-labs/sdk';
+```
+
+Approximate bundle sizes:
+- Full SDK: ~50KB gzipped
+- Core only: ~20KB gzipped
+
+## Next Steps
+
+- [Platform Config](/packages/sdk/chains) - Platform configuration
+- [SDK Overview](/packages/sdk/overview) - Full SDK capabilities
+- [Quick Start](/getting-started/quickstart) - Build your first app
+
+## Related Resources
+
+- [@varity-labs/ui-kit](/packages/ui-kit/overview) - React components
+- [Authentication Guide](/build/auth/quickstart) - Add login
+- [Deploy your app](/deploy/deploy-your-app) - Ship to production

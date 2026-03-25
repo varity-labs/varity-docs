@@ -1,0 +1,112 @@
+---
+title: "Compute Overview"
+description: "Preview of Varity Compute: run containers, backend services, scheduled jobs, and server-side code on distributed infrastructure. Coming soon."
+sidebar:
+  badge:
+    text: Coming Soon
+    variant: caution
+---
+
+import { Aside, Card, CardGrid } from '@astrojs/starlight/components';
+import PageMeta from '../../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="March 2026"
+  stability="alpha"
+/>
+
+# Compute
+
+<Aside type="caution">
+**Coming Soon** - Compute features are under active development and will be available before MVP launch.
+</Aside>
+
+Run backend services, scheduled jobs, and server-side code on distributed infrastructure.
+
+## What's Coming
+
+### Distributed Compute
+
+Deploy containers and backend services:
+
+- **Container hosting** - Run any Docker container
+- **Auto-scaling** - Scale based on demand
+- **Global distribution** - Deploy close to users
+- **70-85% cost savings** - Compared to traditional cloud
+
+### Use Cases
+
+<CardGrid>
+  <Card title="API Backends" icon="server">
+    Run Express, FastAPI, or any backend framework
+  </Card>
+  <Card title="Scheduled Jobs" icon="seti:clock">
+    Cron jobs, data processing, reports
+  </Card>
+  <Card title="AI/ML Workloads" icon="star">
+    Run inference, training, embeddings
+  </Card>
+  <Card title="Databases" icon="seti:db">
+    Host PostgreSQL, Redis, MongoDB
+  </Card>
+</CardGrid>
+
+## Current Status
+
+| Feature | Status |
+|---------|--------|
+| Static hosting | Available |
+| Dynamic hosting | Coming Soon |
+| Serverless functions | Planned |
+| Scheduled jobs | Planned |
+| GPU compute | Planned |
+
+## Early Access
+
+Want early access to compute features? Deploy with:
+
+```bash
+varitykit app deploy --hosting dynamic
+```
+
+<Aside type="note">
+The `--hosting dynamic` flag is available in the CLI but compute features are still being finalized.
+</Aside>
+
+## Architecture Preview
+
+When compute launches, you'll be able to:
+
+```bash
+# Deploy a Next.js app with backend
+varitykit app deploy --hosting dynamic
+
+# Deploy and submit to App Store
+varitykit app deploy --hosting dynamic --submit-to-store
+```
+
+## Cost Comparison
+
+| Workload | AWS | Varity | Savings |
+|----------|-----|----------------|---------|
+| Small API | $50/mo | ~$15/mo | 70% |
+| Medium app | $200/mo | ~$50/mo | 75% |
+| AI workload | $500/mo | ~$100/mo | 80% |
+
+*Estimates based on typical usage patterns*
+
+## Available Now
+
+While compute is coming soon, you can already:
+
+- [Deploy static sites](/deploy/deploy-your-app) - Static hosting is live
+- [Set up authentication](/build/auth/quickstart) - Full auth available
+- [Add payments](/build/payments/quickstart) - Payment processing works
+- [Use storage](/build/storage/quickstart) - File storage ready
+
+## Next Steps
+
+- [Deploy Your App](/deploy/deploy-your-app) - Deploy static apps now
+- [CLI Overview](/cli/overview) - Available CLI commands

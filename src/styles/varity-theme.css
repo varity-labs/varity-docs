@@ -1,0 +1,1526 @@
+/* ========================================
+   VARITY DOCS THEME - CSS FOUNDATION
+   Design Tokens + Base Typography
+
+   Principles:
+   - Work WITH Starlight, not against it
+   - Override only --sl-* custom properties
+   - Minimal !important flags
+   - Clean cascade, maintainable code
+   ======================================== */
+
+/* ========================================
+   SECTION 1: FONTS
+   System fonts for performance + trust
+   ======================================== */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* ========================================
+   SECTION 2: DESIGN TOKENS
+   All :root variables in one place
+   ======================================== */
+:root {
+  /* ----- BRAND COLORS ----- */
+  /* Primary: Teal (Varity signature) */
+  --varity-brand-400: #2dd4bf;
+  --varity-brand-500: #14b8a6;
+  --varity-brand-600: #0d9488;
+
+  /* Derived brand colors for easy reference */
+  --color-brand: var(--varity-brand-500);
+  --color-brand-light: var(--varity-brand-400);
+  --color-brand-subtle: rgba(20, 184, 166, 0.12);
+  --color-brand-muted: rgba(20, 184, 166, 0.08);
+
+  /* ----- GRAYSCALE (Zinc palette) ----- */
+  --gray-50: #fafafa;
+  --gray-200: #e4e4e7;
+  --gray-400: #a1a1aa;
+  --gray-500: #71717a;
+  --gray-600: #52525b;
+  --gray-700: #3f3f46;
+  --gray-800: #27272a;
+  --gray-900: #18181b;
+  --gray-950: #09090b;
+
+  /* ----- SEMANTIC COLORS ----- */
+  --color-success: #22c55e;
+  --color-success-subtle: rgba(34, 197, 94, 0.12);
+  --color-warning: #f59e0b;
+  --color-warning-subtle: rgba(245, 158, 11, 0.12);
+  --color-danger: #ef4444;
+  --color-danger-subtle: rgba(239, 68, 68, 0.12);
+  --color-info: #3b82f6;
+  --color-info-subtle: rgba(59, 130, 246, 0.12);
+
+  /* ----- SPACING SCALE (8px base) ----- */
+  --space-1: 0.25rem;   /* 4px */
+  --space-2: 0.5rem;    /* 8px */
+  --space-3: 0.75rem;   /* 12px */
+  --space-4: 1rem;      /* 16px */
+  --space-5: 1.25rem;   /* 20px */
+  --space-6: 1.5rem;    /* 24px */
+  --space-8: 2rem;      /* 32px */
+  --space-10: 2.5rem;   /* 40px */
+  --space-12: 3rem;     /* 48px */
+  --space-16: 4rem;     /* 64px */
+  --space-20: 5rem;     /* 80px */
+  --space-24: 6rem;     /* 96px */
+
+  /* ----- BORDER RADIUS ----- */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 0.75rem;    /* 12px */
+  --radius-2xl: 1rem;      /* 16px */
+  --radius-full: 9999px;   /* pills, avatars */
+
+  /* ----- TRANSITIONS ----- */
+  --duration-fast: 150ms;
+  --duration-base: 200ms;
+  --duration-slow: 300ms;
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --transition-fast: 150ms ease;
+  --transition-base: 200ms ease;
+  --transition-colors: color var(--duration-base) var(--ease-in-out),
+                       background-color var(--duration-base) var(--ease-in-out),
+                       border-color var(--duration-base) var(--ease-in-out);
+  --transition-transform: transform var(--duration-base) var(--ease-out);
+  --transition-all: all var(--duration-base) var(--ease-in-out);
+
+  /* ----- SHADOWS ----- */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.25), 0 4px 6px -4px rgba(0, 0, 0, 0.15);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-glow: 0 0 30px rgba(20, 184, 166, 0.15);
+
+  /* ----- TYPOGRAPHY SCALE ----- */
+  /* Font sizes using clamp for fluid typography */
+  --text-sm: 0.8125rem;    /* 13px */
+  --text-base: 1rem;       /* 16px */
+  --text-lg: 1.125rem;     /* 18px */
+  --text-xl: 1.25rem;      /* 20px */
+  --text-2xl: 1.5rem;      /* 24px */
+  --text-3xl: 1.875rem;    /* 30px */
+  --text-4xl: 2.25rem;     /* 36px */
+  --text-5xl: 3rem;        /* 48px */
+
+  /* Line heights */
+  --leading-none: 1;
+  --leading-tight: 1.2;
+  --leading-snug: 1.375;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.65;
+  --leading-loose: 1.75;
+
+  /* Letter spacing */
+  --tracking-tighter: -0.03em;
+  --tracking-tight: -0.02em;
+  --tracking-wide: 0.05em;
+  --tracking-wider: 0.08em;
+
+  /* Font weights */
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+
+
+  /* ----- TYPOGRAPHY ----- */
+  --sl-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+             'Helvetica Neue', Arial, sans-serif, 'Apple Color Emoji',
+             'Segoe UI Emoji', 'Segoe UI Symbol';
+  --sl-font-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', Monaco,
+                  'Cascadia Code', 'Roboto Mono', Menlo, Consolas,
+                  'Liberation Mono', 'Courier New', monospace;
+
+  --sl-text-xs: var(--text-xs);
+  --sl-text-sm: var(--text-sm);
+  --sl-text-base: var(--text-base);
+  --sl-text-lg: var(--text-lg);
+  --sl-text-xl: var(--text-xl);
+  --sl-text-2xl: var(--text-2xl);
+  --sl-text-3xl: var(--text-3xl);
+  --sl-text-4xl: var(--text-4xl);
+  --sl-text-5xl: var(--text-5xl);
+
+  --sl-line-height: var(--leading-relaxed);
+  --sl-line-height-headings: var(--leading-tight);
+
+  /* ----- COLORS: BACKGROUND ----- */
+  --sl-color-bg: #0f0f0f;  /* was #09090b */
+  --sl-color-bg-nav: rgba(9, 9, 11, 0.85);
+  --sl-color-bg-sidebar: #171717;  /* was #0c0c0e */
+  --sl-color-bg-inline-code: rgba(39, 39, 42, 0.6);
+
+  /* ----- COLORS: TEXT ----- */
+  --sl-color-text: var(--gray-50);
+  --sl-color-text-accent: var(--color-brand-light);
+
+  /* ----- COLORS: ACCENT (brand) ----- */
+  --sl-color-accent: var(--color-brand);
+  --sl-color-accent-low: var(--color-brand-subtle);
+  --sl-color-accent-high: var(--color-brand-light);
+
+  /* ----- COLORS: GRAYSCALE ----- */
+  /* Starlight uses gray-1 (lightest) to gray-7 (darkest) */
+  --sl-color-gray-1: var(--gray-50);
+  --sl-color-gray-2: var(--gray-200);
+  --sl-color-gray-3: var(--gray-400);
+  --sl-color-gray-4: var(--gray-500);
+  --sl-color-gray-5: var(--gray-700);
+  --sl-color-gray-6: var(--gray-800);
+  --sl-color-gray-7: var(--gray-900);
+
+  /* ----- COLORS: BORDERS ----- */
+  --sl-color-hairline: rgba(63, 63, 70, 0.5);
+  --sl-color-hairline-light: rgba(63, 63, 70, 0.3);
+  --sl-color-hairline-shade: rgba(0, 0, 0, 0.3);
+
+  /* ----- BORDERS (custom aliases) ----- */
+  --border-primary: var(--sl-color-hairline);
+  --border-secondary: var(--sl-color-hairline-light);
+
+  /* ----- FOCUS & OUTLINE ----- */
+  --sl-outline-focus: 2px solid var(--color-brand);
+
+  /* ----- LAYOUT ----- */
+  --header-height: 64px;
+  --sl-content-width: 48rem;  /* 768px - optimal reading width */
+  --sl-sidebar-width: 19rem;  /* 304px - even wider for better readability */
+  --sl-content-pad-x: 1.5rem;
+
+  --text-primary: var(--gray-50);
+  --text-secondary: var(--gray-400);
+  --text-tertiary: var(--gray-500);
+  --text-muted: var(--gray-600);
+}
+
+/* ========================================
+   SECTION 3: LIGHT MODE COLOR PALETTE
+   Optional light theme support
+   ======================================== */
+[data-theme="light"] {
+  /* ----- STARLIGHT COLORS: BACKGROUND ----- */
+  --sl-color-bg: #ffffff;
+  --sl-color-bg-nav: rgba(255, 255, 255, 0.9);
+  --sl-color-bg-sidebar: #f9fafb;
+  --sl-color-bg-inline-code: rgba(229, 231, 235, 0.5);
+
+  /* ----- STARLIGHT COLORS: TEXT ----- */
+  --sl-color-text: #111827;
+  --sl-color-text-accent: var(--varity-brand-600);
+
+  /* ----- STARLIGHT COLORS: ACCENT ----- */
+  --sl-color-accent: var(--varity-brand-600);
+  --sl-color-accent-low: rgba(13, 148, 136, 0.1);
+  --sl-color-accent-high: var(--varity-brand-600);
+
+  /* ----- STARLIGHT COLORS: GRAYSCALE (inverted for light) ----- */
+  --sl-color-gray-1: #18181b;
+  --sl-color-gray-2: #3f3f46;
+  --sl-color-gray-3: #52525b;
+  --sl-color-gray-4: #71717a;
+  --sl-color-gray-5: #a1a1aa;
+  --sl-color-gray-6: #e4e4e7;
+  --sl-color-gray-7: #fafafa;
+
+  /* ----- STARLIGHT COLORS: BORDERS ----- */
+  --sl-color-hairline: rgba(209, 213, 219, 0.8);
+  --sl-color-hairline-light: rgba(229, 231, 235, 0.6);
+  --sl-color-hairline-shade: rgba(0, 0, 0, 0.06);
+
+  /* ----- CUSTOM ALIASES ----- */
+  --border-primary: var(--sl-color-hairline);
+  --border-secondary: var(--sl-color-hairline-light);
+  --text-primary: #111827;
+  --text-secondary: #4b5563;
+  --text-tertiary: #6b7280;
+  --text-muted: #9ca3af;
+
+  /* Backgrounds */
+  --color-bg-base: #ffffff;
+  --color-bg-surface: #f9fafb;
+  --color-bg-elevated: #ffffff;
+  --color-bg-hover: #f3f4f6;
+  --color-bg-active: #e5e7eb;
+
+  /* Borders */
+  --color-border-default: #e5e7eb;
+  --color-border-subtle: #f3f4f6;
+  --color-border-emphasis: #d1d5db;
+
+  /* Text */
+  --color-text-primary: #111827;
+  --color-text-secondary: #4b5563;
+  --color-text-tertiary: #6b7280;
+  --color-text-disabled: #9ca3af;
+
+  /* Code */
+  --color-code-bg: #f3f4f6;
+  --color-code-border: #e5e7eb;
+  --color-inline-code-bg: #f3f4f6;
+
+  /* Brand subtle (lighter for light mode) */
+  --color-brand-subtle: rgba(13, 148, 136, 0.08);
+  --color-brand-muted: rgba(13, 148, 136, 0.04);
+}
+
+
+
+
+
+/* ========================================
+   SECTION 5: BASE TYPOGRAPHY
+   Body, headings, paragraphs, links
+   ======================================== */
+
+/* ----- BODY ----- */
+body {
+  font-family: var(--sl-font);
+  font-size: var(--text-base);
+  line-height: var(--sl-line-height);
+  color: var(--sl-color-text);
+  background-color: var(--sl-color-bg);
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* ----- HEADINGS ----- */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--sl-font);
+  color: var(--text-primary);
+  line-height: var(--sl-line-height-headings);
+  font-weight: var(--font-semibold);
+  letter-spacing: var(--tracking-tight);
+}
+
+h1 {
+  font-size: clamp(1.5rem, 4vw, 1.75rem);  /* 24-28px - Supabase-like sizing */
+  font-weight: var(--font-bold);
+  letter-spacing: var(--tracking-tighter);
+  margin-bottom: var(--space-4);
+}
+
+h2 {
+  font-size: clamp(1.125rem, 3vw, 1.25rem);  /* 18-20px - much smaller */
+  margin-top: var(--space-10);
+  margin-bottom: var(--space-3);
+  padding-bottom: 0;  /* remove padding */
+  border-bottom: none;  /* cleaner, no borders */
+  font-weight: var(--font-semibold);
+}
+
+h3 {
+  font-size: 1.125rem;  /* 18px - fixed size */
+  margin-top: var(--space-8);
+  margin-bottom: var(--space-2);
+  font-weight: var(--font-semibold);
+}
+
+h4 {
+  font-size: 1rem;  /* 16px - reduced */
+  margin-top: var(--space-6);
+  margin-bottom: var(--space-2);
+  font-weight: var(--font-medium);
+}
+
+h5 {
+  font-size: 0.875rem;  /* 14px */
+  font-weight: var(--font-medium);
+  margin-top: var(--space-4);
+  margin-bottom: var(--space-2);
+}
+
+h6 {
+  font-size: 0.8125rem;  /* 13px */
+  font-weight: var(--font-medium);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  margin-top: var(--space-4);
+  margin-bottom: var(--space-2);
+  color: var(--text-secondary);
+}
+
+/* ----- PARAGRAPHS ----- */
+p {
+  color: var(--text-secondary);
+  margin-bottom: var(--space-4);
+  max-width: 70ch; /* Optimal reading width */
+}
+
+/* Small text */
+small {
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+}
+
+/* ----- LINKS ----- */
+a {
+  color: var(--color-brand);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+a:hover {
+  color: var(--color-brand-light);
+}
+
+a:focus-visible {
+  outline: var(--sl-outline-focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Content links with animated underline */
+.sl-markdown-content a:not([class]) {
+  color: var(--color-brand);
+  text-decoration: none;
+  background-image: linear-gradient(var(--color-brand), var(--color-brand));
+  background-size: 0% 1px;
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  transition:
+    background-size var(--transition-base) cubic-bezier(0.16, 1, 0.3, 1),
+    color var(--transition-fast);
+}
+
+.sl-markdown-content a:not([class]):hover {
+  color: var(--color-brand-light);
+  background-size: 100% 1px;
+}
+
+/* ----- STRONG & EMPHASIS ----- */
+strong,
+b {
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+}
+
+em,
+i {
+  font-style: italic;
+}
+
+/* ----- INLINE CODE ----- */
+:not(pre) > code {
+  font-family: var(--sl-font-mono);
+  font-size: 0.875em;
+  font-weight: var(--font-medium);
+  color: #fafafa;
+  background: #262626;
+  padding: 0.125em 0.375rem;
+  border-radius: 0.25rem;
+}
+
+/* ----- SELECTION ----- */
+::selection {
+  background: rgba(20, 184, 166, 0.25);
+  color: var(--text-primary);
+}
+
+/* ----- FOCUS STATES ----- */
+*:focus-visible {
+  outline: var(--sl-outline-focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* ========================================
+   SECTION 6: RESPONSIVE TYPOGRAPHY
+   Adjust for different screen sizes
+   ======================================== */
+
+/* Tablet and smaller */
+@media (max-width: 48rem) {
+  :root {
+    --sl-content-pad-x: var(--space-4);
+  }
+
+  h1 {
+    font-size: var(--text-2xl);
+    margin-bottom: var(--space-4);
+  }
+
+  h2 {
+    font-size: var(--text-xl);
+    margin-top: var(--space-8);
+    margin-bottom: var(--space-3);
+  }
+
+  h3 {
+    font-size: var(--text-lg);
+    margin-top: var(--space-6);
+  }
+
+  h4 {
+    font-size: var(--text-base);
+  }
+}
+
+/* ========================================
+   SECTION 7: REDUCED MOTION
+   Respect user preferences
+   ======================================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ========================================
+   SECTION 8: PRINT STYLES
+   Clean printing
+   ======================================== */
+@media print {
+  :root {
+    --sl-color-bg: #ffffff;
+    --sl-color-text: #000000;
+    --text-primary: #000000;
+    --text-secondary: #333333;
+    --color-brand: #0d9488;
+  }
+
+  body {
+    font-size: 12pt;
+    line-height: 1.5;
+  }
+
+  h1 { font-size: 24pt; }
+  h2 { font-size: 18pt; }
+  h3 { font-size: 14pt; }
+  h4 { font-size: 12pt; }
+
+  a {
+    color: var(--color-brand);
+    text-decoration: underline;
+  }
+
+  /* Show link URLs in print */
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+    color: var(--text-secondary);
+  }
+}
+
+/* ========================================
+   SECTION 9: SCROLLBAR STYLING
+   Subtle, consistent scrollbars
+   ======================================== */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--gray-700);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gray-600);
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--gray-700) transparent;
+}
+
+/* ========================================
+   SECTION 10: LAYOUT SYSTEM
+   Homepage + Docs page layouts
+   Supabase-inspired, clean & spacious
+   ======================================== */
+
+/* ----- LAYOUT CSS CUSTOM PROPERTIES ----- */
+:root {
+  /* TOC width - wider to prevent heading wrapping */
+  --sl-toc-width: 14rem;  /* 224px - Supabase standard */
+  /* Homepage content max width */
+  --varity-homepage-max: 68rem;
+}
+
+/* ========================================
+   10.1 HOMEPAGE LAYOUT (data-has-hero pages)
+   Hero centered, content centered below
+   ======================================== */
+
+/* Override Starlight's 7fr/4fr grid on hero pages */
+html[data-has-hero] .hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1.5rem;
+  padding: clamp(3rem, 8vw, 6rem) var(--sl-content-pad-x) clamp(2rem, 5vw, 4rem);
+  max-width: 56rem;
+  margin: 0 auto;
+}
+
+/* Hero image/logo - centered above content */
+html[data-has-hero] .hero > img,
+html[data-has-hero] .hero > .hero-html {
+  order: -1;
+  width: min(40%, 8rem);
+  margin: 0 auto;
+}
+
+/* Hero content stack - centered */
+html[data-has-hero] .hero .stack {
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: clamp(1.5rem, 3vw, 2rem);
+  width: 100%;
+}
+
+/* Hero copy section */
+html[data-has-hero] .hero .copy {
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+html[data-has-hero] .hero .copy > * {
+  max-width: 58ch;
+}
+
+/* Hero title */
+html[data-has-hero] .hero h1 {
+  font-size: clamp(2rem, 5vw, 3.25rem);
+  font-weight: var(--font-bold);
+  letter-spacing: var(--tracking-tighter);
+  line-height: 1.1;
+  text-wrap: balance;
+}
+
+/* Hero tagline */
+html[data-has-hero] .hero .tagline {
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  color: var(--text-secondary);
+  line-height: 1.6;
+  max-width: 48ch;
+}
+
+/* Hero action buttons */
+html[data-has-hero] .hero .actions {
+  justify-content: center;
+  gap: 0.75rem 1rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+/* Homepage main content area */
+html[data-has-hero] .main-pane {
+  width: 100%;
+}
+
+/* Homepage markdown content - centered with max-width */
+html[data-has-hero] .content-panel .sl-container {
+  max-width: var(--varity-homepage-max);
+  margin: 0 auto;
+  padding-inline: var(--sl-content-pad-x);
+}
+
+/* Section headings on homepage - centered, no border, no anchor links */
+html[data-has-hero] .sl-markdown-content h2 {
+  text-align: center;
+  border-bottom: none;
+  padding-bottom: 0;
+  margin-top: 3.5rem;
+  margin-bottom: 1.5rem;
+}
+
+html[data-has-hero] .sl-markdown-content .sl-heading-wrapper .sl-anchor-link {
+  position: absolute;
+  right: -1.5em;
+  margin-inline-start: 0;
+}
+
+/* Card grids on homepage - centered */
+html[data-has-hero] .card-grid {
+  max-width: 56rem;
+  margin-inline: auto;
+}
+
+/* ========================================
+   10.2 DOCS PAGE LAYOUT (data-has-sidebar pages)
+   Three-column: sidebar | content | TOC
+   ======================================== */
+
+/* Main content pane - grows to fill space */
+html[data-has-sidebar] .main-pane {
+  flex: 1 1 0%;
+  min-width: 0;
+}
+
+/* Content container - readable line length */
+html[data-has-sidebar] .content-panel .sl-container {
+  max-width: var(--sl-content-width);
+}
+
+/* Prose elements - optimal reading width */
+html[data-has-sidebar] .sl-markdown-content :is(p, li, blockquote, dd) {
+  max-width: 70ch;
+}
+
+/* Full-width elements */
+html[data-has-sidebar] .sl-markdown-content :is(pre, table, .expressive-code, .card-grid, figure) {
+  max-width: 100%;
+}
+
+/* ========================================
+   10.3 CONTENT CENTERING FIX
+   ======================================== */
+
+/*
+ * Problem: Starlight's TwoColumnContent.astro sets
+ * --sl-content-margin-inline: auto 0 on docs pages with TOC.
+ * This causes content to left-align within .main-pane.
+ *
+ * Solution: Override margin-inline to center the content.
+ * This works for all docs pages (with or without TOC).
+ */
+
+/* Center content in docs pages at tablet+ (50rem+) */
+@media (min-width: 50rem) {
+  html[data-has-sidebar] .content-panel .sl-container {
+    margin-inline: auto;
+  }
+}
+
+/* ========================================
+   10.4 RIGHT SIDEBAR (TOC) STYLING
+   ======================================== */
+
+/* TOC panel styling */
+.right-sidebar-panel {
+  padding: 1.5rem 1rem 2rem 0;
+}
+
+/* "On This Page" heading */
+.right-sidebar-panel h2 {
+  font-size: 0.6875rem;
+  font-weight: var(--font-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wider);
+  color: var(--text-muted);
+  margin-bottom: 0.75rem;
+  padding-left: 0.75rem;
+}
+
+/* TOC links */
+.right-sidebar-panel a {
+  display: block;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--text-tertiary);
+  text-decoration: none;
+  padding: 0.375rem 0.75rem;
+  border-left: 2px solid transparent;
+  transition: color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.right-sidebar-panel a:hover {
+  color: var(--text-primary);
+  border-left-color: var(--gray-700);
+}
+
+/* Active TOC item */
+.right-sidebar-panel a[aria-current="true"] {
+  color: var(--color-brand);
+  font-weight: var(--font-medium);
+  border-left-color: var(--color-brand);
+}
+
+/* TOC focus states for keyboard navigation */
+.right-sidebar-panel a:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Nested TOC items - indented */
+.right-sidebar-panel ul ul a {
+  padding-left: 1.25rem;
+  font-size: 0.875rem;
+}
+
+/* ========================================
+   10.5 RESPONSIVE BREAKPOINTS
+   ======================================== */
+
+/* Desktop (72rem+): Full 3-column layout */
+/* Handled by default Starlight + overrides above */
+
+/* Laptop (50-72rem): Hide TOC, 2-column layout */
+@media (max-width: 72rem) {
+  .right-sidebar-container {
+    display: none;
+  }
+
+  /* Expand content to fill space */
+  html[data-has-sidebar] .main-pane {
+    width: 100%;
+  }
+}
+
+/* Mobile (<50rem): Single column, hamburger menu */
+@media (max-width: 50rem) {
+  /* Hero adjustments */
+  html[data-has-hero] .hero {
+    padding: 2.5rem 1rem 2rem;
+  }
+
+  html[data-has-hero] .hero h1 {
+    font-size: 1.75rem;
+  }
+
+  /* Homepage content */
+  html[data-has-hero] .content-panel .sl-container {
+    padding-inline: 1rem;
+  }
+
+  /* Docs content */
+  .content-panel {
+    padding-inline: 1rem;
+  }
+}
+
+/* Small mobile (<30rem) */
+@media (max-width: 30rem) {
+  html[data-has-hero] .hero {
+    padding: 2rem 0.75rem 1.5rem;
+  }
+
+  html[data-has-hero] .hero .actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  html[data-has-hero] .hero .actions > * {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ========================================
+   SECTION 11: HEADER & NAVIGATION
+   Glass effect navbar like Linear
+   ======================================== */
+
+/* Header with glass effect */
+header.header {
+  background: var(--sl-color-bg-nav);
+  backdrop-filter: blur(12px) saturate(150%);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
+  border-bottom: 1px solid var(--border-secondary);
+}
+
+/* Site title */
+.site-title {
+  font-weight: var(--font-bold);
+  font-size: var(--text-lg);
+  color: var(--text-primary);
+  letter-spacing: var(--tracking-tight);
+  transition: opacity var(--transition-fast);
+}
+
+.site-title:hover {
+  opacity: 0.8;
+}
+
+/* ========================================
+   SECTION 12: LEFT SIDEBAR (Navigation)
+   Clean, Supabase-style sidebar
+   ======================================== */
+
+/* Sidebar container */
+.sidebar-pane {
+  background: var(--sl-color-bg-sidebar);
+  border-inline-end: 1px solid var(--border-secondary);
+}
+
+.sidebar-content {
+  padding-top: var(--space-4);
+}
+
+/* Sidebar section titles (uppercase labels) */
+nav.sidebar .top-level > li > details > summary:first-child,
+nav.sidebar .group-label {
+  font-size: 0.6875rem;  /* 11px - WCAG AA compliant */
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #525252;
+  padding: 0.5rem 1rem 0.375rem;
+}
+
+/* Sidebar group labels */
+nav.sidebar .top-level > li > details > summary,
+nav.sidebar .top-level > li > a {
+  font-size: 0.8125rem;  /* 13px - reduced from 14px */
+  font-weight: var(--font-medium);
+  color: var(--text-secondary);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  transition: var(--transition-colors);
+}
+
+/* Sidebar nested items */
+nav.sidebar ul ul a {
+  font-size: 0.75rem;  /* 12px - smaller than top-level for hierarchy */
+  font-weight: var(--font-normal);
+  color: var(--text-tertiary);
+  padding: var(--space-2) var(--space-4) var(--space-2) var(--space-6);
+  border-radius: var(--radius-md);
+  transition: var(--transition-colors);
+}
+
+/* Sidebar hover states */
+nav.sidebar a:hover,
+nav.sidebar summary:hover {
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-primary);
+}
+
+/* Active sidebar item - teal brand color indicator */
+nav.sidebar a[aria-current="page"] {
+  background: var(--color-brand-subtle);
+  color: var(--color-brand-light);
+  position: relative;
+  font-weight: var(--font-medium);
+}
+
+nav.sidebar a[aria-current="page"]::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 60%;
+  background: var(--color-brand);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+/* Sidebar focus states for keyboard navigation */
+nav.sidebar a:focus-visible,
+nav.sidebar summary:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+  border-radius: var(--radius-md);
+}
+
+/* ========================================
+   SECTION 13: CARDS & LINK CARDS
+   Premium hover effects
+   ======================================== */
+
+/* Card Grid Container */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  margin: var(--space-6) 0;
+}
+
+/* Base card styling */
+article.card {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.02) 100%);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  transition: all var(--transition-base);
+  display: flex;
+  flex-direction: column;
+}
+
+article.card:hover {
+  border-color: rgba(20, 184, 166, 0.5);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg), var(--shadow-glow);
+}
+
+/* Card title */
+article.card .title {
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+}
+
+/* Card icon - brand color */
+article.card .icon {
+  background: var(--color-brand-subtle);
+  border-color: var(--color-brand);
+  color: var(--color-brand);
+}
+
+/* Card body text */
+article.card .body {
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  flex: 1;
+}
+
+/* Link Card styling */
+.sl-link-card {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  text-decoration: none;
+  transition: all var(--transition-base);
+  position: relative;
+  overflow: hidden;
+}
+
+.sl-link-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(20, 184, 166, 0.05) 0%, transparent 50%);
+  opacity: 0;
+  transition: opacity var(--transition-base);
+}
+
+.sl-link-card:hover {
+  border-color: rgba(20, 184, 166, 0.4);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg), var(--shadow-glow);
+}
+
+.sl-link-card:hover::before {
+  opacity: 1;
+}
+
+.sl-link-card:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+}
+
+.sl-link-card .title {
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-1);
+}
+
+.sl-link-card .description {
+  color: var(--text-tertiary);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+}
+
+/* Link card arrow */
+.sl-link-card > .icon {
+  color: var(--color-brand);
+  flex-shrink: 0;
+  margin-left: var(--space-2);
+  transition: transform var(--transition-fast);
+}
+
+.sl-link-card:hover > .icon {
+  transform: translateX(4px);
+}
+
+/* ========================================
+   SECTION 14: CODE BLOCKS
+   Premium styling with Expressive Code
+   ======================================== */
+
+.expressive-code {
+  --ec-codeBg: #0a0a0a;
+  --ec-codeFg: var(--gray-200);
+  --ec-codeBorder: var(--border-primary);
+  --ec-brdRad: var(--radius-lg);
+  margin: var(--space-6) 0;
+}
+
+.expressive-code pre {
+  background: linear-gradient(180deg, #0f0f12 0%, #0d0d0f 100%);
+  border: 1px solid var(--border-primary);
+  box-shadow: var(--shadow-md);
+}
+
+/* Code block header (filename) */
+.expressive-code .header {
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid var(--border-secondary);
+  font-size: var(--text-sm);
+}
+
+/* Copy button */
+.expressive-code .copy button {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-secondary);
+  border-radius: var(--radius-md);
+  color: var(--text-tertiary);
+  opacity: 0.6;
+  transition: all var(--transition-fast);
+}
+
+.expressive-code:hover .copy button {
+  opacity: 1;
+}
+
+.expressive-code .copy button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  border-color: var(--border-primary);
+}
+
+/* Copy success state */
+.expressive-code .copy button.copied {
+  background: var(--color-success-subtle);
+  border-color: var(--color-success);
+  color: var(--color-success);
+}
+
+/* Line highlighting */
+.expressive-code .highlight {
+  background: rgba(20, 184, 166, 0.1);
+  border-left: 3px solid var(--color-brand);
+}
+
+/* ========================================
+   SECTION 15: CALLOUTS / ASIDES
+   Styled alert boxes
+   ======================================== */
+
+.starlight-aside {
+  border-radius: var(--radius-lg);
+  border-left-width: 4px;
+  background: rgba(255, 255, 255, 0.02);
+  padding: var(--space-4) var(--space-5);
+  margin: var(--space-6) 0;
+}
+
+.starlight-aside--tip {
+  --sl-color-asides-text-accent: var(--color-success);
+  background: var(--color-success-subtle);
+  border-color: var(--color-success);
+}
+
+.starlight-aside--note {
+  --sl-color-asides-text-accent: var(--color-info);
+  background: var(--color-info-subtle);
+  border-color: var(--color-info);
+}
+
+.starlight-aside--caution {
+  --sl-color-asides-text-accent: var(--color-warning);
+  background: var(--color-warning-subtle);
+  border-color: var(--color-warning);
+}
+
+.starlight-aside--danger {
+  --sl-color-asides-text-accent: var(--color-danger);
+  background: var(--color-danger-subtle);
+  border-color: var(--color-danger);
+}
+
+.starlight-aside .starlight-aside__title {
+  font-weight: var(--font-semibold);
+  font-size: var(--text-sm);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+}
+
+/* ========================================
+   SECTION 16: TABLES
+   Clean, bordered tables
+   ======================================== */
+
+table {
+  display: table !important;
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: var(--space-6) 0;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--border-primary);
+}
+
+th, td {
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+  border-bottom: 1px solid var(--border-secondary);
+}
+
+th {
+  background: rgba(255, 255, 255, 0.03);
+  font-weight: var(--font-semibold);
+  font-size: var(--text-sm);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  color: var(--text-tertiary);
+}
+
+td {
+  color: var(--text-secondary);
+  font-size: 0.9375rem;
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+tr:hover td {
+  background: #262626;
+}
+
+/* ========================================
+   SECTION 17: LISTS
+   Styled unordered and ordered lists
+   ======================================== */
+
+.sl-markdown-content ul {
+  list-style: none;
+  padding-left: var(--space-6);
+}
+
+.sl-markdown-content ul li {
+  position: relative;
+  margin-bottom: var(--space-2);
+}
+
+.sl-markdown-content ul li::before {
+  content: '';
+  position: absolute;
+  left: calc(-1 * var(--space-4));
+  top: 0.7em;
+  width: 6px;
+  height: 6px;
+  background: var(--color-brand);
+  border-radius: 9999px;
+}
+
+.sl-markdown-content ol {
+  padding-left: var(--space-6);
+}
+
+.sl-markdown-content ol li {
+  margin-bottom: var(--space-2);
+}
+
+.sl-markdown-content ol li::marker {
+  color: var(--color-brand);
+  font-weight: var(--font-semibold);
+}
+
+/* Nested lists */
+.sl-markdown-content ul ul li::before,
+.sl-markdown-content ol ul li::before {
+  background: var(--text-muted);
+  width: 4px;
+  height: 4px;
+}
+
+/* ========================================
+   SECTION 18: BLOCKQUOTES
+   Styled quote blocks
+   ======================================== */
+
+.sl-markdown-content blockquote {
+  border-left: 3px solid var(--color-brand);
+  margin: var(--space-6) 0;
+  padding: var(--space-4) var(--space-6);
+  background: var(--color-brand-muted);
+  border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+}
+
+.sl-markdown-content blockquote p {
+  color: var(--text-secondary);
+  font-style: italic;
+  margin: 0;
+}
+
+/* ========================================
+   SECTION 19: BUTTONS
+   Primary and secondary button styles
+   ======================================== */
+
+.sl-link-button {
+  background: var(--color-brand);
+  color: var(--gray-950);
+  font-weight: var(--font-semibold);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3) var(--space-6);
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-sm);
+}
+
+.sl-link-button:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md), var(--shadow-glow);
+}
+
+.sl-link-button.secondary {
+  background: transparent;
+  border: 1px solid var(--border-primary);
+  color: var(--text-primary);
+}
+
+.sl-link-button.secondary:hover {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: var(--border-primary);
+}
+
+.sl-link-button:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 3px;
+}
+
+/* ========================================
+   SECTION 20: BADGES
+   Status and label badges
+   ======================================== */
+
+.sl-badge {
+  font-size: 0.625rem;
+  font-weight: var(--font-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  padding: 0.2em 0.5em;
+  border-radius: var(--radius-sm);
+}
+
+.sl-badge.success {
+  background: var(--color-success-subtle);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.25);
+}
+
+.sl-badge.caution {
+  background: var(--color-warning-subtle);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.sl-badge.note {
+  background: var(--color-info-subtle);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.25);
+}
+
+/* ========================================
+   SECTION 21: PAGINATION
+   Prev/Next navigation links
+   ======================================== */
+
+.pagination-links {
+  margin-top: var(--space-12);
+  padding-top: var(--space-8);
+  border-top: 1px solid var(--border-secondary);
+}
+
+.pagination-links a {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4) var(--space-5);
+  transition: all var(--transition-base);
+}
+
+.pagination-links a:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(20, 184, 166, 0.3);
+  transform: translateY(-1px);
+}
+
+.pagination-links a:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+}
+
+/* ========================================
+   SECTION 22: SEARCH
+   Search button and modal styling
+   ======================================== */
+
+site-search button[data-open-modal] {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  transition: all var(--transition-fast);
+}
+
+site-search button[data-open-modal]:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--border-primary);
+}
+
+site-search kbd {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  padding: 0.15rem 0.4rem;
+}
+
+/* ========================================
+   SECTION 23: HEADING ANCHORS
+   Hover-reveal anchor links
+   ======================================== */
+
+.heading-anchor {
+  color: var(--text-muted);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+  margin-left: var(--space-4);  /* 16px - prevent text overlap */
+  display: inline-block;
+  width: 1.25rem;  /* Fixed width for consistent spacing */
+  text-align: center;
+}
+
+:is(h1, h2, h3, h4):hover .heading-anchor {
+  opacity: 1;
+}
+
+/* ========================================
+   SECTION 24: HORIZONTAL RULES
+   Gradient dividers
+   ======================================== */
+
+.sl-markdown-content hr {
+  border: none;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--border-primary) 20%,
+    var(--border-primary) 80%,
+    transparent 100%
+  );
+  margin: var(--space-12) 0;
+}
+
+/* ========================================
+   SECTION 25: KEYBOARD SHORTCUTS
+   Styled kbd elements
+   ======================================== */
+
+.sl-markdown-content kbd {
+  display: inline-block;
+  padding: 0.15em 0.4em;
+  font-family: var(--sl-font-mono);
+  font-size: 0.8125em;
+  line-height: 1.4;
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 1px 0 var(--border-primary);
+}
+
+/* ========================================
+   SECTION 26: IMAGES & FIGURES
+   Styled images with captions
+   ======================================== */
+
+.sl-markdown-content figure {
+  margin: var(--space-8) 0;
+}
+
+.sl-markdown-content figure img {
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-secondary);
+  box-shadow: var(--shadow-md);
+}
+
+.sl-markdown-content figcaption {
+  text-align: center;
+  color: var(--text-tertiary);
+  font-size: var(--text-sm);
+  font-style: italic;
+  margin-top: var(--space-3);
+}
+
+/* ========================================
+   SECTION 27: STEPS COMPONENT
+   Numbered step guides
+   ======================================== */
+
+.sl-steps {
+  counter-reset: step-counter;
+  padding-left: 0;
+  list-style: none;
+}
+
+.sl-steps > li {
+  position: relative;
+  padding-left: var(--space-12);
+  padding-bottom: var(--space-8);
+  border-left: 2px solid var(--border-secondary);
+  margin-left: var(--space-4);
+}
+
+.sl-steps > li:last-child {
+  border-left-color: transparent;
+  padding-bottom: 0;
+}
+
+.sl-steps > li::before {
+  counter-increment: step-counter;
+  content: counter(step-counter);
+  position: absolute;
+  left: calc(-1 * var(--space-4) - 1px);
+  top: 0;
+  width: var(--space-8);
+  height: var(--space-8);
+  background: var(--sl-color-bg);
+  border: 2px solid var(--color-brand);
+  border-radius: 9999px;
+  color: var(--color-brand);
+  font-weight: var(--font-semibold);
+  font-size: var(--text-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sl-steps > li > :first-child {
+  margin-top: 0;
+}
+
+/* ========================================
+   SECTION 28: CONTENT ANIMATIONS
+   Subtle fade-in effect
+   ======================================== */
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.sl-markdown-content {
+  animation: fadeInUp 0.2s ease-out;
+}
