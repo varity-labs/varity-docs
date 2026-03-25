@@ -281,12 +281,26 @@ Restart Cursor after adding the config. Check that `.cursor/mcp.json` is valid J
 **Server not showing in Claude Code**
 Run `claude mcp list` to verify the server is registered. Re-add with `claude mcp add varity -- npx -y @varity-labs/mcp`.
 
-## HTTP Transport
+## HTTP Transport (Claude.ai, ChatGPT, Browser-Based LLMs)
 
 The MCP server supports two transports:
 
 - **stdio** (default) — for desktop editors like Cursor, Claude Code, VS Code, Windsurf
-- **HTTP** — for browser-based AI tools
+- **HTTP** — for browser-based AI tools like Claude.ai and ChatGPT
+
+### Hosted MCP
+
+Connect directly to the hosted Varity MCP at:
+
+```
+https://mcp.varity.so
+```
+
+**Claude.ai:** Settings → Connectors → Add MCP Server → URL: `https://mcp.varity.so`
+
+**ChatGPT:** Settings → Connectors → Create → MCP server URL: `https://mcp.varity.so`
+
+The first time you connect, you'll authenticate via the Varity login page.
 
 ### Self-Hosted HTTP
 
