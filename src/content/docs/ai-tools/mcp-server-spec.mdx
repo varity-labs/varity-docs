@@ -135,7 +135,7 @@ Verify that your machine is ready to build and deploy with Varity. Checks Node.j
 
 ### `varity_init` — Create a new app
 
-Scaffold a production-ready app with auth, database, and payments.
+Scaffold a production-ready app with auth, database, and a full dashboard.
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
@@ -266,11 +266,14 @@ Here's the full build-to-monetize flow using the MCP tools:
 
 ## Troubleshooting
 
+**First step: run `varity_doctor`**
+Ask your AI editor "check if my environment is ready for Varity" — this runs the `varity_doctor` tool which checks all prerequisites at once and tells you exactly what to fix.
+
 **"Cannot find module @varity-labs/mcp"**
 Make sure Node.js 18+ is installed. Run `node --version` to check.
 
 **Deploy tools fail with "varitykit not found"**
-Install the CLI: `pip install varitykit`. Run `varitykit doctor` to verify.
+Install the CLI: `pip install varitykit`. The deploy tool will also attempt automatic installation if varitykit is missing.
 
 **Server not showing in Cursor**
 Restart Cursor after adding the config. Check that `.cursor/mcp.json` is valid JSON.
@@ -278,30 +281,16 @@ Restart Cursor after adding the config. Check that `.cursor/mcp.json` is valid J
 **Server not showing in Claude Code**
 Run `claude mcp list` to verify the server is registered. Re-add with `claude mcp add varity -- npx -y @varity-labs/mcp`.
 
-## HTTP Transport (Claude.ai, ChatGPT, Browser-Based LLMs)
+## HTTP Transport
 
 The MCP server supports two transports:
 
 - **stdio** (default) — for desktop editors like Cursor, Claude Code, VS Code, Windsurf
-- **HTTP** — for browser-based AI tools like Claude.ai and ChatGPT
-
-### Hosted MCP
-
-Connect directly to the hosted Varity MCP at:
-
-```
-https://mcp.varity.so
-```
-
-**Claude.ai:** Settings → Connectors → Add MCP Server → URL: `https://mcp.varity.so`
-
-**ChatGPT:** Settings → Connectors → Create → MCP server URL: `https://mcp.varity.so`
-
-The first time you connect, you'll authenticate via the Varity login page.
+- **HTTP** — for browser-based AI tools
 
 ### Self-Hosted HTTP
 
-Run the HTTP server locally for development:
+Run the HTTP server locally for development or testing:
 
 ```bash
 npx -y @varity-labs/mcp --transport http --port 3100
