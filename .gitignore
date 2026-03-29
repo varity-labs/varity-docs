@@ -23,6 +23,7 @@ Thumbs.db
 
 # Editor directories
 .idea/
+.claude/
 *.swp
 *.swo
 *~
