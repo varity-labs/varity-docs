@@ -130,6 +130,11 @@ export default defineConfig({
           label: "Getting Started",
           items: [
             { label: "Introduction", slug: "getting-started/introduction" },
+            {
+              label: "How Varity Works",
+              slug: "getting-started/how-varity-works",
+              badge: { text: "New", variant: "success" },
+            },
             { label: "Installation", slug: "getting-started/installation" },
             {
               label: "Quick Start",
@@ -178,7 +183,7 @@ export default defineConfig({
               items: [
                 { label: "Overview", slug: "packages/sdk/overview" },
                 { label: "Installation", slug: "packages/sdk/installation" },
-                { label: "Configuration", slug: "packages/sdk/chains" },
+                { label: "Configuration", slug: "packages/sdk/chains", badge: { text: "Advanced", variant: "note" } },
               ],
             },
             {
@@ -259,13 +264,12 @@ export default defineConfig({
                   badge: { text: "Beta", variant: "note" },
                 },
                 { label: "Credit Card Payments", slug: "build/payments/credit-card" },
-                { label: "Free Operations", slug: "build/payments/gasless" },
               ],
             },
 
-            // ----- SMART ACCOUNTS -----
+            // ----- ACCOUNTS -----
             {
-              label: "Smart Accounts",
+              label: "Accounts",
               collapsed: true,
               items: [
                 {
@@ -273,7 +277,6 @@ export default defineConfig({
                   slug: "build/wallets/quickstart",
                 },
                 { label: "Create Account", slug: "build/wallets/create-wallet" },
-                { label: "Session Keys", slug: "build/wallets/session-keys" },
               ],
             },
 
@@ -316,6 +319,11 @@ export default defineConfig({
               label: "Deploy Your App",
               slug: "deploy/deploy-your-app",
               badge: { text: "Beta", variant: "note" },
+            },
+            {
+              label: "App Store & Developer Portal",
+              slug: "deploy/app-store",
+              badge: { text: "New", variant: "success" },
             },
             { label: "Managed Credentials", slug: "deploy/managed-credentials" },
             { label: "Environment Variables", slug: "deploy/env-variables" },
