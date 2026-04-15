@@ -149,17 +149,10 @@ This will:
 
 When users purchase your app or subscribe:
 
-<<<<<<< HEAD
 - **90%** goes to you (the developer)
 - **10%** goes to the Varity platform
 
 All payment processing is handled automatically. You receive payouts monthly.
-=======
-- **90/10 split** — you keep 90%
-- **10%** goes to the Varity platform
-
-Payment processing is coming soon. During beta, you can submit and list apps on the store.
->>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 
 ## Manage Your Deployments
 
@@ -254,7 +247,6 @@ varitykit app deploy --verbose
 | `--tier` | - | Pricing tier: `free`, `starter`, `growth`, `scale`, `enterprise` |
 | `--path` | `.` | Project directory |
 
-<<<<<<< HEAD
 <Accordion title="Advanced: Technical Architecture">
 
 ## Network Details
@@ -281,39 +273,19 @@ Pre-deployed on Varity's infrastructure:
 | **VarityAppRegistry** | `0xbf9f4849a5508e9f271c30205c1ce924328e5e1c` | App Store submissions |
 | **SimplifiedPaymaster** | `0x579772Bfa5Ec1e8f33B81F304ffDbC55135db154` | Fee sponsorship |
 | **VarityWalletFactory** | `0x23dcca8E063CB0Eea8Ec6e56657c07E11fFa4E78` | Smart accounts |
-=======
-<Accordion title="Security Architecture">
-
-## How Your App Is Secured
-
-Every app deployed on Varity is protected by multiple layers of security:
-
-- **Cryptographic verification** — all data and transactions are cryptographically signed and tamper-proof
-- **Immutable audit trail** — every deployment and app action is permanently recorded and auditable
-- **End-to-end encryption** — data is encrypted in transit (TLS) and at rest
-- **Zero-trust infrastructure** — no single point of failure across globally distributed nodes
-- **Automatic fee sponsorship** — your users never pay infrastructure fees, Varity covers them
->>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 
 ## Storage Architecture
 
 Static deployments use:
-<<<<<<< HEAD
 - Content-addressed storage for integrity
 - Long-term archival for durability
 - **CDN** for global distribution
-=======
-- Content-addressed storage for integrity verification
-- Long-term archival for durability
-- **Global CDN** for fast worldwide delivery
->>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 
 Dynamic deployments use:
 - Distributed compute for reliability
 - **Persistent volumes** for databases
 - **Load balancing** across multiple providers
 
-<<<<<<< HEAD
 ## Deployment Flow (Technical)
 
 1. **Build** - CLI detects framework and runs build
@@ -321,15 +293,6 @@ Dynamic deployments use:
 3. **Register** - App registered via `VarityAppRegistry`
 4. **Paymaster** - Free operations enabled via `SimplifiedPaymaster`
 5. **CDN** - Files propagated to global CDN
-=======
-## Deployment Flow
-
-1. **Build** — CLI detects your framework and runs the production build
-2. **Upload** — Files uploaded to secure storage, deployment ID generated
-3. **Register** — App registered in the Varity platform registry
-4. **Activate** — Authentication, database, and hosting configured automatically
-5. **Distribute** — Files propagated to global CDN, live URL assigned
->>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 
 </Accordion>
 

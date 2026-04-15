@@ -1,10 +1,6 @@
 ---
 title: "Infrastructure Configuration"
-<<<<<<< HEAD
 description: "Varity SDK infrastructure configuration: USDC handling with 6 decimals, formatUSDC/parseUSDC helpers, and auto-configured network settings."
-=======
-description: "Varity SDK infrastructure configuration: payment handling with 6 decimal precision, format/parse helpers, and auto-configured network settings."
->>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 ---
 
 import { Aside } from '@astrojs/starlight/components';
@@ -18,7 +14,6 @@ import PageMeta from '../../../../components/PageMeta.astro';
   stability="stable"
 />
 
-<<<<<<< HEAD
 <Aside type="caution">
 **Advanced users only.** This page covers low-level infrastructure details for integrating directly with the Varity L3 network. Most developers do not need this — the SDK and CLI handle everything automatically.
 </Aside>
@@ -28,13 +23,6 @@ Varity SDK handles all infrastructure configuration automatically. You rarely ne
 ## USDC Handling
 
 USDC on Varity uses 6 decimals. Use the helpers to avoid errors:
-=======
-Varity SDK handles all infrastructure configuration automatically. You rarely need to configure anything manually.
-
-## Payment Amount Handling
-
-Payments on Varity use 6 decimal precision. Use the helpers to avoid errors:
->>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 
 ```typescript
 import { formatUSDC, parseUSDC, USDC_DECIMALS } from '@varity-labs/sdk/chains';
@@ -52,11 +40,7 @@ console.log(USDC_DECIMALS); // 6
 ```
 
 <Aside type="caution">
-<<<<<<< HEAD
 **Important:** USDC on Varity uses **6 decimals**, not 18. Always use the `formatUSDC` and `parseUSDC` helpers to avoid calculation errors.
-=======
-**Important:** Payment amounts on Varity use **6 decimals**, not 18. Always use the `formatUSDC` and `parseUSDC` helpers to avoid calculation errors.
->>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 </Aside>
 
 ## Accessing Contract Addresses
@@ -78,11 +62,7 @@ The platform uses a 90/10 revenue split:
 The revenue split is enforced automatically by the platform.
 
 When users purchase your app:
-<<<<<<< HEAD
 - **90%** goes to you (the developer)
-=======
-- **90/10 split** — you keep 90%
->>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 - **10%** goes to the Varity platform
 
 <Aside type="tip">
@@ -100,11 +80,7 @@ When users purchase your app:
 | **Chain ID** | `33529` |
 | **RPC URL** | `https://rpc-varity-testnet-rroe52pwjp.t.conduit.xyz` |
 | **Explorer** | `https://explorer-varity-testnet-rroe52pwjp.t.conduit.xyz` |
-<<<<<<< HEAD
 | **Native Token** | Bridged USDC |
-=======
-| **Native Currency** | Stablecoin (6 decimals) |
->>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 | **Decimals** | 6 (not 18!) |
 
 ## Backend Contracts
@@ -142,13 +118,7 @@ console.log(SUPPORTED_CHAINS);
 import { createThirdwebClient, getContract } from 'thirdweb';
 import { varityL3Testnet } from '@varity-labs/sdk/chains';
 
-<<<<<<< HEAD
 const client = createThirdwebClient({ clientId: 'your-client-id' });
-=======
-const client = createThirdwebClient({
-  clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID,
-});
->>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 
 const contract = getContract({
   client,

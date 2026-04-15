@@ -167,11 +167,7 @@ NEXT_PUBLIC_VARITY_APP_ID=        # Your app ID (after deploy)
 ```
 
 ## Key Rules
-<<<<<<< HEAD
 - NEVER use blockchain/crypto terminology in user-facing code
-=======
-- NEVER use technical infrastructure terminology in user-facing code
->>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 - Use TypeScript interfaces for all data models
 - Use optimistic UI updates in hooks (update state first, then API, rollback on error)
 - Use `'use client'` directive for hooks and interactive components
