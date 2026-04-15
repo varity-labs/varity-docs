@@ -326,14 +326,13 @@ Functions for managing authentication credentials. Used internally by UI-Kit.
 
 Automatically resolves credentials from environment variables with fallback to dev credentials.
 
-**Signature:** `resolveCredentials(appId?: string, clientId?: string): CredentialConfig`
+**Signature:** `resolveCredentials(appId?: string): CredentialConfig`
 
 **Parameters:**
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `appId` | `string` | No | Privy App ID (falls back to dev credentials) |
-| `clientId` | `string` | No | Thirdweb Client ID (falls back to dev credentials) |
 
 **CredentialConfig Type:**
 
@@ -341,9 +340,6 @@ Automatically resolves credentials from environment variables with fallback to d
 interface CredentialConfig {
   privy: {
     appId: string;
-  };
-  thirdweb: {
-    clientId: string;
   };
 }
 ```
@@ -358,13 +354,9 @@ import { resolveCredentials } from '@varity-labs/sdk';
 // Auto-resolve with dev credential fallback
 const creds = resolveCredentials();
 console.log('Privy App ID:', creds.privy.appId);
-console.log('Thirdweb Client ID:', creds.thirdweb.clientId);
 
-// Override specific credentials
-const customCreds = resolveCredentials(
-  'custom-privy-app-id',
-  'custom-thirdweb-client-id'
-);
+// Override with custom credentials
+const customCreds = resolveCredentials('custom-privy-app-id');
 ```
 
 ---
@@ -373,14 +365,13 @@ const customCreds = resolveCredentials(
 
 Checks if the provided credentials match development credentials.
 
-**Signature:** `isUsingDevCredentials(appId?: string, clientId?: string): boolean`
+**Signature:** `isUsingDevCredentials(appId?: string): boolean`
 
 **Parameters:**
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `appId` | `string` | No | Privy App ID to check |
-| `clientId` | `string` | No | Thirdweb Client ID to check |
 
 **Returns:** `boolean` - `true` if using dev credentials
 
@@ -400,14 +391,13 @@ if (isUsingDevCredentials()) {
 
 Checks if credentials are production-ready (opposite of `isUsingDevCredentials`).
 
-**Signature:** `isProductionCredentials(appId?: string, clientId?: string): boolean`
+**Signature:** `isProductionCredentials(appId?: string): boolean`
 
 **Parameters:**
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `appId` | `string` | No | Privy App ID to check |
-| `clientId` | `string` | No | Thirdweb Client ID to check |
 
 **Returns:** `boolean` - `true` if using production credentials
 
@@ -417,9 +407,8 @@ Checks if credentials are production-ready (opposite of `isUsingDevCredentials`)
 import { isProductionCredentials } from '@varity-labs/sdk';
 
 const appId = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
-const clientId = process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID;
 
-if (!isProductionCredentials(appId, clientId)) {
+if (!isProductionCredentials(appId)) {
   throw new Error('Production credentials required');
 }
 ```
@@ -459,14 +448,13 @@ if (warning) {
 
 Logs credential usage information to the console (with deduplication to avoid spam).
 
-**Signature:** `logCredentialUsage(appId?: string, clientId?: string): void`
+**Signature:** `logCredentialUsage(appId?: string): void`
 
 **Parameters:**
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `appId` | `string` | No | Privy App ID to log |
-| `clientId` | `string` | No | Thirdweb Client ID to log |
 
 **Example:**
 
@@ -482,7 +470,7 @@ logCredentialUsage();
 
 Validates that the provided credentials are well-formed.
 
-**Signature:** `validateCredentials(appId: string, clientId: string): void`
+**Signature:** `validateCredentials(appId: string): void`
 
 Throws an error if the credentials are invalid or malformed.
 
@@ -491,7 +479,6 @@ Throws an error if the credentials are invalid or malformed.
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `appId` | `string` | Yes | Privy App ID to validate |
-| `clientId` | `string` | Yes | Thirdweb Client ID to validate |
 
 **Example:**
 
@@ -499,10 +486,7 @@ Throws an error if the credentials are invalid or malformed.
 import { validateCredentials } from '@varity-labs/sdk';
 
 try {
-  validateCredentials(
-    process.env.NEXT_PUBLIC_PRIVY_APP_ID!,
-    process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID!
-  );
+  validateCredentials(process.env.NEXT_PUBLIC_PRIVY_APP_ID!);
   console.log('Credentials are valid');
 } catch (error) {
   console.error('Invalid credentials:', error.message);
@@ -531,7 +515,7 @@ console.log(getUpgradeInstructions());
 
 Shared development credentials for zero-config testing.
 
-**Type:** `object` (contains `privy`, `thirdweb`, and `rateLimits`)
+**Type:** `object` (contains `privy` and `rateLimits`)
 
 **Value:**
 
@@ -540,12 +524,8 @@ Shared development credentials for zero-config testing.
   privy: {
     appId: 'cmhwbozxu004fjr0cicfz0tf8',
   },
-  thirdweb: {
-    clientId: 'a35636133eb5ec6f30eb9f4c15fce2f3',
-  },
   rateLimits: {
     privy: { monthlyActiveUsers: 1000 },
-    thirdweb: { requestsPerSecond: 100 },
   },
 }
 ```
@@ -731,9 +711,7 @@ import {
 ```typescript
 import { createThirdwebWrapper } from '@varity-labs/sdk/thirdweb';
 
-const wrapper = createThirdwebWrapper({
-  clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID,
-});
+const wrapper = createThirdwebWrapper({ clientId: 'your-client-id' });
 ```
 
 ---
@@ -853,11 +831,10 @@ import {
 // Auto-resolve credentials
 const creds = resolveCredentials(
   process.env.NEXT_PUBLIC_PRIVY_APP_ID,
-  process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID
 );
 
 // Check environment
-if (isUsingDevCredentials(creds.privy.appId, creds.thirdweb.clientId)) {
+if (isUsingDevCredentials(creds.privy.appId)) {
   const warning = getCredentialWarning('production');
   if (warning) console.warn(warning);
 
@@ -869,7 +846,6 @@ if (isUsingDevCredentials(creds.privy.appId, creds.thirdweb.clientId)) {
 
 // Use credentials
 console.log('Privy App ID:', creds.privy.appId);
-console.log('Thirdweb Client ID:', creds.thirdweb.clientId);
 ```
 
 ---

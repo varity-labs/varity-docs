@@ -86,13 +86,13 @@ const items = customDb.collection('items');
 
 | Export | Type | Description |
 |--------|------|-------------|
-| `VARITY_DEV_CREDENTIALS` | const (object) | Shared dev credentials containing `privy.appId`, `thirdweb.clientId`, and `rateLimits` |
-| `resolveCredentials` | function | `(appId?, clientId?) => CredentialConfig` -- resolves with fallback to dev credentials |
-| `validateCredentials` | function | `(appId, clientId) => void` -- throws if credentials are invalid |
-| `isUsingDevCredentials` | function | `(appId?, clientId?) => boolean` -- check if using shared dev credentials |
-| `isProductionCredentials` | function | `(appId?, clientId?) => boolean` -- check if using production credentials |
+| `VARITY_DEV_CREDENTIALS` | const (object) | Shared dev credentials containing `privy.appId` and `rateLimits` |
+| `resolveCredentials` | function | `(appId?) => CredentialConfig` -- resolves with fallback to dev credentials |
+| `validateCredentials` | function | `(appId) => void` -- throws if credentials are invalid |
+| `isUsingDevCredentials` | function | `(appId?) => boolean` -- check if using shared dev credentials |
+| `isProductionCredentials` | function | `(appId?) => boolean` -- check if using production credentials |
 | `getCredentialWarning` | function | `(environment) => string \| null` -- get a warning message if credentials need attention |
-| `logCredentialUsage` | function | `(appId?, clientId?) => void` -- log which credentials are being used |
+| `logCredentialUsage` | function | `(appId?) => void` -- log which credentials are being used |
 | `getUpgradeInstructions` | function | `() => string` -- get instructions for upgrading to production credentials |
 
 ```typescript
@@ -106,10 +106,8 @@ import {
 // Resolve credentials with automatic fallback to dev credentials
 const creds = resolveCredentials(
   process.env.NEXT_PUBLIC_PRIVY_APP_ID,
-  process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID,
 );
 console.log(creds.privy.appId);
-console.log(creds.thirdweb.clientId);
 
 // Check if using dev credentials (useful for showing warnings)
 if (isUsingDevCredentials()) {
@@ -142,7 +140,7 @@ The SDK exports these TypeScript types from the main entry point:
 
 ```typescript
 import type {
-  CredentialConfig,   // { privy: { appId }, thirdweb: { clientId } }
+  CredentialConfig,   // { privy: { appId } }
   DatabaseConfig,     // { proxyUrl?: string, appToken?: string }
   QueryOptions,       // { limit?, offset?, orderBy? }
   Document,           // { id: string, created_at?, updated_at?, [key]: any }

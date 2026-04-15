@@ -14,6 +14,10 @@ import PageMeta from '../../../../components/PageMeta.astro';
   stability="stable"
 />
 
+<Aside type="caution">
+**Advanced users only.** This page covers low-level infrastructure details for integrating directly with the Varity L3 network. Most developers do not need this — the SDK and CLI handle everything automatically.
+</Aside>
+
 Varity SDK handles all infrastructure configuration automatically. You rarely need to configure anything manually.
 
 ## USDC Handling
@@ -114,9 +118,7 @@ console.log(SUPPORTED_CHAINS);
 import { createThirdwebClient, getContract } from 'thirdweb';
 import { varityL3Testnet } from '@varity-labs/sdk/chains';
 
-const client = createThirdwebClient({
-  clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID,
-});
+const client = createThirdwebClient({ clientId: 'your-client-id' });
 
 const contract = getContract({
   client,

@@ -32,7 +32,7 @@ import { PrivyStack } from '@varity-labs/ui-kit';
 
 <PrivyStack
   appId="your-privy-app-id"
-  loginMethods={['email', 'google', 'wallet']}
+  loginMethods={['email', 'google']}
   appearance={{
     theme: 'light',
     accentColor: '#2563EB',
@@ -46,10 +46,8 @@ import { PrivyStack } from '@varity-labs/ui-kit';
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
 | `appId` | `string` | Dev default | Auth App ID |
-| `thirdwebClientId` | `string` | Dev default | Thirdweb Client ID |
-| `loginMethods` | `string[]` | `['email', 'google', 'wallet']` | Login options |
+| `loginMethods` | `string[]` | `['email', 'google']` | Login options |
 | `appearance` | `{ theme, accentColor, logo }` | Light theme | UI customization |
-| `onAddressChange` | `(address: string \| null) => void` | - | Account address callback |
 | `children` | `ReactNode` | Required | App content |
 
 ### VarityDashboardProvider
@@ -70,9 +68,8 @@ import { VarityDashboardProvider } from '@varity-labs/ui-kit';
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
 | `privyAppId` | `string` | env var | Auth App ID |
-| `thirdwebClientId` | `string` | env var | Thirdweb Client ID |
 | `appearance` | `{ theme, accentColor, logo }` | - | UI customization |
-| `loginMethods` | `string[]` | `['email', 'google', 'wallet']` | Login options |
+| `loginMethods` | `string[]` | `['email', 'google']` | Login options |
 | `children` | `ReactNode` | Required | App content |
 
 ### VarityPrivyProvider
@@ -238,7 +235,7 @@ import { PrivyReadyGate } from '@varity-labs/ui-kit';
 For convenience, these authentication hooks are re-exported from `@varity-labs/ui-kit`:
 
 ```tsx
-import { usePrivy, useWallets, useLogin, useLogout } from '@varity-labs/ui-kit';
+import { usePrivy, useLogin, useLogout } from '@varity-labs/ui-kit';
 
 const { authenticated, user, ready } = usePrivy();
 ```
@@ -1358,7 +1355,6 @@ The `Attribution` component is required per the Varity licensing agreement and m
 | `useToast` | `@varity-labs/ui-kit` | Access toast notifications (`success`, `error`, `info`) |
 | `useTheme` | `@varity-labs/ui-kit` | Access current `VarityTheme` from `ThemeProvider` |
 | `usePrivy` | `@varity-labs/ui-kit` | Auth state (`authenticated`, `user`, `ready`) |
-| `useWallets` | `@varity-labs/ui-kit` | Connected wallet list |
 | `useLogin` | `@varity-labs/ui-kit` | Programmatic login trigger |
 | `useLogout` | `@varity-labs/ui-kit` | Programmatic logout trigger |
 | `useVarityPayment` | `@varity-labs/ui-kit` | Programmatic payment control |

@@ -21,11 +21,10 @@ All React hooks exported by `@varity-labs/ui-kit`. Every hook listed here is ver
 |------|----------|-------------------|
 | `useToast` | Feedback | `<ToastProvider>` |
 | `useTheme` | Branding | `<ThemeProvider>` |
-| `useVarityPayment` | Payments | None (uses thirdweb internally) |
+| `useVarityPayment` | Payments | None |
 | `usePrivy` | Authentication | `<VarityPrivyProvider>` |
 | `useLogin` | Authentication | `<VarityPrivyProvider>` |
 | `useLogout` | Authentication | `<VarityPrivyProvider>` |
-| `useWallets` | Authentication | `<VarityPrivyProvider>` |
 
 ---
 
@@ -284,30 +283,6 @@ function AuthControls() {
       <button onClick={login}>Sign In</button>
       <button onClick={logout}>Sign Out</button>
     </>
-  );
-}
-```
-
-### useWallets
-
-Access all connected accounts. Most apps will not need this hook directly — `usePrivy` provides the user profile for typical authentication flows.
-
-```tsx
-import { useWallets } from '@varity-labs/ui-kit';
-
-function AccountList() {
-  const { wallets, ready } = useWallets();
-
-  if (!ready) return <div>Loading accounts...</div>;
-
-  return (
-    <ul>
-      {wallets.map((wallet) => (
-        <li key={wallet.address}>
-          {wallet.walletClientType}: {wallet.address}
-        </li>
-      ))}
-    </ul>
   );
 }
 ```
