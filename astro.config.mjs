@@ -321,6 +321,11 @@ export default defineConfig({
               badge: { text: "Beta", variant: "note" },
             },
             {
+              label: "Intelligent Orchestration",
+              slug: "deploy/intelligent-orchestration",
+              badge: { text: "New", variant: "success" },
+            },
+            {
               label: "App Store & Developer Portal",
               slug: "deploy/app-store",
               badge: { text: "New", variant: "success" },
@@ -342,6 +347,11 @@ export default defineConfig({
             },
             { label: "Customize the Template", slug: "tutorials/customize-template" },
             { label: "Add a CRUD Feature", slug: "tutorials/add-crud-feature" },
+            {
+              label: "Build with AI (No Code)",
+              slug: "tutorials/build-with-ai",
+              badge: { text: "New", variant: "success" },
+            },
           ],
         },
 

@@ -1,6 +1,6 @@
 ---
 title: Varity MCP Server
-description: Install and configure the Varity MCP server for AI editors. 8 tools for deploying, searching docs, and managing apps via Cursor or Claude.
+description: Install and configure the Varity MCP server for AI editors. 14 tools for building, deploying, and managing apps via Cursor or Claude.
 ---
 
 import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
@@ -13,7 +13,7 @@ import PageMeta from '../../../components/PageMeta.astro';
   stability="stable"
 />
 
-The Varity MCP server (`@varity-labs/mcp`) gives AI editors 8 tools for the full build → deploy → monetize workflow. It runs locally via stdio — no API keys, no accounts.
+The Varity MCP server (`@varity-labs/mcp`) gives AI editors 14 tools for the full build → deploy → monetize workflow. It runs locally via stdio — no API keys, no accounts.
 
 <Aside type="tip">
 The MCP server works with **any editor that supports MCP**: Cursor, Claude Code, VS Code (Copilot), Windsurf, and more. Setup takes under a minute.
@@ -85,7 +85,19 @@ The MCP server works with **any editor that supports MCP**: Cursor, Claude Code,
 
 ## Tools Reference
 
-The server exposes 8 tools. Read-only tools run safely with no side effects. Destructive tools create files or deploy infrastructure.
+The server exposes 14 tools. Read-only tools run safely with no side effects. Destructive tools create files or deploy infrastructure.
+
+### `varity_doctor` — Check environment setup
+
+Verify that your development environment is ready to build and deploy Varity apps. Checks Node.js, npm, varitykit CLI installation, and authentication status.
+
+*No parameters required.*
+
+**Annotations:** `readOnlyHint: true`
+
+**Example prompt:** "Check if my environment is set up for Varity"
+
+---
 
 ### `varity_search_docs` — Search documentation
 
@@ -129,7 +141,79 @@ Scaffold a production-ready app with auth, database, and payments.
 | `template` | `"saas-starter"` | No | `"saas-starter"` | Template to use |
 | `path` | string | No | Current directory | Directory to create the project in |
 
+**Annotations:** `destructiveHint: true` — creates files on your local filesystem
+
 **Example prompt:** "Create a new Varity app called invoice-tracker"
+
+---
+
+### `varity_install_deps` — Install npm dependencies
+
+Install dependencies for a Varity project. Runs `npm install` for all packages or installs specific packages.
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `path` | string | No | Current directory | Project directory to install dependencies in |
+| `packages` | string[] | No | — | Specific packages to install (e.g., `["axios", "lodash"]`). If omitted, installs all dependencies. |
+
+**Example prompt:** "Install dependencies for my project" or "Install axios and lodash"
+
+---
+
+### `varity_add_collection` — Add database collection
+
+Add a new database collection to your project. Creates the TypeScript type, collection accessor, React hook, and optionally scaffolds a dashboard page.
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `name` | string | Yes | — | Collection name (lowercase, e.g., "invoices", "team_members") |
+| `fields` | array | Yes | — | Field definitions: `[{name: "amount", type: "number"}, {name: "status", type: "string"}]` |
+| `path` | string | No | Current directory | Project directory |
+| `add_page` | boolean | No | false | Scaffold a dashboard page with DataTable and Dialog |
+
+**Field types:** `"string"`, `"number"`, `"boolean"`, `"Date"`
+
+**Annotations:** `destructiveHint: true` — creates/modifies files in your project
+
+**Example prompt:** "Add an invoices collection with amount (number) and status (string) fields"
+
+---
+
+### `varity_dev_server` — Manage local dev server
+
+Start, stop, or check the status of your local development server. Returns the localhost URL for previewing your app.
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `action` | `"start"` \| `"stop"` \| `"status"` | Yes | — | Action to perform |
+| `path` | string | No | Current directory | Project directory |
+| `port` | number | No | 3000 | Port to run the dev server on. If busy, auto-selects next available port and persists to `varity.config.json`. |
+
+**Example prompt:** "Start the dev server" or "Check dev server status"
+
+---
+
+### `varity_build` — Build for production
+
+Build the project for production. Auto-detects framework from `package.json`. Run before deploying or to verify the project compiles.
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `path` | string | No | Current directory | Path to the project directory |
+
+**Example prompt:** "Build my project"
+
+---
+
+### `varity_open_browser` — Open URL in browser
+
+Open a URL in the user's default browser. Use after deploying to show the live app or after starting the dev server.
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `url` | string | Yes | — | URL to open in the default browser |
+
+**Example prompt:** "Open the deployment in my browser"
 
 ---
 
@@ -239,13 +323,18 @@ All tools return JSON with a consistent structure:
 
 Here's the full build-to-monetize flow using the MCP tools:
 
-1. **"Create a Varity app called my-saas"** → `varity_init` (local) or `varity_create_repo` (GitHub)
-2. **"What will this cost for 200 users?"** → `varity_cost_calculator`
-3. *(Build your features)*
-4. **"Deploy this"** → `varity_deploy`
-5. **"Did the deploy succeed?"** → `varity_deploy_status`
-6. **"Show me the build logs"** → `varity_deploy_logs`
-7. **"Submit to the app store at $14.99"** → `varity_submit_to_store`
+1. **"Check if my environment is ready"** → `varity_doctor`
+2. **"Create a Varity app called my-saas"** → `varity_init` (local) or `varity_create_repo` (GitHub)
+3. **"Install dependencies"** → `varity_install_deps`
+4. **"Add an invoices collection with these fields..."** → `varity_add_collection`
+5. **"What will this cost for 200 users?"** → `varity_cost_calculator`
+6. *(Build your features)*
+7. **"Start the dev server"** → `varity_dev_server` → `varity_open_browser`
+8. **"Build for production"** → `varity_build`
+9. **"Deploy this"** → `varity_deploy`
+10. **"Did the deploy succeed?"** → `varity_deploy_status`
+11. **"Show me the build logs"** → `varity_deploy_logs` (if needed)
+12. **"Submit to the app store at $14.99"** → `varity_submit_to_store`
 
 ## Troubleshooting
 

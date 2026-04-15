@@ -1,0 +1,358 @@
+---
+title: Zero-Configuration Deployment
+description: Varity automatically configures everything for your app - no setup files, no DevOps knowledge required. Just build and deploy. 70% cheaper than traditional platforms.
+sidebar:
+  badge:
+    text: Beta
+    variant: note
+---
+
+import { Card, CardGrid, Aside, Steps } from '@astrojs/starlight/components';
+import PageMeta from '../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="April 2026"
+  stability="stable"
+/>
+
+Varity automatically configures everything for your app - no setup files, no DevOps knowledge required.
+
+:::note[The Varity Promise]
+Traditional platforms (AWS, Vercel, Heroku) require configuration files, environment variables, and DevOps expertise. **Varity handles everything automatically**, so you can focus on building your app, not managing infrastructure.
+:::
+
+## What Makes Varity Different
+
+Varity is like **Vercel and AI merged together** - the easiest way to go from idea to production app.
+
+When you deploy with Varity, the platform automatically:
+
+- **Understands your app** - Figures out what your app needs without you telling it
+- **Configures everything** - Sets up hosting, database, auth, and payments automatically
+- **Optimizes costs** - Picks the most affordable infrastructure for your specific app
+- **Handles scaling** - Your app grows with traffic, no manual intervention needed
+
+**No configuration files. No YAML. No Docker. No blockchain knowledge. Just one command.**
+
+## How It Works
+
+Think of Varity as your **AI-powered DevOps engineer** that does all the infrastructure work for you.
+
+<Steps>
+
+1. **You Build Your App**
+
+   Focus on your product - use React, Next.js, Vue, or any framework you like. No special Varity syntax required.
+
+2. **Run One Command**
+
+   ```bash
+   varitykit deploy
+   ```
+
+   That's it. No configuration files to write.
+
+3. **Varity Figures Everything Out**
+
+   Behind the scenes, Varity automatically:
+   - Analyzes your app to understand what it needs
+   - Selects the best infrastructure for your specific use case
+   - Configures all services (hosting, database, auth, payments)
+   - Optimizes for the lowest cost possible
+
+4. **Your App Goes Live**
+
+   You get a live URL in under 2 minutes. Everything works automatically:
+   - ✅ Hosting configured
+   - ✅ Database ready
+   - ✅ Authentication working
+   - ✅ SSL certificate active
+   - ✅ CDN enabled globally
+
+</Steps>
+
+## What's Included (Automatically)
+
+Every Varity app gets these services configured automatically - no setup required:
+
+<CardGrid>
+  <Card title="Hosting" icon="rocket">
+    **Global, Fast, Reliable**
+    - Automatically optimized for your app type
+    - Global CDN included
+    - Auto-scaling with traffic
+    - 99.9% uptime guaranteed
+  </Card>
+
+  <Card title="Database" icon="seti:db">
+    **Production-Ready Database**
+    - Provisioned automatically when needed
+    - Secure by default
+    - No connection strings to manage
+    - Simple API: `db.collection('users').get()`
+  </Card>
+
+  <Card title="Authentication" icon="approve-check">
+    **Email & Social Login**
+    - Works out of the box with `useAuth()`
+    - Email, Google, GitHub, Twitter, Discord
+    - No complex OAuth setup
+    - Gasless experience for users
+  </Card>
+
+  <Card title="Payments" icon="seti:credit">
+    **Monetization (Coming Soon)**
+    - Credit card payments
+    - Automatic revenue split (90% to you)
+    - No payment gateway setup
+    - Zero blockchain knowledge required
+  </Card>
+
+  <Card title="Security" icon="seti:lock">
+    **Enterprise-Grade Security**
+    - SSL certificates (automatic)
+    - DDoS protection
+    - Secure user sessions
+    - No security configuration needed
+  </Card>
+
+  <Card title="Performance" icon="star">
+    **Global Performance**
+    - Edge caching worldwide
+    - Instant page loads
+    - WebSocket support
+    - Zero configuration required
+  </Card>
+</CardGrid>
+
+## Why Varity Is 70% Cheaper
+
+Varity makes the same apps cost **70-85% less** than AWS, Vercel, or Heroku.
+
+### The Varity Advantage
+
+- **Smart Infrastructure Selection** - Varity automatically picks the most cost-effective option for your specific app
+- **No Over-Provisioning** - You only pay for what your app actually needs
+- **Included Services** - Database, auth, CDN, and SSL are included at no extra cost
+- **Efficient Architecture** - Modern infrastructure designed for cost optimization from day one
+
+### Real-World Cost Comparison
+
+<Aside type="tip" title="Typical SaaS App (5,000 users)">
+**Traditional Platforms (AWS/Vercel):** $2,800/month
+- Compute: $500/mo
+- Database: $800/mo
+- CDN/Storage: $300/mo
+- Auth Service: $200/mo
+- Load Balancer: $200/mo
+- SSL Certificates: $100/mo
+- Monitoring: $200/mo
+- Email Service: $100/mo
+- Backup Storage: $200/mo
+- Support Plan: $200/mo
+
+**Varity:** $800/month (all-inclusive)
+- Everything included
+- No hidden fees
+- No separate service charges
+
+**Your Savings:** $2,000/month ($24,000/year)
+</Aside>
+
+### Enterprise Savings
+
+For larger applications (50,000+ users):
+
+- **Traditional Platforms**: $15,000-$25,000/month
+- **Varity**: $3,000-$5,000/month
+- **Annual Savings**: $144,000-$240,000
+
+The bigger your app grows, the more you save with Varity.
+
+## Zero Configuration Required
+
+Traditional platforms require extensive configuration:
+
+```yaml title="Traditional: docker-compose.yml (100+ lines)"
+version: '3.8'
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL}
+      - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
+      # ... 50+ more environment variables
+  postgres:
+    image: postgres:15
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      # ... 20+ more lines
+  redis:
+    image: redis:7
+    # ... more configuration
+  nginx:
+    # ... more configuration
+```
+
+```bash title="Traditional: Required credentials"
+# You have to manually set up:
+export AWS_ACCESS_KEY_ID=...
+export AWS_SECRET_ACCESS_KEY=...
+export DATABASE_URL=...
+export REDIS_URL=...
+export STRIPE_SECRET_KEY=...
+export SENDGRID_API_KEY=...
+# ... 20+ more credentials
+```
+
+**With Varity:**
+
+```bash
+varitykit deploy
+```
+
+That's it. No YAML files. No Docker setup. No environment variables during development.
+
+### What Varity Auto-Configures
+
+When you deploy, Varity automatically handles:
+
+- ✅ Framework detection (Next.js, React, Vue, etc.)
+- ✅ Build configuration (Nixpacks auto-detection)
+- ✅ Container creation (no Docker install required)
+- ✅ Database provisioning (if your code needs it)
+- ✅ Authentication setup (Privy credentials managed)
+- ✅ SSL certificates (automatic)
+- ✅ Domain routing (your-app.varity.app)
+- ✅ CDN configuration (global edge caching)
+- ✅ Auto-scaling (based on traffic)
+
+## Developer Experience
+
+The goal: **Deploy in 60 seconds with zero blockchain knowledge.**
+
+### What You Run
+
+```bash
+# Initialize project
+varitykit init my-app
+
+# Deploy
+cd my-app
+varitykit deploy
+```
+
+### What Varity Does Automatically
+
+```
+Analyzing your app...
+  ✓ Detected: Next.js full-stack app
+  ✓ Setting up: Auth, database, hosting
+
+Building...
+  ✓ Installing dependencies
+  ✓ Building with Nixpacks
+  ✓ Creating container image
+
+Deploying...
+  ✓ Provisioning compute on Akash
+  ✓ Provisioning database
+  ✓ Configuring SSL certificate
+  ✓ Setting up CDN
+
+✅ Live at: https://my-app.varity.app
+   Monthly cost: ~$45 (vs $180 on AWS)
+```
+
+### What You Don't Need
+
+❌ Docker installation
+❌ Crypto wallets or tokens
+❌ AKT/ETH/any cryptocurrency
+❌ Blockchain knowledge
+❌ Complex configuration files
+❌ Manual credential management
+
+## The Developer Experience
+
+Varity is designed for **people who want to build apps, not manage infrastructure**.
+
+### What You Experience
+
+```bash
+# Create your app
+varitykit init my-app
+
+# Build your features
+# (use React, Next.js, Vue - whatever you prefer)
+
+# Deploy to production
+varitykit deploy
+```
+
+### What Varity Does Automatically
+
+```
+Analyzing your app...
+  ✓ Detected framework and dependencies
+  ✓ Configuring optimal infrastructure
+
+Building...
+  ✓ Installing dependencies
+  ✓ Building optimized production bundle
+
+Deploying...
+  ✓ Provisioning hosting
+  ✓ Setting up database
+  ✓ Configuring authentication
+  ✓ Enabling SSL certificate
+  ✓ Activating global CDN
+
+✅ Live at: https://my-app.varity.app
+   Monthly cost: ~$45 (vs $180+ on traditional platforms)
+```
+
+### What You DON'T Need
+
+❌ DevOps knowledge or experience
+❌ Configuration files (no YAML, no Docker)
+❌ Environment variable management
+❌ Credential setup for third-party services
+❌ SSL certificate installation
+❌ CDN configuration
+❌ Database connection strings
+❌ Load balancer setup
+❌ Auto-scaling configuration
+
+## Next Steps
+
+<CardGrid>
+  <Card title="Deploy Your First App" icon="rocket">
+    Learn how to deploy your application with one command.
+
+    [Deploy Guide →](/deploy/deploy-your-app)
+  </Card>
+
+  <Card title="Environment Variables" icon="seti:config">
+    Understand how Varity manages credentials automatically.
+
+    [Credentials Guide →](/deploy/managed-credentials)
+  </Card>
+
+  <Card title="Submit to App Store" icon="star">
+    Publish your app for users to discover and use.
+
+    [App Store Guide →](/deploy/app-store)
+  </Card>
+
+  <Card title="CLI Reference" icon="seti:shell">
+    Explore all CLI commands and options.
+
+    [CLI Docs →](/cli/overview)
+  </Card>
+</CardGrid>
