@@ -326,13 +326,21 @@ Functions for managing authentication credentials. Used internally by UI-Kit.
 
 Automatically resolves credentials from environment variables with fallback to dev credentials.
 
+<<<<<<< HEAD
 **Signature:** `resolveCredentials(appId?: string): CredentialConfig`
+=======
+**Signature:** `resolveCredentials(appId?: string, clientId?: string): CredentialConfig`
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 
 **Parameters:**
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `appId` | `string` | No | Privy App ID (falls back to dev credentials) |
+<<<<<<< HEAD
+=======
+| `clientId` | `string` | No | Thirdweb Client ID (falls back to dev credentials) |
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 
 **CredentialConfig Type:**
 
@@ -341,6 +349,12 @@ interface CredentialConfig {
   privy: {
     appId: string;
   };
+<<<<<<< HEAD
+=======
+  thirdweb: {
+    clientId: string;
+  };
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 }
 ```
 
@@ -354,9 +368,19 @@ import { resolveCredentials } from '@varity-labs/sdk';
 // Auto-resolve with dev credential fallback
 const creds = resolveCredentials();
 console.log('Privy App ID:', creds.privy.appId);
+<<<<<<< HEAD
 
 // Override with custom credentials
 const customCreds = resolveCredentials('custom-privy-app-id');
+=======
+console.log('Thirdweb Client ID:', creds.thirdweb.clientId);
+
+// Override specific credentials
+const customCreds = resolveCredentials(
+  'custom-privy-app-id',
+  'custom-thirdweb-client-id'
+);
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 ```
 
 ---
@@ -365,13 +389,21 @@ const customCreds = resolveCredentials('custom-privy-app-id');
 
 Checks if the provided credentials match development credentials.
 
+<<<<<<< HEAD
 **Signature:** `isUsingDevCredentials(appId?: string): boolean`
+=======
+**Signature:** `isUsingDevCredentials(appId?: string, clientId?: string): boolean`
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 
 **Parameters:**
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `appId` | `string` | No | Privy App ID to check |
+<<<<<<< HEAD
+=======
+| `clientId` | `string` | No | Thirdweb Client ID to check |
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 
 **Returns:** `boolean` - `true` if using dev credentials
 
@@ -391,13 +423,21 @@ if (isUsingDevCredentials()) {
 
 Checks if credentials are production-ready (opposite of `isUsingDevCredentials`).
 
+<<<<<<< HEAD
 **Signature:** `isProductionCredentials(appId?: string): boolean`
+=======
+**Signature:** `isProductionCredentials(appId?: string, clientId?: string): boolean`
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 
 **Parameters:**
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `appId` | `string` | No | Privy App ID to check |
+<<<<<<< HEAD
+=======
+| `clientId` | `string` | No | Thirdweb Client ID to check |
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 
 **Returns:** `boolean` - `true` if using production credentials
 
@@ -407,8 +447,14 @@ Checks if credentials are production-ready (opposite of `isUsingDevCredentials`)
 import { isProductionCredentials } from '@varity-labs/sdk';
 
 const appId = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
+<<<<<<< HEAD
 
 if (!isProductionCredentials(appId)) {
+=======
+const clientId = process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID;
+
+if (!isProductionCredentials(appId, clientId)) {
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
   throw new Error('Production credentials required');
 }
 ```
@@ -448,13 +494,21 @@ if (warning) {
 
 Logs credential usage information to the console (with deduplication to avoid spam).
 
+<<<<<<< HEAD
 **Signature:** `logCredentialUsage(appId?: string): void`
+=======
+**Signature:** `logCredentialUsage(appId?: string, clientId?: string): void`
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 
 **Parameters:**
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `appId` | `string` | No | Privy App ID to log |
+<<<<<<< HEAD
+=======
+| `clientId` | `string` | No | Thirdweb Client ID to log |
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 
 **Example:**
 
@@ -470,7 +524,11 @@ logCredentialUsage();
 
 Validates that the provided credentials are well-formed.
 
+<<<<<<< HEAD
 **Signature:** `validateCredentials(appId: string): void`
+=======
+**Signature:** `validateCredentials(appId: string, clientId: string): void`
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 
 Throws an error if the credentials are invalid or malformed.
 
@@ -479,6 +537,10 @@ Throws an error if the credentials are invalid or malformed.
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `appId` | `string` | Yes | Privy App ID to validate |
+<<<<<<< HEAD
+=======
+| `clientId` | `string` | Yes | Thirdweb Client ID to validate |
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 
 **Example:**
 
@@ -486,7 +548,14 @@ Throws an error if the credentials are invalid or malformed.
 import { validateCredentials } from '@varity-labs/sdk';
 
 try {
+<<<<<<< HEAD
   validateCredentials(process.env.NEXT_PUBLIC_PRIVY_APP_ID!);
+=======
+  validateCredentials(
+    process.env.NEXT_PUBLIC_PRIVY_APP_ID!,
+    process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID!
+  );
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
   console.log('Credentials are valid');
 } catch (error) {
   console.error('Invalid credentials:', error.message);
@@ -515,7 +584,11 @@ console.log(getUpgradeInstructions());
 
 Shared development credentials for zero-config testing.
 
+<<<<<<< HEAD
 **Type:** `object` (contains `privy` and `rateLimits`)
+=======
+**Type:** `object` (contains `privy`, `thirdweb`, and `rateLimits`)
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 
 **Value:**
 
@@ -524,8 +597,17 @@ Shared development credentials for zero-config testing.
   privy: {
     appId: 'cmhwbozxu004fjr0cicfz0tf8',
   },
+<<<<<<< HEAD
   rateLimits: {
     privy: { monthlyActiveUsers: 1000 },
+=======
+  thirdweb: {
+    clientId: 'a35636133eb5ec6f30eb9f4c15fce2f3',
+  },
+  rateLimits: {
+    privy: { monthlyActiveUsers: 1000 },
+    thirdweb: { requestsPerSecond: 100 },
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
   },
 }
 ```
@@ -711,7 +793,13 @@ import {
 ```typescript
 import { createThirdwebWrapper } from '@varity-labs/sdk/thirdweb';
 
+<<<<<<< HEAD
 const wrapper = createThirdwebWrapper({ clientId: 'your-client-id' });
+=======
+const wrapper = createThirdwebWrapper({
+  clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID,
+});
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 ```
 
 ---
@@ -831,10 +919,18 @@ import {
 // Auto-resolve credentials
 const creds = resolveCredentials(
   process.env.NEXT_PUBLIC_PRIVY_APP_ID,
+<<<<<<< HEAD
 );
 
 // Check environment
 if (isUsingDevCredentials(creds.privy.appId)) {
+=======
+  process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID
+);
+
+// Check environment
+if (isUsingDevCredentials(creds.privy.appId, creds.thirdweb.clientId)) {
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
   const warning = getCredentialWarning('production');
   if (warning) console.warn(warning);
 
@@ -846,6 +942,10 @@ if (isUsingDevCredentials(creds.privy.appId)) {
 
 // Use credentials
 console.log('Privy App ID:', creds.privy.appId);
+<<<<<<< HEAD
+=======
+console.log('Thirdweb Client ID:', creds.thirdweb.clientId);
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 ```
 
 ---

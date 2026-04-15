@@ -1,6 +1,10 @@
 ---
 title: "@varity-labs/sdk Overview"
+<<<<<<< HEAD
 description: "@varity-labs/sdk provides a zero-config database, credential management, and USDC utilities. The core building block for all Varity apps."
+=======
+description: "@varity-labs/sdk provides a zero-config database, credential management, and payment utilities. The core building block for all Varity apps."
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 ---
 
 import { Aside, Card, CardGrid, Badge } from '@astrojs/starlight/components';
@@ -86,6 +90,7 @@ const items = customDb.collection('items');
 
 | Export | Type | Description |
 |--------|------|-------------|
+<<<<<<< HEAD
 | `VARITY_DEV_CREDENTIALS` | const (object) | Shared dev credentials containing `privy.appId` and `rateLimits` |
 | `resolveCredentials` | function | `(appId?) => CredentialConfig` -- resolves with fallback to dev credentials |
 | `validateCredentials` | function | `(appId) => void` -- throws if credentials are invalid |
@@ -93,6 +98,15 @@ const items = customDb.collection('items');
 | `isProductionCredentials` | function | `(appId?) => boolean` -- check if using production credentials |
 | `getCredentialWarning` | function | `(environment) => string \| null` -- get a warning message if credentials need attention |
 | `logCredentialUsage` | function | `(appId?) => void` -- log which credentials are being used |
+=======
+| `VARITY_DEV_CREDENTIALS` | const (object) | Shared dev credentials containing `privy.appId`, `thirdweb.clientId`, and `rateLimits` |
+| `resolveCredentials` | function | `(appId?, clientId?) => CredentialConfig` -- resolves with fallback to dev credentials |
+| `validateCredentials` | function | `(appId, clientId) => void` -- throws if credentials are invalid |
+| `isUsingDevCredentials` | function | `(appId?, clientId?) => boolean` -- check if using shared dev credentials |
+| `isProductionCredentials` | function | `(appId?, clientId?) => boolean` -- check if using production credentials |
+| `getCredentialWarning` | function | `(environment) => string \| null` -- get a warning message if credentials need attention |
+| `logCredentialUsage` | function | `(appId?, clientId?) => void` -- log which credentials are being used |
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 | `getUpgradeInstructions` | function | `() => string` -- get instructions for upgrading to production credentials |
 
 ```typescript
@@ -106,8 +120,15 @@ import {
 // Resolve credentials with automatic fallback to dev credentials
 const creds = resolveCredentials(
   process.env.NEXT_PUBLIC_PRIVY_APP_ID,
+<<<<<<< HEAD
 );
 console.log(creds.privy.appId);
+=======
+  process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID,
+);
+console.log(creds.privy.appId);
+console.log(creds.thirdweb.clientId);
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 
 // Check if using dev credentials (useful for showing warnings)
 if (isUsingDevCredentials()) {
@@ -140,7 +161,11 @@ The SDK exports these TypeScript types from the main entry point:
 
 ```typescript
 import type {
+<<<<<<< HEAD
   CredentialConfig,   // { privy: { appId } }
+=======
+  CredentialConfig,   // { privy: { appId }, thirdweb: { clientId } }
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
   DatabaseConfig,     // { proxyUrl?: string, appToken?: string }
   QueryOptions,       // { limit?, offset?, orderBy? }
   Document,           // { id: string, created_at?, updated_at?, [key]: any }
@@ -154,11 +179,19 @@ import type {
 
 <Accordion title="Advanced: Subpath Imports for Infrastructure Access">
 
+<<<<<<< HEAD
 For apps that need direct access to chain configuration, blockchain services, thirdweb integration, or gas tracking, the SDK provides subpath imports. These are separate from the main entry point and are primarily used by the UI Kit and CLI internally.
 
 ### Chains (`@varity-labs/sdk/chains`)
 
 Chain definitions for Varity L3, Arbitrum, and Base networks, plus USDC formatting utilities.
+=======
+For apps that need direct access to infrastructure configuration, platform services, thirdweb integration, or usage tracking, the SDK provides subpath imports. These are separate from the main entry point and are primarily used by the UI Kit and CLI internally.
+
+### Chains (`@varity-labs/sdk/chains`)
+
+Network definitions for Varity infrastructure, plus payment formatting utilities.
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 
 ```typescript
 import {
@@ -183,9 +216,15 @@ const raw = parseUSDC('25.00'); // BigInt(25000000)
 const url = getVarityExplorerUrl('0xabc...');
 ```
 
+<<<<<<< HEAD
 ### Blockchain Services (`@varity-labs/sdk/blockchain`)
 
 Direct blockchain interaction services for licensing and revenue splits.
+=======
+### Platform Services
+
+Direct platform interaction services for licensing and revenue splits. Import from `@varity-labs/sdk/blockchain`:
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 
 ```typescript
 import {

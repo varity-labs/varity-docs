@@ -21,10 +21,18 @@ All React hooks exported by `@varity-labs/ui-kit`. Every hook listed here is ver
 |------|----------|-------------------|
 | `useToast` | Feedback | `<ToastProvider>` |
 | `useTheme` | Branding | `<ThemeProvider>` |
+<<<<<<< HEAD
 | `useVarityPayment` | Payments | None |
 | `usePrivy` | Authentication | `<VarityPrivyProvider>` |
 | `useLogin` | Authentication | `<VarityPrivyProvider>` |
 | `useLogout` | Authentication | `<VarityPrivyProvider>` |
+=======
+| `useVarityPayment` | Payments | None (uses thirdweb internally) |
+| `usePrivy` | Authentication | `<VarityPrivyProvider>` |
+| `useLogin` | Authentication | `<VarityPrivyProvider>` |
+| `useLogout` | Authentication | `<VarityPrivyProvider>` |
+| `useWallets` | Authentication | `<VarityPrivyProvider>` |
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 
 ---
 
@@ -287,6 +295,33 @@ function AuthControls() {
 }
 ```
 
+<<<<<<< HEAD
+=======
+### useWallets
+
+Access all connected accounts. Most apps will not need this hook directly — `usePrivy` provides the user profile for typical authentication flows.
+
+```tsx
+import { useWallets } from '@varity-labs/ui-kit';
+
+function AccountList() {
+  const { wallets, ready } = useWallets();
+
+  if (!ready) return <div>Loading accounts...</div>;
+
+  return (
+    <ul>
+      {wallets.map((wallet) => (
+        <li key={wallet.address}>
+          {wallet.walletClientType}: {wallet.address}
+        </li>
+      ))}
+    </ul>
+  );
+}
+```
+
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 ---
 
 ## Complete Example

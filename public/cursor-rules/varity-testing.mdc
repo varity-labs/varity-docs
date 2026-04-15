@@ -36,7 +36,11 @@ Recommended testing tools for Varity apps:
 ### Mock Varity SDK
 
 ```typescript
+<<<<<<< HEAD
 // __mocks__/@varity/sdk.ts
+=======
+// __mocks__/@varity-labs/sdk.ts
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 export const createClient = vi.fn(() => ({
   storage: {
     upload: vi.fn(),
@@ -61,10 +65,17 @@ export const createStorageClient = vi.fn(() => ({
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { vi, describe, it, expect } from 'vitest'
 import { FileUploader } from './FileUploader'
+<<<<<<< HEAD
 import * as VaritySDK from '@varity/sdk'
 
 // Mock the SDK
 vi.mock('@varity/sdk')
+=======
+import * as VaritySDK from '@varity-labs/sdk'
+
+// Mock the SDK
+vi.mock('@varity-labs/sdk')
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 
 describe('FileUploader', () => {
   it('should upload file successfully', async () => {
@@ -438,7 +449,11 @@ afterEach(() => {
 ### ❌ Over-mocking
 ```typescript
 // WRONG - Mocking everything
+<<<<<<< HEAD
 vi.mock('@varity/sdk')
+=======
+vi.mock('@varity-labs/sdk')
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 vi.mock('react')
 vi.mock('next/navigation')
 // Tests become meaningless
@@ -447,7 +462,11 @@ vi.mock('next/navigation')
 ### ✅ Mock only external dependencies
 ```typescript
 // CORRECT - Mock only Varity SDK
+<<<<<<< HEAD
 vi.mock('@varity/sdk')
+=======
+vi.mock('@varity-labs/sdk')
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 // Test actual React behavior
 ```
 
@@ -458,9 +477,15 @@ vi.mock('@varity/sdk')
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { FileUploader } from './FileUploader'
+<<<<<<< HEAD
 import * as VaritySDK from '@varity/sdk'
 
 vi.mock('@varity/sdk')
+=======
+import * as VaritySDK from '@varity-labs/sdk'
+
+vi.mock('@varity-labs/sdk')
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 
 describe('FileUploader', () => {
   const mockUploadFile = vi.fn()

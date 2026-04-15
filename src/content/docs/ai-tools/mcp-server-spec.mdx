@@ -1,6 +1,10 @@
 ---
 title: Varity MCP Server
+<<<<<<< HEAD
 description: Install and configure the Varity MCP server for AI editors. 8 tools for deploying, searching docs, and managing apps via Cursor or Claude.
+=======
+description: Install and configure the Varity MCP server for AI editors. 9 tools for deploying, searching docs, and managing apps via Cursor or Claude.
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 ---
 
 import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
@@ -13,7 +17,11 @@ import PageMeta from '../../../components/PageMeta.astro';
   stability="stable"
 />
 
+<<<<<<< HEAD
 The Varity MCP server (`@varity-labs/mcp`) gives AI editors 8 tools for the full build → deploy → monetize workflow. It runs locally via stdio — no API keys, no accounts.
+=======
+The Varity MCP server (`@varity-labs/mcp`) gives AI editors 9 tools for the full build → deploy → monetize workflow. It runs locally via stdio — no API keys, no accounts.
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 
 <Aside type="tip">
 The MCP server works with **any editor that supports MCP**: Cursor, Claude Code, VS Code (Copilot), Windsurf, and more. Setup takes under a minute.
@@ -85,7 +93,11 @@ The MCP server works with **any editor that supports MCP**: Cursor, Claude Code,
 
 ## Tools Reference
 
+<<<<<<< HEAD
 The server exposes 8 tools. Read-only tools run safely with no side effects. Destructive tools create files or deploy infrastructure.
+=======
+The server exposes 9 tools. Read-only tools run safely with no side effects. Destructive tools create files or deploy infrastructure.
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 
 ### `varity_search_docs` — Search documentation
 
@@ -119,9 +131,29 @@ Compare Varity hosting costs against AWS, Vercel, and other platforms.
 
 ---
 
+<<<<<<< HEAD
 ### `varity_init` — Create a new app
 
 Scaffold a production-ready app with auth, database, and payments.
+=======
+### `varity_doctor` — Check environment
+
+Verify that your machine is ready to build and deploy with Varity. Checks Node.js, npm, varitykit CLI, and authentication status.
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| *(none)* | — | — | — | No parameters needed |
+
+**Annotations:** `readOnlyHint: true`
+
+**Example prompt:** "Check if my environment is ready for Varity"
+
+---
+
+### `varity_init` — Create a new app
+
+Scaffold a production-ready app with auth, database, and a full dashboard.
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
@@ -168,11 +200,21 @@ Build and deploy the current project. Auto-detects framework (Next.js, React, Vu
 
 ### `varity_deploy_status` — Check deployments
 
+<<<<<<< HEAD
 List all deployments or get status of a specific one. Shows URL, status, framework, size, and creation time.
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
 | `deployment_id` | string | No | — | Specific deployment ID (omit to list all) |
+=======
+List recent deployments or get status of a specific one. Shows URL, status, framework, size, and creation time.
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `deployment_id` | string | No | — | Specific deployment ID (omit to list recent) |
+| `path` | string | No | — | Filter to deployments from this project directory |
+| `limit` | number | No | 10 | Maximum deployments to return (max 50) |
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 
 **Annotations:** `readOnlyHint: true`
 
@@ -239,6 +281,7 @@ All tools return JSON with a consistent structure:
 
 Here's the full build-to-monetize flow using the MCP tools:
 
+<<<<<<< HEAD
 1. **"Create a Varity app called my-saas"** → `varity_init` (local) or `varity_create_repo` (GitHub)
 2. **"What will this cost for 200 users?"** → `varity_cost_calculator`
 3. *(Build your features)*
@@ -249,11 +292,31 @@ Here's the full build-to-monetize flow using the MCP tools:
 
 ## Troubleshooting
 
+=======
+1. **"Check if my environment is ready"** → `varity_doctor`
+2. **"Create a Varity app called my-saas"** → `varity_init` (local) or `varity_create_repo` (GitHub)
+3. **"What will this cost for 200 users?"** → `varity_cost_calculator`
+4. *(Build your features with your AI coding tool)*
+5. **"Deploy this"** → `varity_deploy`
+6. **"Did the deploy succeed?"** → `varity_deploy_status`
+7. **"Show me the build logs"** → `varity_deploy_logs`
+8. **"Submit to the app store at $14.99"** → `varity_submit_to_store`
+
+## Troubleshooting
+
+**First step: run `varity_doctor`**
+Ask your AI editor "check if my environment is ready for Varity" — this runs the `varity_doctor` tool which checks all prerequisites at once and tells you exactly what to fix.
+
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 **"Cannot find module @varity-labs/mcp"**
 Make sure Node.js 18+ is installed. Run `node --version` to check.
 
 **Deploy tools fail with "varitykit not found"**
+<<<<<<< HEAD
 Install the CLI: `pip install varitykit`. Run `varitykit doctor` to verify.
+=======
+Install the CLI: `pip install varitykit`. The deploy tool will also attempt automatic installation if varitykit is missing.
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 
 **Server not showing in Cursor**
 Restart Cursor after adding the config. Check that `.cursor/mcp.json` is valid JSON.
@@ -284,7 +347,11 @@ The first time you connect, you'll authenticate via the Varity login page.
 
 ### Self-Hosted HTTP
 
+<<<<<<< HEAD
 Run the HTTP server locally for development:
+=======
+Run the HTTP server locally for development or testing:
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 
 ```bash
 npx -y @varity-labs/mcp --transport http --port 3100

@@ -41,7 +41,11 @@ Before deployment:
 
 ```bash
 # Install dependencies
+<<<<<<< HEAD
 npm install @varity/sdk
+=======
+npm install @varity-labs/sdk
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 
 # Test locally
 npm run dev
@@ -57,7 +61,11 @@ varitykit app deploy --hosting ipfs --submit-to-store --price 10
 
 ```bash
 # Install dependencies
+<<<<<<< HEAD
 npm install @varity/sdk
+=======
+npm install @varity-labs/sdk
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 
 # Test locally
 varitykit dev
@@ -73,7 +81,11 @@ varitykit app deploy --hosting akash --cpu 1000m --memory 512Mi
 
 ```bash
 # Install all dependencies
+<<<<<<< HEAD
 npm install @varity/sdk @varity/ui-kit
+=======
+npm install @varity-labs/sdk @varity-labs/ui-kit
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 
 # Set up environment
 cp .env.example .env.local

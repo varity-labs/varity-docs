@@ -165,17 +165,17 @@ Use for showing multiple options (npm/yarn/pnpm, different frameworks, etc.):
 <Tabs>
   <TabItem label="npm">
     ```bash
-    npm install @varity/sdk
+    npm install @varity-labs/sdk
     ```
   </TabItem>
   <TabItem label="yarn">
     ```bash
-    yarn add @varity/sdk
+    yarn add @varity-labs/sdk
     ```
   </TabItem>
   <TabItem label="pnpm">
     ```bash
-    pnpm add @varity/sdk
+    pnpm add @varity-labs/sdk
     ```
   </TabItem>
 </Tabs>
@@ -214,9 +214,9 @@ Before publishing any code example:
 Always show the full imports at the top of code blocks:
 
 ```typescript
-import { createClient } from '@varity/sdk';
+import { createClient } from '@varity-labs/sdk';
 
-const client = createClient({ chainId: 33529 });
+const client = createClient();
 ```
 
 ### Use Realistic Values
@@ -283,10 +283,10 @@ console.log(user);
 Show full, runnable components, not just snippets:
 
 ```tsx
-import { useWalletAuth } from '@varity/ui-kit';
+import { useAuth } from '@varity-labs/ui-kit';
 
 function LoginButton() {
-  const { login, isAuthenticated, isLoading } = useWalletAuth();
+  const { login, isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) return <button disabled>Loading...</button>;
   if (isAuthenticated) return <span>Logged in!</span>;
@@ -307,15 +307,14 @@ Use consistent terminology throughout:
 | Deploy | Ship, Launch |
 | Log in / Log out | Login / Logout (as verbs) |
 | Set up (verb) | Setup (as verb) |
-| Smart wallet | Smart account |
-| Gasless | Gas-free, no-gas |
+| Account | Wallet, smart wallet |
+| Free operations | Gasless, gas-free, no-gas |
 
 ### Capitalization
 
-- **Varity** - Always capitalized
-- **VarietyKit** - Camel case
-- **Web3** - Capital W, lowercase eb3
-- **TypeScript / JavaScript** - Official casing
+- **Varity** — Always capitalized
+- **VarityKit** — The CLI tool (camelCase with lowercase 'y')
+- **TypeScript / JavaScript** — Official casing
 
 ## Testing Locally
 

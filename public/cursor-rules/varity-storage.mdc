@@ -30,14 +30,23 @@ You are an expert in implementing secure file storage with Varity.
 ### Step 1: Install SDK
 
 ```bash
+<<<<<<< HEAD
 npm install @varity/sdk
+=======
+npm install @varity-labs/sdk
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 ```
 
 ### Step 2: Initialize storage client
 
 ```typescript
+<<<<<<< HEAD
 import { createClient } from '@varity/sdk'
 import { createStorageClient } from '@varity/sdk/storage'
+=======
+import { createClient } from '@varity-labs/sdk'
+import { createStorageClient } from '@varity-labs/sdk/storage'
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 
 const client = createClient({
   url: process.env.VARITY_URL!,
@@ -246,7 +255,11 @@ const blob = await storage.download(uri, {
 ### Generate encryption key
 
 ```typescript
+<<<<<<< HEAD
 import { generateEncryptionKey } from '@varity/sdk/crypto'
+=======
+import { generateEncryptionKey } from '@varity-labs/sdk/crypto'
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 
 const key = generateEncryptionKey()
 // Store securely (env variable, secrets manager)
@@ -398,7 +411,11 @@ try {
 'use client'
 
 import { useState } from 'react'
+<<<<<<< HEAD
 import { createStorageClient } from '@varity/sdk/storage'
+=======
+import { createStorageClient } from '@varity-labs/sdk/storage'
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 
 export function FileUploader() {
   const [uploading, setUploading] = useState(false)

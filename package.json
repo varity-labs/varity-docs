@@ -2,7 +2,11 @@
   "name": "varity-docs",
   "type": "module",
   "version": "1.0.0",
+<<<<<<< HEAD
   "description": "Documentation for Varity - Build real-world apps on decentralized infrastructure",
+=======
+  "description": "Official documentation for Varity - Build, deploy, and sell business apps",
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
   "engines": {
     "node": ">=18.0.0"
   },
@@ -18,6 +22,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
+<<<<<<< HEAD
     "lint": "astro check"
   },
   "dependencies": {
@@ -26,6 +31,28 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.6",
+=======
+    "lint": "astro check",
+    "test": "node tests/test-docs.cjs",
+    "test:links": "node tests/test-docs.cjs --only links",
+    "test:anchors": "node tests/test-docs.cjs --only anchors",
+    "test:imports": "node tests/test-docs.cjs --only imports",
+    "test:versions": "node tests/test-docs.cjs --only versions",
+    "test:positioning": "node tests/test-docs.cjs --only positioning",
+    "test:consistency": "node tests/test-docs.cjs --only consistency",
+    "test:typescript": "node tests/test-docs.cjs --only typescript",
+    "test:fast": "node tests/test-docs.cjs --no-discover",
+    "test:setup": "node tests/test-docs.cjs --setup"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "^0.37.4",
+    "astro": "^5.18.1"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.6",
+    "cheerio": "^1.0.0",
+    "node-fetch": "^2.7.0",
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
     "typescript": "^5.7.0"
   }
 }

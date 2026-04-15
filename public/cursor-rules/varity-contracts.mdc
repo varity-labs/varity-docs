@@ -220,7 +220,11 @@ async function purchaseTemplate(templateId: number) {
 ### Setup SmartWalletProvider
 
 ```tsx
+<<<<<<< HEAD
 import { SmartWalletProvider } from '@varity/ui-kit'
+=======
+import { SmartWalletProvider } from '@varity-labs/ui-kit'
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 
 export default function App({ children }) {
   return (
@@ -237,7 +241,11 @@ export default function App({ children }) {
 ### Use Smart Wallet
 
 ```tsx
+<<<<<<< HEAD
 import { useSmartWallet } from '@varity/ui-kit'
+=======
+import { useSmartWallet } from '@varity-labs/ui-kit'
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 
 function MyComponent() {
   const { address, isDeployed, balance } = useSmartWallet()
@@ -255,7 +263,11 @@ function MyComponent() {
 ### Gasless Transaction Example
 
 ```tsx
+<<<<<<< HEAD
 import { useSmartWallet } from '@varity/ui-kit'
+=======
+import { useSmartWallet } from '@varity-labs/ui-kit'
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 import { sendTransaction } from 'thirdweb'
 
 function GaslessTransfer() {

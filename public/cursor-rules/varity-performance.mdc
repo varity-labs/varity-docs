@@ -21,11 +21,19 @@ You are an expert in optimizing Varity applications for speed and efficiency.
 
 ```typescript
 // ❌ BAD - Imports entire library
+<<<<<<< HEAD
 import * as Varity from '@varity/sdk'
 
 // ✅ GOOD - Only imports what you need
 import { createClient } from '@varity/sdk'
 import { createStorageClient } from '@varity/sdk/storage'
+=======
+import * as Varity from '@varity-labs/sdk'
+
+// ✅ GOOD - Only imports what you need
+import { createClient } from '@varity-labs/sdk'
+import { createStorageClient } from '@varity-labs/sdk/storage'
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 ```
 
 ### Dynamic Imports (Code Splitting)
@@ -409,7 +417,11 @@ module.exports = {
   // Experimental features
   experimental: {
     optimizeCss: true,
+<<<<<<< HEAD
     optimizePackageImports: ['@varity/sdk', '@varity/ui-kit'],
+=======
+    optimizePackageImports: ['@varity-labs/sdk', '@varity-labs/ui-kit'],
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
   },
 }
 ```
@@ -485,13 +497,21 @@ measurePerformance('file-upload', async () => {
 ### ❌ Loading entire SDK
 ```typescript
 // WRONG - Large bundle
+<<<<<<< HEAD
 import * as Varity from '@varity/sdk'
+=======
+import * as Varity from '@varity-labs/sdk'
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 ```
 
 ### ✅ Use named imports
 ```typescript
 // CORRECT - Tree-shakeable
+<<<<<<< HEAD
 import { createClient } from '@varity/sdk'
+=======
+import { createClient } from '@varity-labs/sdk'
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 ```
 
 ---

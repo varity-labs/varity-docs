@@ -1,46 +1,48 @@
-# build output
+# Build output
 dist/
-
-# generated types
 .astro/
 
-# dependencies
+# Dependencies
 node_modules/
 
-# logs
+# Logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-*.log
 
-# environment variables
+# Environment variables
 .env
 .env.*
 !.env.example
 
-# macOS-specific files
+# OS files
 .DS_Store
+Thumbs.db
 
 # Editor directories
 .idea/
+.claude/
 *.swp
 *.swo
 *~
 
-# Backup files
-*.bak
-*.old
-*.backup
-
 # Temporary files
 *.tmp
 *.temp
+*.bak
 
-# Cache directories
+# Cache
 .cache/
 .turbo/
 .parcel-cache/
 
-# IDE settings (keep .vscode)
-# .vscode/
+# Test outputs
+tests/reports/
+tests/.sdk-test-env/
+tests/.tmp-ts-check/
+coverage/
+
+# TypeScript
+*.tsbuildinfo

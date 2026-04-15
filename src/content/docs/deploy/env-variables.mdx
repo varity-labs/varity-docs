@@ -118,19 +118,50 @@ This checks:
 
 Run `varitykit doctor` to diagnose. Credentials are auto-provided — if they fail, check your network connection.
 
+<<<<<<< HEAD
 <Accordion title="Advanced: Using Your Own Auth Credentials">
 
 **Varity manages these credentials automatically. Only use this if you need custom configuration.**
 
 Override the managed authentication credential by setting this variable:
+=======
+<Accordion title="Advanced: Using Your Own Credentials">
+
+**Varity manages these credentials automatically. Only use this if you need custom configuration.**
+
+Override managed credentials by setting these variables:
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 
 ```bash title=".env.local"
 # Authentication — get from https://dashboard.privy.io
 NEXT_PUBLIC_PRIVY_APP_ID=your_privy_app_id
+<<<<<<< HEAD
 ```
 
 Storage is handled automatically by Varity — no credentials needed.
 
 When this variable is set, the SDK uses your own Privy app instead of the managed one.
+=======
+
+# Storage — get from https://thirdweb.com/dashboard
+THIRDWEB_CLIENT_ID=your_thirdweb_client_id
+THIRDWEB_SECRET_KEY=your_thirdweb_secret_key
+```
+
+Framework-specific variants:
+
+```bash
+# Next.js
+NEXT_PUBLIC_THIRDWEB_CLIENT_ID=your_client_id
+
+# Vite
+VITE_THIRDWEB_CLIENT_ID=your_client_id
+
+# Create React App
+REACT_APP_THIRDWEB_CLIENT_ID=your_client_id
+```
+
+When these are set, the SDK and CLI use your credentials instead of the managed ones.
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 
 </Accordion>

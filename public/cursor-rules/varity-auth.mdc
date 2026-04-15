@@ -29,14 +29,22 @@ Varity supports multiple authentication methods:
 ### Step 1: Install dependencies
 
 ```bash
+<<<<<<< HEAD
 npm install @varity/sdk @varity/ui-kit
+=======
+npm install @varity-labs/sdk @varity-labs/ui-kit
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 ```
 
 ### Step 2: Wrap app with PrivyStack
 
 ```tsx
 // app/layout.tsx (Next.js App Router)
+<<<<<<< HEAD
 import { PrivyStack } from '@varity/ui-kit'
+=======
+import { PrivyStack } from '@varity-labs/ui-kit'
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 
 export default function RootLayout({ children }) {
   return (
@@ -57,7 +65,11 @@ export default function RootLayout({ children }) {
 
 ```tsx
 // components/LoginButton.tsx
+<<<<<<< HEAD
 import { PrivyLoginButton } from '@varity/ui-kit'
+=======
+import { PrivyLoginButton } from '@varity-labs/ui-kit'
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 
 export function LoginButton() {
   return <PrivyLoginButton />
@@ -94,7 +106,11 @@ export function UserProfile() {
 
 ```tsx
 // app/dashboard/layout.tsx
+<<<<<<< HEAD
 import { PrivyProtectedRoute } from '@varity/ui-kit'
+=======
+import { PrivyProtectedRoute } from '@varity-labs/ui-kit'
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 
 export default function DashboardLayout({ children }) {
   return (
@@ -151,7 +167,11 @@ export function CustomLogin() {
 
 ```tsx
 // app/api/protected/route.ts
+<<<<<<< HEAD
 import { getServerSession } from '@varity/ui-kit/server'
+=======
+import { getServerSession } from '@varity-labs/ui-kit/server'
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 
 export async function GET(request: Request) {
   const session = await getServerSession()
@@ -241,7 +261,11 @@ import { Web3Modal } from '@web3modal/react'
 ### ✅ ALWAYS use Privy
 ```typescript
 // CORRECT - Privy manages everything
+<<<<<<< HEAD
 import { PrivyStack } from '@varity/ui-kit'
+=======
+import { PrivyStack } from '@varity-labs/ui-kit'
+>>>>>>> e29b089d895ea4e653849a742d38ee6ad100199c
 ```
 
 ---
