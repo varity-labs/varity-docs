@@ -45,7 +45,7 @@
 | Package | Version | Source Repo | Description |
 |---------|---------|-------------|-------------|
 | `@varity-labs/sdk` | 2.0.0-beta.6 | varity-sdk/packages/core | Core SDK - auth, database, storage, analytics |
-| `@varity-labs/ui-kit` | 2.0.0-beta.7 | varity-sdk/packages/ui | 19 React components - auth, payments, dashboard |
+| `@varity-labs/ui-kit` | 2.0.0-beta.12 | varity-sdk/packages/ui | 19 React components - auth, payments, dashboard |
 | `@varity-labs/types` | 2.0.0-beta.4 | varity-sdk/packages/types | TypeScript type definitions |
 | `@varity-labs/mcp` | 1.3.2 | varity-mcp | MCP Server for AI tools (Cursor, Claude, Windsurf) |
 | `create-varity-app` | 2.0.0-beta.9 | varity-sdk/cli | CLI to scaffold new apps (`npx create-varity-app`) |
@@ -71,7 +71,6 @@ varitykit completions → Shell tab completion
 @varity-labs/sdk              → Main entry (VarityProvider, useAuth, etc.)
 @varity-labs/sdk/aa           → Account abstraction
 @varity-labs/sdk/chains       → Chain configurations
-@varity-labs/sdk/thirdweb     → Thirdweb integration
 @varity-labs/sdk/tracking     → Analytics/tracking
 @varity-labs/sdk/contracts    → Contract interactions
 @varity-labs/sdk/blockchain   → Blockchain utilities
@@ -171,7 +170,7 @@ async function testAllNpmPackages() {
     },
     {
       name: '@varity-labs/ui-kit',
-      version: '2.0.0-beta.7',
+      version: '2.0.0-beta.12',
       repo: 'varity-sdk/packages/ui',
       expectedExports: ['Button', 'AuthButton', 'LoginButton', 'UserProfile']
     },
@@ -229,7 +228,7 @@ async function testAllNpmPackages() {
 
   // Test SDK subpaths (these are documented in the docs)
   console.log('\n  Testing @varity-labs/sdk subpath exports...');
-  const subpaths = ['chains', 'aa', 'thirdweb', 'tracking', 'contracts', 'blockchain', 'orchestration'];
+  const subpaths = ['chains', 'aa', 'tracking', 'contracts', 'blockchain', 'orchestration'];
   for (const sub of subpaths) {
     try {
       const subMod = require(path.join(SDK_DIR, 'node_modules/@varity-labs/sdk', sub));

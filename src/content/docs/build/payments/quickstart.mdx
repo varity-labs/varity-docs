@@ -15,8 +15,8 @@ import PageMeta from '../../../../components/PageMeta.astro';
 
 # Payments Quick Start
 
-<Aside type="caution" title="Beta: Limited Payment Methods">
-Varity is in beta. During beta, payments are processed via the App Store checkout only. Credit card payments (Stripe, Apple Pay) are coming soon. You can still set pricing, submit your app, and earn revenue — users pay through the App Store.
+<Aside type="note">
+Payments are processed via the App Store checkout. Credit card payments via Stripe are also available — users can purchase deploy keys and subscriptions at [varity.so](https://varity.so).
 </Aside>
 
 Monetize your app through the Varity App Store. Set your price, deploy, and earn revenue automatically.
@@ -92,15 +92,14 @@ Configure these tiers in the Developer Portal after submitting your app.
 | 90/10 revenue split | Available |
 | App Store checkout | Available |
 | Monthly payouts | Available |
-| Credit card payments (Stripe, Apple Pay) | Coming soon |
-| In-app payment widget | Coming soon |
+| Credit card payments (Stripe) | Available at varity.so |
+| In-app payment widget | Available |
 
-## In-App Payments (Coming Soon)
+## In-App Payments
 
-After beta, you'll be able to add payment UI directly in your app:
+Add payment UI directly in your app:
 
 ```tsx title="components/UpgradeButton.tsx"
-// Coming soon — not yet available during beta
 import { PaymentWidget } from '@varity-labs/ui-kit';
 
 export function UpgradeButton({ appId }) {
@@ -119,7 +118,7 @@ export function UpgradeButton({ appId }) {
 ```
 
 <Aside type="note">
-During beta, all payments go through the App Store checkout. The `PaymentWidget` component will be available for in-app payments after the production launch.
+For App Store sales, users complete purchase through the App Store checkout. In-app `PaymentWidget` is for subscription upgrades within your deployed app.
 </Aside>
 
 ## User Experience

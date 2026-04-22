@@ -1,6 +1,6 @@
 ---
 title: Varity MCP Server
-description: Install and configure the Varity MCP server for AI editors. 14 tools for building, deploying, and managing apps via Cursor or Claude.
+description: Install and configure the Varity MCP server for AI editors. 15 tools for building, deploying, and managing apps via Cursor or Claude.
 ---
 
 import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
@@ -13,7 +13,7 @@ import PageMeta from '../../../components/PageMeta.astro';
   stability="stable"
 />
 
-The Varity MCP server (`@varity-labs/mcp`) gives AI editors 14 tools for the full build → deploy → monetize workflow. It runs locally via stdio — no API keys, no accounts.
+The Varity MCP server (`@varity-labs/mcp`) gives AI editors 15 tools for the full build → deploy → monetize workflow. It runs locally via stdio — no API keys, no accounts.
 
 <Aside type="tip">
 The MCP server works with **any editor that supports MCP**: Cursor, Claude Code, VS Code (Copilot), Windsurf, and more. Setup takes under a minute.
@@ -22,7 +22,7 @@ The MCP server works with **any editor that supports MCP**: Cursor, Claude Code,
 ## Prerequisites
 
 - **Node.js 18+** — runs the MCP server
-- **Python 3.8+** — needed for `varitykit` CLI (used by deploy tools)
+- **Python 3.11+** — needed for `varitykit` CLI (used by deploy tools)
 - **varitykit** — install with `pip install varitykit`
 
 ## Setup
@@ -85,7 +85,7 @@ The MCP server works with **any editor that supports MCP**: Cursor, Claude Code,
 
 ## Tools Reference
 
-The server exposes 14 tools. Read-only tools run safely with no side effects. Destructive tools create files or deploy infrastructure.
+The server exposes 15 tools. Read-only tools run safely with no side effects. Destructive tools create files or deploy infrastructure.
 
 ### `varity_doctor` — Check environment setup
 
@@ -96,6 +96,21 @@ Verify that your development environment is ready to build and deploy Varity app
 **Annotations:** `readOnlyHint: true`
 
 **Example prompt:** "Check if my environment is set up for Varity"
+
+---
+
+### `varity_login` — Authenticate with Varity
+
+Authenticate with Varity using a deploy key or browser-based login. Required before deploying apps.
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `method` | `"deploy-key"` \| `"browser"` | No | `"browser"` | Authentication method |
+| `deploy_key` | string | No | — | Deploy key (required when `method` is `"deploy-key"`) |
+
+**Annotations:** `destructiveHint: true` — writes credentials to local config
+
+**Example prompt:** "Log in to Varity" or "Authenticate with my deploy key"
 
 ---
 
