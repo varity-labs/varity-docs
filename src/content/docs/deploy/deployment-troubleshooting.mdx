@@ -1,0 +1,280 @@
+---
+title: Debugging Failed Deployments
+description: Diagnose and fix failed Varity deployments. Covers how to read build logs, common error patterns for static and dynamic hosting, and recovery steps including rollback.
+---
+
+import { Steps, Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+import PageMeta from '../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="April 2026"
+  stability="stable"
+/>
+
+When a deployment fails, the fastest path to recovery is: **get the logs → identify the error → fix or rollback**. This page walks through each step.
+
+## Step 1 — Get the Build Logs
+
+Every deployment produces a build log. Always read it before guessing at a cause.
+
+### From the CLI (verbose mode)
+
+Re-run the deploy with `--verbose` to stream full output:
+
+```bash
+varitykit app deploy --verbose
+```
+
+### From a past deployment
+
+If the deployment already ran, retrieve its logs by ID:
+
+```bash
+varitykit app info deploy-1737492000
+```
+
+### From the MCP server
+
+If you're in an AI editor with the [Varity MCP server](/ai-tools/mcp-server-spec) connected:
+
+```
+"Show me the build logs for deploy-1737492000"
+```
+
+This calls `varity_deploy_logs`:
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `deployment_id` | string | Yes | The deployment ID from `varitykit app list` |
+| `limit` | number | No | Max log lines (default 100) |
+
+<Aside type="tip">
+Don't know the deployment ID? Run `varitykit app list` or call `varity_deploy_status` from your AI editor to see all deployments.
+</Aside>
+
+---
+
+## Common Error Patterns
+
+### "Build failed: exit code 1"
+
+The build command (`npm run build`) failed.
+
+<Steps>
+
+1. Reproduce locally:
+   ```bash
+   npm run build
+   ```
+
+2. Fix TypeScript or lint errors:
+   ```bash
+   npx tsc --noEmit
+   ```
+
+3. Ensure all dependencies are installed:
+   ```bash
+   npm install
+   ```
+
+4. Re-deploy:
+   ```bash
+   varitykit app deploy
+   ```
+
+</Steps>
+
+---
+
+### "Upload failed" / "Network timeout"
+
+The build succeeded but the upload to Varity's infrastructure timed out or was interrupted.
+
+**This is usually transient.** Re-try the deployment:
+
+```bash
+varitykit app deploy
+```
+
+If it fails repeatedly:
+
+```bash
+varitykit doctor
+```
+
+This checks connectivity to Varity's services and reports any reachability issues.
+
+---
+
+### Dynamic Deployment: "Lease acquisition failed"
+
+For dynamic deployments (`--hosting dynamic`), the compute infrastructure must acquire resources before launching your container. This error means no lease could be established.
+
+**Common causes:**
+
+| Cause | What to check |
+|-------|--------------|
+| No available compute capacity | Try deploying again — capacity fluctuates |
+| Container image too large | Optimize your Docker layer or reduce dependencies |
+| Resource request too high | Check your compute config in `varity.config.json` |
+
+**Recovery:**
+
+```bash
+# Retry the deployment
+varitykit app deploy --hosting dynamic
+
+# Check current status
+varitykit app status
+```
+
+If the lease consistently fails, fall back to static hosting while you investigate:
+
+```bash
+varitykit app deploy --hosting static
+```
+
+---
+
+### Dynamic Deployment: "Container failed to start"
+
+The lease was acquired but the container exited immediately after launch.
+
+**Common causes:**
+
+1. **Missing environment variables** — the app crashed on startup because a required env var is absent. Check [Environment Variables](/deploy/env-variables).
+
+2. **Port mismatch** — the container isn't listening on the expected port. Confirm your app listens on `0.0.0.0`, not `127.0.0.1`.
+
+3. **Out-of-memory (OOM)** — the process was killed by the kernel during startup. Check your `package.json` for memory-intensive build steps.
+
+**Get more detail from logs:**
+
+```bash
+varitykit app info deploy-1737492000
+```
+
+Or via MCP: `varity_deploy_logs` with `limit: 200` for more context.
+
+---
+
+### Dynamic Deployment: "Deployment timed out"
+
+The deployment didn't become healthy within the expected window.
+
+**Typical causes:**
+
+- Long-running migrations that block app startup
+- Slow cold-start on first container launch (normal for first deploy — retry once)
+- App not responding to health check on the expected port
+
+**Fix:**
+
+1. Check logs for slow startup output
+2. Move database migrations out of the startup path if possible
+3. Retry — first-launch cold-starts often succeed on the second attempt:
+   ```bash
+   varitykit app deploy --hosting dynamic
+   ```
+
+---
+
+### "SDL configuration error" / "Invalid manifest"
+
+The container deployment manifest has a structural problem.
+
+This error is rare and typically means an internal configuration was generated incorrectly. Run:
+
+```bash
+varitykit doctor
+```
+
+If `doctor` passes, re-deploy. If the error recurs, report it to [support@varity.so](mailto:support@varity.so) with the full output of `varitykit app info <deployment-id>`.
+
+---
+
+### "App deployed but shows blank page or 404"
+
+The deployment succeeded from Varity's perspective but the app isn't serving correctly.
+
+<Steps>
+
+1. Verify the build output directory exists locally:
+   - Next.js: `.next/` or `out/` (for static export)
+   - React (Vite): `dist/`
+   - React (CRA): `build/`
+
+2. Confirm the correct output path is used:
+   ```bash
+   npm run build
+   ls dist/  # or out/, build/, .next/ depending on framework
+   ```
+
+3. For Next.js static export, ensure `output: 'export'` is set in `next.config.js`
+
+4. Re-deploy after verifying the output:
+   ```bash
+   varitykit app deploy
+   ```
+
+</Steps>
+
+---
+
+## Recovery Path: Rollback
+
+If you can't diagnose the issue quickly, roll back to the last working version to restore service:
+
+```bash
+# Find the last working deployment
+varitykit app list
+
+# Roll back to it
+varitykit app rollback deploy-1737491000
+```
+
+See the full [Rollback Guide](/deploy/rollback) for details on deployment IDs, caveats with database state, and verifying the restore worked.
+
+---
+
+## Environment Check
+
+Before chasing logs, run a full environment diagnostic:
+
+```bash
+varitykit doctor
+```
+
+This checks:
+
+| Check | What it verifies |
+|-------|-----------------|
+| CLI installed | `varitykit` is on PATH and up to date |
+| Authentication | You're logged in with valid credentials |
+| Network | Varity services are reachable |
+| Project structure | `package.json` and build config exist |
+
+---
+
+## Getting More Help
+
+If you're still stuck after reading logs and running diagnostics:
+
+1. **Discord** — [#support channel](https://discord.gg/7vWsdwa2Bg) — fastest response
+2. **GitHub Issues** — [varity-labs/varity-sdk](https://github.com/varity-labs/varity-sdk/issues) — attach the output of `varitykit app info <deployment-id>`
+3. **Email** — [support@varity.so](mailto:support@varity.so)
+
+When reporting an issue, include:
+- Full output of `varitykit app info <deployment-id>`
+- Output of `varitykit doctor`
+- Your OS, Node.js version, and Python version
+
+## Related
+
+- [Rollback a Deployment](/deploy/rollback) — revert to a previous version
+- [Deploy Your App](/deploy/deploy-your-app) — full deployment guide
+- [Environment Variables](/deploy/env-variables) — configure your app's environment
+- [MCP Server](/ai-tools/mcp-server-spec) — `varity_deploy_logs`, `varity_deploy_status`
+- [Troubleshooting](/resources/troubleshooting) — general CLI and SDK issues

@@ -1,0 +1,123 @@
+---
+title: Rollback a Deployment
+description: Revert to a previous deployment version using varitykit app rollback. Covers deployment IDs, listing history, running a rollback, and caveats to watch for.
+---
+
+import { Steps, Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+import PageMeta from '../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="April 2026"
+  stability="stable"
+/>
+
+If a deployment breaks your app, you can revert to any previous working version in seconds. This guide covers how to find your deployment history, choose a version to restore, and run the rollback.
+
+## What Is a Deployment ID?
+
+Every time you run `varitykit app deploy`, Varity assigns a unique deployment ID in the format `deploy-<unix-timestamp>`:
+
+```
+deploy-1737492000
+deploy-1737491000
+deploy-1737484800
+```
+
+The timestamp is when the deployment was created. You use this ID to reference specific deployments when rolling back, checking logs, or inspecting status.
+
+## Step 1 — Find Your Deployment History
+
+List all deployments for the current app:
+
+```bash
+varitykit app list
+```
+
+Output:
+
+```
+ID                  Status    URL                              Deployed
+deploy-1737492000   live      https://your-app.varity.app      2 hours ago
+deploy-1737491000   archived  https://v2.your-app.varity.app   1 day ago
+deploy-1737484800   archived  https://v1.your-app.varity.app   2 days ago
+```
+
+The `live` deployment is your current production version. `archived` deployments are still available for rollback.
+
+<Aside type="tip">
+You can also use `varity_deploy_status` from the [MCP server](/ai-tools/mcp-server-spec) to list deployments directly from your AI editor.
+</Aside>
+
+## Step 2 — Inspect a Deployment (Optional)
+
+Before rolling back, confirm the version you want by checking its details:
+
+```bash
+varitykit app info deploy-1737491000
+```
+
+This shows the build timestamp, hosting type, and URL for that deployment.
+
+## Step 3 — Run the Rollback
+
+Revert to the chosen deployment:
+
+```bash
+varitykit app rollback deploy-1737491000
+```
+
+Varity creates a new deployment using that version's configuration. Your app URL stays the same — users are automatically served the restored version.
+
+Output:
+
+```
+✓ Rolling back to deploy-1737491000...
+✓ Deployment restored
+✓ Live at: https://your-app.varity.app
+✓ New deployment ID: deploy-1737492100
+```
+
+<Aside type="note">
+Rollback creates a **new** deployment entry (with a fresh ID) rather than time-traveling the old one. This preserves your full deployment history and lets you roll forward again if needed.
+</Aside>
+
+## Rollback via AI Editor (MCP)
+
+If you're using the [Varity MCP server](/ai-tools/mcp-server-spec), you can trigger a rollback directly from your AI editor:
+
+1. **List deployments**: ask "Show me my deployment history" → `varity_deploy_status`
+2. **Identify the target ID** from the list
+3. **Deploy the rollback**: ask "Redeploy deploy-1737491000" → `varity_deploy` with the archived version's configuration
+
+## Caveats
+
+### Environment variable changes
+
+If the broken deployment introduced new environment variables that your code now depends on, rolling back the code alone may not be enough. Check your [environment variables](/deploy/env-variables) after rolling back.
+
+### Database schema changes
+
+If your app ran database migrations between the broken version and the target version, rolling back the app code may leave the schema ahead of the code. Test your app after rollback before considering it stable.
+
+### Static vs dynamic deployments
+
+Both static and dynamic deployments support rollback. For dynamic deployments, rollback also restores the container configuration, but does **not** restore database contents.
+
+## Verify the Rollback Worked
+
+After rolling back, confirm the app is working:
+
+```bash
+varitykit app status
+```
+
+Check the URL in your browser and confirm the expected behavior is restored.
+
+## Related
+
+- [Deploy Your App](/deploy/deploy-your-app) — full deployment guide
+- [Debugging Failed Deployments](/deploy/deployment-troubleshooting) — diagnose the problem before you rollback
+- [CLI Reference: deploy](/cli/commands/deploy) — all deploy command options
+- [MCP Server](/ai-tools/mcp-server-spec) — `varity_deploy_status`, `varity_deploy_logs`
