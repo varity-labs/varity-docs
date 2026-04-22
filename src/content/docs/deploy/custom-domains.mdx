@@ -1,0 +1,128 @@
+---
+title: Custom Domains
+description: Set a custom subdomain for your Varity app at varity.app/{name}. List your registered domains with varitykit domains list.
+sidebar:
+  badge:
+    text: Beta
+    variant: note
+---
+
+import { Steps, Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+import PageMeta from '../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="April 2026"
+  stability="stable"
+/>
+
+Every Varity deployment gets a public URL at `https://varity.app/{name}/`. This guide covers how to set a custom name for that URL and manage your registered domains.
+
+<Aside type="note">
+**External custom domain support** (pointing `myapp.com` via DNS to your Varity deployment) is under development. This guide covers `varity.app` subdomain management, which is available now.
+</Aside>
+
+## How Your Domain Is Assigned
+
+When you run `varitykit app deploy`, Varity registers a subdomain at `varity.app` using your project's name:
+
+```
+https://varity.app/{your-app-name}/
+```
+
+Your app name is derived from the `name` field in your `package.json` by default. You can override it with the `--name` flag.
+
+## Set a Custom Subdomain
+
+Pass `--name` to choose your subdomain at deploy time:
+
+```bash
+varitykit app deploy --name my-app
+```
+
+Your app will be available at:
+
+```
+https://varity.app/my-app/
+```
+
+### Naming rules
+
+- Lowercase letters, numbers, and hyphens only
+- 3–48 characters
+- Must be unique across all Varity apps — first to register a name owns it
+- Cannot start or end with a hyphen
+
+<Aside type="tip">
+**Claim your name early.** Subdomain names are first-come, first-served. Once you've registered a name, it's yours as long as you have an active deployment.
+</Aside>
+
+## View Your Registered Domains
+
+List all domains registered to your account:
+
+```bash
+varitykit domains list
+```
+
+Output:
+
+```
+Your Domains (2)
+┌─────────────┬──────────────────────────────────┬──────────────────┐
+│ Subdomain   │ App URL                          │ App Name         │
+├─────────────┼──────────────────────────────────┼──────────────────┤
+│ my-app      │ https://varity.app/my-app        │ my-app           │
+│ my-other    │ https://varity.app/my-other      │ my-other-project │
+└─────────────┴──────────────────────────────────┴──────────────────┘
+```
+
+<Aside type="tip">
+You must be logged in to list your domains. Run `varitykit login` first if you see a "Not logged in" message.
+</Aside>
+
+## Redeploy Under the Same Name
+
+Redeploying with the same `--name` updates the existing deployment at that URL — your domain stays the same:
+
+```bash
+# First deploy
+varitykit app deploy --name my-app
+
+# Update the app — same URL, no re-registration needed
+varitykit app deploy --name my-app
+```
+
+## SSL / HTTPS
+
+All `varity.app` subdomains are served over HTTPS automatically. No certificate setup is required. SSL is provisioned and renewed by Varity.
+
+## App Store URLs
+
+When you submit your app to the [App Store](/deploy/app-store), it appears at:
+
+```
+https://varity.app/{name}/
+```
+
+The same URL is used for direct access and App Store discovery. Keep your name stable once you publish.
+
+## Bring Your Own Domain (Coming Soon)
+
+External custom domain support is on the roadmap. When available, you'll be able to point `myapp.com` (apex domain) or `app.myapp.com` (subdomain) at your Varity deployment with automatic SSL provisioning.
+
+The expected setup will be:
+
+| Record Type | Name | Value |
+|-------------|------|-------|
+| `CNAME` | `app` | `varity.app` |
+| `A` | `@` | Varity IP (provided in dashboard) |
+
+Watch the [changelog](https://docs.varity.so) for availability.
+
+## Related
+
+- [Deploy Your App](/deploy/deploy-your-app) — full deployment guide
+- [App Store & Developer Portal](/deploy/app-store) — publish your app for discovery
+- [CLI Reference: deploy](/cli/commands/deploy) — all `app deploy` flags

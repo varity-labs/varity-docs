@@ -321,6 +321,11 @@ export default defineConfig({
               badge: { text: "Beta", variant: "note" },
             },
             {
+              label: "Custom Domains",
+              slug: "deploy/custom-domains",
+            },
+            { label: "Environment Variables", slug: "deploy/env-variables" },
+            {
               label: "Rollback a Deployment",
               slug: "deploy/rollback",
             },
@@ -339,7 +344,6 @@ export default defineConfig({
               badge: { text: "New", variant: "success" },
             },
             { label: "Managed Credentials", slug: "deploy/managed-credentials" },
-            { label: "Environment Variables", slug: "deploy/env-variables" },
           ],
         },
 
