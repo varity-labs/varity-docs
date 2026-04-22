@@ -1,24 +1,89 @@
 ---
 title: "Environment Variables"
-description: "Configure environment variables for Varity deployments. Most credentials are managed automatically; only custom service variables need manual setup."
+description: "Configure environment variables for Varity deployments. Inject custom API keys (OPENAI_API_KEY, STRIPE_SECRET_KEY, etc.) via .env.varity. Most Varity credentials are managed automatically."
 ---
 
-import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+import { Tabs, TabItem, Aside, Steps } from '@astrojs/starlight/components';
 import Accordion from '../../../components/Accordion.astro';
 import PageMeta from '../../../components/PageMeta.astro';
 
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="March 2026"
+  lastUpdated="April 2026"
   stability="stable"
 />
 
-Varity manages most credentials automatically. You only need to set environment variables for services you manage yourself.
+Varity manages most credentials automatically. You only need to set environment variables for services you manage yourself — like your own API keys for OpenAI, Stripe, SendGrid, and similar third-party services.
 
 <Aside type="tip">
 **No credential setup required.** Authentication and storage credentials are provided automatically by Varity. See [Managed Credentials](/deploy/managed-credentials) for details.
 </Aside>
+
+## Custom Environment Variables
+
+If your app uses third-party APIs — OpenAI, Stripe, SendGrid, Resend, or any other service — you need to inject those API keys into your deployment. Varity reads them from a `.env` file during `varitykit app deploy` and passes them through to your running app.
+
+### Step 1 — Create a `.env.varity` file
+
+Create `.env.varity` in your project root with your custom keys:
+
+```bash title=".env.varity"
+# Third-party API keys
+OPENAI_API_KEY=sk-...
+STRIPE_SECRET_KEY=sk_live_...
+RESEND_API_KEY=re_...
+SENDGRID_API_KEY=SG....
+MY_CUSTOM_VAR=some-value
+```
+
+<Aside type="tip">
+`.env.varity` is the recommended file for Varity-specific production secrets. It takes precedence over `.env.local` and `.env`. Add it to your `.gitignore`.
+</Aside>
+
+### Step 2 — Deploy
+
+```bash
+varitykit app deploy
+```
+
+The CLI reads your `.env.varity` file, filters out any reserved or platform-specific keys, and injects the rest directly into your deployment's runtime environment. Your app code accesses them the same way as any environment variable:
+
+```js
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+```
+
+### File precedence
+
+When multiple `.env` files are present, Varity reads the first match (highest precedence wins):
+
+| File | When to use |
+|------|-------------|
+| `.env.varity` | Varity production secrets — overrides all others |
+| `.env.local` | Local overrides / Next.js convention |
+| `.env` | Fallback for all environments |
+
+### What gets passed through
+
+Any key that is a valid shell variable name and is **not** reserved by Varity passes through automatically, including `NEXT_PUBLIC_*` variables.
+
+Keys that are **not** forwarded (Varity sets these automatically):
+
+| Key | Set by |
+|-----|--------|
+| `NODE_ENV`, `PORT`, `NODE_OPTIONS` | Runtime defaults |
+| `DATABASE_URL`, `REDIS_URL`, `MONGODB_URI`, `OLLAMA_URL` | Varity service wiring |
+| `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | Managed database config |
+| `APP_NAME` | Deployment metadata |
+
+Platform migration keys (`VERCEL_*`, `AWS_*`, `RAILWAY_*`, `RENDER_*`, `NETLIFY_*`, `FLY_*`) are also filtered so they don't leak into Varity deployments.
+
+<Aside type="note">
+**Special characters in values** (quotes, dollar signs, colons) are automatically escaped. You do not need to quote values in `.env.varity`.
+</Aside>
+
+---
 
 ## Varity App Configuration
 
