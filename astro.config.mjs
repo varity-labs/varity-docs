@@ -321,6 +321,14 @@ export default defineConfig({
               badge: { text: "Beta", variant: "note" },
             },
             {
+              label: "Rollback a Deployment",
+              slug: "deploy/rollback",
+            },
+            {
+              label: "Debugging Failed Deployments",
+              slug: "deploy/deployment-troubleshooting",
+            },
+            {
               label: "Intelligent Orchestration",
               slug: "deploy/intelligent-orchestration",
               badge: { text: "New", variant: "success" },
