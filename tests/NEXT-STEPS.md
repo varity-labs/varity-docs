@@ -405,7 +405,7 @@ async function verifyDocsMatchRealExports(codeBlocks) {
 2. **Developers** - Building SaaS and business applications
 
 **Key Value Props**:
-- 70-85% infrastructure cost savings
+- 60-80% infrastructure cost savings
 - Auth, database, storage, payments built-in
 - Deploy in minutes, not months
 - No blockchain/Web3 jargon (invisible infrastructure)
