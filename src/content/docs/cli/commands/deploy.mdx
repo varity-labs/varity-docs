@@ -63,8 +63,8 @@ varitykit app deploy --hosting dynamic
 - Persistent storage
 - 70-85% cheaper than AWS
 
-<Aside type="caution">
-Dynamic hosting is coming soon. During beta, static hosting is available. The `--hosting dynamic` flag is accepted by the CLI but the feature is not yet available.
+<Aside type="tip">
+Dynamic hosting is available via Akash. Use `--hosting dynamic` for server-side frameworks (Next.js API routes, Express, etc.). Static hosting remains the default.
 </Aside>
 
 ## Options
@@ -74,7 +74,6 @@ Dynamic hosting is coming soon. During beta, static hosting is available. The `-
 | `--hosting` | `static` | Hosting type: `static` or `dynamic` |
 | `--path` | `.` | Project directory |
 | `--submit-to-store` | `false` | Submit to Varity App Store |
-| `--tier` | - | Pricing tier: `free`, `starter`, `growth`, `enterprise`, `scale` |
 | `--name` | - | Custom app name for `varity.app/{name}` |
 | `--mode` | `auto` | Deployment mode: `auto`, `guided`, or `expert` |
 

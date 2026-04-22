@@ -112,21 +112,6 @@ console.log(varityL3Testnet); // { id: 33529, name: 'Varity L3 Testnet', ... }
 console.log(SUPPORTED_CHAINS);
 ```
 
-## Direct Chain Access
-
-```typescript
-import { createThirdwebClient, getContract } from 'thirdweb';
-import { varityL3Testnet } from '@varity-labs/sdk/chains';
-
-const client = createThirdwebClient({ clientId: 'your-client-id' });
-
-const contract = getContract({
-  client,
-  chain: varityL3Testnet,
-  address: '0x5EfAF2219F9957461125485Eae49Bac07505bB34',
-});
-```
-
 ## Wagmi Format
 
 ```typescript
