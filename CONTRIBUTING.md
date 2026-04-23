@@ -309,6 +309,7 @@ Use consistent terminology throughout:
 | Set up (verb) | Setup (as verb) |
 | Account | Wallet, smart wallet |
 | Free operations | Gasless, gas-free, no-gas |
+| Cloud compute / Cloud hosting | Akash, provider names, DePIN |
 
 ### Capitalization
 
