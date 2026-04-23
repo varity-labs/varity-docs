@@ -1009,7 +1009,7 @@ varitykit app deploy --hosting dynamic
 ```
 
 Best for: APIs, server-side rendering, full-stack apps.
-Features: container hosting, persistent storage, 70-85% cheaper than AWS.
+Features: container hosting, persistent storage, 60-80% cheaper than AWS.
 No Docker required on developer's machine — the CLI handles containerization.
 
 ### Deploy + App Store

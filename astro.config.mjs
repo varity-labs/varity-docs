@@ -14,7 +14,7 @@ export default defineConfig({
     starlight({
       title: "Varity Docs",
       description:
-        "Build, deploy, and monetize apps with one command. 70-85% cheaper than AWS.",
+        "Build, deploy, and monetize apps with one command. 60-80% cheaper than AWS.",
       logo: {
         src: "./src/assets/varity-logo.svg",
         replacesTitle: false,

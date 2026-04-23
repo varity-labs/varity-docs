@@ -862,7 +862,7 @@ function testConsistency(pages, codeBlocks) {
       type: 'INCONSISTENT_PERCENTAGE',
       severity: 'MEDIUM',
       found: Object.fromEntries(percentages),
-      note: 'Multiple different cost savings percentages found. Should be "70-85%" everywhere.',
+      note: 'Multiple different cost savings percentages found. Should be "60-80%" everywhere.',
     });
   } else {
     results.pass++;
@@ -1844,7 +1844,7 @@ function generateClaudeCodeReport(allResults, pages) {
   report += `  - "censorship-resistant" → "reliable, distributed"\n`;
   report += `  - "gasless" → "free operations"\n`;
   report += `  - "Privy" → abstract away (use VarityAuth or AuthProvider instead)\n`;
-  report += `- Standardize cost savings to "70-85%" everywhere\n`;
+  report += `- Standardize cost savings to "60-80%" everywhere\n`;
   report += `- Standardize revenue share to one number everywhere\n\n`;
 
   report += `---\n\n`;
@@ -1968,7 +1968,7 @@ function formatIssueForClaude(issue) {
     case 'INCONSISTENT_PERCENTAGE':
       out += `**Problem:** Different cost savings percentages found across pages.\n`;
       out += `**Found:** ${JSON.stringify(issue.found, null, 2)}\n`;
-      out += `**Action:** Standardize to "70-85%" everywhere.\n`;
+      out += `**Action:** Standardize to "60-80%" everywhere.\n`;
       break;
 
     case 'TYPESCRIPT_SYNTAX':
