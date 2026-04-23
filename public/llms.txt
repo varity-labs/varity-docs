@@ -12,7 +12,7 @@ Varity is a developer platform that provides open-source packages and a CLI for 
 
 ## Packages
 
-### @varity-labs/sdk (v2.0.0-beta.2)
+### @varity-labs/sdk (v2.0.0-beta.14)
 Core SDK for database, storage, and app configuration.
 
 ```typescript
@@ -28,7 +28,7 @@ await users.delete('user-id');
 Key exports: `db`, `Database`, `Collection`, `createApp`, `resolveCredentials`, `logCredentialUsage`, `VERSION`
 Database: `.get()` returns all docs — filter client-side. No server-side queries or `.where()`.
 
-### @varity-labs/ui-kit (v2.0.0-beta.3)
+### @varity-labs/ui-kit (v2.0.0-beta.15)
 React components for auth, dashboards, and UI.
 
 ```typescript
@@ -46,10 +46,10 @@ const email = user?.email?.address;
 
 Components: PrivyStack, PrivyLoginButton, PrivyProtectedRoute, PrivyUserProfile, PrivyReadyGate, VarityDashboardProvider, ThemeProvider, ToastProvider, DashboardLayout, DashboardHeader, DashboardSidebar, DashboardFooter, Button, Input, Textarea, Select, Card, Dialog, ConfirmDialog, Toast, DataTable, Toggle, Checkbox, RadioGroup, Avatar, ProgressBar, Skeleton, Breadcrumb, DropdownMenu, CommandPalette, Sidebar, KPICard, AnalyticsCard, ChartContainer, MetricDisplay, Sparkline, EnhancedKPICard, StatusBadge, IntegrationStatus, EmptyState, LoadingSkeleton, PaymentWidget, PaymentGate
 
-### @varity-labs/types (v2.0.0-beta.2)
+### @varity-labs/types (v2.0.0-beta.8)
 TypeScript type definitions for all Varity interfaces: DatabaseConfig, QueryOptions, Document, CollectionResponse, CredentialConfig.
 
-## CLI: varitykit (v1.1.4)
+## CLI: varitykit (v1.2.9)
 
 Install: `pip install varitykit`
 
@@ -112,7 +112,7 @@ const { user, authenticated, logout } = usePrivy();
 ```bash
 npm run build
 varitykit app deploy
-# App is live at https://your-app.varity.app
+# App is live at https://varity.app/my-app/
 ```
 
 Static hosting and dynamic hosting auto-detected.
@@ -174,7 +174,7 @@ Full docs: https://docs.varity.so
 ## MCP Server
 
 Install: `npx -y @varity-labs/mcp`
-7 tools: varity_search_docs, varity_cost_calculator, varity_init, varity_deploy, varity_deploy_status, varity_deploy_logs, varity_submit_to_store
+15 tools: varity_search_docs, varity_cost_calculator, varity_doctor, varity_login, varity_init, varity_install_deps, varity_build, varity_add_collection, varity_create_repo, varity_deploy, varity_deploy_status, varity_deploy_logs, varity_submit_to_store, varity_migrate, varity_open_browser
 
 Setup for Cursor (.cursor/mcp.json):
 ```json
