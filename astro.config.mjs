@@ -344,6 +344,11 @@ export default defineConfig({
               badge: { text: "New", variant: "success" },
             },
             { label: "Managed Credentials", slug: "deploy/managed-credentials" },
+            {
+              label: "Migrate from Vercel",
+              slug: "deploy/vercel-migration",
+              badge: { text: "New", variant: "success" },
+            },
           ],
         },
 

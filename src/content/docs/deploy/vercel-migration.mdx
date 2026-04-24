@@ -1,0 +1,130 @@
+---
+title: Migrate from Vercel to Varity
+description: Move your existing Vercel app to Varity in under 3 minutes. The CLI and MCP tools handle code transforms, dependency cleanup, and deployment automatically.
+---
+
+import { Steps, Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+import PageMeta from '../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="April 2026"
+  stability="beta"
+/>
+
+Move your existing Vercel app to Varity in under 3 minutes. The migration tool removes Vercel-specific code, installs Varity packages, and deploys your app automatically.
+
+## What gets migrated automatically
+
+- `vercel.json` — removed
+- `@vercel/*` npm packages — removed from `package.json`
+- Next.js image optimizer config (`unoptimized: true`) — set automatically
+- Vercel-specific environment variable names — renamed to Varity equivalents
+- Edge runtime declarations — updated
+
+All changes are backed up to `.vercel-migration-backup/` so you can roll back.
+
+## Migrate using AI (recommended)
+
+The easiest path is to ask your AI editor to migrate for you.
+
+<Aside type="tip">
+This works in Cursor, Claude Code, VS Code (Copilot), and any editor with the Varity MCP server installed. See [MCP Server Setup](/ai-tools/mcp-server-spec) to install.
+</Aside>
+
+Ask your AI editor:
+
+> "Migrate my Vercel app at https://github.com/username/my-app to Varity"
+
+The `varity_migrate` MCP tool will:
+1. Clone your GitHub repository
+2. Remove Vercel-specific artifacts
+3. Build the transformed app to verify it compiles
+4. Deploy to Varity and return a live URL
+
+To preview what would change without deploying:
+
+> "Do a dry run migration of https://github.com/username/my-app"
+
+## Migrate using the CLI
+
+<Steps>
+
+1. **Install the CLI** (if you haven't already)
+
+   ```bash
+   pip install varitykit
+   ```
+
+2. **Preview what will change** (optional)
+
+   ```bash
+   varitykit migrate --url https://github.com/username/my-app --dry-run
+   ```
+
+   Or for a local directory:
+
+   ```bash
+   varitykit migrate --path ./my-app --dry-run
+   ```
+
+3. **Run the migration**
+
+   ```bash
+   varitykit migrate --url https://github.com/username/my-app
+   ```
+
+   This clones your repo, applies codemods, and deploys to Varity. Your app will be live at a `varity.app` URL.
+
+</Steps>
+
+## Advanced: step-by-step control
+
+Use subcommands if you want to inspect changes before deploying:
+
+```bash
+# 1. Analyze only (read-only, no changes)
+varitykit migrate analyze ./my-app
+
+# 2. Apply codemods but don't deploy
+varitykit migrate apply ./my-app
+
+# 3. Deploy when ready
+varitykit app deploy --path ./my-app
+
+# Undo all codemods if something goes wrong
+varitykit migrate rollback ./my-app
+```
+
+## After migration
+
+- Your app runs on Varity infrastructure with auth, database, and hosting included
+- Environment variables are managed automatically — no manual configuration needed
+- Review any warnings from the migration output and fix manually if needed
+- To monetize: submit to the [Varity App Store](/deploy/app-store)
+
+## Troubleshooting
+
+### Build fails after migration
+
+If the transformed app fails to build, common causes are:
+
+- TypeScript errors introduced by removing `@vercel/*` peer dependencies
+- Edge runtime APIs not available outside Vercel (check warnings in migration output)
+
+Fix the errors in your source repository, then run `varitykit migrate` again.
+
+### Roll back to Vercel code
+
+```bash
+varitykit migrate rollback ./my-app
+```
+
+This restores all files from `.vercel-migration-backup/`.
+
+## Next steps
+
+- [Deploy your app](/deploy/deploy-your-app) — understand what happens during deploy
+- [Environment variables](/deploy/env-variables) — how credentials work
+- [Submit to App Store](/deploy/app-store) — monetize your migrated app

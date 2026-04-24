@@ -91,14 +91,17 @@ VarityKit is a Python-based CLI that helps you build, test, and deploy applicati
 |---------|-------------|
 | `varitykit domains list` | List all domains you own on `varity.app` |
 
-### Migration
+### Migration (Vercel → Varity)
 
 | Command | Description |
 |---------|-------------|
-| `varitykit migrate s3` | Migrate data from AWS S3 to Varity |
-| `varitykit migrate gcs` | Migrate data from Google Cloud Storage to Varity |
-| `varitykit migrate status` | Check migration job status |
-| `varitykit migrate verify` | Verify migration integrity |
+| `varitykit migrate --url <github-url>` | Clone a GitHub repo and migrate it to Varity (analyze + transform + deploy) |
+| `varitykit migrate --path <path>` | Migrate a local Vercel project directory |
+| `varitykit migrate --dry-run` | Preview what would change without modifying files |
+| `varitykit migrate --no-deploy` | Apply codemods only, skip deployment |
+| `varitykit migrate analyze <path>` | Scan for Vercel artifacts — read-only preview |
+| `varitykit migrate apply <path>` | Apply codemods without deploying |
+| `varitykit migrate rollback <path>` | Restore files from `.vercel-migration-backup/` |
 
 ## Quick Start
 
@@ -178,14 +181,18 @@ Dynamic hosting is coming soon. During beta, static hosting is available.
 
 ## Supported Frameworks
 
+Varity currently auto-detects and deploys the following frameworks:
+
 | Framework | Static | Dynamic (Coming Soon) |
-|-----------|---------------|-----------------|
-| Next.js 13+ | Yes | Planned |
-| React (Vite) | Yes | Planned |
-| React (CRA) | Yes | Planned |
-| Vue 3+ | Yes | Planned |
+|-----------|--------|----------------------|
+| Next.js 13+ | ✅ Yes | Planned |
+| React (Vite) | ✅ Yes | Planned |
+| React (CRA) | ✅ Yes | Planned |
+| Vue 3+ | ✅ Yes | Planned |
 | Node.js | No | Planned |
 | Python | No | Planned |
+
+**Not yet supported:** Go, Rust, Ruby, Elixir, Java, PHP, .NET. These will not be auto-detected and deployment will fail with an unsupported-language error. [Request support for your framework](https://github.com/varity-labs/varity-sdk/issues).
 
 ## Additional Command Details
 
