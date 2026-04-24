@@ -34,7 +34,7 @@ When you deploy with Varity, the platform automatically:
 - **Optimizes costs** - Picks the most affordable infrastructure for your specific app
 - **Handles scaling** - Your app grows with traffic, no manual intervention needed
 
-**No configuration files. No YAML. No Docker. No blockchain knowledge. Just one command.**
+**No configuration files. No YAML. No Docker. No DevOps knowledge. Just one command.**
 
 ## How It Works
 
@@ -99,7 +99,7 @@ Every Varity app gets these services configured automatically - no setup require
     - Works out of the box with `useAuth()`
     - Email, Google, GitHub, Twitter, Discord
     - No complex OAuth setup
-    - Gasless experience for users
+    - No usage fees for users
   </Card>
 
   <Card title="Payments" icon="seti:credit">
@@ -107,7 +107,7 @@ Every Varity app gets these services configured automatically - no setup require
     - Credit card payments
     - Automatic revenue split (90% to you)
     - No payment gateway setup
-    - Zero blockchain knowledge required
+    - Zero infrastructure knowledge required
   </Card>
 
   <Card title="Security" icon="seti:lock">
@@ -222,7 +222,7 @@ That's it. No YAML files. No Docker setup. No environment variables during devel
 
 When you deploy, Varity automatically handles:
 
-- ✅ Framework detection (Next.js, React, Vue, etc.)
+- ✅ Framework detection (Next.js, React, Vue, Node.js, Python)
 - ✅ Build configuration (Nixpacks auto-detection)
 - ✅ Container creation (no Docker install required)
 - ✅ Database provisioning (if your code needs it)
@@ -231,10 +231,13 @@ When you deploy, Varity automatically handles:
 - ✅ Domain routing (your-app.varity.app)
 - ✅ CDN configuration (global edge caching)
 - ✅ Auto-scaling (based on traffic)
+- ✅ Sidecars: Postgres+pgvector, Redis, Ollama, MongoDB (when detected in your config)
+
+**Not yet supported:** Go, Rust, Ruby, Elixir, Java, PHP, .NET. Deploying these will fail with a clear unsupported-language error. [Request support for your framework](https://github.com/varity-labs/varity-sdk/issues).
 
 ## Developer Experience
 
-The goal: **Deploy in 60 seconds with zero blockchain knowledge.**
+The goal: **Deploy in 60 seconds with zero configuration.**
 
 ### What You Run
 
@@ -272,9 +275,7 @@ Deploying...
 ### What You Don't Need
 
 ❌ Docker installation
-❌ Crypto wallets or tokens
-❌ AKT/ETH/any cryptocurrency
-❌ Blockchain knowledge
+❌ DevOps or infrastructure knowledge
 ❌ Complex configuration files
 ❌ Manual credential management
 

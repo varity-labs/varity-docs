@@ -85,7 +85,7 @@ The MCP server works with **any editor that supports MCP**: Cursor, Claude Code,
 
 ## Tools Reference
 
-The server exposes 15 tools. Read-only tools run safely with no side effects. Destructive tools create files or deploy infrastructure.
+The server exposes 16 tools. Read-only tools run safely with no side effects. Destructive tools create files or deploy infrastructure.
 
 ### `varity_doctor` — Check environment setup
 
@@ -311,6 +311,21 @@ Submit a deployed app to the Varity App Store marketplace. Revenue split: 90% to
 
 ---
 
+### `varity_migrate` — Migrate from Vercel to Varity
+
+Migrate a Vercel project to Varity in one step: clone the GitHub repository, remove Vercel-specific artifacts (`vercel.json`, `@vercel/*` packages, image optimizer config, env var renames), and deploy the transformed app to Varity.
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `github_url` | string | Yes | — | GitHub repository URL to migrate (e.g. `https://github.com/user/my-app`) |
+| `dry_run` | boolean | No | `false` | Preview what would change without deploying |
+
+**Annotations:** `destructiveHint: true` — clones a repo and deploys infrastructure
+
+**Example prompt:** "Migrate my Vercel app at https://github.com/user/my-app to Varity"
+
+---
+
 ## Response Format
 
 All tools return JSON with a consistent structure:
@@ -338,6 +353,8 @@ All tools return JSON with a consistent structure:
 
 Here's the full build-to-monetize flow using the MCP tools:
 
+**New app (build from scratch):**
+
 1. **"Check if my environment is ready"** → `varity_doctor`
 2. **"Create a Varity app called my-saas"** → `varity_init` (local) or `varity_create_repo` (GitHub)
 3. **"Install dependencies"** → `varity_install_deps`
@@ -350,6 +367,12 @@ Here's the full build-to-monetize flow using the MCP tools:
 10. **"Did the deploy succeed?"** → `varity_deploy_status`
 11. **"Show me the build logs"** → `varity_deploy_logs` (if needed)
 12. **"Submit to the app store at $14.99"** → `varity_submit_to_store`
+
+**Migrating from Vercel:**
+
+1. **"Check if my environment is ready"** → `varity_doctor`
+2. **"Migrate my Vercel app at https://github.com/user/my-app"** → `varity_migrate`
+3. *(Done — the app is live and on Varity infrastructure)*
 
 ## Troubleshooting
 
