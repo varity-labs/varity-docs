@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "description": "Documentation for Varity - Build real-world apps on decentralized infrastructure",
   "engines": {
-    "node": ">=22.12.0"
+    "node": ">=18.17.1"
   },
   "repository": {
     "type": "git",
@@ -21,15 +21,17 @@
     "lint": "astro check"
   },
   "dependencies": {
-    "@astrojs/starlight": "^0.38.4",
-    "astro": "^6.1.9"
+    "@astrojs/starlight": "^0.37.7",
+    "astro": "^5.18.1"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.8",
     "typescript": "^5.7.0"
   },
   "overrides": {
-    "vite": ">=6.4.2",
-    "h3": ">=1.15.9"
+    "vite": "^6.4.2",
+    "h3": ">=1.15.9",
+    "zod": "^3.24.0",
+    "@astrojs/sitemap": "3.6.0"
   }
 }
