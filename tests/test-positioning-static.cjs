@@ -25,6 +25,7 @@ const HIGH_SEVERITY_PATTERNS = [
   { pattern: /\bdapp\b/gi, term: 'dapp', fix: 'Use "application" or "app" instead' },
   { pattern: /\bweb3\b/gi, term: 'web3', fix: 'Use "next-generation infrastructure" instead' },
   { pattern: /\bon-chain\b/gi, term: 'on-chain', fix: 'Use "tamper-proof" or "verifiable" instead' },
+  { pattern: /\bprivy\b/gi, term: 'privy', fix: 'Use "auth provider" or "@varity-labs/ui-kit" instead — Privy is a hidden vendor name' },
 ];
 
 // Paths where technical jargon is acceptable (deep API reference / architecture docs).
@@ -38,6 +39,7 @@ const TECHNICAL_PATHS = [
   'build/compute',
   'resources/glossary',
   'ai-tools/mcp-server-spec',
+  'ai-tools/prompts',
 ];
 
 // Collect all .mdx and .md files under docs src
