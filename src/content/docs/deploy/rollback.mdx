@@ -27,7 +27,7 @@ deploy-1737484800
 
 The timestamp is when the deployment was created. You use this ID to reference specific deployments when rolling back, checking logs, or inspecting status.
 
-## Step 1 — Find Your Deployment History
+## Step 1: Find Your Deployment History
 
 List all deployments for the current app:
 
@@ -50,7 +50,7 @@ The `live` deployment is your current production version. `archived` deployments
 You can also use `varity_deploy_status` from the [MCP server](/ai-tools/mcp-server-spec) to list deployments directly from your AI editor.
 </Aside>
 
-## Step 2 — Inspect a Deployment (Optional)
+## Step 2: Inspect a Deployment (Optional)
 
 Before rolling back, confirm the version you want by checking its details:
 
@@ -60,7 +60,7 @@ varitykit app info deploy-1737491000
 
 This shows the build timestamp, hosting type, and URL for that deployment.
 
-## Step 3 — Run the Rollback
+## Step 3: Run the Rollback
 
 Revert to the chosen deployment:
 
@@ -68,7 +68,7 @@ Revert to the chosen deployment:
 varitykit app rollback deploy-1737491000
 ```
 
-Varity creates a new deployment using that version's configuration. Your app URL stays the same — users are automatically served the restored version.
+Varity creates a new deployment using that version's configuration. Your app URL stays the same. Users are automatically served the restored version.
 
 Output:
 
@@ -117,7 +117,7 @@ Check the URL in your browser and confirm the expected behavior is restored.
 
 ## Related
 
-- [Deploy Your App](/deploy/deploy-your-app) — full deployment guide
-- [Debugging Failed Deployments](/deploy/deployment-troubleshooting) — diagnose the problem before you rollback
-- [CLI Reference: deploy](/cli/commands/deploy) — all deploy command options
-- [MCP Server](/ai-tools/mcp-server-spec) — `varity_deploy_status`, `varity_deploy_logs`
+- [Deploy Your App](/deploy/deploy-your-app): full deployment guide
+- [Debugging Failed Deployments](/deploy/deployment-troubleshooting): diagnose the problem before you rollback
+- [CLI Reference: deploy](/cli/commands/deploy): all deploy command options
+- [MCP Server](/ai-tools/mcp-server-spec): `varity_deploy_status`, `varity_deploy_logs`

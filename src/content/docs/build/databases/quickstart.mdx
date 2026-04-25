@@ -13,7 +13,7 @@ import PageMeta from '../../../../components/PageMeta.astro';
   stability="stable"
 />
 
-Varity includes a zero-config database. Import `db` from the SDK and start querying immediately — no database setup, no connection strings, no ORM configuration.
+Varity includes a zero-config database. Import `db` from the SDK and start querying immediately: no database setup, no connection strings, no ORM configuration.
 
 ## Installation
 
@@ -53,7 +53,7 @@ export interface Task {
 ```
 
 <Aside type="tip">
-The `id` field is optional — Varity generates one automatically when you insert a document.
+The `id` field is optional. Varity generates one automatically when you insert a document.
 </Aside>
 
 ## Create Collection Helpers
@@ -339,23 +339,23 @@ export function useTasks(projectId?: string) {
 </Tabs>
 
 <Aside type="tip">
-**Don't have credentials?** When you deploy with `varitykit app deploy`, the CLI detects database usage in your code and automatically generates credentials (app ID, JWT token, proxy URL). These are injected into your build at deploy time — no manual setup needed for production. During local development, you can set these env vars manually or build your UI with mock data first.
+**Don't have credentials?** When you deploy with `varitykit app deploy`, the CLI detects database usage in your code and automatically generates credentials (app ID, JWT token, proxy URL). These are injected into your build at deploy time. No manual setup needed for production. During local development, you can set these env vars manually or build your UI with mock data first.
 </Aside>
 
 ## The Pattern: Collection, Hook, Page
 
 Every feature in a Varity app follows the same 3-step pattern:
 
-1. **Type** — Define a TypeScript interface in `types/index.ts`
-2. **Collection** — Create a typed collection accessor in `database.ts`
-3. **Hook** — Build a React hook with CRUD + optimistic updates
-4. **Page** — Use the hook in a page component
+1. **Type**: Define a TypeScript interface in `types/index.ts`
+2. **Collection**: Create a typed collection accessor in `database.ts`
+3. **Hook**: Build a React hook with CRUD + optimistic updates
+4. **Page**: Use the hook in a page component
 
 This pattern is used throughout the [SaaS Starter Template](/templates/saas-starter) for projects, tasks, and team members.
 
 ## Next Steps
 
-- [Authentication](/build/auth/quickstart) — Add user login to protect data
-- [SaaS Starter Template](/templates/saas-starter) — See a full working app with database integration
-- [Add a CRUD Feature](/tutorials/add-crud-feature) — Step-by-step guide to add a new data model
-- [Deploy](/deploy/deploy-your-app) — Go live
+- [Authentication](/build/auth/quickstart): Add user login to protect data
+- [SaaS Starter Template](/templates/saas-starter): See a full working app with database integration
+- [Add a CRUD Feature](/tutorials/add-crud-feature): Step-by-step guide to add a new data model
+- [Deploy](/deploy/deploy-your-app): Go live

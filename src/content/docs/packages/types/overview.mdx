@@ -54,7 +54,7 @@ This package provides TypeScript interfaces and types for:
     Access keys, permissions, sessions, and policy management.
   </Card>
   <Card title="Varity L3 Types" icon="rocket">
-    Chain configuration, wallet setup, contract interactions, and gas estimation.
+    Advanced infrastructure types for custom integrations. Most apps do not need these.
   </Card>
 </CardGrid>
 
@@ -120,7 +120,7 @@ import type {
 } from '@varity-labs/types';
 
 import {
-  AuthProvider,       // aws-signature-v4, gcs-oauth2, browser-wallet
+  AuthProvider,       // aws-signature-v4, gcs-oauth2, browser
   PermissionEffect,   // allow, deny
   Action,             // storage:GetObject, admin:ViewMetrics, etc.
 } from '@varity-labs/types';

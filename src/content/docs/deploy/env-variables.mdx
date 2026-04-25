@@ -14,7 +14,7 @@ import PageMeta from '../../../components/PageMeta.astro';
   stability="stable"
 />
 
-Varity manages most credentials automatically. You only need to set environment variables for services you manage yourself — like your own API keys for OpenAI, Stripe, SendGrid, and similar third-party services.
+Varity manages most credentials automatically. You only need to set environment variables for services you manage yourself, like your own API keys for OpenAI, Stripe, SendGrid, and similar third-party services.
 
 <Aside type="tip">
 **No credential setup required.** Authentication and storage credentials are provided automatically by Varity. See [Managed Credentials](/deploy/managed-credentials) for details.
@@ -22,9 +22,9 @@ Varity manages most credentials automatically. You only need to set environment 
 
 ## Custom Environment Variables
 
-If your app uses third-party APIs — OpenAI, Stripe, SendGrid, Resend, or any other service — you need to inject those API keys into your deployment. Varity reads them from a `.env` file during `varitykit app deploy` and passes them through to your running app.
+If your app uses third-party APIs (OpenAI, Stripe, SendGrid, Resend, or any other service), you need to inject those API keys into your deployment. Varity reads them from a `.env` file during `varitykit app deploy` and passes them through to your running app.
 
-### Step 1 — Create a `.env.varity` file
+### Step 1: Create a `.env.varity` file
 
 Create `.env.varity` in your project root with your custom keys:
 
@@ -41,7 +41,7 @@ MY_CUSTOM_VAR=some-value
 `.env.varity` is the recommended file for Varity-specific production secrets. It takes precedence over `.env.local` and `.env`. Add it to your `.gitignore`.
 </Aside>
 
-### Step 2 — Deploy
+### Step 2: Deploy
 
 ```bash
 varitykit app deploy
@@ -60,7 +60,7 @@ When multiple `.env` files are present, Varity reads the first match (highest pr
 
 | File | When to use |
 |------|-------------|
-| `.env.varity` | Varity production secrets — overrides all others |
+| `.env.varity` | Varity production secrets (overrides all others) |
 | `.env.local` | Local overrides / Next.js convention |
 | `.env` | Fallback for all environments |
 
@@ -181,7 +181,7 @@ This checks:
 
 ### Credentials not working
 
-Run `varitykit doctor` to diagnose. Credentials are auto-provided — if they fail, check your network connection.
+Run `varitykit doctor` to diagnose. Credentials are auto-provided. If they fail, check your network connection.
 
 <Accordion title="Advanced: Using Your Own Auth Credentials">
 
@@ -194,8 +194,8 @@ Override the managed authentication credential by setting this variable:
 NEXT_PUBLIC_PRIVY_APP_ID=your_privy_app_id
 ```
 
-Storage is handled automatically by Varity — no credentials needed.
+Storage is handled automatically by Varity. No credentials needed.
 
-When this variable is set, the SDK uses your own Privy app instead of the managed one.
+When this variable is set, the SDK uses your own authentication app instead of the managed one.
 
 </Accordion>
