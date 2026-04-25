@@ -1,114 +1,114 @@
 ---
 title: Why Varity
-description: Why Varity over AWS, Vercel, or Netlify? 60-80% cost savings, zero DevOps overhead, built-in auth and database, and one-command deploys.
+description: Why Varity over AWS, Vercel, or Netlify. 60-80% cost savings, zero configuration, built-in auth and database, and one-command deploys for non-technical developers.
 ---
 
+import { Card, CardGrid } from '@astrojs/starlight/components';
 import PageMeta from '../../../components/PageMeta.astro';
 
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="March 2026"
+  lastUpdated="April 2026"
   stability="stable"
 />
 
-Build, deploy, and monetize production apps in minutes. Pay 60-80% less than AWS. No DevOps required.
+Deploy any app in 60 seconds. 60-80% cheaper than AWS. No DevOps required.
 
----
+## The problem with traditional hosting
 
-## The problem
+If you have built an app with an AI coding tool like Cursor or Claude Code, you know the code part is fast. The frustrating part is getting it live.
 
-Traditional cloud platforms are powerful but expensive and complex:
+Traditional cloud platforms were designed for career DevOps engineers. They require:
 
-- **Unpredictable pricing.** Hundreds of services, hidden costs, surprise bills.
-- **Infrastructure overhead.** You manage load balancers, databases, CDNs, and scaling yourself.
-- **DevOps tax.** Teams hire dedicated engineers just to keep infrastructure running.
-- **Vendor lock-in.** Migrating away is slow and costly.
+- Configuring servers, databases, CDNs, and scaling rules
+- Managing environment variables and secrets across environments
+- Setting up authentication from scratch with third-party services
+- Understanding Docker, CI/CD pipelines, and infrastructure-as-code
 
-A typical app with 100 users, a database, storage, and AI features costs around **$2,800/month on AWS**.
-
----
+None of this is what you want to spend time on. It is not why you built the app.
 
 ## How Varity is different
 
-### 60-80% cheaper
+Varity handles all of the above automatically. You describe your app (or just point it at your GitHub repo) and Varity figures out the rest.
 
-The same application costs ~$800/month on Varity. Our global infrastructure eliminates cloud markup while keeping enterprise-grade reliability.
-
-| Component | AWS | Varity | Savings |
-|-----------|-----|--------|---------|
-| Hosting + Database | $1,200/mo | $300/mo | 75% |
-| Storage (1TB) | $800/mo | $200/mo | 75% |
-| AI/LLM queries | $600/mo | $200/mo | 67% |
-| CDN + Functions | $200/mo | $100/mo | 50% |
-| **Total** | **$2,800/mo** | **$800/mo** | **71%** |
-
-### One-command deploys
-
-No server configuration. No infrastructure setup. One command:
+One command:
 
 ```bash
 varitykit app deploy
 ```
 
-Your app is live in under 2 minutes with automatic scaling, authentication, and storage included.
+Your app is live in under 2 minutes, with auth, database, and hosting already configured.
 
-### Everything is built in
+### 60-80% cheaper than AWS
 
-Stop stitching together dozens of services. Varity includes what you need out of the box:
+Varity uses efficient distributed infrastructure that passes savings directly to developers. The same app that costs thousands per month on AWS costs a fraction on Varity.
 
-| Feature | Traditional stack | Varity |
-|---------|-------------------|--------|
-| **Auth** | Auth0, Clerk, Firebase Auth | Built in (email, social login) |
-| **Storage** | AWS S3, Cloudflare R2 | Built in (encrypted) |
-| **Payments** | Stripe integration | Coming soon |
-| **Analytics** | Google Analytics, Mixpanel | Coming soon |
-| **Hosting** | Vercel, Netlify, AWS | Built in (static; dynamic coming soon) |
+Use the [cost calculator](/resources/pricing) to estimate your specific app.
 
-### Built for web developers
+### Zero configuration
 
-If you know React, Next.js, or any modern framework, you already know how to use Varity. No special infrastructure knowledge required.
+<CardGrid>
+  <Card title="No servers to manage" icon="setting">
+    Varity chooses the right hosting for your app automatically. Static sites go to global CDN. Full-stack apps get container compute. You never configure either.
+  </Card>
+  <Card title="No DevOps required" icon="puzzle">
+    No Docker. No Kubernetes. No CI/CD pipelines. One command deploys your app with SSL, custom domains, and automatic restarts included.
+  </Card>
+  <Card title="Auth included" icon="approve-check">
+    Users can log in with email or Google from day one. No signup with a third-party auth service, no API keys to manage.
+  </Card>
+  <Card title="Database included" icon="list-format">
+    Your app gets a database automatically when Varity detects you need one. No connection strings to configure.
+  </Card>
+</CardGrid>
 
-- Users sign in with email or social accounts
-- Credit card payments (coming soon)
-- Standard APIs and familiar patterns
-- No jargon, no extra configuration
+### Built for AI coding tools
 
-### Secure by default
+The Varity MCP server integrates directly with Claude Code, Cursor, and other AI editors. Instead of copying commands from docs, just ask your AI tool to deploy:
 
-Your data is encrypted end-to-end. Even we cannot read it.
+"Deploy this to Varity"
 
-- **Encryption at rest** for all stored data
-- **Encryption in transit** via TLS on every connection
-- **No single point of failure** across global infrastructure
+That is it. The MCP handles installation, building, and deploying. See [MCP Server](/ai-tools/mcp-server-spec).
 
-Suitable for healthcare, finance, and any application handling sensitive data.
+## Comparing Varity to alternatives
 
----
+| | AWS | Vercel | Varity |
+|---|---|---|---|
+| **Cost** | High (add up services yourself) | Mid (front-end focused) | 60-80% less than AWS |
+| **Full-stack apps** | Yes (complex setup) | Limited (front-end focus) | Yes (auto-configured) |
+| **Auth included** | No | No | Yes |
+| **Database included** | No | No | Auto-provisioned |
+| **Setup time** | Days to weeks | Hours | Under 2 minutes |
+| **Target user** | DevOps engineers | Front-end devs | Non-technical developers |
+
+### Compared to Vercel
+
+Vercel is excellent for front-end and Next.js apps. Varity is built for the same kind of developer but handles the full stack, is significantly cheaper, and requires no configuration at all.
+
+If you are migrating from Vercel, see [Migrate from Vercel](/deploy/vercel-migration).
+
+### Compared to AWS
+
+AWS gives you maximum control. Varity gives you maximum speed. If you are a non-technical developer building with AI tools, the configuration overhead of AWS is not worth it. Varity gives you the same reliability at a fraction of the cost and none of the complexity.
 
 ## When to use Varity
 
-- **Startups** -- Get to market fast without DevOps overhead.
-- **Side projects** -- Ship without breaking the bank on infrastructure.
-- **Enterprise apps** -- Save 70% on cloud costs while maintaining security.
-- **Sensitive data** -- Healthcare, finance, or any regulated industry.
+- You built an app with Claude Code, Cursor, or another AI coding tool and want to deploy it
+- You are migrating an app from Vercel or another platform and want to cut hosting costs
+- You want auth, database, and hosting to just work without writing any infrastructure code
+- You are building an AI agent or LLM app and need reliable compute
 
-## When NOT to use Varity
+## When Varity may not be the right fit
 
-- You need bare-metal access or extreme infrastructure customization.
-- You already have a large AWS investment with reserved instances.
-- You require specific compliance certifications we do not yet support (contact us for the roadmap).
-- You need direct low-level control over servers and networking.
+- You need bare-metal server access or extreme infrastructure customization
+- You have a large existing AWS investment with reserved instances
+- You need specific compliance certifications not yet supported (contact us for the roadmap)
 
-For most applications, Varity provides everything you need at a fraction of the cost.
-
----
+For most apps, Varity is the fastest path from code to production.
 
 ## Next steps
 
-- [Quick Start](/getting-started/quickstart) -- Deploy your first app in 5 minutes
-- [Installation](/getting-started/installation) -- Set up your development environment
-
-:::tip[Free during beta]
-Varity is free to use during beta. No credit card required.
-:::
+- [Quick Start](/getting-started/quickstart) to deploy your first app in 5 minutes
+- [Installation](/getting-started/installation) to set up your environment
+- [Cost Calculator](/resources/pricing) to estimate your monthly costs

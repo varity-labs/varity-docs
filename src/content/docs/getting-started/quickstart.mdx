@@ -1,6 +1,6 @@
 ---
 title: Quick Start
-description: Get your first Varity app running in 5 minutes. Install the SDK and UI Kit, add authentication, connect a database, and deploy.
+description: Deploy your first app to Varity in under 60 seconds. Works with any existing Next.js, React, Vue, or Python project.
 ---
 
 import { Steps, Tabs, TabItem, Aside } from '@astrojs/starlight/components';
@@ -9,225 +9,163 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="March 2026"
-  version="2.0.0-beta.14"
+  lastUpdated="April 2026"
+  version="2.0.0-beta.16"
   stability="beta"
 />
 
-<Aside type="tip" title="Prefer not to code?">
-Use the Varity MCP to build your app using only AI. See [Build with AI (No Code)](/tutorials/build-with-ai/).
-</Aside>
+Deploy your app to Varity in under 60 seconds. You do not need to change any code.
 
-Deploy your first Varity app in 3 commands:
+## Path 1: Deploy with Claude Code or Cursor (recommended)
 
-```bash
-npm install @varity-labs/sdk @varity-labs/ui-kit
-pip install varitykit
-varitykit app deploy
-```
-
-Your app will be live at a `varity.app` URL in under 2 minutes. Keep reading for the full setup guide.
-
-## Prerequisites
-
-- Node.js 18 or later
-- npm, pnpm, or yarn
-- A React/Next.js project (or use our starter template)
-
-## Installation
+This is the fastest path. The Varity MCP server lets your AI tool handle the entire deploy.
 
 <Steps>
 
-1. **Install the Varity packages**
+1. **Add the Varity MCP server**
 
    <Tabs>
-     <TabItem label="npm">
+     <TabItem label="Claude Code">
        ```bash
-       npm install @varity-labs/sdk @varity-labs/ui-kit @varity-labs/types
+       claude mcp add varity -- npx -y @varity-labs/mcp
        ```
      </TabItem>
-     <TabItem label="pnpm">
-       ```bash
-       pnpm add @varity-labs/sdk @varity-labs/ui-kit @varity-labs/types
-       ```
-     </TabItem>
-     <TabItem label="yarn">
-       ```bash
-       yarn add @varity-labs/sdk @varity-labs/ui-kit @varity-labs/types
+     <TabItem label="Cursor">
+       Add this to your Cursor MCP config (`~/.cursor/mcp.json`):
+
+       ```json
+       {
+         "mcpServers": {
+           "varity": {
+             "command": "npx",
+             "args": ["-y", "@varity-labs/mcp"]
+           }
+         }
+       }
        ```
      </TabItem>
    </Tabs>
 
-2. **Install the CLI**
+2. **Open your project and ask your AI tool to deploy**
 
-   ```bash
-   pip install varitykit
+   Inside Claude Code or Cursor, with your project open:
+
+   ```
+   Deploy my app to Varity
    ```
 
-3. **Verify installation**
+   The MCP server detects your framework, builds your project, and deploys it automatically.
 
-   ```bash
-   varitykit doctor
+3. **Your app is live**
+
+   Once the deploy finishes, your app is available at:
+
+   ```
+   https://varity.app/your-app-name/
    ```
 
-   You should see all checks passing.
+   The exact URL is shown in the terminal output.
 
 </Steps>
 
-## Add Authentication
-
-The fastest way to add authentication is with `PrivyStack`:
-
-```tsx title="app/layout.tsx"
-import { PrivyStack } from '@varity-labs/ui-kit';
-
-export default function RootLayout({ children }) {
-  return (
-    <html>
-      <body>
-        {/*
-          Uses shared dev credentials by default.
-          Add your own credentials for production.
-        */}
-        <PrivyStack appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID}>
-          {children}
-        </PrivyStack>
-      </body>
-    </html>
-  );
-}
-```
-
-<Aside type="tip">
-**Using development credentials?** Varity provides shared development credentials so you can start building immediately without signing up. See [Installation](/getting-started/installation) for details.
+<Aside type="tip" title="First deploy?">
+The MCP server will prompt you to log in the first time. Use your email or Google account. No account setup is needed beforehand.
 </Aside>
 
-## Add a Login Button
+---
 
-```tsx title="components/LoginButton.tsx"
-import { PrivyLoginButton, usePrivy } from '@varity-labs/ui-kit';
+## Path 2: Deploy from the command line
 
-export function LoginButton() {
-  // Get authentication state
-  const { user, authenticated, logout } = usePrivy();
-
-  // Show user info and logout button when authenticated
-  if (authenticated) {
-    return (
-      <div>
-        <p>Welcome, {user?.email?.address || 'User'}!</p>
-        <button onClick={logout}>Logout</button>
-      </div>
-    );
-  }
-
-  // Show login button when not authenticated
-  // Opens modal with email, Google, Twitter, Discord, GitHub options
-  return <PrivyLoginButton />;
-}
-```
-
-Your users can now log in with:
-- Email (magic link, no password required)
-- Google, Twitter, Discord, GitHub
-
-## Deploy Your App
+If you prefer the CLI or are not using an AI coding tool:
 
 <Steps>
 
-1. **Build your app**
+1. **Install the CLI**
 
    ```bash
-   npm run build
+   pipx install varitykit
    ```
 
-2. **Deploy**
+   `pipx` is the recommended way to install Python CLI tools. If you do not have it, you can use `pip install varitykit` instead.
+
+2. **Log in**
+
+   ```bash
+   varitykit login
+   ```
+
+   This opens a browser tab to sign in with your email or Google account.
+
+3. **Deploy**
+
+   Run this from your project directory:
 
    ```bash
    varitykit app deploy
    ```
 
-3. **View your live app**
+   Varity detects your framework automatically and deploys to:
 
-   Your app is now live at the URL shown in the terminal.
+   ```
+   https://varity.app/your-app-name/
+   ```
 
 </Steps>
 
-## What Just Happened?
+---
 
-When you deployed, Varity:
+## What happens during a deploy
 
-1. **Built your app** into static files
-2. **Deployed** to secure, globally distributed hosting
-3. **Registered** your app for discoverability
-4. **Enabled free operations** so users never pay usage fees
+When you deploy, Varity:
 
-All of this happens in about 60 seconds.
+1. Detects your framework (Next.js, React, Vue, FastAPI, etc.)
+2. Checks for database or service dependencies in your project and wires them up automatically
+3. Builds your project
+4. Deploys to live hosting
+5. Returns a working URL
 
-## Next Steps
+Static apps (React, Vue) go to a global CDN. Full-stack apps (Next.js, Express, FastAPI) run in containers with the resources they need.
 
-Now that your app is running, you can:
-
-- [Add file storage](/build/storage/quickstart) - Upload and retrieve files
-- [Add payments](/build/payments/quickstart) - Monetize your app
-- [Submit to App Store](/deploy/deploy-your-app) - List your app for users to discover
+You do not need Docker, environment configuration, or infrastructure knowledge.
 
 ---
 
-## Full Example
+## Check status and view logs
 
-Here is a complete example with authentication, protected routes, and user profile:
+After deploying, you can check on your app at any time.
 
-```tsx title="app/page.tsx"
-'use client';
+**With the MCP (inside Claude Code or Cursor):**
 
-import {
-  PrivyStack,
-  PrivyLoginButton,
-  PrivyProtectedRoute,
-  PrivyUserProfile,
-  usePrivy,
-} from '@varity-labs/ui-kit';
-
-function Dashboard() {
-  const { user } = usePrivy();
-
-  return (
-    <div>
-      <h1>Welcome to Your Dashboard</h1>
-      <PrivyUserProfile />
-      <p>Email: {user?.email?.address}</p>
-    </div>
-  );
-}
-
-function Home() {
-  return (
-    <div>
-      <h1>My Varity App</h1>
-      <PrivyLoginButton />
-
-      <PrivyProtectedRoute>
-        <Dashboard />
-      </PrivyProtectedRoute>
-    </div>
-  );
-}
-
-export default function App() {
-  return (
-    // Uses shared dev credentials by default (no appId needed for development)
-    <PrivyStack appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID}>
-      <Home />
-    </PrivyStack>
-  );
-}
+```
+Check the status of my Varity deployment
+Show me the logs for my app
 ```
 
-This gives you:
-- Login/logout functionality
-- Protected routes that require authentication
-- User profile display
-- Session management
+**With the CLI:**
 
-All without writing any authentication logic yourself.
+```bash
+varitykit deploy status
+varitykit deploy logs
+```
+
+---
+
+## Supported frameworks
+
+| Framework | Type | Status |
+|-----------|------|--------|
+| Next.js | Full-stack | Supported |
+| React (Vite / CRA) | Static | Supported |
+| Vue | Static | Supported |
+| Express / Fastify / Nest / Koa / Hono | Server | Supported |
+| FastAPI | Server | Supported |
+| Django | Server | Supported |
+| Flask | Server | Supported |
+
+---
+
+## Next Steps
+
+- [How Varity Works](/getting-started/how-varity-works) - Understand the full deployment flow
+- [Installation](/getting-started/installation) - Full setup guide for all tools
+- [Vercel Migration](/guides/migrate-from-vercel) - Move an existing Vercel app to Varity

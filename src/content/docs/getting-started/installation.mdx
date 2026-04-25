@@ -1,6 +1,6 @@
 ---
 title: Installation
-description: Install the Varity SDK, UI Kit, and CLI. Requires Node.js 18+, Python 3.11+, and npm/pnpm/yarn. Includes verification steps.
+description: Install the Varity MCP server, CLI, and optional SDK packages. Everything you need to start deploying apps.
 ---
 
 import { Steps, Tabs, TabItem, Aside, Card, CardGrid } from '@astrojs/starlight/components';
@@ -9,77 +9,144 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="March 2026"
-  stability="stable"
+  lastUpdated="April 2026"
+  stability="beta"
 />
 
-Get your development environment ready for building with Varity.
+Install the Varity tools that fit how you work. The MCP server is the primary path for most developers using Claude Code or Cursor.
 
 ## System Requirements
 
 - **Node.js** 18.0 or later
-- **Python** 3.11 or later (for CLI)
+- **Python** 3.8 or later (for the CLI)
 - **npm**, **pnpm**, or **yarn**
 - A modern browser (Chrome, Firefox, Safari, Edge)
 
-## Install Packages
+---
+
+## Option 1: MCP Server (recommended for Claude Code and Cursor)
+
+The MCP server connects Varity to your AI coding tool. It gives you 16 tools for deploying, monitoring, and managing apps using plain English. You do not need to add any code to your project.
+
+<Tabs>
+  <TabItem label="Claude Code">
+    ```bash
+    claude mcp add varity -- npx -y @varity-labs/mcp
+    ```
+
+    Restart Claude Code after running this command. You will see Varity tools available in your session.
+  </TabItem>
+  <TabItem label="Cursor">
+    Add the following to your Cursor MCP config file (`~/.cursor/mcp.json`):
+
+    ```json
+    {
+      "mcpServers": {
+        "varity": {
+          "command": "npx",
+          "args": ["-y", "@varity-labs/mcp"]
+        }
+      }
+    }
+    ```
+
+    Restart Cursor after saving the file.
+  </TabItem>
+  <TabItem label="Other AI tools">
+    For any MCP-compatible AI tool, use:
+
+    ```json
+    {
+      "command": "npx",
+      "args": ["-y", "@varity-labs/mcp"]
+    }
+    ```
+
+    Refer to your AI tool's documentation for how to add MCP servers.
+  </TabItem>
+</Tabs>
+
+<Aside type="tip">
+Once the MCP server is installed, you do not need to add any code to your app to deploy it. The MCP handles the full deploy flow automatically.
+</Aside>
+
+### Verify MCP installation
+
+Inside Claude Code or Cursor, ask:
+
+```
+varity_doctor
+```
+
+You should see a confirmation that your environment is ready.
+
+---
+
+## Option 2: CLI (command line)
+
+The CLI is a Python package called `varitykit`. If you are a JavaScript developer, do not let that put you off. Python is only needed to run the CLI itself, not your app. You install it once and never think about it again.
 
 <Steps>
 
-1. **Install the core packages**
+1. **Install the CLI**
 
-   <Tabs>
-     <TabItem label="npm">
-       ```bash
-       npm install @varity-labs/sdk @varity-labs/ui-kit @varity-labs/types
-       ```
-     </TabItem>
-     <TabItem label="pnpm">
-       ```bash
-       pnpm add @varity-labs/sdk @varity-labs/ui-kit @varity-labs/types
-       ```
-     </TabItem>
-     <TabItem label="yarn">
-       ```bash
-       yarn add @varity-labs/sdk @varity-labs/ui-kit @varity-labs/types
-       ```
-     </TabItem>
-   </Tabs>
-
-2. **Install the CLI**
-
-   ```bash
-   pip install varitykit
-   ```
-
-   Or with pipx (recommended for CLI tools):
+   The recommended way is with `pipx`, which installs CLI tools in their own isolated environment:
 
    ```bash
    pipx install varitykit
    ```
 
-3. **Verify installation**
+   If you do not have `pipx`, you can install it first:
+
+   ```bash
+   pip install pipx
+   pipx ensurepath
+   ```
+
+   Or use plain `pip` if you prefer:
+
+   ```bash
+   pip install varitykit
+   ```
+
+2. **Verify installation**
 
    ```bash
    varitykit doctor
    ```
 
-   You should see all checks passing with a `✓ All checks passed!` message.
+   You should see all checks passing.
+
+3. **Log in**
+
+   ```bash
+   varitykit login
+   ```
+
+   This opens a browser tab. Sign in with your email or Google account.
 
 </Steps>
 
-## Package Overview
+<Aside type="note" title="Windows users">
+If `varitykit` is not found after installing with `pip` on Windows, your Python Scripts folder may not be in your PATH. Using `pipx install varitykit` avoids this issue entirely.
+</Aside>
+
+---
+
+## Option 3: npm Packages (optional, for SDK features)
+
+The npm packages are optional. You only need them if you want to use Varity SDK features in your app code (like auth hooks or UI components). You can deploy any app without them.
 
 <CardGrid>
   <Card title="@varity-labs/sdk">
-    Core SDK with configuration, storage, database, and backend services.
+    Auth, storage, and database helpers for your app code.
 
     ```bash
     npm install @varity-labs/sdk
     ```
   </Card>
   <Card title="@varity-labs/ui-kit">
-    React components for authentication, accounts, payments, and dashboards.
+    React components for login, dashboards, and account management.
 
     ```bash
     npm install @varity-labs/ui-kit
@@ -92,116 +159,75 @@ Get your development environment ready for building with Varity.
     npm install @varity-labs/types
     ```
   </Card>
-  <Card title="varitykit">
-    Command-line tool for deploying and managing apps.
-
-    ```bash
-    pip install varitykit
-    ```
-  </Card>
 </CardGrid>
 
-## Environment Setup
+Install all three at once:
 
-No environment variables needed to get started. Varity manages all credentials automatically.
+<Tabs>
+  <TabItem label="npm">
+    ```bash
+    npm install @varity-labs/sdk @varity-labs/ui-kit @varity-labs/types
+    ```
+  </TabItem>
+  <TabItem label="pnpm">
+    ```bash
+    pnpm add @varity-labs/sdk @varity-labs/ui-kit @varity-labs/types
+    ```
+  </TabItem>
+  <TabItem label="yarn">
+    ```bash
+    yarn add @varity-labs/sdk @varity-labs/ui-kit @varity-labs/types
+    ```
+  </TabItem>
+</Tabs>
 
-<Aside type="tip">
-The SDK uses shared development credentials by default. Just install the packages and start building. See [Managed Credentials](/deploy/managed-credentials) for details.
-</Aside>
+---
 
-## Framework Setup
+## No framework changes required
 
-### Next.js (App Router)
+You do not need to wrap your app in any provider component or change your existing code to deploy. Varity detects your framework and deploys it as-is.
 
-```tsx title="app/layout.tsx"
-import { PrivyStack } from '@varity-labs/ui-kit';
+If you choose to use the `@varity-labs/sdk` or `@varity-labs/ui-kit` packages for auth or UI features, the SDK reference docs show how to add them.
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <html lang="en">
-      <body>
-        <PrivyStack appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID}>
-          {children}
-        </PrivyStack>
-      </body>
-    </html>
-  );
-}
-```
-
-### React (Vite)
-
-```tsx title="src/main.tsx"
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import { PrivyStack } from '@varity-labs/ui-kit';
-import App from './App';
-
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <PrivyStack appId={import.meta.env.VITE_PRIVY_APP_ID}>
-      <App />
-    </PrivyStack>
-  </React.StrictMode>
-);
-```
-
-## Verify Setup
-
-Create a simple test component:
-
-```tsx title="components/TestConnection.tsx"
-import { usePrivy } from '@varity-labs/ui-kit';
-
-export function TestConnection() {
-  const { ready, authenticated } = usePrivy();
-
-  if (!ready) {
-    return <p>Loading...</p>;
-  }
-
-  return (
-    <div>
-      <p>Varity is connected!</p>
-      <p>Authenticated: {authenticated ? 'Yes' : 'No'}</p>
-    </div>
-  );
-}
-```
-
-If you see "Varity is connected!", you're ready to build.
+---
 
 ## Next Steps
 
 - [Quick Start](/getting-started/quickstart) - Deploy your first app
-- [Authentication](/build/auth/quickstart) - Add login to your app
-- [CLI Reference](/cli/overview) - Learn the CLI commands
+- [How Varity Works](/getting-started/how-varity-works) - Understand the deploy flow
+- [CLI Reference](/cli/overview) - All CLI commands
+
+---
 
 ## Troubleshooting
 
-### "Module not found" errors
+### CLI not found after installation
 
-Make sure you've installed all packages:
-
-```bash
-npm install @varity-labs/sdk @varity-labs/ui-kit @varity-labs/types
-```
-
-### CLI not found
-
-Make sure Python is in your PATH and try:
+If `varitykit` is not recognized after `pip install`, try:
 
 ```bash
-python -m pip install varitykit
+python -m varitykit doctor
 ```
 
-### TypeScript errors
+Or reinstall with `pipx`:
 
-Make sure you're using TypeScript 5.0 or later:
+```bash
+pipx install varitykit
+```
+
+### Node.js version errors
+
+Varity requires Node.js 18 or later. Check your version:
+
+```bash
+node --version
+```
+
+If you need to upgrade, use [nvm](https://github.com/nvm-sh/nvm) or download from [nodejs.org](https://nodejs.org).
+
+### TypeScript errors after installing SDK packages
+
+Make sure you are using TypeScript 5.0 or later:
 
 ```bash
 npm install typescript@latest

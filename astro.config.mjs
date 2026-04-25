@@ -125,57 +125,160 @@ export default defineConfig({
         },
       ],
       sidebar: [
-        // ===== GETTING STARTED =====
+        // ===== GET STARTED =====
         {
-          label: "Getting Started",
+          label: "Get Started",
           items: [
-            { label: "Introduction", slug: "getting-started/introduction" },
+            { label: "What is Varity?", slug: "getting-started/introduction" },
+            {
+              label: "Why Varity",
+              slug: "getting-started/why-varity",
+            },
+            {
+              label: "Deploy your first app",
+              slug: "getting-started/quickstart",
+              badge: { text: "Start here", variant: "success" },
+            },
+            {
+              label: "Migrate from Vercel",
+              slug: "deploy/vercel-migration",
+            },
+            {
+              label: "Deploy an AI agent or LLM",
+              slug: "tutorials/deploy-ai-agent",
+            },
+          ],
+        },
+
+        // ===== HOW TO USE VARITY =====
+        {
+          label: "How to Use Varity",
+          items: [
             {
               label: "How Varity Works",
               slug: "getting-started/how-varity-works",
-              badge: { text: "New", variant: "success" },
             },
-            { label: "Installation", slug: "getting-started/installation" },
             {
-              label: "Quick Start",
-              slug: "getting-started/quickstart",
+              label: "MCP Server (Claude Code / Cursor)",
+              slug: "ai-tools/mcp-server-spec",
               badge: { text: "Recommended", variant: "success" },
             },
+            { label: "CLI (varitykit)", slug: "cli/overview" },
             {
-              label: "Next.js Quick Start",
-              slug: "getting-started/quickstart-nextjs",
-              badge: { text: "New", variant: "success" },
+              label: "AI Prompts",
+              slug: "ai-tools/prompts",
             },
             {
-              label: "React Quick Start",
-              slug: "getting-started/quickstart-react",
-              badge: { text: "New", variant: "success" },
-            },
-            {
-              label: "Node.js Quick Start",
-              slug: "getting-started/quickstart-nodejs",
-              badge: { text: "New", variant: "success" },
+              label: "Templates",
+              collapsed: true,
+              items: [
+                { label: "Overview", slug: "templates/overview" },
+                { label: "SaaS Starter", slug: "templates/saas-starter" },
+              ],
             },
           ],
         },
 
-        // ===== TEMPLATES =====
+        // ===== DEPLOYMENT =====
         {
-          label: "Templates",
-          badge: { text: "New", variant: "success" },
+          label: "Deployment",
           items: [
-            { label: "Overview", slug: "templates/overview" },
             {
-              label: "SaaS Starter",
-              slug: "templates/saas-starter",
-              badge: { text: "Recommended", variant: "success" },
+              label: "Deploy Your App",
+              slug: "deploy/deploy-your-app",
+            },
+            {
+              label: "Supported Frameworks",
+              slug: "deploy/supported-frameworks",
+            },
+            {
+              label: "Auto-wired Services",
+              slug: "deploy/auto-wired-services",
+            },
+            {
+              label: "Environment Variables",
+              slug: "deploy/env-variables",
+            },
+            {
+              label: "Custom Domains",
+              slug: "deploy/custom-domains",
+            },
+            {
+              label: "Rollback",
+              slug: "deploy/rollback",
+            },
+            {
+              label: "Troubleshooting Deploys",
+              slug: "deploy/deployment-troubleshooting",
+            },
+            {
+              label: "Managed Credentials",
+              slug: "deploy/managed-credentials",
+            },
+            {
+              label: "Intelligent Orchestration",
+              slug: "deploy/intelligent-orchestration",
             },
           ],
         },
 
-        // ===== PACKAGES =====
+        // ===== BUILD YOUR APP =====
         {
-          label: "Packages",
+          label: "Build Your App",
+          collapsed: true,
+          items: [
+            {
+              label: "Authentication",
+              collapsed: false,
+              items: [
+                { label: "Quick Start", slug: "build/auth/quickstart" },
+                { label: "Email Login", slug: "build/auth/email-login" },
+                { label: "Social Login", slug: "build/auth/social-login" },
+              ],
+            },
+            {
+              label: "Database",
+              collapsed: false,
+              items: [
+                { label: "Quick Start", slug: "build/databases/quickstart" },
+              ],
+            },
+            {
+              label: "File Storage",
+              collapsed: false,
+              items: [
+                { label: "Quick Start", slug: "build/storage/quickstart" },
+                { label: "Upload Files", slug: "build/storage/upload" },
+                { label: "Retrieve Files", slug: "build/storage/retrieve" },
+              ],
+            },
+            {
+              label: "Payments",
+              collapsed: false,
+              items: [
+                {
+                  label: "Quick Start",
+                  slug: "build/payments/quickstart",
+                  badge: { text: "Beta", variant: "note" },
+                },
+                { label: "Credit Card Payments", slug: "build/payments/credit-card" },
+              ],
+            },
+            {
+              label: "Accounts",
+              collapsed: true,
+              items: [
+                { label: "Quick Start", slug: "build/wallets/quickstart" },
+                { label: "Create Account", slug: "build/wallets/create-wallet" },
+              ],
+            },
+          ],
+        },
+
+        // ===== REFERENCE =====
+        {
+          label: "Reference",
+          collapsed: true,
           items: [
             {
               label: "@varity-labs/sdk",
@@ -192,8 +295,8 @@ export default defineConfig({
               items: [
                 { label: "Overview", slug: "packages/ui-kit/overview" },
                 { label: "Installation", slug: "packages/ui-kit/installation" },
-                { label: "Components Reference", slug: "packages/ui-kit/components" },
-                { label: "Hooks Reference", slug: "packages/ui-kit/hooks" },
+                { label: "Components", slug: "packages/ui-kit/components" },
+                { label: "Hooks", slug: "packages/ui-kit/hooks" },
               ],
             },
             {
@@ -203,104 +306,9 @@ export default defineConfig({
                 { label: "Overview", slug: "packages/types/overview" },
               ],
             },
-          ],
-        },
-
-        // ===== BUILD YOUR APP =====
-        {
-          label: "Build Your App",
-          items: [
-            // ----- AUTHENTICATION -----
             {
-              label: "Authentication",
-              collapsed: false,
-              items: [
-                {
-                  label: "Quick Start",
-                  slug: "build/auth/quickstart",
-                  badge: { text: "Recommended", variant: "success" },
-                },
-                { label: "Email Login", slug: "build/auth/email-login" },
-                { label: "Social Login", slug: "build/auth/social-login" },
-              ],
-            },
-
-            // ----- DATABASE -----
-            {
-              label: "Database",
-              collapsed: false,
-              items: [
-                {
-                  label: "Quick Start",
-                  slug: "build/databases/quickstart",
-                  badge: { text: "Updated", variant: "success" },
-                },
-              ],
-            },
-
-            // ----- FILE STORAGE -----
-            {
-              label: "File Storage",
-              collapsed: false,
-              items: [
-                {
-                  label: "Quick Start",
-                  slug: "build/storage/quickstart",
-                  badge: { text: "Recommended", variant: "success" },
-                },
-                { label: "Upload Files", slug: "build/storage/upload" },
-                { label: "Retrieve Files", slug: "build/storage/retrieve" },
-              ],
-            },
-
-            // ----- PAYMENTS -----
-            {
-              label: "Payments",
-              collapsed: false,
-              items: [
-                {
-                  label: "Quick Start",
-                  slug: "build/payments/quickstart",
-                  badge: { text: "Beta", variant: "note" },
-                },
-                { label: "Credit Card Payments", slug: "build/payments/credit-card" },
-              ],
-            },
-
-            // ----- ACCOUNTS -----
-            {
-              label: "Accounts",
+              label: "CLI Commands",
               collapsed: true,
-              items: [
-                {
-                  label: "Quick Start",
-                  slug: "build/wallets/quickstart",
-                },
-                { label: "Create Account", slug: "build/wallets/create-wallet" },
-              ],
-            },
-
-            // ----- COMPUTE (COMING SOON) -----
-            {
-              label: "Compute & Hosting",
-              badge: { text: "Coming Soon", variant: "caution" },
-              collapsed: true,
-              items: [
-                { label: "Overview", slug: "build/compute/overview" },
-              ],
-            },
-          ],
-        },
-
-        // ===== CLI =====
-        {
-          label: "CLI",
-          items: [
-            { label: "Overview", slug: "cli/overview" },
-            { label: "Installation", slug: "cli/installation" },
-            {
-              label: "Commands",
-              collapsed: false,
               items: [
                 { label: "login / auth", slug: "cli/commands/auth" },
                 { label: "doctor", slug: "cli/commands/doctor" },
@@ -311,92 +319,40 @@ export default defineConfig({
           ],
         },
 
-        // ===== DEPLOY =====
-        {
-          label: "Deploy",
-          items: [
-            {
-              label: "Deploy Your App",
-              slug: "deploy/deploy-your-app",
-              badge: { text: "Beta", variant: "note" },
-            },
-            {
-              label: "Custom Domains",
-              slug: "deploy/custom-domains",
-            },
-            { label: "Environment Variables", slug: "deploy/env-variables" },
-            {
-              label: "Rollback a Deployment",
-              slug: "deploy/rollback",
-            },
-            {
-              label: "Debugging Failed Deployments",
-              slug: "deploy/deployment-troubleshooting",
-            },
-            {
-              label: "Intelligent Orchestration",
-              slug: "deploy/intelligent-orchestration",
-              badge: { text: "New", variant: "success" },
-            },
-            {
-              label: "App Store & Developer Portal",
-              slug: "deploy/app-store",
-              badge: { text: "New", variant: "success" },
-            },
-            { label: "Managed Credentials", slug: "deploy/managed-credentials" },
-            {
-              label: "Migrate from Vercel",
-              slug: "deploy/vercel-migration",
-              badge: { text: "New", variant: "success" },
-            },
-          ],
-        },
-
         // ===== TUTORIALS =====
         {
           label: "Tutorials",
-          badge: { text: "New", variant: "success" },
+          collapsed: true,
           items: [
             {
-              label: "Build & Deploy a SaaS App",
+              label: "Build a SaaS App",
               slug: "tutorials/build-saas-app",
-              badge: { text: "Recommended", variant: "success" },
+              badge: { text: "Full tutorial", variant: "success" },
             },
             { label: "Customize the Template", slug: "tutorials/customize-template" },
             { label: "Add a CRUD Feature", slug: "tutorials/add-crud-feature" },
-            {
-              label: "Build with AI (No Code)",
-              slug: "tutorials/build-with-ai",
-              badge: { text: "New", variant: "success" },
-            },
+            { label: "Build with AI (No Code)", slug: "tutorials/build-with-ai" },
+            { label: "Framework Quick Starts", slug: "getting-started/quickstart-nextjs" },
           ],
         },
 
-        // ===== AI TOOLS =====
+        // ===== PRICING & COSTS =====
         {
-          label: "AI Tools",
+          label: "Pricing and Costs",
           items: [
-            { label: "Overview", slug: "ai-tools/overview" },
-            {
-              label: "AI Prompts",
-              slug: "ai-tools/prompts",
-              badge: { text: "New", variant: "success" },
-            },
-            {
-              label: "MCP Server Spec",
-              slug: "ai-tools/mcp-server-spec",
-              badge: { text: "New", variant: "success" },
-            },
-          ],
-        },
-
-        // ===== RESOURCES =====
-        {
-          label: "Resources",
-          items: [
+            { label: "How pricing works", slug: "resources/pricing" },
             { label: "FAQ", slug: "resources/faq" },
-            { label: "Glossary", slug: "resources/glossary" },
+          ],
+        },
+
+        // ===== HELP =====
+        {
+          label: "Help",
+          items: [
             { label: "Troubleshooting", slug: "resources/troubleshooting" },
+            { label: "Glossary", slug: "resources/glossary" },
+            { label: "Getting Help", slug: "getting-started/getting-help" },
+            { label: "App Store Guide", slug: "deploy/app-store" },
           ],
         },
       ],
