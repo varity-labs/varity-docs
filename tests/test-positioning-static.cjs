@@ -87,6 +87,19 @@ for (const file of files) {
   }
 }
 
+// VAR-506: ensure _redirects exists so 4everland CDN never falls through to raw IPFS gateway
+const REDIRECTS_PATH = path.join(__dirname, '../public/_redirects');
+if (!fs.existsSync(REDIRECTS_PATH)) {
+  console.error('FAIL [public/_redirects] missing — without this file, 4everland falls through to raw IPFS gateway on all subpages (VAR-506)');
+  totalViolations++;
+} else {
+  const redirectsContent = fs.readFileSync(REDIRECTS_PATH, 'utf8');
+  if (!redirectsContent.includes('/* /index.html 200')) {
+    console.error('FAIL [public/_redirects] must contain "/* /index.html 200" catch-all rule (VAR-506)');
+    totalViolations++;
+  }
+}
+
 if (totalViolations === 0) {
   console.log(`PASS — all ${files.length} docs files clean of high-severity positioning violations`);
   process.exit(0);
