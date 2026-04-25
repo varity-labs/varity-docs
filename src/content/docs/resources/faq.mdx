@@ -100,15 +100,7 @@ No special knowledge required for users.
 
 ### Do I need to set up authentication myself?
 
-No. Add `PrivyStack` to your app and authentication works automatically:
-
-```tsx
-import { PrivyStack } from '@varity-labs/ui-kit';
-
-<PrivyStack appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID}>
-  {children}
-</PrivyStack>
-```
+No. Varity authentication is configured automatically when you deploy. Add the auth provider from `@varity-labs/ui-kit` to your app root and users can log in immediately. See the [UI Kit components](/packages/ui-kit/components) for the setup guide.
 
 ### What user data can I access?
 
@@ -117,7 +109,7 @@ import { PrivyStack } from '@varity-labs/ui-kit';
 - Profile picture (from social login)
 - Linked accounts (Google, Twitter, etc.)
 
-All data is accessible via the `usePrivy()` hook.
+All data is accessible via the auth hooks in `@varity-labs/ui-kit`.
 
 ## Costs and Pricing
 
@@ -178,7 +170,7 @@ All packages support tree-shaking for smaller bundles.
 
 ### Authentication is not working
 
-1. Ensure `PrivyStack` wraps your app
+1. Ensure the `@varity-labs/ui-kit` auth provider wraps your app root
 2. Check browser console for errors
 3. Contact [support@varity.so](mailto:support@varity.so) if your domain needs to be allowed
 
