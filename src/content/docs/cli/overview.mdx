@@ -22,7 +22,7 @@ VarityKit is a Python-based CLI that helps you build, test, and deploy applicati
     Scaffold new projects from starter templates with pre-configured auth and deployment.
   </Card>
   <Card title="Deploy Applications" icon="rocket">
-    Deploy static sites with one command. Dynamic hosting coming soon.
+    Deploy any app with one command. Static sites and dynamic apps both supported.
   </Card>
   <Card title="Manage Templates" icon="seti:config">
     Create, test, validate, and publish templates to the marketplace.
@@ -118,11 +118,12 @@ varitykit login
 # Create a new project
 varitykit init my-app
 
-# Deploy (static sites)
+# Deploy (auto-detects static vs dynamic)
 varitykit app deploy
 
-# Deploy (dynamic apps — coming soon)
-# varitykit app deploy --hosting dynamic
+# Or force a specific mode
+varitykit app deploy --hosting dynamic
+varitykit app deploy --hosting static
 ```
 
 ## Global Options
@@ -163,7 +164,7 @@ varitykit app deploy
 - **Cost**: Free (sponsored by Varity)
 - **Speed**: Global CDN distribution
 
-### Dynamic Apps (Coming Soon)
+### Dynamic Apps
 
 Deploy full-stack applications with backend:
 
@@ -171,26 +172,24 @@ Deploy full-stack applications with backend:
 varitykit app deploy --hosting dynamic
 ```
 
-- **Best for**: APIs, databases, server-side rendering
-- **Cost**: Pay for compute resources
+- **Best for**: APIs, databases, server-side rendering, AI agents, LLMs
+- **Cost**: Pay for compute resources (usage-based)
 - **Features**: Containers, scaling, persistence
 
-<Aside type="caution">
-Dynamic hosting is coming soon. During beta, static hosting is available.
-</Aside>
+The orchestration algorithm auto-detects when your app needs dynamic hosting (Express, Fastify, Next.js SSR, FastAPI, Django, Flask, etc.) and selects it automatically. Use `--hosting dynamic` only to force the mode explicitly.
 
 ## Supported Frameworks
 
 Varity currently auto-detects and deploys the following frameworks:
 
-| Framework | Static | Dynamic (Coming Soon) |
-|-----------|--------|----------------------|
-| Next.js 13+ | ✅ Yes | Planned |
-| React (Vite) | ✅ Yes | Planned |
-| React (CRA) | ✅ Yes | Planned |
-| Vue 3+ | ✅ Yes | Planned |
-| Node.js | No | Planned |
-| Python | No | Planned |
+| Framework | Static | Dynamic |
+|-----------|--------|---------|
+| Next.js 13+ | ✅ | ✅ |
+| React (Vite) | ✅ | ✅ |
+| React (CRA) | ✅ | ✅ |
+| Vue 3+ | ✅ | ✅ |
+| Express, Fastify, Nest, Koa, Hono | — | ✅ |
+| FastAPI, Django, Flask | — | ✅ |
 
 **Not yet supported:** Go, Rust, Ruby, Elixir, Java, PHP, .NET. These will not be auto-detected and deployment will fail with an unsupported-language error. [Request support for your framework](https://github.com/varity-labs/varity-sdk/issues).
 
