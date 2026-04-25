@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Discord (ask a question)
+    url: https://discord.gg/7vWsdwa2Bg
+    about: For questions about using Varity, the fastest answer is in Discord.
+  - name: Varity Documentation
+    url: https://docs.varity.so
+    about: Check the docs first — your question may already be answered.
