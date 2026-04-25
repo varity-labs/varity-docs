@@ -1,6 +1,6 @@
 ---
 title: Next.js Quick Start
-description: Build a full-stack Next.js app with Varity auth, database, and deployment in 5 minutes. Uses the SaaS Starter template with everything pre-configured.
+description: Build a full-stack Next.js app with Varity auth, database, and deployment in 5 minutes. Uses dashboard templates with auth and database pre-configured.
 ---
 
 import { Steps, Tabs, TabItem, Aside } from '@astrojs/starlight/components';
@@ -17,7 +17,7 @@ Build a full-stack Next.js app with authentication, database, and deployment in 
 
 ## Prerequisites
 
-- Node.js 18 or later
+- Node.js 20 or later
 - npm, pnpm, or yarn
 - Python 3.11+ (for the CLI)
 
@@ -38,7 +38,7 @@ Build a full-stack Next.js app with authentication, database, and deployment in 
    cd my-app
    ```
 
-   This creates a Next.js project from the SaaS Starter template with auth, database, and a full dashboard already configured.
+   This launches an interactive template picker. Choose from the available dashboard templates (finance, healthcare, retail, ISO merchant, or generic business). Each includes auth, database, and a full dashboard already configured.
 
 3. **Install dependencies**
 
@@ -56,21 +56,23 @@ Build a full-stack Next.js app with authentication, database, and deployment in 
 
 </Steps>
 
-## What's Included
+## Available Templates
 
-The template gives you a complete app out of the box:
+The `varitykit init` picker shows these templates:
 
-| Page | Route | Description |
-|------|-------|-------------|
-| Landing | `/` | Marketing page with feature highlights |
-| Login | `/login` | Email, Google, Twitter, Discord, GitHub login |
-| Dashboard | `/dashboard` | Overview with key metrics |
-| Projects | `/dashboard/projects` | Project CRUD with status tracking |
-| Tasks | `/dashboard/tasks` | Task management with priorities |
-| Team | `/dashboard/team` | Team member management |
-| Settings | `/dashboard/settings` | App settings |
+| Template | Description |
+|----------|-------------|
+| `finance-dashboard` | Financial services dashboard with fraud detection and AML monitoring |
+| `healthcare-dashboard` | Healthcare management with HIPAA compliance |
+| `retail-dashboard` | Retail management with inventory and sales analytics |
+| `iso-merchant-dashboard` | ISO merchant services with payment processing |
+| `generic-dashboard` | Generic business dashboard |
+
+Each template includes auth, database, and a full dashboard pre-configured.
 
 ## Project Structure
+
+The exact structure varies by template. All templates share this general shape:
 
 ```
 my-app/
@@ -79,24 +81,16 @@ my-app/
 │   │   ├── page.tsx             # Landing page
 │   │   ├── login/page.tsx       # Login page
 │   │   ├── layout.tsx           # Root layout (auth provider)
-│   │   └── dashboard/
-│   │       ├── layout.tsx       # Dashboard layout (sidebar + mobile nav)
-│   │       ├── page.tsx         # Dashboard home
-│   │       ├── projects/page.tsx
-│   │       ├── tasks/page.tsx
-│   │       ├── team/page.tsx
-│   │       └── settings/page.tsx
+│   │   └── dashboard/           # Dashboard pages (routes vary by template)
 │   ├── lib/
-│   │   ├── varity.ts            # SDK import
 │   │   ├── database.ts          # Collection helpers
 │   │   ├── hooks.ts             # React hooks for data
 │   │   └── constants.ts         # App name, navigation
 │   ├── types/
 │   │   └── index.ts             # TypeScript interfaces
 │   └── components/ui/           # Shared components
-├── .env.example                 # Environment variables
+├── .env.example
 ├── next.config.js
-├── tailwind.config.js
 └── package.json
 ```
 
@@ -243,4 +237,4 @@ See the [Add a CRUD Feature](/tutorials/add-crud-feature) tutorial for a step-by
 - [Customize the Template](/tutorials/customize-template): Branding, pages, data models
 - [Add a CRUD Feature](/tutorials/add-crud-feature): End-to-end feature tutorial
 - [Database Quick Start](/build/databases/quickstart): Deep dive into the database API
-- [SaaS Template Reference](/templates/saas-starter): Complete template documentation
+- [Template Overview](/templates/overview): Available templates and features

@@ -1,6 +1,6 @@
 ---
 title: "Compute Overview"
-description: "Preview of Varity Compute: run containers, backend services, scheduled jobs, and server-side code on distributed infrastructure. Coming soon."
+description: "Varity Compute: run containers, backend services, and full-stack apps on distributed infrastructure. Dynamic hosting available via varitykit app deploy --hosting dynamic."
 ---
 
 import { Aside, Card, CardGrid } from '@astrojs/starlight/components';
@@ -15,13 +15,9 @@ import PageMeta from '../../../../components/PageMeta.astro';
 
 # Compute
 
-<Aside type="caution">
-**Coming Soon** - Compute features are under active development and will be available before MVP launch.
-</Aside>
+Run backend services, full-stack apps, and server-side code on distributed infrastructure. Dynamic hosting is live — deploy any Node.js or Python backend today.
 
-Run backend services, scheduled jobs, and server-side code on distributed infrastructure.
-
-## What's Coming
+## What's Available
 
 ### Distributed Compute
 
@@ -54,31 +50,20 @@ Deploy containers and backend services:
 | Feature | Status |
 |---------|--------|
 | Static hosting | Available |
-| Dynamic hosting | Coming Soon |
+| Dynamic hosting | **Available** |
 | Serverless functions | Planned |
 | Scheduled jobs | Planned |
 | GPU compute | Planned |
 
-## Early Access
-
-Want early access to compute features? Deploy with:
+## Deploy a Dynamic App
 
 ```bash
 varitykit app deploy --hosting dynamic
 ```
 
-<Aside type="note">
-The `--hosting dynamic` flag is available in the CLI but compute features are still being finalized.
-</Aside>
-
-## Architecture Preview
-
-When compute launches, you'll be able to:
+Varity automatically detects your framework, wires up any required services (Postgres, Redis, etc.), and deploys to live infrastructure.
 
 ```bash
-# Deploy a Next.js app with backend
-varitykit app deploy --hosting dynamic
-
 # Deploy and submit to App Store
 varitykit app deploy --hosting dynamic --submit-to-store
 ```
@@ -93,11 +78,9 @@ varitykit app deploy --hosting dynamic --submit-to-store
 
 *Estimates based on typical usage patterns*
 
-## Available Now
+## Get Started
 
-While compute is coming soon, you can already:
-
-- [Deploy static sites](/deploy/deploy-your-app) - Static hosting is live
+- [Deploy your app](/deploy/deploy-your-app) - Static and dynamic hosting
 - [Set up authentication](/build/auth/quickstart) - Full auth available
 - [Add payments](/build/payments/quickstart) - Payment processing works
 - [Use storage](/build/storage/quickstart) - File storage ready
