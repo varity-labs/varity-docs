@@ -249,36 +249,31 @@ Collapsible content for advanced/optional sections.
 
 ### Default Variant
 
-<Accordion title="What is Varity L3?">
-  Varity L3 is the infrastructure layer that powers Varity applications.
+<Accordion title="What is Varity infrastructure?">
+  Varity infrastructure powers your applications.
   It provides:
 
   - **Free operations** for users (sponsored by developers)
   - **Sub-second finality** for fast responses
   - **Full compatibility** with existing development tools
-  - **Native USDC** as the payment token
-
-  Chain ID: `33529`
-
-  RPC: `https://rpc-varity-testnet-rroe52pwjp.t.conduit.xyz`
+  - **Usage-based pricing** for developers
 </Accordion>
 
-### Advanced Variant (Layer 2 Content)
+### Advanced Variant
 
-<Accordion title="Advanced: How smart accounts work" variant="advanced">
-  Varity uses ERC-4337 Account Abstraction for smart accounts. When you create
-  an account:
+<Accordion title="Advanced: How credential provisioning works" variant="advanced">
+  Varity automatically provisions and rotates credentials for your application.
+  When a user signs in:
 
-  1. **Factory** creates a new smart account at a deterministic address
-  2. **Session keys** enable free operations for specific actions
-  3. **Paymaster** (`0x579772Bfa5Ec1e8f33B81F304ffDbC55135db154`) sponsors usage fees
-  4. **User operations** are bundled and executed efficiently
+  1. **Authentication** verifies the user's identity via email or social login
+  2. **Session management** creates a secure, short-lived session
+  3. **Credential provisioning** grants scoped access to the user's data
+  4. **Automatic rotation** keeps credentials fresh without user action
 
-  Smart accounts are created automatically when a user signs in.
-  Varity handles all the complexity behind the scenes -- developers just use
-  the `usePrivy` hook from `@varity-labs/ui-kit`.
+  All credential management happens automatically — developers use the
+  authentication hooks from `@varity-labs/ui-kit`.
 
-  [Learn more about smart accounts](/build/wallets/quickstart)
+  [Learn more about authentication](/build/auth/quickstart)
 </Accordion>
 
 ### Example Variant
@@ -337,7 +332,7 @@ Collapsible content for advanced/optional sections.
 <div style="display: flex; flex-direction: column; gap: 1rem; margin: 1.5rem 0;">
   <div class="status status-online">
     <span class="status-dot"></span>
-    <span>Varity L3: Operational</span>
+    <span>Varity Infrastructure: Operational</span>
   </div>
 
   <div class="status status-warning">
