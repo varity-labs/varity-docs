@@ -183,19 +183,3 @@ This checks:
 
 Run `varitykit doctor` to diagnose. Credentials are auto-provided. If they fail, check your network connection.
 
-<Accordion title="Advanced: Using Your Own Auth Credentials">
-
-**Varity manages these credentials automatically. Only use this if you need custom configuration.**
-
-Override the managed authentication credential by setting this variable:
-
-```bash title=".env.local"
-# Authentication — get from https://dashboard.privy.io
-NEXT_PUBLIC_PRIVY_APP_ID=your_privy_app_id
-```
-
-Storage is handled automatically by Varity. No credentials needed.
-
-When this variable is set, the SDK uses your own authentication app instead of the managed one.
-
-</Accordion>
