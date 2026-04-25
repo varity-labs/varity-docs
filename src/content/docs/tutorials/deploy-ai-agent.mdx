@@ -272,12 +272,11 @@ After deploying, check on your agent:
 ```bash
 # See if it is running
 varitykit app status
-
-# View live logs
-varitykit app logs
 ```
 
 Or ask your AI coding tool (if you have the Varity MCP installed):
+
+> "Check the status of my Varity deployment"
 
 > "Show me the logs for my last deployment"
 
@@ -289,11 +288,9 @@ Check that your project has a `requirements.txt` (Python) or `package.json` (Nod
 
 **Agent returns 502 after deploy**
 
-Your app may be taking a few extra seconds to start. Wait 30 seconds and try again. If it persists, check your logs:
+Your app may be taking a few extra seconds to start. Wait 30 seconds and try again. If it persists, check your logs by asking your AI coding tool:
 
-```bash
-varitykit app logs
-```
+> "Show me the logs for my last deployment"
 
 A common cause is the app binding to `localhost` instead of `0.0.0.0`. Make sure your server listens on `0.0.0.0`:
 
