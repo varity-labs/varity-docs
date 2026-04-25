@@ -40,9 +40,9 @@ varitykit app deploy
 
 **Features:**
 - Global CDN distribution
-- Free hosting (sponsored by Varity)
 - Permanent deployment URLs
 - Automatic SSL
+- Usage-based pricing — pay only for what you serve
 
 ### Dynamic Apps
 
@@ -71,9 +71,8 @@ Dynamic hosting is powered by cloud compute. Use `--hosting dynamic` for server-
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `--hosting` | `static` | Hosting type: `static` or `dynamic` |
+| `--hosting` | `auto` | Hosting type: `auto`, `static`, or `dynamic` |
 | `--path` | `.` | Project directory |
-| `--submit-to-store` | `false` | Submit to Varity App Store |
 | `--name` | - | Custom app name for `varity.app/{name}` |
 | `--mode` | `auto` | Deployment mode: `auto`, `guided`, or `expert` |
 
@@ -107,19 +106,6 @@ Dynamic hosting is powered by cloud compute. Use `--hosting dynamic` for server-
    ```
 
 </Steps>
-
-## Deploy with App Store Submission
-
-Submit your app to the Varity App Store during deployment:
-
-```bash
-varitykit app deploy --submit-to-store
-```
-
-This will:
-1. Build and deploy your app
-2. Register on Varity's infrastructure
-3. Submit to the App Store for review
 
 ## Supported Frameworks
 

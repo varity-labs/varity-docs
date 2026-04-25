@@ -13,9 +13,13 @@ import PageMeta from '../../../components/PageMeta.astro';
   stability="beta"
 />
 
+<Aside type="caution">
+**Not active for beta.** The App Store is reserved for a future release. During beta, focus on deploying your app at `varity.app/{your-app}/`. This page documents the App Store flow for reference only.
+</Aside>
+
 The Varity App Store is where businesses discover and purchase apps built by developers. The Developer Portal is where you manage your listings.
 
-- **App Store** — [store.varity.so](https://store.varity.so) — for end users and businesses
+- **App Store** — [store.varity.so](https://store.varity.so) — for end users and businesses (post-beta)
 - **Developer Portal** — [developer.store.varity.so](https://developer.store.varity.so) — for developers
 
 ## Revenue split
@@ -62,11 +66,9 @@ Payment processing is coming soon. During beta, you can submit and list apps on 
 You have full control over pricing:
 
 - **Free** — great for open-source tools or lead generation
-- **Monthly subscription** — recurring revenue per user (e.g., $49/month, $99/month)
+- **Monthly subscription** — recurring revenue per user, set at any price you choose
 
-**Example:** You price your client dashboard at $79/month. For every paying user:
-- You receive **$71.10/month** (90%)
-- Varity receives $7.90/month (10%)
+The platform takes a 10% share of subscription revenue; you keep 90%.
 
 ## The Developer Portal
 
@@ -83,7 +85,7 @@ Log in with the same account you use for `varitykit auth login`.
 
 The fastest way to submit is through your AI coding tool:
 
-**"Submit my last deployment to the app store at $99/month"**
+**"Submit my last deployment to the app store as a monthly subscription"**
 
 This calls the `varity_submit_to_store` tool, which generates a pre-filled submission link to the Developer Portal. Click the link, review your details, and confirm.
 

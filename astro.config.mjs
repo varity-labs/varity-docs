@@ -158,6 +158,10 @@ export default defineConfig({
               slug: "getting-started/how-varity-works",
             },
             {
+              label: "AI Tools Overview",
+              slug: "ai-tools/overview",
+            },
+            {
               label: "MCP Server (Claude Code / Cursor)",
               slug: "ai-tools/mcp-server-spec",
             },
@@ -261,14 +265,6 @@ export default defineConfig({
                 { label: "Credit Card Payments", slug: "build/payments/credit-card" },
               ],
             },
-            {
-              label: "Accounts",
-              collapsed: true,
-              items: [
-                { label: "Quick Start", slug: "build/wallets/quickstart" },
-                { label: "Create Account", slug: "build/wallets/create-wallet" },
-              ],
-            },
           ],
         },
 
@@ -283,6 +279,7 @@ export default defineConfig({
               items: [
                 { label: "Overview", slug: "packages/sdk/overview" },
                 { label: "Installation", slug: "packages/sdk/installation" },
+                { label: "API Reference", slug: "packages/sdk/api-reference" },
                 { label: "Configuration", slug: "packages/sdk/chains" },
               ],
             },

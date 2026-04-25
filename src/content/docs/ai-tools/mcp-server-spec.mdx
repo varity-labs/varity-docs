@@ -294,23 +294,6 @@ Get build and deployment logs for debugging failed or recent deployments.
 
 ---
 
-### `varity_submit_to_store`: Publish to App Store
-
-Submit a deployed app to the Varity App Store marketplace. Revenue split: 90% to you, 10% to Varity.
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `deployment_id` | string | Yes | — | Deployment ID from a previous `varity_deploy` |
-| `name` | string | Yes | — | Display name on the store |
-| `description` | string | Yes | — | Short description shown to users |
-| `price` | number | Yes | — | Monthly price in USD (use 0 for free apps) |
-
-**Annotations:** `destructiveHint: true` (publishes to a public store)
-
-**Example prompt:** "Submit my last deployment to the Varity App Store at $9.99/month"
-
----
-
 ### `varity_migrate`: Migrate from Vercel to Varity
 
 Migrate a Vercel project to Varity in one step: clone the GitHub repository, remove Vercel-specific artifacts (`vercel.json`, `@vercel/*` packages, image optimizer config, env var renames), and deploy the transformed app to Varity.
