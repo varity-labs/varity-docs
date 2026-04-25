@@ -170,6 +170,9 @@ const FORBIDDEN_WORDS = [
   { word: 'l3', severity: 'LOW', context: 'OK in deep technical docs, not in getting-started or tutorials' },
   { word: 'arbitrum', severity: 'LOW', context: 'OK in architecture docs, not in getting-started or tutorials' },
   { word: 'privy', severity: 'MEDIUM', context: 'Internal implementation detail — abstract away from developer-facing docs' },
+  { word: 'paymaster', severity: 'HIGH', context: 'Never mention gas sponsorship internals. Use "free for users" instead' },
+  { word: 'erc-4337', severity: 'HIGH', context: 'Internal protocol — abstract away. Use "authentication" instead' },
+  { word: 'chain id', severity: 'HIGH', context: 'Internal infrastructure detail — never expose to developers' },
 ];
 
 // Correct CLI command name
