@@ -1,0 +1,172 @@
+---
+title: Auto-wired Services
+description: Varity reads your dependencies and automatically provisions the databases and services your app needs. No configuration required.
+sidebar:
+  badge:
+    text: Beta
+    variant: note
+---
+
+import { Aside, Card, CardGrid } from '@astrojs/starlight/components';
+import PageMeta from '../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="April 2026"
+  stability="stable"
+/>
+
+When you deploy with Varity, the platform reads your `package.json` or `requirements.txt` and automatically provisions the databases and services your app depends on. You do not write any configuration files.
+
+The services start alongside your app when you deploy. No extra steps needed.
+
+## How It Works
+
+Varity scans your dependency files for known packages and maps them to services:
+
+1. You add a database library to your project (for example, `pg` or `mongoose`)
+2. You deploy with `varitykit app deploy`
+3. Varity detects the library and starts the matching service automatically
+4. Your app receives the connection URL as an environment variable
+
+You do not configure ports, credentials, or connection strings. Varity handles all of that.
+
+## Detection Table
+
+### JavaScript and TypeScript (package.json)
+
+| Dependency | Service Provisioned | Environment Variable Injected |
+|------------|--------------------|-----------------------------|
+| `pg` | Postgres database | `DATABASE_URL` |
+| `@prisma/client` | Postgres database | `DATABASE_URL` |
+| `drizzle-orm` | Postgres database | `DATABASE_URL` |
+| `postgres` | Postgres database | `DATABASE_URL` |
+| `ioredis` | Redis cache | `REDIS_URL` |
+| `redis` | Redis cache | `REDIS_URL` |
+| `@vercel/kv` | Redis cache | `REDIS_URL` |
+| `@langchain/ollama` | AI model server | `OLLAMA_URL` |
+| `ollama` | AI model server | `OLLAMA_URL` |
+| `mongoose` | MongoDB database | `MONGODB_URI` |
+| `mongodb` | MongoDB database | `MONGODB_URI` |
+
+### Python (requirements.txt)
+
+| Dependency | Service Provisioned | Environment Variable Injected |
+|------------|--------------------|-----------------------------|
+| `psycopg` | Postgres database | `DATABASE_URL` |
+| `psycopg2` | Postgres database | `DATABASE_URL` |
+| `psycopg2-binary` | Postgres database | `DATABASE_URL` |
+| `asyncpg` | Postgres database | `DATABASE_URL` |
+| `redis` | Redis cache | `REDIS_URL` |
+| `ollama` | AI model server | `OLLAMA_URL` |
+| `pymongo` | MongoDB database | `MONGODB_URI` |
+
+### Prisma Schema Detection
+
+If your project includes a `prisma/schema.prisma` file, Varity reads the `datasource` block to confirm which database to provision:
+
+| `provider` value | Service Provisioned |
+|------------------|---------------------|
+| `postgresql` | Postgres database |
+| `mongodb` | MongoDB database |
+
+## What Each Service Provides
+
+<CardGrid>
+  <Card title="Postgres Database" icon="seti:db">
+    A relational database for structured data. Includes vector extension support, which means you can store and query embeddings for AI features without any additional setup.
+
+    Your app receives `DATABASE_URL` automatically.
+  </Card>
+
+  <Card title="Redis Cache" icon="seti:db">
+    An in-memory key-value store for caching, sessions, and queues. Ideal for rate limiting, temporary data, and speeding up repeated queries.
+
+    Your app receives `REDIS_URL` automatically.
+  </Card>
+
+  <Card title="AI Model Server" icon="star">
+    A local model runtime so your app can run language models without calling an external API. Useful for apps with on-device inference or privacy requirements.
+
+    Your app receives `OLLAMA_URL` automatically.
+  </Card>
+
+  <Card title="MongoDB Database" icon="seti:db">
+    A document database for flexible, schema-optional data. Good for apps where data shape varies across records.
+
+    Your app receives `MONGODB_URI` automatically.
+  </Card>
+</CardGrid>
+
+<Aside type="tip">
+The services start automatically when you deploy. No configuration needed.
+</Aside>
+
+## Example: Next.js App with Postgres
+
+If your `package.json` contains:
+
+```json
+{
+  "dependencies": {
+    "next": "^14.0.0",
+    "@prisma/client": "^5.0.0"
+  }
+}
+```
+
+Running `varitykit app deploy` will:
+
+1. Detect Next.js as the framework
+2. Detect `@prisma/client` and provision a Postgres database
+3. Inject `DATABASE_URL` into your app's runtime environment
+4. Start both your app and the database together
+
+Your Prisma client will connect automatically using the injected URL.
+
+## Example: FastAPI App with Redis and MongoDB
+
+If your `requirements.txt` contains:
+
+```
+fastapi
+redis
+pymongo
+```
+
+Running `varitykit app deploy` will:
+
+1. Detect FastAPI as the framework
+2. Detect `redis` and provision a Redis cache
+3. Detect `pymongo` and provision a MongoDB database
+4. Inject `REDIS_URL` and `MONGODB_URI` into your runtime environment
+
+## Using the Injected Variables
+
+Your app code reads these variables the same way it would in any environment:
+
+```ts title="Next.js / Node.js"
+const db = new PrismaClient({
+  datasources: { db: { url: process.env.DATABASE_URL } }
+});
+```
+
+```python title="Python (FastAPI)"
+import os
+from motor.motor_asyncio import AsyncIOMotorClient
+
+client = AsyncIOMotorClient(os.environ["MONGODB_URI"])
+```
+
+You do not need to add these variables to `.env` files yourself. Varity injects them at deploy time.
+
+<Aside type="note">
+Varity filters out platform-specific environment variables from other providers (such as `VERCEL_*`, `RAILWAY_*`, `NETLIFY_*`) so they do not accidentally leak into your deployment.
+</Aside>
+
+## Related Guides
+
+- [Deploy Your App](/deploy/deploy-your-app)
+- [Environment Variables](/deploy/env-variables)
+- [Supported Frameworks](/deploy/supported-frameworks)

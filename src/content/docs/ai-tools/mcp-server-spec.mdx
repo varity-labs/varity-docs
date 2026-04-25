@@ -1,6 +1,6 @@
 ---
 title: Varity MCP Server
-description: Install and configure the Varity MCP server for AI editors. 15 tools for building, deploying, and managing apps via Cursor or Claude.
+description: Install and configure the Varity MCP server for AI editors. 16 tools for building, deploying, and managing apps via Cursor or Claude Code.
 ---
 
 import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
@@ -13,7 +13,7 @@ import PageMeta from '../../../components/PageMeta.astro';
   stability="stable"
 />
 
-The Varity MCP server (`@varity-labs/mcp`) gives AI editors 15 tools for the full build → deploy → monetize workflow. It runs locally via stdio — no API keys, no accounts.
+The Varity MCP server (`@varity-labs/mcp`) gives AI editors 16 tools for the full build and deploy workflow. It runs locally via stdio. No API keys or accounts needed to get started.
 
 <Aside type="tip">
 The MCP server works with **any editor that supports MCP**: Cursor, Claude Code, VS Code (Copilot), Windsurf, and more. Setup takes under a minute.
@@ -21,9 +21,9 @@ The MCP server works with **any editor that supports MCP**: Cursor, Claude Code,
 
 ## Prerequisites
 
-- **Node.js 18+** — runs the MCP server
-- **Python 3.11+** — needed for `varitykit` CLI (used by deploy tools)
-- **varitykit** — install with `pip install varitykit`
+- **Node.js 18+** (runs the MCP server)
+- **Python 3.11+** (needed for varitykit CLI)
+- **varitykit** (install with: pip install varitykit)
 
 ## Setup
 
@@ -87,7 +87,7 @@ The MCP server works with **any editor that supports MCP**: Cursor, Claude Code,
 
 The server exposes 16 tools. Read-only tools run safely with no side effects. Destructive tools create files or deploy infrastructure.
 
-### `varity_doctor` — Check environment setup
+### `varity_doctor`: Check environment setup
 
 Verify that your development environment is ready to build and deploy Varity apps. Checks Node.js, npm, varitykit CLI installation, and authentication status.
 
@@ -99,7 +99,7 @@ Verify that your development environment is ready to build and deploy Varity app
 
 ---
 
-### `varity_login` — Authenticate with Varity
+### `varity_login`: Authenticate with Varity
 
 Authenticate with Varity using a deploy key or browser-based login. Required before deploying apps.
 
@@ -108,13 +108,13 @@ Authenticate with Varity using a deploy key or browser-based login. Required bef
 | `method` | `"deploy-key"` \| `"browser"` | No | `"browser"` | Authentication method |
 | `deploy_key` | string | No | — | Deploy key (required when `method` is `"deploy-key"`) |
 
-**Annotations:** `destructiveHint: true` — writes credentials to local config
+**Annotations:** `destructiveHint: true` (writes credentials to local config)
 
 **Example prompt:** "Log in to Varity" or "Authenticate with my deploy key"
 
 ---
 
-### `varity_search_docs` — Search documentation
+### `varity_search_docs`: Search documentation
 
 Search Varity docs for guides, API references, and tutorials.
 
@@ -129,7 +129,7 @@ Search Varity docs for guides, API references, and tutorials.
 
 ---
 
-### `varity_cost_calculator` — Estimate costs
+### `varity_cost_calculator`: Estimate costs
 
 Compare Varity hosting costs against AWS, Vercel, and other platforms.
 
@@ -146,7 +146,7 @@ Compare Varity hosting costs against AWS, Vercel, and other platforms.
 
 ---
 
-### `varity_init` — Create a new app
+### `varity_init`: Create a new app
 
 Scaffold a production-ready app with auth, database, and payments.
 
@@ -156,13 +156,13 @@ Scaffold a production-ready app with auth, database, and payments.
 | `template` | `"saas-starter"` | No | `"saas-starter"` | Template to use |
 | `path` | string | No | Current directory | Directory to create the project in |
 
-**Annotations:** `destructiveHint: true` — creates files on your local filesystem
+**Annotations:** `destructiveHint: true` (creates files on your local filesystem)
 
 **Example prompt:** "Create a new Varity app called invoice-tracker"
 
 ---
 
-### `varity_install_deps` — Install npm dependencies
+### `varity_install_deps`: Install npm dependencies
 
 Install dependencies for a Varity project. Runs `npm install` for all packages or installs specific packages.
 
@@ -175,7 +175,7 @@ Install dependencies for a Varity project. Runs `npm install` for all packages o
 
 ---
 
-### `varity_add_collection` — Add database collection
+### `varity_add_collection`: Add database collection
 
 Add a new database collection to your project. Creates the TypeScript type, collection accessor, React hook, and optionally scaffolds a dashboard page.
 
@@ -188,13 +188,13 @@ Add a new database collection to your project. Creates the TypeScript type, coll
 
 **Field types:** `"string"`, `"number"`, `"boolean"`, `"Date"`
 
-**Annotations:** `destructiveHint: true` — creates/modifies files in your project
+**Annotations:** `destructiveHint: true` (creates/modifies files in your project)
 
 **Example prompt:** "Add an invoices collection with amount (number) and status (string) fields"
 
 ---
 
-### `varity_dev_server` — Manage local dev server
+### `varity_dev_server`: Manage local dev server
 
 Start, stop, or check the status of your local development server. Returns the localhost URL for previewing your app.
 
@@ -208,7 +208,7 @@ Start, stop, or check the status of your local development server. Returns the l
 
 ---
 
-### `varity_build` — Build for production
+### `varity_build`: Build for production
 
 Build the project for production. Auto-detects framework from `package.json`. Run before deploying or to verify the project compiles.
 
@@ -220,7 +220,7 @@ Build the project for production. Auto-detects framework from `package.json`. Ru
 
 ---
 
-### `varity_open_browser` — Open URL in browser
+### `varity_open_browser`: Open URL in browser
 
 Open a URL in the user's default browser. Use after deploying to show the live app or after starting the dev server.
 
@@ -232,7 +232,7 @@ Open a URL in the user's default browser. Use after deploying to show the live a
 
 ---
 
-### `varity_create_repo` — Create GitHub repository
+### `varity_create_repo`: Create GitHub repository
 
 Create a new GitHub repository with the Varity SaaS template. Useful for browser-based workflows — create a repo, open in Gitpod/StackBlitz, and deploy.
 
@@ -244,13 +244,13 @@ Create a new GitHub repository with the Varity SaaS template. Useful for browser
 | `visibility` | `"public"` \| `"private"` | No | `"public"` | Repository visibility |
 | `github_token` | string | No | — | GitHub personal access token with `repo` scope |
 
-**Annotations:** `destructiveHint: true` — creates an external GitHub repository
+**Annotations:** `destructiveHint: true` (creates an external GitHub repository)
 
 **Example prompt:** "Create a new GitHub repo called my-dashboard with the Varity template"
 
 ---
 
-### `varity_deploy` — Deploy to production
+### `varity_deploy`: Deploy to production
 
 Build and deploy the current project. Auto-detects framework (Next.js, React, Vue), builds it, and returns a live URL.
 
@@ -259,13 +259,13 @@ Build and deploy the current project. Auto-detects framework (Next.js, React, Vu
 | `path` | string | No | Workspace root | Path to the project directory |
 | `submit_to_store` | boolean | No | false | Also submit to the Varity App Store (90% revenue to you) |
 
-**Annotations:** `destructiveHint: true` — deploys real infrastructure
+**Annotations:** `destructiveHint: true` (deploys real infrastructure)
 
 **Example prompt:** "Deploy this project to Varity"
 
 ---
 
-### `varity_deploy_status` — Check deployments
+### `varity_deploy_status`: Check deployments
 
 List all deployments or get status of a specific one. Shows URL, status, framework, size, and creation time.
 
@@ -279,7 +279,7 @@ List all deployments or get status of a specific one. Shows URL, status, framewo
 
 ---
 
-### `varity_deploy_logs` — Get build logs
+### `varity_deploy_logs`: Get build logs
 
 Get build and deployment logs for debugging failed or recent deployments.
 
@@ -294,7 +294,7 @@ Get build and deployment logs for debugging failed or recent deployments.
 
 ---
 
-### `varity_submit_to_store` — Publish to App Store
+### `varity_submit_to_store`: Publish to App Store
 
 Submit a deployed app to the Varity App Store marketplace. Revenue split: 90% to you, 10% to Varity.
 
@@ -305,13 +305,13 @@ Submit a deployed app to the Varity App Store marketplace. Revenue split: 90% to
 | `description` | string | Yes | — | Short description shown to users |
 | `price` | number | Yes | — | Monthly price in USD (use 0 for free apps) |
 
-**Annotations:** `destructiveHint: true` — publishes to a public store
+**Annotations:** `destructiveHint: true` (publishes to a public store)
 
 **Example prompt:** "Submit my last deployment to the Varity App Store at $9.99/month"
 
 ---
 
-### `varity_migrate` — Migrate from Vercel to Varity
+### `varity_migrate`: Migrate from Vercel to Varity
 
 Migrate a Vercel project to Varity in one step: clone the GitHub repository, remove Vercel-specific artifacts (`vercel.json`, `@vercel/*` packages, image optimizer config, env var renames), and deploy the transformed app to Varity.
 
@@ -320,7 +320,7 @@ Migrate a Vercel project to Varity in one step: clone the GitHub repository, rem
 | `github_url` | string | Yes | — | GitHub repository URL to migrate (e.g. `https://github.com/user/my-app`) |
 | `dry_run` | boolean | No | `false` | Preview what would change without deploying |
 
-**Annotations:** `destructiveHint: true` — clones a repo and deploys infrastructure
+**Annotations:** `destructiveHint: true` (clones a repo and deploys infrastructure)
 
 **Example prompt:** "Migrate my Vercel app at https://github.com/user/my-app to Varity"
 

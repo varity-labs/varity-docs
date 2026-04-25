@@ -1,0 +1,103 @@
+---
+title: Pricing and Costs
+description: Varity is usage-based with no monthly fees or tiers. Pay only for what you use. 60-80% cheaper than AWS.
+---
+
+import { Aside, Card, CardGrid } from '@astrojs/starlight/components';
+import PageMeta from '../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="April 2026"
+  stability="stable"
+/>
+
+Varity charges only for actual infrastructure usage. There are no monthly fixed fees, no tiers, and no subscriptions. If your app is not running, you are not paying.
+
+## How Pricing Works
+
+You pay for the compute and storage your app uses, measured by the second. When traffic spikes, costs go up slightly. When your app is idle, costs drop to near zero.
+
+There is no free tier and no paid tier. Every developer starts at the same rate and pays based on usage.
+
+<Aside type="tip">
+Use the cost calculator in the Varity Developer Portal at [developer.store.varity.so](https://developer.store.varity.so) to estimate costs for your specific app. The `varity_cost_calculator` tool in the Varity MCP server can also give you an estimate directly from your AI coding tool.
+</Aside>
+
+## Why Varity Is 60-80% Cheaper Than AWS
+
+Varity uses efficient distributed infrastructure that costs significantly less to operate than traditional centralized cloud providers. Those savings are passed directly to you.
+
+The same app running on AWS typically costs 60-80% more per month than on Varity.
+
+This is not a promotional rate or an introductory offer. It reflects the actual cost difference between Varity's infrastructure and AWS.
+
+## Rough Cost Examples
+
+These are approximate ranges. Actual costs depend on traffic, storage, and which services your app uses. Use the cost calculator for a precise estimate.
+
+| App Type | Approximate Monthly Cost |
+|----------|--------------------------|
+| Simple static site (low traffic) | Pennies per month |
+| Static site with moderate traffic | Less than $1/month |
+| Small dynamic app (handful of users) | A few dollars per month |
+| SaaS with a few hundred users | Well below the AWS equivalent |
+
+For a specific number, use the cost calculator. Every app is different.
+
+## During Beta
+
+During the beta period, you are running real deployments on real infrastructure. Costs reflect actual usage. Because beta deployments are typically small test apps with low traffic, costs are very low in practice.
+
+There is no special beta discount or free credit. You pay for what you use, same as post-beta.
+
+## What You Pay For
+
+- Compute time (your app running)
+- Storage (files, databases, build artifacts)
+- Data transfer (traffic in and out)
+
+Services that are auto-wired to your app (Postgres, Redis, AI model server, MongoDB) are billed the same way as your main app: by usage.
+
+## What You Do Not Pay
+
+- Monthly subscription fees
+- Setup fees
+- Idle fees when your app has no traffic
+- Separate charges for auto-detection or auto-provisioning
+
+## App Store Revenue
+
+If you publish your app to the Varity App Store, the revenue split is:
+
+- **90%** goes to you
+- **10%** goes to Varity
+
+Infrastructure costs are separate from this split and billed to you directly based on usage.
+
+## Estimate Your Costs
+
+The fastest way to get a number for your specific app:
+
+**Option 1: Cost calculator in the Developer Portal**
+
+Go to [developer.store.varity.so](https://developer.store.varity.so) and use the cost calculator. Enter your expected traffic and app type.
+
+**Option 2: Ask your AI coding tool**
+
+If you have the Varity MCP server installed, type:
+
+> "How much would this app cost to host for 500 users on Varity?"
+
+The AI will run `varity_cost_calculator` and return an estimate.
+
+**Option 3: Deploy and check**
+
+Deploy your app with `varitykit app deploy` and monitor actual usage in the Developer Portal. Real usage data is more accurate than any estimate.
+
+## Related Guides
+
+- [Deploy Your App](/deploy/deploy-your-app)
+- [Managed Credentials](/deploy/managed-credentials)
+- [FAQ](/resources/faq)

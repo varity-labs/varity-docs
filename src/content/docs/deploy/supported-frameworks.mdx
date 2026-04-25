@@ -1,0 +1,209 @@
+---
+title: Supported Frameworks
+description: Which frameworks Varity supports today, what gets auto-detected, and how to request support for languages not yet available.
+sidebar:
+  badge:
+    text: Beta
+    variant: note
+---
+
+import { Tabs, TabItem, Aside, Card, CardGrid } from '@astrojs/starlight/components';
+import PageMeta from '../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="April 2026"
+  stability="stable"
+/>
+
+Varity automatically detects your framework when you run `varitykit app deploy`. You do not need to specify your framework manually.
+
+## Supported Frameworks
+
+The following frameworks work today. Varity detects them from your project files and configures hosting automatically.
+
+### JavaScript and TypeScript
+
+<CardGrid>
+  <Card title="Next.js" icon="rocket">
+    Full-stack React framework. Static exports and server-rendered apps both work.
+
+    ```bash
+    pipx install varitykit
+    varitykit app deploy
+    ```
+  </Card>
+
+  <Card title="React" icon="rocket">
+    Client-side React apps built with Vite or Create React App.
+
+    ```bash
+    pipx install varitykit
+    varitykit app deploy
+    ```
+  </Card>
+
+  <Card title="Vue" icon="rocket">
+    Vue 3 single-page applications.
+
+    ```bash
+    pipx install varitykit
+    varitykit app deploy
+    ```
+  </Card>
+
+  <Card title="Express" icon="rocket">
+    Node.js HTTP server with Express.
+
+    ```bash
+    pipx install varitykit
+    varitykit app deploy
+    ```
+  </Card>
+
+  <Card title="Fastify" icon="rocket">
+    High-performance Node.js API server.
+
+    ```bash
+    pipx install varitykit
+    varitykit app deploy
+    ```
+  </Card>
+
+  <Card title="Nest.js" icon="rocket">
+    Opinionated Node.js framework for scalable server-side apps.
+
+    ```bash
+    pipx install varitykit
+    varitykit app deploy
+    ```
+  </Card>
+
+  <Card title="Koa" icon="rocket">
+    Lightweight Node.js middleware framework.
+
+    ```bash
+    pipx install varitykit
+    varitykit app deploy
+    ```
+  </Card>
+
+  <Card title="Hono" icon="rocket">
+    Ultra-fast edge-friendly web framework for Node.js.
+
+    ```bash
+    pipx install varitykit
+    varitykit app deploy
+    ```
+  </Card>
+</CardGrid>
+
+### Python
+
+<CardGrid>
+  <Card title="FastAPI" icon="rocket">
+    Modern async Python API framework.
+
+    ```bash
+    pipx install varitykit
+    varitykit app deploy
+    ```
+  </Card>
+
+  <Card title="Django" icon="rocket">
+    Full-featured Python web framework.
+
+    ```bash
+    pipx install varitykit
+    varitykit app deploy
+    ```
+  </Card>
+
+  <Card title="Flask" icon="rocket">
+    Lightweight Python web framework.
+
+    ```bash
+    pipx install varitykit
+    varitykit app deploy
+    ```
+  </Card>
+</CardGrid>
+
+<Aside type="tip">
+You do not need to tell Varity which framework you are using. It reads your `package.json`, `requirements.txt`, or project structure and figures it out.
+</Aside>
+
+## Not Yet Supported
+
+The following languages and frameworks are not supported in the current beta. Deploying them will fail with a clear error message that includes a link to request support.
+
+| Language / Framework | Status |
+|----------------------|--------|
+| Go | Not supported |
+| Rust | Not supported |
+| Ruby / Rails | Not supported |
+| Elixir / Phoenix | Not supported |
+| Java / Spring | Not supported |
+| Deno | Not supported |
+| PHP / Laravel | Not supported |
+| .NET | Not supported |
+
+If your framework is in this list, `varitykit app deploy` will return an error like:
+
+```
+ProjectDetectionError: Framework not supported.
+Supported: Next.js, React, Vue, Express, Fastify, Nest.js, Koa, Hono, FastAPI, Django, Flask.
+To request support: https://github.com/varity-labs/varity-sdk/issues
+```
+
+No deployment is started and no charges are incurred.
+
+<Aside type="note">
+Don't see your framework? The Varity team is actively expanding support. [Open a request on GitHub](https://github.com/varity-labs/varity-sdk/issues) to let us know what you need.
+</Aside>
+
+## How Framework Detection Works
+
+When you run `varitykit app deploy`, Varity scans your project directory for these signals:
+
+| Signal | Detected As |
+|--------|-------------|
+| `package.json` with `next` dependency | Next.js |
+| `package.json` with `react` (no Next.js) | React |
+| `package.json` with `vue` | Vue |
+| `package.json` with `express` | Express |
+| `package.json` with `fastify` | Fastify |
+| `package.json` with `@nestjs/core` | Nest.js |
+| `package.json` with `koa` | Koa |
+| `package.json` with `hono` | Hono |
+| `requirements.txt` with `fastapi` | FastAPI |
+| `requirements.txt` with `django` | Django |
+| `requirements.txt` with `flask` | Flask |
+
+Detection happens in under a second and requires no configuration from you.
+
+## Static vs. Dynamic Hosting
+
+Varity also decides how to host your app based on what it detects:
+
+| App Type | Hosting Mode |
+|----------|--------------|
+| React or Vue SPA (no server) | Static hosting |
+| Next.js with `output: 'export'` in config | Static hosting |
+| Next.js with server features | Dynamic hosting |
+| Express, Fastify, Koa, Hono, Nest.js | Dynamic hosting |
+| FastAPI, Django, Flask | Dynamic hosting |
+
+You can override the default with a flag:
+
+```bash
+varitykit app deploy --hosting static
+varitykit app deploy --hosting dynamic
+```
+
+## Related Guides
+
+- [Deploy Your App](/deploy/deploy-your-app)
+- [Auto-wired Services](/deploy/auto-wired-services)
+- [Environment Variables](/deploy/env-variables)

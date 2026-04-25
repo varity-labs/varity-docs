@@ -1,6 +1,6 @@
 ---
 title: Introduction
-description: Varity is a developer platform to build, deploy, and monetize apps — 60-80% cheaper than AWS, with auth, storage, and hosting included.
+description: Varity is the easiest way to deploy any app, AI agent, or LLM. 60-80% cheaper than AWS, with zero infrastructure to manage.
 ---
 
 import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
@@ -9,87 +9,94 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="March 2026"
-  version="2.0.0-beta.14"
+  lastUpdated="April 2026"
+  version="2.0.0-beta.16"
   stability="beta"
 />
 
-Varity is a developer platform for building, deploying, and monetizing apps. Install two packages, run one command, and your app is live — with auth, storage, and hosting already configured.
+Varity is the easiest way to deploy any app, AI agent, or LLM. Point it at your project, and your app is live in under 60 seconds, 60-80% cheaper than AWS.
+
+No Docker. No infrastructure setup. No DevOps.
+
+## The fastest way to get started
+
+The primary way to use Varity is through the MCP server inside Claude Code or Cursor. Add it once, then just ask your AI tool to deploy:
 
 ```bash
-npm install @varity-labs/sdk @varity-labs/ui-kit
+# Add the Varity MCP server to Claude Code
+claude mcp add varity -- npx -y @varity-labs/mcp
+```
+
+Then, inside Claude Code or Cursor:
+
+```
+"Deploy my app to Varity"
+```
+
+That's it. The MCP server handles detection, building, and deployment automatically.
+
+## Prefer the command line?
+
+If you want to deploy without an AI tool, install the CLI:
+
+```bash
+pipx install varitykit
 varitykit app deploy
 ```
+
+Your app will be live at `https://varity.app/your-app-name/` in under 2 minutes.
 
 ## Why Varity
 
 | | AWS / GCP / Azure | Varity |
 |---|---|---|
-| **Cost** | $2,800/mo (100 users + AI) | ~$800/mo |
-| **Auth** | Configure Cognito / Auth0 | Included |
-| **Storage** | Configure S3 / GCS | Included |
-| **Hosting** | Configure EC2 / ECS / Vercel | Included (static) |
-| **Payments** | Integrate Stripe | Coming soon |
+| **Cost** | High baseline, complex pricing | 60-80% cheaper |
+| **Setup time** | Hours to days | Under 60 seconds |
+| **Auth** | Configure separately | Automatic |
+| **Database** | Configure separately | Auto-wired when detected |
 | **DevOps** | Docker, CI/CD, SSL, DNS | Zero config |
+| **Hosting** | Static + containers, manual setup | Static and dynamic, automatic |
 
 ## What's Included
 
 <CardGrid>
-  <Card title="@varity-labs/sdk" icon="rocket">
-    Core SDK — auth, storage, payments, and app configuration.
-    [View SDK docs](/packages/sdk/overview)
+  <Card title="MCP Server" icon="rocket">
+    16 tools for Claude Code and Cursor. Deploy, monitor, and manage apps with plain English.
+    [View MCP docs](/ai-tools/mcp-server-spec)
   </Card>
-  <Card title="@varity-labs/ui-kit" icon="puzzle">
-    React components — login, dashboards, account management.
-    [View UI Kit docs](/packages/ui-kit/overview)
-  </Card>
-  <Card title="@varity-labs/types" icon="document">
-    TypeScript type definitions for all Varity APIs.
-    [View Types docs](/packages/types/overview)
-  </Card>
-  <Card title="VarityKit CLI" icon="terminal">
-    Deploy and manage apps from the command line.
+  <Card title="varitykit CLI" icon="terminal">
+    Python CLI for deploying and managing apps from the command line.
     [View CLI docs](/cli/overview)
   </Card>
+  <Card title="@varity-labs/sdk" icon="puzzle">
+    Optional SDK for auth, storage, and database in your app code.
+    [View SDK docs](/packages/sdk/overview)
+  </Card>
+  <Card title="@varity-labs/ui-kit" icon="document">
+    Optional React components for login, dashboards, and account management.
+    [View UI Kit docs](/packages/ui-kit/overview)
+  </Card>
 </CardGrid>
-
-## Quick Example
-
-Add authentication to a React app in 5 lines:
-
-```tsx
-import { PrivyStack, PrivyLoginButton } from '@varity-labs/ui-kit';
-
-function App() {
-  return (
-    <PrivyStack appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID}>
-      <PrivyLoginButton />
-      <YourApp />
-    </PrivyStack>
-  );
-}
-```
-
-Users log in with email, Google, GitHub, Twitter, or Discord. No extra configuration needed.
 
 ## Current Status
 
 :::note[Beta]
-Varity is in beta. Core features are live and stable. Production launch is planned for Q2 2026.
+Varity is in beta. Core features are live and stable. Billing is usage-based from day one.
 :::
 
 **Available now:**
-- Authentication (email, social login)
-- File storage (secure, globally distributed)
 - Static app hosting (global CDN)
-- App Store submission and listing
-- Free operations (users never pay usage fees)
+- Dynamic app hosting (container-based, for full-stack and server apps)
+- Authentication (email, social login)
+- Auto-wired databases, caches, and AI runtimes based on your dependencies
+- Vercel migration tool (`varitykit migrate`)
+- MCP server with 16 tools for Claude Code and Cursor
 - VarityKit CLI with zero-config deploys
 
-**Coming soon:**
-- Dynamic app hosting (container-based)
-- Credit card payments (post-beta)
-- Usage analytics and billing dashboard
+**Supported frameworks:**
+- Next.js, React, Vue
+- Express, Fastify, Nest, Koa, Hono (Node.js)
+- FastAPI, Django, Flask (Python)
 
 ## Next Steps
 
@@ -103,4 +110,10 @@ Varity is in beta. Core features are live and stable. Production launch is plann
   title="Installation"
   description="Set up your development environment."
   href="/getting-started/installation"
+/>
+
+<LinkCard
+  title="How Varity Works"
+  description="Understand the full deployment flow."
+  href="/getting-started/how-varity-works"
 />

@@ -1,0 +1,317 @@
+---
+title: Deploy an AI Agent or LLM App
+description: Step-by-step guide to deploying a Python or Node.js AI agent on Varity. Auto-detected compute and optional local model server included.
+---
+
+import { Tabs, TabItem, Steps, Aside } from '@astrojs/starlight/components';
+import PageMeta from '../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="April 2026"
+  stability="stable"
+/>
+
+Varity automatically detects AI agent apps and configures the right hosting for them. You write the code, run one command, and your agent is live.
+
+<Aside type="tip">
+If your agent uses a local language model (via the `ollama` package), Varity detects it and auto-provisions a model server alongside your app. No extra setup required.
+</Aside>
+
+## Prerequisites
+
+- Python 3.8+ or Node.js 18+
+- `varitykit` CLI installed:
+
+  ```bash
+  pipx install varitykit
+  ```
+
+  (Recommended over `pip install` for isolated installs. Both work.)
+
+- A Varity account with a deploy key. Run `varitykit login` if you have not logged in yet.
+
+## Option 1: Python AI Agent (FastAPI)
+
+This example builds a simple agent endpoint that accepts a prompt and returns a response using the OpenAI API.
+
+<Steps>
+
+1. **Create your agent**
+
+   ```python title="main.py"
+   from fastapi import FastAPI
+   from pydantic import BaseModel
+   import openai
+   import os
+
+   app = FastAPI()
+   client = openai.OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+
+   class PromptRequest(BaseModel):
+       prompt: str
+
+   @app.post("/run")
+   async def run_agent(request: PromptRequest):
+       response = client.chat.completions.create(
+           model="gpt-4o-mini",
+           messages=[{"role": "user", "content": request.prompt}]
+       )
+       return {"result": response.choices[0].message.content}
+
+   @app.get("/health")
+   async def health():
+       return {"status": "ok"}
+   ```
+
+2. **Add your dependencies**
+
+   ```text title="requirements.txt"
+   fastapi
+   uvicorn
+   openai
+   ```
+
+3. **Add your API key**
+
+   Create a `.env` file in your project root:
+
+   ```bash title=".env"
+   OPENAI_API_KEY=sk-...
+   ```
+
+   Varity reads this file at deploy time and injects the variable into your app's runtime environment.
+
+4. **Deploy**
+
+   ```bash
+   varitykit app deploy
+   ```
+
+   Varity detects FastAPI, configures dynamic compute hosting, and deploys your agent.
+
+5. **Your agent is live**
+
+   ```
+   Detected: FastAPI (Python)
+   Hosting: dynamic compute
+   Deploying...
+   Your agent is live at: https://varity.app/your-agent/
+   ```
+
+   Send a request to test it:
+
+   ```bash
+   curl -X POST https://varity.app/your-agent/run \
+     -H "Content-Type: application/json" \
+     -d '{"prompt": "Summarize the Varity docs in one sentence."}'
+   ```
+
+</Steps>
+
+## Option 2: Node.js AI Agent (Express)
+
+This example builds an Express API that wraps the OpenAI API.
+
+<Steps>
+
+1. **Create your agent**
+
+   ```js title="index.js"
+   const express = require('express');
+   const OpenAI = require('openai');
+
+   const app = express();
+   app.use(express.json());
+
+   const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+   app.post('/run', async (req, res) => {
+     const { prompt } = req.body;
+     const response = await client.chat.completions.create({
+       model: 'gpt-4o-mini',
+       messages: [{ role: 'user', content: prompt }]
+     });
+     res.json({ result: response.choices[0].message.content });
+   });
+
+   app.get('/health', (_req, res) => res.json({ status: 'ok' }));
+
+   const port = process.env.PORT || 3000;
+   app.listen(port, '0.0.0.0', () => {
+     console.log(`Agent running on port ${port}`);
+   });
+   ```
+
+2. **Add your dependencies**
+
+   ```json title="package.json"
+   {
+     "name": "my-agent",
+     "version": "1.0.0",
+     "scripts": {
+       "start": "node index.js"
+     },
+     "dependencies": {
+       "express": "^4.20.0",
+       "openai": "^4.0.0"
+     }
+   }
+   ```
+
+3. **Add your API key**
+
+   ```bash title=".env"
+   OPENAI_API_KEY=sk-...
+   ```
+
+4. **Deploy**
+
+   ```bash
+   varitykit app deploy
+   ```
+
+   Varity detects Express, configures dynamic compute hosting, and deploys your agent.
+
+5. **Your agent is live**
+
+   ```
+   Detected: Express (Node.js)
+   Hosting: dynamic compute
+   Deploying...
+   Your agent is live at: https://varity.app/your-agent/
+   ```
+
+</Steps>
+
+## Using a Local Language Model
+
+If your agent runs a language model locally instead of calling an external API, add the `ollama` package to your dependencies. Varity will detect it and automatically provision a model server alongside your app.
+
+<Tabs>
+  <TabItem label="Python">
+
+  ```text title="requirements.txt"
+  fastapi
+  uvicorn
+  ollama
+  ```
+
+  ```python title="main.py"
+  import os
+  import ollama
+  from fastapi import FastAPI
+  from pydantic import BaseModel
+
+  app = FastAPI()
+  ollama_url = os.environ.get("OLLAMA_URL", "http://localhost:11434")
+
+  class PromptRequest(BaseModel):
+      prompt: str
+
+  @app.post("/run")
+  async def run_agent(request: PromptRequest):
+      response = ollama.chat(
+          model="llama3",
+          messages=[{"role": "user", "content": request.prompt}],
+          host=ollama_url
+      )
+      return {"result": response["message"]["content"]}
+  ```
+
+  </TabItem>
+  <TabItem label="Node.js">
+
+  ```json title="package.json"
+  {
+    "dependencies": {
+      "express": "^4.20.0",
+      "@langchain/ollama": "^0.1.0"
+    }
+  }
+  ```
+
+  ```js title="index.js"
+  const express = require('express');
+  const { Ollama } = require('@langchain/ollama');
+
+  const app = express();
+  app.use(express.json());
+
+  const llm = new Ollama({
+    baseUrl: process.env.OLLAMA_URL || 'http://localhost:11434',
+    model: 'llama3'
+  });
+
+  app.post('/run', async (req, res) => {
+    const result = await llm.invoke(req.body.prompt);
+    res.json({ result });
+  });
+  ```
+
+  </TabItem>
+</Tabs>
+
+When you deploy, Varity:
+
+1. Detects `ollama` or `@langchain/ollama` in your dependencies
+2. Provisions a model server alongside your app
+3. Injects `OLLAMA_URL` into your runtime environment automatically
+
+Your app code reads `process.env.OLLAMA_URL` (Node.js) or `os.environ["OLLAMA_URL"]` (Python) to connect.
+
+<Aside type="note">
+The model server starts automatically when your app is deployed. You do not need to install or configure it yourself.
+</Aside>
+
+## Check Deployment Status
+
+After deploying, check on your agent:
+
+```bash
+# See if it is running
+varitykit app status
+
+# View live logs
+varitykit app logs
+```
+
+Or ask your AI coding tool (if you have the Varity MCP installed):
+
+> "Show me the logs for my last deployment"
+
+## Troubleshooting
+
+**"ProjectDetectionError: Framework not supported"**
+
+Check that your project has a `requirements.txt` (Python) or `package.json` (Node.js) with a supported framework listed. See [Supported Frameworks](/deploy/supported-frameworks).
+
+**Agent returns 502 after deploy**
+
+Your app may be taking a few extra seconds to start. Wait 30 seconds and try again. If it persists, check your logs:
+
+```bash
+varitykit app logs
+```
+
+A common cause is the app binding to `localhost` instead of `0.0.0.0`. Make sure your server listens on `0.0.0.0`:
+
+```python title="Python"
+# uvicorn listens on 0.0.0.0 by default when run via Procfile or start command
+```
+
+```js title="Node.js"
+app.listen(port, '0.0.0.0', () => { ... });
+```
+
+**Environment variables not reaching the app**
+
+Make sure your `.env` file is in the project root (same directory you run `varitykit app deploy` from). Variables prefixed with `VERCEL_`, `RAILWAY_`, or `NETLIFY_` are filtered out automatically.
+
+## Related Guides
+
+- [Supported Frameworks](/deploy/supported-frameworks)
+- [Auto-wired Services](/deploy/auto-wired-services)
+- [Environment Variables](/deploy/env-variables)
+- [Deploy Your App](/deploy/deploy-your-app)

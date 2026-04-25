@@ -1,14 +1,14 @@
 ---
 title: Varity Documentation
-description: Official Varity documentation. Build, deploy, and monetize apps with one command. Auth, database, and storage included out of the box.
+description: Deploy any app, AI agent, or LLM in 60 seconds. 60-80% cheaper than AWS. Auth, database, and hosting included automatically.
 template: splash
 hero:
-  tagline: "Build, deploy, and monetize apps with one command. Auth, database, and storage included."
+  tagline: "Deploy any app, AI agent, or LLM in 60 seconds. 60-80% cheaper than AWS."
   image:
     file: ../../assets/varity-logo.svg
   actions:
     - text: Get Started
-      link: /getting-started/introduction/
+      link: /getting-started/quickstart/
       icon: right-arrow
     - text: View on GitHub
       link: https://github.com/varity-labs/varity-sdk
@@ -22,7 +22,7 @@ import FrameworkGrid from '../../components/FrameworkGrid.astro';
 import HowItWorks from '../../components/HowItWorks.astro';
 import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
 
-## Get started in seconds
+## Deploy in seconds
 
 <InstallBlock />
 
@@ -30,15 +30,21 @@ import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
 
 <div class="product-grid not-content">
   <ProductTile
+    icon="deploy"
+    title="Deploy"
+    description="Any app live in 60 seconds. One command, auto-configured."
+    href="/getting-started/quickstart/"
+  />
+  <ProductTile
     icon="auth"
     title="Auth"
-    description="Email and social login. Sessions handled for you."
+    description="Email and social login. No setup required."
     href="/build/auth/quickstart/"
   />
   <ProductTile
     icon="database"
     title="Database"
-    description="Zero-config database with typed collections."
+    description="Auto-provisioned database with typed collections."
     href="/build/databases/quickstart/"
   />
   <ProductTile
@@ -48,16 +54,10 @@ import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
     href="/build/storage/quickstart/"
   />
   <ProductTile
-    icon="payments"
-    title="Payments"
-    description="Credit card payments with automatic revenue splits (coming soon)."
-    href="/build/payments/quickstart/"
-  />
-  <ProductTile
-    icon="deploy"
-    title="Deploy"
-    description="Ship to production with one command."
-    href="/deploy/deploy-your-app/"
+    icon="cli"
+    title="MCP Server"
+    description="Deploy from inside Claude Code or Cursor."
+    href="/ai-tools/mcp-server-spec/"
   />
   <ProductTile
     icon="cli"
@@ -73,28 +73,28 @@ import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
 
 <HowItWorks />
 
-## Why Varity?
+## Why Varity
 
 <CardGrid>
   <Card title="One-command deploy" icon="rocket">
-    Run `varitykit app deploy` and your app is live. No servers to configure.
+    Run `varitykit app deploy` and your app is live. No servers to configure. No Docker. No CI/CD pipelines.
   </Card>
-  <Card title="60-80% cost savings" icon="seti:dollar">
-    Secure infrastructure costs less. Pay ~$800/mo instead of ~$2,800/mo.
+  <Card title="60-80% cheaper than AWS" icon="seti:dollar">
+    Efficient distributed infrastructure passes savings directly to you. Use the [cost calculator](/resources/pricing) to estimate your app.
   </Card>
-  <Card title="Zero complexity" icon="puzzle">
-    Users log in with email and pay with credit cards. No extra setup needed.
+  <Card title="Zero configuration" icon="puzzle">
+    Auth, database, and hosting are configured automatically. Varity detects what your app needs and sets it up.
   </Card>
-  <Card title="Familiar tools" icon="laptop">
-    React, TypeScript, and APIs you already know. Infrastructure complexity stays hidden.
+  <Card title="Works with AI coding tools" icon="laptop">
+    Install the MCP server in Claude Code or Cursor. Ask your AI editor to deploy your app. Done.
   </Card>
 </CardGrid>
 
 ## Explore the docs
 
 <CardGrid>
-  <LinkCard title="SDK" description="Auth, storage, payments, and configuration." href="/packages/sdk/overview/" />
-  <LinkCard title="UI Kit" description="React components for login and dashboards." href="/packages/ui-kit/overview/" />
-  <LinkCard title="CLI" description="Deploy and manage apps from the terminal." href="/cli/overview/" />
-  <LinkCard title="Templates" description="Production-ready SaaS starter template." href="/templates/overview/" />
+  <LinkCard title="Quick Start" description="Deploy your first app in under 5 minutes." href="/getting-started/quickstart/" />
+  <LinkCard title="MCP Server" description="Deploy from inside Claude Code or Cursor." href="/ai-tools/mcp-server-spec/" />
+  <LinkCard title="Migrate from Vercel" description="Move your existing app to Varity in minutes." href="/deploy/vercel-migration/" />
+  <LinkCard title="Deploy an AI Agent" description="Deploy a FastAPI or Node.js AI agent." href="/tutorials/deploy-ai-agent/" />
 </CardGrid>
