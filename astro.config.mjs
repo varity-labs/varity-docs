@@ -137,7 +137,6 @@ export default defineConfig({
             {
               label: "Deploy your first app",
               slug: "getting-started/quickstart",
-              badge: { text: "Start here", variant: "success" },
             },
             {
               label: "Migrate from Vercel",
@@ -161,7 +160,6 @@ export default defineConfig({
             {
               label: "MCP Server (Claude Code / Cursor)",
               slug: "ai-tools/mcp-server-spec",
-              badge: { text: "Recommended", variant: "success" },
             },
             { label: "CLI (varitykit)", slug: "cli/overview" },
             {
@@ -259,7 +257,6 @@ export default defineConfig({
                 {
                   label: "Quick Start",
                   slug: "build/payments/quickstart",
-                  badge: { text: "Beta", variant: "note" },
                 },
                 { label: "Credit Card Payments", slug: "build/payments/credit-card" },
               ],
@@ -286,7 +283,7 @@ export default defineConfig({
               items: [
                 { label: "Overview", slug: "packages/sdk/overview" },
                 { label: "Installation", slug: "packages/sdk/installation" },
-                { label: "Configuration", slug: "packages/sdk/chains", badge: { text: "Advanced", variant: "note" } },
+                { label: "Configuration", slug: "packages/sdk/chains" },
               ],
             },
             {
@@ -327,7 +324,6 @@ export default defineConfig({
             {
               label: "Build a SaaS App",
               slug: "tutorials/build-saas-app",
-              badge: { text: "Full tutorial", variant: "success" },
             },
             { label: "Customize the Template", slug: "tutorials/customize-template" },
             { label: "Add a CRUD Feature", slug: "tutorials/add-crud-feature" },
