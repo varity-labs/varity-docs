@@ -35,13 +35,13 @@ varitykit init my-app
 
 ### Built-in Features
 
-- **Authentication** — Built-in login (email magic link + social providers)
-- **Database** — Typed collections with CRUD operations and optimistic updates
-- **Dashboard layout** — Responsive sidebar with mobile hamburger menu
-- **Command palette** — Cmd+K / Ctrl+K to search projects, tasks, and team
-- **Confirmation dialogs** — Safe delete operations
-- **CSS variables** — Easy brand customization via `globals.css`
-- **Landing page** — Animated sections, social proof, testimonials
+- **Authentication**: Built-in login (email magic link + social providers)
+- **Database**: Typed collections with CRUD operations and optimistic updates
+- **Dashboard layout**: Responsive sidebar with mobile hamburger menu
+- **Command palette**: Cmd+K / Ctrl+K to search projects, tasks, and team
+- **Confirmation dialogs**: Safe delete operations
+- **CSS variables**: Easy brand customization via `globals.css`
+- **Landing page**: Animated sections, social proof, testimonials
 
 ## Data Models
 
@@ -117,10 +117,10 @@ Every data model follows the same 3-file pattern:
 types/index.ts → lib/database.ts → lib/hooks.ts → app/dashboard/page.tsx
 ```
 
-**1. Type** — Define a TypeScript interface
-**2. Collection** — Create a typed accessor: `db.collection<T>('name')`
-**3. Hook** — Build a React hook with loading/error states and optimistic updates
-**4. Page** — Use the hook in a component
+**1. Type:** Define a TypeScript interface
+**2. Collection:** Create a typed accessor: `db.collection<T>('name')`
+**3. Hook:** Build a React hook with loading/error states and optimistic updates
+**4. Page:** Use the hook in a component
 
 ### Hook Pattern
 
@@ -159,13 +159,13 @@ const { user, authenticated, logout } = usePrivy();
 
 <Steps>
 
-1. **App name** — Edit `APP_NAME` in `src/lib/constants.ts`
+1. **App name:** Edit `APP_NAME` in `src/lib/constants.ts`
 
    ```typescript
    export const APP_NAME = 'YourAppName';
    ```
 
-2. **Colors** — Edit CSS variables in `src/app/globals.css`
+2. **Colors:** Edit CSS variables in `src/app/globals.css`
 
    ```css
    :root {
@@ -177,7 +177,7 @@ const { user, authenticated, logout } = usePrivy();
 
    Four color presets are documented in the file: Blue (default), Purple, Green, Orange.
 
-3. **Logo** — Replace the logo file in `public/`
+3. **Logo:** Replace the logo file in `public/`
 
 </Steps>
 
@@ -299,7 +299,7 @@ varitykit app deploy --submit-to-store
 
 ## Next Steps
 
-- [Build & Deploy Tutorial](/tutorials/build-saas-app) — Step-by-step deployment guide
-- [Customize the Template](/tutorials/customize-template) — Branding and modifications
-- [Add a CRUD Feature](/tutorials/add-crud-feature) — Add a new data model end-to-end
-- [Database Quick Start](/build/databases/quickstart) — Database API deep dive
+- [Build & Deploy Tutorial](/tutorials/build-saas-app): Step-by-step deployment guide
+- [Customize the Template](/tutorials/customize-template): Branding and modifications
+- [Add a CRUD Feature](/tutorials/add-crud-feature): Add a new data model end-to-end
+- [Database Quick Start](/build/databases/quickstart): Database API deep dive

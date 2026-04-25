@@ -179,7 +179,7 @@ Adds a new document to the collection.
 |-----------|------|----------|-------------|
 | `data` | `Partial<T>` | Yes | Document data to add |
 
-**Returns:** `Promise<T & Document>` — The full inserted document with all fields at the top level.
+**Returns:** `Promise<T & Document>`: The full inserted document with all fields at the top level.
 
 **Example:**
 
@@ -219,7 +219,7 @@ interface QueryOptions {
 }
 ```
 
-**Returns:** `Promise<(T & Document)[]>` — Array of flat documents.
+**Returns:** `Promise<(T & Document)[]>`: Array of flat documents.
 
 **Document Type:**
 
@@ -232,10 +232,10 @@ interface Document {
 }
 ```
 
-Documents returned are `T & Document` — all user fields and system fields exist at the same level. Access `doc.name`, NOT `doc.data.name`.
+Documents returned are `T & Document`: all user fields and system fields exist at the same level. Access `doc.name`, NOT `doc.data.name`.
 
 <Aside type="caution">
-**No `.where()` Filtering** — The database returns all documents. Filter results client-side if needed.
+**No `.where()` Filtering**: The database returns all documents. Filter results client-side if needed.
 </Aside>
 
 **Example:**
@@ -275,7 +275,7 @@ Updates an existing document.
 | `id` | `string` | Yes | Document ID |
 | `data` | `Partial<T>` | Yes | Fields to update |
 
-**Returns:** `Promise<T & Document>` — The updated document.
+**Returns:** `Promise<T & Document>`: The updated document.
 
 **Example:**
 
@@ -307,7 +307,7 @@ Deletes a document from the collection.
 |-----------|------|----------|-------------|
 | `id` | `string` | Yes | Document ID |
 
-**Returns:** `Promise<boolean>` — `true` on success.
+**Returns:** `Promise<boolean>`: `true` on success.
 
 **Example:**
 
@@ -332,7 +332,7 @@ Automatically resolves credentials from environment variables with fallback to d
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `appId` | `string` | No | Privy App ID (falls back to dev credentials) |
+| `appId` | `string` | No | Authentication app ID (falls back to managed credentials) |
 
 **CredentialConfig Type:**
 
@@ -419,9 +419,9 @@ const users = await acmeDb.collection('users').get();
 <Aside type="caution">
 **Current Beta Limitations**
 
-1. **No `.where()` Filtering** — Database returns all documents. Filter client-side.
-2. **No Real-time Updates** — Polling required for live data.
-3. **Database Proxy URL** — Default fallback URL may be unreachable (set `NEXT_PUBLIC_VARITY_DB_URL`).
+1. **No `.where()` Filtering**: Database returns all documents. Filter client-side.
+2. **No Real-time Updates**: Polling required for live data.
+3. **Database Proxy URL**: Default fallback URL may be unreachable (set `NEXT_PUBLIC_VARITY_DB_URL`).
 
 See [Troubleshooting](/resources/troubleshooting) for workarounds.
 </Aside>

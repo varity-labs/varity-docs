@@ -106,7 +106,7 @@ Authenticate with Varity using a deploy key or browser-based login. Required bef
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
 | `method` | `"deploy-key"` \| `"browser"` | No | `"browser"` | Authentication method |
-| `deploy_key` | string | No | — | Deploy key (required when `method` is `"deploy-key"`) |
+| `deploy_key` | string | No | none | Deploy key (required when `method` is `"deploy-key"`) |
 
 **Annotations:** `destructiveHint: true` (writes credentials to local config)
 
@@ -120,7 +120,7 @@ Search Varity docs for guides, API references, and tutorials.
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `query` | string | Yes | — | Search query (e.g., "database setup", "how to deploy") |
+| `query` | string | Yes | none | Search query (e.g., "database setup", "how to deploy") |
 | `maxResults` | number | No | 3 | Maximum results to return |
 
 **Annotations:** `readOnlyHint: true`
@@ -135,7 +135,7 @@ Compare Varity hosting costs against AWS, Vercel, and other platforms.
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `users` | number | Yes | — | Estimated monthly active users |
+| `users` | number | Yes | none | Estimated monthly active users |
 | `storage_gb` | number | No | 10 | Storage needed in GB |
 | `has_database` | boolean | No | true | Whether the app uses a database |
 | `has_auth` | boolean | No | true | Whether the app uses authentication |
@@ -152,7 +152,7 @@ Scaffold a production-ready app with auth, database, and payments.
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `name` | string | Yes | — | Project name (lowercase, hyphens allowed) |
+| `name` | string | Yes | none | Project name (lowercase, hyphens allowed) |
 | `template` | `"saas-starter"` | No | `"saas-starter"` | Template to use |
 | `path` | string | No | Current directory | Directory to create the project in |
 
@@ -169,7 +169,7 @@ Install dependencies for a Varity project. Runs `npm install` for all packages o
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
 | `path` | string | No | Current directory | Project directory to install dependencies in |
-| `packages` | string[] | No | — | Specific packages to install (e.g., `["axios", "lodash"]`). If omitted, installs all dependencies. |
+| `packages` | string[] | No | none | Specific packages to install (e.g., `["axios", "lodash"]`). If omitted, installs all dependencies. |
 
 **Example prompt:** "Install dependencies for my project" or "Install axios and lodash"
 
@@ -181,8 +181,8 @@ Add a new database collection to your project. Creates the TypeScript type, coll
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `name` | string | Yes | — | Collection name (lowercase, e.g., "invoices", "team_members") |
-| `fields` | array | Yes | — | Field definitions: `[{name: "amount", type: "number"}, {name: "status", type: "string"}]` |
+| `name` | string | Yes | none | Collection name (lowercase, e.g., "invoices", "team_members") |
+| `fields` | array | Yes | none | Field definitions: `[{name: "amount", type: "number"}, {name: "status", type: "string"}]` |
 | `path` | string | No | Current directory | Project directory |
 | `add_page` | boolean | No | false | Scaffold a dashboard page with DataTable and Dialog |
 
@@ -200,7 +200,7 @@ Start, stop, or check the status of your local development server. Returns the l
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `action` | `"start"` \| `"stop"` \| `"status"` | Yes | — | Action to perform |
+| `action` | `"start"` \| `"stop"` \| `"status"` | Yes | none | Action to perform |
 | `path` | string | No | Current directory | Project directory |
 | `port` | number | No | 3000 | Port to run the dev server on. If busy, auto-selects next available port and persists to `varity.config.json`. |
 
@@ -226,7 +226,7 @@ Open a URL in the user's default browser. Use after deploying to show the live a
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `url` | string | Yes | — | URL to open in the default browser |
+| `url` | string | Yes | none | URL to open in the default browser |
 
 **Example prompt:** "Open the deployment in my browser"
 
@@ -234,15 +234,15 @@ Open a URL in the user's default browser. Use after deploying to show the live a
 
 ### `varity_create_repo`: Create GitHub repository
 
-Create a new GitHub repository with the Varity SaaS template. Useful for browser-based workflows — create a repo, open in Gitpod/StackBlitz, and deploy.
+Create a new GitHub repository with the Varity SaaS template. Useful for browser-based workflows: create a repo, open it in Gitpod or StackBlitz, and deploy.
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `name` | string | Yes | — | Repository name (lowercase, hyphens allowed) |
-| `description` | string | No | — | Short description for the repo |
+| `name` | string | Yes | none | Repository name (lowercase, hyphens allowed) |
+| `description` | string | No | none | Short description for the repo |
 | `template` | `"saas-starter"` | No | `"saas-starter"` | Template to use |
 | `visibility` | `"public"` \| `"private"` | No | `"public"` | Repository visibility |
-| `github_token` | string | No | — | GitHub personal access token with `repo` scope |
+| `github_token` | string | No | none | GitHub personal access token with `repo` scope |
 
 **Annotations:** `destructiveHint: true` (creates an external GitHub repository)
 
@@ -271,7 +271,7 @@ List all deployments or get status of a specific one. Shows URL, status, framewo
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `deployment_id` | string | No | — | Specific deployment ID (omit to list all) |
+| `deployment_id` | string | No | none | Specific deployment ID (omit to list all) |
 
 **Annotations:** `readOnlyHint: true`
 
@@ -285,7 +285,7 @@ Get build and deployment logs for debugging failed or recent deployments.
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `deployment_id` | string | Yes | — | The deployment ID to get logs for |
+| `deployment_id` | string | Yes | none | The deployment ID to get logs for |
 | `limit` | number | No | 100 | Maximum log lines to return |
 
 **Annotations:** `readOnlyHint: true`
@@ -300,7 +300,7 @@ Migrate a Vercel project to Varity in one step: clone the GitHub repository, rem
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `github_url` | string | Yes | — | GitHub repository URL to migrate (e.g. `https://github.com/user/my-app`) |
+| `github_url` | string | Yes | none | GitHub repository URL to migrate (e.g. `https://github.com/user/my-app`) |
 | `dry_run` | boolean | No | `false` | Preview what would change without deploying |
 
 **Annotations:** `destructiveHint: true` (clones a repo and deploys infrastructure)
@@ -355,7 +355,7 @@ Here's the full build-to-monetize flow using the MCP tools:
 
 1. **"Check if my environment is ready"** → `varity_doctor`
 2. **"Migrate my Vercel app at https://github.com/user/my-app"** → `varity_migrate`
-3. *(Done — the app is live and on Varity infrastructure)*
+3. *(Done. The app is live on Varity infrastructure.)*
 
 ## Troubleshooting
 
@@ -375,8 +375,8 @@ Run `claude mcp list` to verify the server is registered. Re-add with `claude mc
 
 The MCP server supports two transports:
 
-- **stdio** (default) — for desktop editors like Cursor, Claude Code, VS Code, Windsurf
-- **HTTP** — for browser-based AI tools like Claude.ai and ChatGPT
+- **stdio** (default): for desktop editors like Cursor, Claude Code, VS Code, Windsurf
+- **HTTP**: for browser-based AI tools like Claude.ai and ChatGPT
 
 ### Hosted MCP
 
@@ -416,5 +416,5 @@ For LLMs without MCP support, use the docs context files:
 ## Support
 
 - [Documentation](https://docs.varity.so/ai-tools/overview)
-- [Discord](https://discord.gg/7vWsdwa2Bg) — ask in #general
+- [Discord](https://discord.gg/7vWsdwa2Bg): ask in #general
 - [GitHub Issues](https://github.com/varity-labs/varity-sdk/issues)

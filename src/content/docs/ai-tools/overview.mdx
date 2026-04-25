@@ -30,7 +30,7 @@ Varity provides AI tooling to help you build faster. Copy a prompt into your AI 
     Machine-readable documentation for AI assistants. Available in two formats: `/llms.txt` (summary) and `/llms-full.txt` (detailed).
   </Card>
   <Card title="MCP Server" icon="rocket">
-    Model Context Protocol server for Cursor, Claude Code, VS Code, and Windsurf — deploy, search docs, and manage apps from your AI editor.
+    Model Context Protocol server for Cursor, Claude Code, VS Code, and Windsurf. Deploy, search docs, and manage apps from your AI editor.
 
     [View Spec →](/ai-tools/mcp-server-spec)
   </Card>
@@ -59,7 +59,7 @@ The fastest way to get AI assistance with Varity is to copy one of our [AI Promp
 
 The Varity MCP server lets your AI editor create, deploy, and manage Varity apps directly.
 
-**For Cursor** — add to `.cursor/mcp.json`:
+**For Cursor:** add to `.cursor/mcp.json`:
 
 ```json
 {
@@ -78,17 +78,17 @@ The Varity MCP server lets your AI editor create, deploy, and manage Varity apps
 claude mcp add varity -- npx -y @varity-labs/mcp
 ```
 
-Then ask your AI to "create a Varity app" or "deploy this project" — it has 15 tools for the full build-to-monetize workflow. See the [MCP Server Spec](/ai-tools/mcp-server-spec) for the complete tool reference, or check out the [Build with AI (No Code)](/tutorials/build-with-ai/) tutorial to get started.
+Then ask your AI to "create a Varity app" or "deploy this project." It has 15 tools for the full build-to-monetize workflow. See the [MCP Server Spec](/ai-tools/mcp-server-spec) for the complete tool reference, or check out the [Build with AI (No Code)](/tutorials/build-with-ai/) tutorial to get started.
 
 ## Cursor Rules
 
 Pre-configured rules that teach Cursor IDE how to write Varity code correctly.
 
 **Available rules:**
-- **Varity App Development** — SDK patterns, database queries, auth setup
-- **Deployment** — CLI commands, environment variables, hosting options
-- **Authentication** — Auth setup, protected routes, user data
-- **Database** — Collections, typed queries, CRUD hooks
+- **Varity App Development**: SDK patterns, database queries, auth setup
+- **Deployment**: CLI commands, environment variables, hosting options
+- **Authentication**: Auth setup, protected routes, user data
+- **Database**: Collections, typed queries, CRUD hooks
 
 **Install:**
 
@@ -105,8 +105,8 @@ AI assistants can reference our documentation in machine-readable formats:
 
 | File | URL | Use Case |
 |------|-----|----------|
-| `llms.txt` | `https://docs.varity.so/llms.txt` | Summary — what Varity is, key APIs, common patterns |
-| `llms-full.txt` | `https://docs.varity.so/llms-full.txt` | Detailed — full documentation content for deep context |
+| `llms.txt` | `https://docs.varity.so/llms.txt` | Summary: what Varity is, key APIs, common patterns |
+| `llms-full.txt` | `https://docs.varity.so/llms-full.txt` | Detailed: full documentation content for deep context |
 
 Point any AI tool at one of these URLs for instant Varity context. Use `llms.txt` for quick context in chat-based LLMs (ChatGPT, Gemini), and `llms-full.txt` when the AI needs comprehensive documentation.
 
@@ -119,7 +119,7 @@ Our tools teach AI assistants these patterns:
 AI assistants are trained to use developer-friendly language:
 
 - "Deploy your application" (not "upload to IPFS")
-- "Sign in" (not "connect wallet")
+- "Sign in" (the user just sees a normal login screen)
 - "Usage fees are covered" (not "gasless transactions")
 
 ### Type Safety
@@ -158,5 +158,5 @@ try {
 
 ## What's Next
 
-- **[AI Prompts](/ai-tools/prompts)** — Ready-to-use prompts for every AI tool
-- **[MCP Server Spec](/ai-tools/mcp-server-spec)** — Setup guide and tool reference
+- **[AI Prompts](/ai-tools/prompts)**: Ready-to-use prompts for every AI tool
+- **[MCP Server Spec](/ai-tools/mcp-server-spec)**: Setup guide and tool reference

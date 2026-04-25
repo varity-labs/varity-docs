@@ -99,7 +99,7 @@ VarityKit is a Python-based CLI that helps you build, test, and deploy applicati
 | `varitykit migrate --path <path>` | Migrate a local Vercel project directory |
 | `varitykit migrate --dry-run` | Preview what would change without modifying files |
 | `varitykit migrate --no-deploy` | Apply codemods only, skip deployment |
-| `varitykit migrate analyze <path>` | Scan for Vercel artifacts — read-only preview |
+| `varitykit migrate analyze <path>` | Scan for Vercel artifacts (read-only preview) |
 | `varitykit migrate apply <path>` | Apply codemods without deploying |
 | `varitykit migrate rollback <path>` | Restore files from `.vercel-migration-backup/` |
 
@@ -188,8 +188,8 @@ Varity currently auto-detects and deploys the following frameworks:
 | React (Vite) | ✅ | ✅ |
 | React (CRA) | ✅ | ✅ |
 | Vue 3+ | ✅ | ✅ |
-| Express, Fastify, Nest, Koa, Hono | — | ✅ |
-| FastAPI, Django, Flask | — | ✅ |
+| Express, Fastify, Nest, Koa, Hono | N/A | ✅ |
+| FastAPI, Django, Flask | N/A | ✅ |
 
 **Not yet supported:** Go, Rust, Ruby, Elixir, Java, PHP, .NET. These will not be auto-detected and deployment will fail with an unsupported-language error. [Request support for your framework](https://github.com/varity-labs/varity-sdk/issues).
 

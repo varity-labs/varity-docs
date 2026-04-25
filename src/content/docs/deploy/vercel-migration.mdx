@@ -17,11 +17,11 @@ Move your existing Vercel app to Varity in under 3 minutes. The migration tool r
 
 ## What gets migrated automatically
 
-- `vercel.json` — removed
-- `@vercel/*` npm packages — removed from `package.json`
-- Next.js image optimizer config (`unoptimized: true`) — set automatically
-- Vercel-specific environment variable names — renamed to Varity equivalents
-- Edge runtime declarations — updated
+- `vercel.json`: removed
+- `@vercel/*` npm packages: removed from `package.json`
+- Next.js image optimizer config (`unoptimized: true`): set automatically
+- Vercel-specific environment variable names: renamed to Varity equivalents
+- Edge runtime declarations: updated
 
 All changes are backed up to `.vercel-migration-backup/` so you can roll back.
 
@@ -100,7 +100,7 @@ varitykit migrate rollback ./my-app
 ## After migration
 
 - Your app runs on Varity infrastructure with auth, database, and hosting included
-- Environment variables are managed automatically — no manual configuration needed
+- Environment variables are managed automatically. No manual configuration needed
 - Review any warnings from the migration output and fix manually if needed
 - To monetize: submit to the [Varity App Store](/deploy/app-store)
 
@@ -125,6 +125,6 @@ This restores all files from `.vercel-migration-backup/`.
 
 ## Next steps
 
-- [Deploy your app](/deploy/deploy-your-app) — understand what happens during deploy
-- [Environment variables](/deploy/env-variables) — how credentials work
-- [Submit to App Store](/deploy/app-store) — monetize your migrated app
+- [Deploy your app](/deploy/deploy-your-app): understand what happens during deploy
+- [Environment variables](/deploy/env-variables): how credentials work
+- [Submit to App Store](/deploy/app-store): monetize your migrated app
