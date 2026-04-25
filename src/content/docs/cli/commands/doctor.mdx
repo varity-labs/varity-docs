@@ -1,6 +1,6 @@
 ---
 title: "varitykit doctor"
-description: "Run varitykit doctor to validate your development environment. Runs 8 checks across 4 categories: required tools, system resources, project config, and network."
+description: "Run varitykit doctor to validate your development environment. Checks required tools (Node.js, npm, git), system resources, project config, and network."
 ---
 
 import { Aside } from '@astrojs/starlight/components';
@@ -23,35 +23,39 @@ varitykit doctor [OPTIONS]
 
 ## What It Checks
 
-The doctor command performs 8 checks across 4 categories:
+The doctor command runs 8 checks across 4 categories:
 
-### System Requirements
+### Required Tools
 
 | Check | Requirement |
 |-------|-------------|
-| Python version | >= 3.11 |
-| Node.js version | >= 18.0 |
-| npm version | Any |
-| Docker | Running (optional) |
+| Node.js | >= 16.0.0 |
+| npm | Any version |
+| git | Any version |
 
-### Environment Variables
+### System Resources
 
-| Variable | Status |
-|----------|--------|
-| `NEXT_PUBLIC_PRIVY_APP_ID` | Auto-provided (or set your own) |
-| `VARITY_API_KEY` | Auto-provided via credential proxy |
+| Check | Requirement |
+|-------|-------------|
+| Disk Space | 2GB free |
+| Memory | 3GB available |
 
-### Network Connectivity
+<Aside type="note">
+The Memory check requires 3GB available RAM. On WSL, CI machines, or low-memory VMs this check will often fail. It is a warning — your deploy will still succeed as long as builds complete locally.
+</Aside>
 
-- Varity platform connection
-- Storage API access
-- Storage gateway access
+### Project Configuration
 
-### Project Structure
+| Check | Requirement |
+|-------|-------------|
+| `varity.config.json` | Present (warns if missing — not required for all deploy paths) |
+| `.env` file | Present (optional — warns if absent) |
 
-- `package.json` exists
-- Build script defined
-- Dependencies installed
+### Network
+
+| Check | Requirement |
+|-------|-------------|
+| Internet | Reachable |
 
 ## Example Output
 
@@ -63,31 +67,25 @@ $ varitykit doctor
 │ Validating your development setup... │
 ╰──────────────────────────────────────╯
 
-1/4 Checking required tools...
-2/4 Checking system resources...
-3/4 Checking project configuration...
-4/4 Checking network connectivity...
-
                            Environment Check Results
-╭────────────────────────┬────────────────────────┬──────────────┬─────────────╮
-│ Category               │ Check                  │ Status       │ Details     │
-├────────────────────────┼────────────────────────┼──────────────┼─────────────┤
-│ Required Tools         │ node                   │ ✓ PASS       │ ...         │
-│ Required Tools         │ npm                    │ ✓ PASS       │ ...         │
-│ Required Tools         │ git                    │ ✓ PASS       │ ...         │
-│ System                 │ Disk Space             │ ✓ PASS       │ ...         │
-│ System                 │ Memory                 │ ✓ PASS       │ ...         │
-│ Project                │ varity.config.json     │ ⚠ WARN       │ Run init    │
-│ Project                │ .env File              │ ⚠ WARN       │ Optional    │
-│ Network                │ Internet               │ ✓ PASS       │ Connected   │
-╰────────────────────────┴────────────────────────┴──────────────┴─────────────╯
+╭────────────────────────┬────────────────────────┬──────────────┬─────────────────────────╮
+│ Category               │ Check                  │ Status       │ Details                 │
+├────────────────────────┼────────────────────────┼──────────────┼─────────────────────────┤
+│ Required Tools         │ node                   │ ✓ PASS       │ v22.0.0 (Required: 16+) │
+│ Required Tools         │ npm                    │ ✓ PASS       │ 10.9.2                  │
+│ Required Tools         │ git                    │ ✓ PASS       │ 2.43.0                  │
+│ System                 │ Disk Space             │ ✓ PASS       │ 50GB available          │
+│ System                 │ Memory                 │ ✓ PASS       │ 8GB available           │
+│ Project                │ varity.config.json     │ ⚠ WARN       │ Not found (run init)    │
+│ Project                │ .env File              │ ⚠ WARN       │ Optional                │
+│ Network                │ Internet               │ ✓ PASS       │ Connected               │
+╰────────────────────────┴────────────────────────┴──────────────┴─────────────────────────╯
 
-Total: 8 checks
+Total: 8 checks (6 pass, 2 warn)
 
-╭─────────────────────────────────────────────────────────────────────────╮
-│ ✓ All checks passed!                                                    │
-│ Your environment is ready. Run varitykit app deploy to deploy your app. │
-╰─────────────────────────────────────────────────────────────────────────╯
+╭───────────────────────────────────────────────────────────────────────────╮
+│ Environment is ready. Run varitykit app deploy to deploy your app.        │
+╰───────────────────────────────────────────────────────────────────────────╯
 ```
 
 ## Options
@@ -125,25 +123,11 @@ sudo apt install -y nodejs
 # Download from nodejs.org
 ```
 
-### Missing Environment Variables
+### Low Memory Warning
 
-Storage, authentication, and deployment credentials are auto-provided by Varity's credential proxy. No manual credential setup is required.
+If the Memory check reports a warning (requires 3GB available), you can safely continue — the warning means builds may be slower on this machine, but deployments still work.
 
-If you need to override the default app ID, create a `.env.local` file in your project root:
-
-```bash title=".env.local"
-NEXT_PUBLIC_VARITY_APP_ID=your-app-id
-```
-
-### Docker Not Running
-
-```bash
-# macOS/Windows
-# Open Docker Desktop
-
-# Linux
-sudo systemctl start docker
-```
+On WSL, run `wsl --shutdown` and reopen to reclaim memory from the host OS if needed.
 
 <Aside type="tip">
 Run `varitykit doctor --fix` to automatically fix common issues like missing directories or configuration files.

@@ -17,8 +17,8 @@ Install the Varity tools that fit how you work. The MCP server is the primary pa
 
 ## System Requirements
 
-- **Node.js** 18.0 or later
-- **Python** 3.8 or later (for the CLI)
+- **Node.js** 20.0 or later
+- **Python** 3.11 or later (for the CLI)
 - **npm**, **pnpm**, or **yarn**
 - A modern browser (Chrome, Firefox, Safari, Edge)
 
@@ -26,7 +26,7 @@ Install the Varity tools that fit how you work. The MCP server is the primary pa
 
 ## Option 1: MCP Server (recommended for Claude Code and Cursor)
 
-The MCP server connects Varity to your AI coding tool. It gives you 16 tools for deploying, monitoring, and managing apps using plain English. You do not need to add any code to your project.
+The MCP server connects Varity to your AI coding tool. It gives you 17 tools for deploying, monitoring, and managing apps using plain English. You do not need to add any code to your project.
 
 <Tabs>
   <TabItem label="Claude Code">
@@ -100,6 +100,11 @@ The CLI is a Python package called `varitykit`. If you are a JavaScript develope
 
    ```bash
    pip install pipx
+   ```
+
+   Then run:
+
+   ```bash
    pipx ensurepath
    ```
 
@@ -123,7 +128,7 @@ The CLI is a Python package called `varitykit`. If you are a JavaScript develope
    varitykit login
    ```
 
-   This opens a browser tab. Sign in with your email or Google account.
+   This opens the developer portal in your browser. Copy your deploy key and paste it back into the terminal when prompted.
 
 </Steps>
 
@@ -217,7 +222,7 @@ pipx install varitykit
 
 ### Node.js version errors
 
-Varity requires Node.js 18 or later. Check your version:
+Varity requires Node.js 20 or later. Check your version:
 
 ```bash
 node --version
