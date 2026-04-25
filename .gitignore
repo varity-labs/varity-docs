@@ -17,11 +17,20 @@ pnpm-debug.log*
 .env.*
 !.env.example
 
+# Credentials and secrets
+*.pem
+*.key
+*.p12
+credentials.json
+service-account*.json
+
 # OS files
 .DS_Store
 Thumbs.db
+Desktop.ini
 
 # Editor directories
+.vscode/
 .idea/
 .claude/
 *.swp
