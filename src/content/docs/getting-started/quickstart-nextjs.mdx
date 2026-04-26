@@ -56,19 +56,15 @@ Build a full-stack Next.js app with authentication, database, and deployment in 
 
 </Steps>
 
-## Available Templates
+## What Gets Scaffolded
 
-The `varitykit init` picker shows these templates:
+`varitykit init` creates a `saas-starter` project with auth, database, and a full dashboard pre-configured. The template includes:
 
-| Template | Description |
-|----------|-------------|
-| `finance-dashboard` | Financial services dashboard with fraud detection and AML monitoring |
-| `healthcare-dashboard` | Healthcare management with HIPAA compliance |
-| `retail-dashboard` | Retail management with inventory and sales analytics |
-| `iso-merchant-dashboard` | ISO merchant services with payment processing |
-| `generic-dashboard` | Generic business dashboard |
-
-Each template includes auth, database, and a full dashboard pre-configured.
+- **Landing page** — hero, features, pricing, CTA sections
+- **Auth** — email + Google sign-in, zero-config dev credentials
+- **Dashboard** — KPI cards, projects, tasks, team, settings
+- **Database** — Varity DB with full CRUD hooks pre-wired
+- **UI components** — from `@varity-labs/ui-kit`
 
 ## Project Structure
 
@@ -98,20 +94,16 @@ my-app/
 
 ### Authentication (already configured)
 
-The root layout wraps everything with the auth provider:
+The login and dashboard layouts wrap their pages with the auth provider:
 
-```tsx title="src/app/layout.tsx"
-import { PrivyStack } from '@varity-labs/ui-kit';
+```tsx title="src/app/login/page.tsx (simplified)"
+import { AuthProvider, useAuth } from '@varity-labs/ui-kit';
 
-export default function RootLayout({ children }) {
+export default function LoginPage() {
   return (
-    <html>
-      <body>
-        <PrivyStack appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID}>
-          {children}
-        </PrivyStack>
-      </body>
-    </html>
+    <AuthProvider appId={process.env.NEXT_PUBLIC_VARITY_AUTH_APP_ID}>
+      <LoginContent />
+    </AuthProvider>
   );
 }
 ```
@@ -166,7 +158,7 @@ export function useProjects() {
 Edit `src/lib/constants.ts` to change your app name and navigation:
 
 ```typescript title="src/lib/constants.ts"
-export const APP_NAME = 'TaskFlow';
+export const APP_NAME = 'My App';  // set to your project name
 
 export const NAVIGATION_ITEMS = [
   { label: 'Dashboard', icon: 'dashboard', path: '/dashboard' },
