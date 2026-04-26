@@ -1,6 +1,6 @@
 ---
 title: "Hooks Reference"
-description: "API reference for all @varity-labs/ui-kit React hooks including usePrivy, useTheme, useToast, and authentication state management."
+description: "API reference for all @varity-labs/ui-kit React hooks including useAuth, useTheme, useToast, and authentication state management."
 ---
 
 import Accordion from '../../../../components/Accordion.astro';
@@ -22,9 +22,9 @@ All React hooks exported by `@varity-labs/ui-kit`. Every hook listed here is ver
 | `useToast` | Feedback | `<ToastProvider>` |
 | `useTheme` | Branding | `<ThemeProvider>` |
 | `useVarityPayment` | Payments | None |
-| `usePrivy` | Authentication | `<VarityPrivyProvider>` |
-| `useLogin` | Authentication | `<VarityPrivyProvider>` |
-| `useLogout` | Authentication | `<VarityPrivyProvider>` |
+| `useAuth` | Authentication | `<AuthBaseProvider>` |
+| `useLogin` | Authentication | `<AuthBaseProvider>` |
+| `useLogout` | Authentication | `<AuthBaseProvider>` |
 
 ---
 
@@ -218,14 +218,14 @@ function PremiumFeature({ appId }: { appId: number }) {
 
 ## Authentication Hooks
 
-These hooks are re-exported from the auth library. They require `<VarityPrivyProvider>` in your component tree.
+These hooks are re-exported from the auth library. They require `<AuthBaseProvider>` in your component tree.
 
-### usePrivy
+### useAuth
 
 Core authentication hook. Provides login state, user profile, and auth actions.
 
 ```tsx
-import { usePrivy } from '@varity-labs/ui-kit';
+import { useAuth } from '@varity-labs/ui-kit';
 
 function MyComponent() {
   const {
@@ -234,7 +234,7 @@ function MyComponent() {
     user,           // User object or null
     login,          // () => void - Open login modal
     logout,         // () => Promise<void> - Log out
-  } = usePrivy();
+  } = useAuth();
 
   if (!ready) return <div>Loading...</div>;
 
@@ -293,30 +293,30 @@ function AuthControls() {
 
 ```tsx
 import {
-  usePrivy,
+  useAuth,
   useToast,
   useTheme,
   ToastProvider,
   ThemeProvider,
-  VarityPrivyProvider,
+  AuthBaseProvider,
 } from '@varity-labs/ui-kit';
 
 // App setup with all required providers
 function App() {
   return (
-    <VarityPrivyProvider appId="your-privy-app-id">
+    <AuthBaseProvider appId="your-varity-auth-app-id">
       <ThemeProvider theme={{ primaryColor: '#1976d2' }}>
         <ToastProvider>
           <Dashboard />
         </ToastProvider>
       </ThemeProvider>
-    </VarityPrivyProvider>
+    </AuthBaseProvider>
   );
 }
 
 // Dashboard using all hooks
 function Dashboard() {
-  const { user, authenticated, logout } = usePrivy();
+  const { user, authenticated, logout } = useAuth();
   const toast = useToast();
   const theme = useTheme();
 

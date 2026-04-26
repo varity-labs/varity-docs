@@ -34,14 +34,14 @@ npm install @varity-labs/ui-kit @varity-labs/sdk
 ```
 
 ```tsx
-import { PrivyStack, PrivyLoginButton } from '@varity-labs/ui-kit';
+import { AuthProvider, LoginButton } from '@varity-labs/ui-kit';
 
 function App() {
   return (
-    <PrivyStack>
-      <PrivyLoginButton />
+    <AuthProvider>
+      <LoginButton />
       <YourApp />
-    </PrivyStack>
+    </AuthProvider>
   );
 }
 ```
@@ -51,16 +51,16 @@ That's it. Users can now sign in with email or social accounts.
 ## Key Components
 
 <CardGrid>
-  <Card title="PrivyStack" icon="rocket">
+  <Card title="AuthProvider" icon="rocket">
     All-in-one provider that sets up authentication and account management. Wrap your app with this once.
   </Card>
-  <Card title="PrivyLoginButton" icon="user">
+  <Card title="LoginButton" icon="user">
     Pre-built login button that opens the authentication modal. Supports email, Google, Twitter, Discord, and more.
   </Card>
   <Card title="PaymentWidget" icon="document">
     Payment widget for in-app purchases and upgrades (post-beta).
   </Card>
-  <Card title="PrivyProtectedRoute" icon="approve-check">
+  <Card title="ProtectedRoute" icon="approve-check">
     Wrapper that shows content only to authenticated users. Shows login prompt otherwise.
   </Card>
 </CardGrid>
@@ -74,13 +74,13 @@ That's it. Users can now sign in with email or social accounts.
 5. User is authenticated and ready to use your app
 
 ```tsx
-import { usePrivy } from '@varity-labs/ui-kit';
+import { useAuth, LoginButton } from '@varity-labs/ui-kit';
 
 function Dashboard() {
-  const { authenticated, user, logout } = usePrivy();
+  const { authenticated, user, logout } = useAuth();
 
   if (!authenticated) {
-    return <PrivyLoginButton />;
+    return <LoginButton />;
   }
 
   return (
@@ -110,18 +110,18 @@ Users never see technical details or extra prompts unless you choose to show the
 
 | Export | Description |
 |--------|-------------|
-| `PrivyStack` | All-in-one provider (recommended) |
-| `VarityPrivyProvider` | Authentication provider with Wagmi |
+| `AuthProvider` | All-in-one provider (recommended) |
+| `AuthBaseProvider` | Lower-level authentication provider |
 | `VarityDashboardProvider` | Dashboard-specific provider setup |
 
 ### Components
 
 | Export | Description |
 |--------|-------------|
-| `PrivyLoginButton` | Login button with modal |
-| `PrivyUserProfile` | Display user info with logout |
-| `PrivyProtectedRoute` | Auth-gated content wrapper |
-| `PrivyReadyGate` | Loading state during initialization |
+| `LoginButton` | Login button with modal |
+| `UserProfile` | Display user info with logout |
+| `ProtectedRoute` | Auth-gated content wrapper |
+| `ReadyGate` | Loading state during initialization |
 | `PaymentWidget` | In-app payment widget (post-beta) |
 | `PaymentGate` | Subscription/tier gate (post-beta) |
 
@@ -129,7 +129,7 @@ Users never see technical details or extra prompts unless you choose to show the
 
 | Export | Description |
 |--------|-------------|
-| `usePrivy` | Core authentication hook (re-exported) |
+| `useAuth` | Core authentication hook |
 | `useLogin` | Trigger login programmatically |
 | `useLogout` | Trigger logout programmatically |
 
@@ -182,17 +182,17 @@ These exports provide lower-level access for advanced use cases. All are current
 
 ```tsx
 import {
-  PrivyStack,
-  PrivyLoginButton,
-  PrivyUserProfile,
-  PrivyProtectedRoute,
-  usePrivy,
+  AuthProvider,
+  LoginButton,
+  UserProfile,
+  ProtectedRoute,
+  useAuth,
 } from '@varity-labs/ui-kit';
 
 function App() {
   return (
-    <PrivyStack
-      appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID}
+    <AuthProvider
+      appId={process.env.NEXT_PUBLIC_VARITY_AUTH_APP_ID}
       loginMethods={['email', 'google']}
       appearance={{
         theme: 'light',
@@ -202,23 +202,23 @@ function App() {
     >
       <Layout>
         <Header />
-        <PrivyProtectedRoute>
+        <ProtectedRoute>
           <Dashboard />
-        </PrivyProtectedRoute>
+        </ProtectedRoute>
       </Layout>
-    </PrivyStack>
+    </AuthProvider>
   );
 }
 
 function Header() {
-  const { authenticated } = usePrivy();
+  const { authenticated } = useAuth();
 
   return (
     <header>
       {authenticated ? (
-        <PrivyUserProfile showLogoutButton />
+        <UserProfile showLogoutButton />
       ) : (
-        <PrivyLoginButton>Sign In</PrivyLoginButton>
+        <LoginButton>Sign In</LoginButton>
       )}
     </header>
   );
