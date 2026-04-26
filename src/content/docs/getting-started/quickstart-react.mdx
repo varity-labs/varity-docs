@@ -69,15 +69,15 @@ Set up a React app with Vite and add Varity authentication and database.
    ```tsx title="src/main.tsx"
    import React from 'react';
    import ReactDOM from 'react-dom/client';
-   import { PrivyStack } from '@varity-labs/ui-kit';
+   import { AuthProvider } from '@varity-labs/ui-kit';
    import App from './App';
    import './index.css';
 
    ReactDOM.createRoot(document.getElementById('root')!).render(
      <React.StrictMode>
-       <PrivyStack appId={import.meta.env.VITE_PRIVY_APP_ID}>
+       <AuthProvider appId={import.meta.env.VITE_VARITY_AUTH_APP_ID}>
          <App />
-       </PrivyStack>
+       </AuthProvider>
      </React.StrictMode>
    );
    ```
@@ -89,10 +89,10 @@ Set up a React app with Vite and add Varity authentication and database.
 2. **Add a login button**
 
    ```tsx title="src/App.tsx"
-   import { PrivyLoginButton, PrivyProtectedRoute, usePrivy } from '@varity-labs/ui-kit';
+   import { LoginButton, ProtectedRoute, useAuth } from '@varity-labs/ui-kit';
 
    function Dashboard() {
-     const { user, logout } = usePrivy();
+     const { user, logout } = useAuth();
 
      return (
        <div>
@@ -106,11 +106,11 @@ Set up a React app with Vite and add Varity authentication and database.
      return (
        <div>
          <h1>My App</h1>
-         <PrivyLoginButton />
+         <LoginButton />
 
-         <PrivyProtectedRoute>
+         <ProtectedRoute>
            <Dashboard />
-         </PrivyProtectedRoute>
+         </ProtectedRoute>
        </div>
      );
    }
@@ -255,7 +255,7 @@ For Vite projects, use the `VITE_` prefix:
 
 ```bash title=".env"
 VITE_VARITY_APP_ID=your-app-id
-VITE_PRIVY_APP_ID=your-privy-id
+VITE_VARITY_AUTH_APP_ID=your-varity-auth-app-id
 ```
 
 <Aside type="tip">

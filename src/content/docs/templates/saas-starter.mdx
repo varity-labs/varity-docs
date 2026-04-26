@@ -142,15 +142,15 @@ interface UseCollectionReturn<T> {
 
 ```tsx
 // Root layout sets up auth provider
-<PrivyStack appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID}>
+<AuthProvider appId={process.env.NEXT_PUBLIC_VARITY_AUTH_APP_ID}>
   {children}
-</PrivyStack>
+</AuthProvider>
 
 // Dashboard layout protects all dashboard routes
-<PrivyProtectedRoute>{children}</PrivyProtectedRoute>
+<ProtectedRoute>{children}</ProtectedRoute>
 
 // Access user info in any component
-const { user, authenticated, logout } = usePrivy();
+const { user, authenticated, logout } = useAuth();
 ```
 
 ## Customization Guide
@@ -258,7 +258,7 @@ export default function AboutPage() {
 
 ```bash title=".env.example"
 # Auth (optional for development — shared creds used automatically)
-NEXT_PUBLIC_PRIVY_APP_ID=
+NEXT_PUBLIC_VARITY_AUTH_APP_ID=
 
 # Your app ID (assigned after first deploy)
 NEXT_PUBLIC_VARITY_APP_ID=
