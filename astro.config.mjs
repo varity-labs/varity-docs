@@ -149,6 +149,25 @@ export default defineConfig({
           ],
         },
 
+        // ===== GUIDES =====
+        {
+          label: "Guides",
+          items: [
+            {
+              label: "Deploy a Next.js App",
+              slug: "guides/deploy-nextjs",
+            },
+            {
+              label: "Deploy from Claude Code / Cursor / Windsurf",
+              slug: "guides/deploy-from-ai-ide",
+            },
+            {
+              label: "Error Handling",
+              slug: "guides/error-handling",
+            },
+          ],
+        },
+
         // ===== HOW TO USE VARITY =====
         {
           label: "How to Use Varity",
