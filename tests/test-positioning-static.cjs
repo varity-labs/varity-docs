@@ -87,6 +87,19 @@ for (const file of files) {
   }
 }
 
+// VAR-389: ensure tutorial code examples use path-prefix format, not subdomain format.
+// db.varity.app is a legitimate subdomain (SDK technical docs) and is already excluded via TECHNICAL_PATHS.
+const SUBDOMAIN_URL_RE = /https?:\/\/[a-zA-Z0-9][a-zA-Z0-9-]*\.varity\.app/i;
+for (const file of files) {
+  if (isTechnicalFile(file)) continue;
+  const rel = path.relative(DOCS_SRC, file);
+  const fullSrc = fs.readFileSync(file, 'utf8');
+  if (SUBDOMAIN_URL_RE.test(fullSrc)) {
+    console.error(`FAIL [${rel}] uses subdomain URL format (*.varity.app) — use path-prefix format https://varity.app/{name}/ instead (VAR-389)`);
+    totalViolations++;
+  }
+}
+
 // VAR-506: ensure _redirects exists so 4everland CDN never falls through to raw IPFS gateway
 const REDIRECTS_PATH = path.join(__dirname, '../public/_redirects');
 if (!fs.existsSync(REDIRECTS_PATH)) {
