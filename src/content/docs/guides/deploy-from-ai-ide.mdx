@@ -1,0 +1,312 @@
+---
+title: Deploy from Claude Code, Cursor, or Windsurf
+description: Deploy any app to production from inside your AI editor. Install the Varity MCP server once, then type "deploy this" and your app is live.
+---
+
+import { Steps, Tabs, TabItem, Aside, Card, CardGrid } from '@astrojs/starlight/components';
+import PageMeta from '../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="April 2026"
+  stability="stable"
+/>
+
+Varity is built for developers who use AI coding tools. Install the MCP server once, and your AI editor can scaffold, build, and deploy apps to production without you ever leaving the chat.
+
+Works with Claude Code, Cursor, Windsurf, VS Code (Copilot), and any other editor that supports the Model Context Protocol.
+
+## Install the MCP server
+
+<Tabs>
+  <TabItem label="Claude Code">
+    Run this once from any directory:
+
+    ```bash
+    claude mcp add varity -- npx -y @varity-labs/mcp
+    ```
+
+    Claude Code picks up the server automatically on the next conversation. Confirm it is registered:
+
+    ```bash
+    claude mcp list
+    ```
+
+    You should see `varity` in the list.
+  </TabItem>
+  <TabItem label="Cursor">
+    Create `.cursor/mcp.json` in your project root (or your home directory for a global install):
+
+    ```json
+    {
+      "mcpServers": {
+        "varity": {
+          "command": "npx",
+          "args": ["-y", "@varity-labs/mcp"]
+        }
+      }
+    }
+    ```
+
+    Restart Cursor. The Varity tools appear in the MCP tool list under the agent panel.
+  </TabItem>
+  <TabItem label="Windsurf">
+    Add to `~/.codeium/windsurf/mcp_config.json`:
+
+    ```json
+    {
+      "mcpServers": {
+        "varity": {
+          "command": "npx",
+          "args": ["-y", "@varity-labs/mcp"]
+        }
+      }
+    }
+    ```
+
+    Restart Windsurf to load the server.
+  </TabItem>
+  <TabItem label="VS Code (Copilot)">
+    Add to `.vscode/mcp.json` in your workspace:
+
+    ```json
+    {
+      "mcpServers": {
+        "varity": {
+          "command": "npx",
+          "args": ["-y", "@varity-labs/mcp"]
+        }
+      }
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+<Aside type="note">
+Node.js 20 or later and Python 3.8 or later are required. If you do not have `varitykit` installed, your AI editor will prompt you to install it: `pip install varitykit`.
+</Aside>
+
+## Deploy with one prompt
+
+Once the MCP server is installed, type this in your AI editor:
+
+```
+Deploy this project to Varity
+```
+
+Your AI editor calls `varity_build` and `varity_deploy` in sequence and returns the live URL.
+
+For a brand new project:
+
+```
+Create a new Varity app called my-app, install dependencies, and deploy it to production
+```
+
+The AI handles scaffolding, dependency installation, the production build, and the deploy. You get a live URL when it is done.
+
+## Copy-paste prompts
+
+These prompts are tested and work out of the box in Claude Code, Cursor, and Windsurf.
+
+**Check environment**
+```
+Check if my environment is ready for Varity
+```
+
+**Scaffold a new app**
+```
+Create a new Varity app called my-project, install dependencies, start the dev server, and open it in my browser
+```
+
+**Deploy to production**
+```
+Build my project and deploy it to Varity. Show me the live URL when done.
+```
+
+**Check status**
+```
+Show me the status of my Varity deployments
+```
+
+**Debug a failed deploy**
+```
+Show me the build logs for my last Varity deployment
+```
+
+**Estimate cost**
+```
+How much would it cost to host this app with 1000 monthly users on Varity?
+```
+
+**Full build-to-deploy flow**
+```
+Check my Varity environment, then build this project, deploy it, and open the live URL in my browser
+```
+
+## What the MCP server can do
+
+The Varity MCP server gives your AI editor 16 tools. Here are the most useful ones for the build-to-deploy workflow:
+
+| Tool | What to ask your AI |
+|---|---|
+| `varity_doctor` | "Check if my environment is set up for Varity" |
+| `varity_init` | "Create a new Varity app called my-project" |
+| `varity_install_deps` | "Install dependencies for this project" |
+| `varity_dev_server` | "Start the dev server and open it in my browser" |
+| `varity_build` | "Build this project for production" |
+| `varity_deploy` | "Deploy this to Varity" |
+| `varity_deploy_status` | "Show me my deployment status" |
+| `varity_deploy_logs` | "Show me the build logs" |
+| `varity_migrate` | "Migrate my Vercel app to Varity" |
+| `varity_cost_calculator` | "How much will this cost at 500 users?" |
+
+Full reference at [MCP Server Spec](/ai-tools/mcp-server-spec).
+
+## Add Varity context to your project
+
+For Claude Code, add this to your project's `CLAUDE.md`:
+
+```markdown
+## Deployment
+
+This project deploys to Varity. Use the Varity MCP server tools:
+- Deploy: ask "Deploy this project to Varity"
+- Check status: ask "Show me my Varity deployment status"
+- Logs: ask "Show me the build logs for my last deployment"
+```
+
+For Cursor, save this as `.cursor/rules/varity.mdc`:
+
+```markdown
+When the user asks to deploy, use the Varity MCP varity_deploy tool.
+When the user asks to check deployment status, use varity_deploy_status.
+When the user asks to see logs, use varity_deploy_logs.
+```
+
+This tells your AI editor to route deploy-related requests to the Varity tools automatically.
+
+## Typical vibe coding session
+
+Here is a complete session from idea to live app, using only your AI editor:
+
+<Steps>
+
+1. **Check your setup**
+
+   ```
+   Check if my environment is ready for Varity
+   ```
+
+   The AI runs `varity_doctor` and tells you if anything needs fixing.
+
+2. **Scaffold the app**
+
+   ```
+   Create a new Varity app called task-tracker. I want a dashboard where users can create and manage tasks.
+   ```
+
+   The AI calls `varity_init`, picks the `saas-starter` template, and scaffolds the project.
+
+3. **Install dependencies**
+
+   ```
+   Install dependencies and start the dev server
+   ```
+
+   The AI runs `varity_install_deps` and `varity_dev_server`, then opens `localhost:3000`.
+
+4. **Build the feature**
+
+   Work with your AI editor to build the task feature. Varity's database API makes it easy:
+
+   ```
+   Add a tasks collection with title (string), status (string), and dueDate (string) fields. Include a dashboard page with a list and a create form.
+   ```
+
+5. **Deploy to production**
+
+   ```
+   Build and deploy this to Varity
+   ```
+
+   The AI calls `varity_build` and `varity_deploy`. Your app is live in about 60 seconds.
+
+6. **Share the link**
+
+   ```
+   Show me the live URL for my deployment
+   ```
+
+   Done. Send it to anyone.
+
+</Steps>
+
+## Migrating from Vercel
+
+If you already have a Vercel app, one prompt migrates it to Varity:
+
+```
+Migrate my Vercel app at https://github.com/your-org/your-app to Varity
+```
+
+The AI calls `varity_migrate`, which clones the repository, removes Vercel-specific configuration, and deploys to Varity infrastructure. See [Migrate from Vercel](/deploy/vercel-migration) for details.
+
+## Browser-based AI tools (Claude.ai, ChatGPT)
+
+If you use a browser-based AI tool instead of a desktop editor, connect to the hosted MCP endpoint:
+
+```
+https://mcp.varity.so
+```
+
+**Claude.ai:** Settings > Connectors > Add MCP Server > URL: `https://mcp.varity.so`
+
+**ChatGPT:** Settings > Connectors > Create > MCP server URL: `https://mcp.varity.so`
+
+The first connection asks you to authenticate via the Varity login page.
+
+## Troubleshooting
+
+**"varity not found" in your AI editor**
+
+Re-add the server and restart:
+
+```bash
+# Claude Code
+claude mcp add varity -- npx -y @varity-labs/mcp
+```
+
+Verify with `claude mcp list`.
+
+**Deploy fails with "varitykit not found"**
+
+```bash
+pip install varitykit
+```
+
+Then ask your AI to try again.
+
+**Cursor does not show the Varity tools**
+
+Check that `.cursor/mcp.json` is valid JSON, then restart Cursor. Cursor requires a full restart (not just reload) to pick up MCP config changes.
+
+**Server is registered but tools are not being called**
+
+Ask your AI directly:
+
+```
+Use the varity_doctor tool to check my environment
+```
+
+If the AI is not picking up the tools automatically, being explicit about the tool name always works.
+
+See [MCP Server Spec](/ai-tools/mcp-server-spec) for the full troubleshooting section.
+
+## Next steps
+
+- [MCP Server Spec](/ai-tools/mcp-server-spec): All 16 tools documented
+- [AI Prompts](/ai-tools/prompts): Copy-paste prompts for building Varity apps
+- [Deploy a Next.js App](/guides/deploy-nextjs): Full Next.js deploy walkthrough
+- [Migrate from Vercel](/deploy/vercel-migration): One-command Vercel migration
+- [Auto-wired Services](/deploy/auto-wired-services): What gets provisioned automatically

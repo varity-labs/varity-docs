@@ -1,0 +1,311 @@
+---
+title: Deploy a Next.js App
+description: The easiest way to deploy a Next.js app with auth and a database. One command. Live in 60 seconds.
+---
+
+import { Steps, Tabs, TabItem, Aside, Card, CardGrid } from '@astrojs/starlight/components';
+import PageMeta from '../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="April 2026"
+  stability="stable"
+/>
+
+Deploy a production Next.js app with authentication, a database, and a live URL in under 60 seconds. No server configuration, no environment variable setup, no infrastructure decisions.
+
+<CardGrid>
+  <Card title="Zero configuration" icon="rocket">
+    Varity detects your framework, wires your database, and deploys. You run one command.
+  </Card>
+  <Card title="60-80% cheaper than AWS" icon="seti:money">
+    Pay only for what you use. No idle server costs. No DevOps overhead.
+  </Card>
+</CardGrid>
+
+## Two ways to deploy
+
+You can deploy from your AI editor using the Varity MCP server (recommended for vibe coders), or from the terminal using the CLI.
+
+<Tabs>
+  <TabItem label="From Claude Code or Cursor (MCP)">
+    **Step 1. Add the Varity MCP server**
+
+    <Tabs>
+      <TabItem label="Claude Code">
+        ```bash
+        claude mcp add varity -- npx -y @varity-labs/mcp
+        ```
+      </TabItem>
+      <TabItem label="Cursor">
+        Add to `.cursor/mcp.json` in your project root:
+
+        ```json
+        {
+          "mcpServers": {
+            "varity": {
+              "command": "npx",
+              "args": ["-y", "@varity-labs/mcp"]
+            }
+          }
+        }
+        ```
+
+        Restart Cursor.
+      </TabItem>
+      <TabItem label="Windsurf">
+        Add to `~/.codeium/windsurf/mcp_config.json`:
+
+        ```json
+        {
+          "mcpServers": {
+            "varity": {
+              "command": "npx",
+              "args": ["-y", "@varity-labs/mcp"]
+            }
+          }
+        }
+        ```
+      </TabItem>
+    </Tabs>
+
+    **Step 2. Ask your AI to scaffold and deploy**
+
+    Type this prompt in your AI editor:
+
+    ```
+    Create a new Next.js app called my-app using Varity, install dependencies, then deploy it to production.
+    ```
+
+    The AI will call `varity_init`, `varity_install_deps`, `varity_build`, and `varity_deploy` in sequence. Your live URL appears when it is done.
+
+    **Step 3. Check the result**
+
+    ```
+    Show me the status of my Varity deployment
+    ```
+
+    You will get the live URL, framework detected, build time, and status.
+  </TabItem>
+  <TabItem label="From the terminal (CLI)">
+    **Step 1. Install the CLI**
+
+    ```bash
+    pip install varitykit
+    ```
+
+    Python 3.8 or later is required.
+
+    **Step 2. Scaffold your app**
+
+    ```bash
+    varitykit init my-app
+    cd my-app
+    ```
+
+    The interactive picker lets you choose a template. The `saas-starter` template includes authentication, a database, and a working dashboard out of the box.
+
+    **Step 3. Install dependencies**
+
+    ```bash
+    npm install
+    ```
+
+    **Step 4. Deploy**
+
+    ```bash
+    varitykit app deploy
+    ```
+
+    Your app is live. The terminal prints your URL.
+  </TabItem>
+</Tabs>
+
+## What gets auto-configured
+
+When you deploy a Next.js app with Varity, these services are wired automatically:
+
+| Service | What Varity does |
+|---|---|
+| Database (Postgres) | Provisions a dedicated schema, injects connection credentials at deploy time |
+| Authentication | Auto-wires login flows so users can sign in immediately after deploy |
+| Hosting | Detects SSR vs. static and picks the right compute type |
+| SSL | HTTPS is on by default. No certificate setup needed |
+| Custom URL | Your app gets a live public URL at `varity.app/your-app` |
+
+No environment variables to copy, no credential files to manage. The auto-wired services are documented in [Auto-wired Services](/deploy/auto-wired-services).
+
+## Full walkthrough: scaffold to live
+
+<Steps>
+
+1. **Verify your environment**
+
+   ```bash
+   varitykit doctor
+   ```
+
+   This checks Node.js, Python, CLI, and authentication status. Fix anything it flags before proceeding.
+
+2. **Scaffold the app**
+
+   ```bash
+   varitykit init my-nextjs-app
+   cd my-nextjs-app
+   npm install
+   ```
+
+   The `saas-starter` template gives you a Next.js App Router project with auth, database, and a working dashboard.
+
+3. **Run locally**
+
+   ```bash
+   npm run dev
+   ```
+
+   Open `http://localhost:3000`. Sign in, create a record, verify the UI works.
+
+4. **Build for production**
+
+   ```bash
+   npm run build
+   ```
+
+   Fix any TypeScript or lint errors before deploying.
+
+5. **Deploy**
+
+   ```bash
+   varitykit app deploy
+   ```
+
+   Output when done:
+
+   ```
+   Detecting framework...   Next.js (App Router)
+   Building app...          Done in 42s
+   Deploying...             Done in 18s
+   
+   Live at: https://varity.app/my-nextjs-app/
+   ```
+
+6. **Verify**
+
+   Open the URL. Sign in. Create a record. Confirm the app works exactly as it did locally.
+
+</Steps>
+
+## Deploy with a dynamic backend
+
+By default Varity detects whether your app is static or needs a live server. A Next.js app with API routes, server actions, or `getServerSideProps` is automatically deployed with container-based compute.
+
+If you want to force the hosting type:
+
+```bash
+varitykit app deploy --hosting dynamic
+```
+
+See [Auto-wired Services](/deploy/auto-wired-services) for a full explanation of how Varity picks the hosting type.
+
+## Using the MCP tools in your AI editor
+
+These are the relevant MCP tools for a Next.js deploy workflow:
+
+| Tool | What it does |
+|---|---|
+| `varity_doctor` | Checks environment setup |
+| `varity_init` | Scaffolds a new project from a template |
+| `varity_install_deps` | Runs npm install |
+| `varity_build` | Builds for production |
+| `varity_deploy` | Deploys and returns the live URL |
+| `varity_deploy_status` | Lists deployments with status and URL |
+| `varity_deploy_logs` | Gets build logs for debugging |
+
+Copy-paste prompts for each step:
+
+```
+Check if my environment is ready for Varity
+```
+
+```
+Create a new Varity app called invoice-tracker, install dependencies
+```
+
+```
+Build my project and deploy it to Varity
+```
+
+```
+Show me the deployment status and live URL
+```
+
+## Updating your app
+
+After making changes, redeploy with the same command:
+
+```bash
+varitykit app deploy
+```
+
+Or from your AI editor:
+
+```
+Build and redeploy my Varity app
+```
+
+Varity keeps the previous deployment available for instant rollback. See [Rollback a Deployment](/deploy/rollback).
+
+## Cost
+
+Varity is usage-based. A typical Next.js app with 100 monthly active users costs around 60-80% less than an equivalent AWS setup. Use the cost calculator to get a precise estimate:
+
+```
+How much would it cost to host a Next.js app with 500 users on Varity?
+```
+
+Or use the CLI:
+
+```bash
+varitykit cost-calculator --users 500 --has-database
+```
+
+See [How pricing works](/resources/pricing) for details.
+
+<Aside type="tip">
+Varity is currently in beta. All deployments run on production-grade infrastructure, but you are working with test data and a shared environment.
+</Aside>
+
+## Troubleshooting
+
+**Build fails with "Module not found"**
+
+Run `npm install` first, then rebuild.
+
+**"varitykit not found" in terminal**
+
+```bash
+pip install varitykit
+varitykit doctor
+```
+
+**Deploy times out**
+
+```bash
+varitykit doctor
+varitykit app deploy --verbose
+```
+
+**App loads but database is empty**
+
+Your app scaffold includes sample data creation in the dashboard. Navigate to a list view and create a record to confirm the database is wired correctly.
+
+See [Troubleshooting Deploys](/deploy/deployment-troubleshooting) for the full list.
+
+## Next steps
+
+- [Auto-wired Services](/deploy/auto-wired-services): What gets provisioned and how
+- [Environment Variables](/deploy/env-variables): What you can override
+- [Custom Domains](/deploy/custom-domains): Point your own domain at the deployment
+- [MCP Server Reference](/ai-tools/mcp-server-spec): All 16 MCP tools
+- [Rollback a Deployment](/deploy/rollback): Revert to a previous version
