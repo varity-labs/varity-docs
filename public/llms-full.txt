@@ -736,7 +736,7 @@ varitykit platforms
 
 Create: `npx create-varity-app my-app`
 
-Production-ready Next.js 14 template with:
+Production-ready Next.js 15 template with:
 - Authentication (email, Google, GitHub, Twitter, Discord)
 - Dashboard with sidebar navigation
 - Settings page (profile, preferences, security, billing)
