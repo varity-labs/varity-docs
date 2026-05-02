@@ -1,9 +1,9 @@
 ---
 title: Quick Start
-description: Deploy your first app to Varity in under 60 seconds. Works with any existing Next.js, React, Vue, or Python project.
+description: Get started with Varity in minutes. Migrate an existing app, deploy a ready-made template, or build from scratch with AI tools.
 ---
 
-import { Steps, Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid, Card } from '@astrojs/starlight/components';
 import PageMeta from '../../../components/PageMeta.astro';
 
 <PageMeta
@@ -13,11 +13,81 @@ import PageMeta from '../../../components/PageMeta.astro';
   stability="beta"
 />
 
-Deploy your app to Varity in under 60 seconds. You do not need to change any code.
+Three ways to get started. Pick the one that fits where you are today.
 
-## Path 1: Deploy with Claude Code or Cursor (recommended)
+<CardGrid>
+  <Card title="Migrate an existing app" icon="rocket">
+    You already have an app on Vercel, Railway, Heroku, or anywhere else. One command migrates and deploys it.
+  </Card>
+  <Card title="Deploy a ready-made template" icon="puzzle">
+    Deploy Ollama, Postgres, or other production services in one command. No code required.
+  </Card>
+  <Card title="Build from scratch with AI tools" icon="laptop">
+    Using Claude Code or Cursor? Add the Varity MCP server and ask your AI tool to deploy.
+  </Card>
+</CardGrid>
 
-This is the fastest path. The Varity MCP server lets your AI tool handle the entire deploy.
+---
+
+## Path 1: Migrate your existing app
+
+If you already have a Next.js, React, or Python app — on Vercel, Railway, Heroku, or any GitHub repo — this is the fastest path.
+
+<Steps>
+
+1. **Install the CLI**
+
+   ```bash
+   pipx install varitykit
+   ```
+
+2. **Migrate and deploy**
+
+   ```bash
+   varitykit migrate --url https://github.com/username/my-app
+   ```
+
+   This clones your repository, removes any platform-specific code, and deploys your app to Varity. Your app is live at `https://varity.app/my-app/` when done.
+
+3. **Preview before deploying** (optional)
+
+   ```bash
+   varitykit migrate --url https://github.com/username/my-app --dry-run
+   ```
+
+   Shows exactly what will change without deploying anything.
+
+</Steps>
+
+<Aside type="tip" title="Coming from Vercel?">
+The migration tool automatically removes `vercel.json`, `@vercel/*` packages, and Vercel-specific environment variable names. Everything is backed up to `.vercel-migration-backup/` so you can roll back.
+</Aside>
+
+See the full [Migration Guide](/deploy/vercel-migration) for step-by-step details, rollback instructions, and troubleshooting.
+
+---
+
+## Path 2: Deploy a ready-made template
+
+Deploy open-source AI models, databases, and other services in one command. No code to write.
+
+```bash
+varitykit deploy --template ollama --name my-llama
+```
+
+Available templates include Ollama (open-source LLMs), Stable Diffusion, Postgres, Redis, and more.
+
+<Aside type="note" title="Shipping with the next release">
+The `varitykit deploy --template` command is available in the upcoming release. Check back here or watch the [changelog](https://github.com/varity-labs/varity-sdk/releases) for the exact version.
+</Aside>
+
+[Browse available templates →](/templates/overview)
+
+---
+
+## Path 3: Build from scratch with AI tools
+
+If you are using Claude Code or Cursor, the Varity MCP server lets your AI tool handle the entire deploy with plain English.
 
 <Steps>
 
@@ -63,69 +133,11 @@ This is the fastest path. The Varity MCP server lets your AI tool handle the ent
    https://varity.app/your-app-name/
    ```
 
-   The exact URL is shown in the terminal output.
-
 </Steps>
 
 <Aside type="tip" title="First deploy?">
 The MCP server will prompt you to log in the first time. Use your email or Google account. No account setup is needed beforehand.
 </Aside>
-
----
-
-## Path 2: Deploy from the command line
-
-If you prefer the CLI or are not using an AI coding tool:
-
-<Steps>
-
-1. **Install the CLI**
-
-   ```bash
-   pipx install varitykit
-   ```
-
-   `pipx` is the recommended way to install Python CLI tools. If you do not have it, you can use `pip install varitykit` instead.
-
-2. **Log in**
-
-   ```bash
-   varitykit login
-   ```
-
-   This opens the developer portal. Copy your deploy key and paste it back into the terminal when prompted.
-
-3. **Deploy**
-
-   Run this from your project directory:
-
-   ```bash
-   varitykit app deploy
-   ```
-
-   Varity detects your framework automatically and deploys to:
-
-   ```
-   https://varity.app/your-app-name/
-   ```
-
-</Steps>
-
----
-
-## What happens during a deploy
-
-When you deploy, Varity:
-
-1. Detects your framework (Next.js, React, Vue, FastAPI, etc.)
-2. Checks for database or service dependencies in your project and wires them up automatically
-3. Builds your project
-4. Deploys to live hosting
-5. Returns a working URL
-
-Static apps (React, Vue) go to a global CDN. Full-stack apps (Next.js, Express, FastAPI) run in containers with the resources they need.
-
-You do not need Docker, environment configuration, or infrastructure knowledge.
 
 ---
 
@@ -166,4 +178,8 @@ varitykit app status
 
 - [How Varity Works](/getting-started/how-varity-works) - Understand the full deployment flow
 - [Installation](/getting-started/installation) - Full setup guide for all tools
-- [Vercel Migration](/guides/migrate-from-vercel) - Move an existing Vercel app to Varity
+- [Migration Guide](/deploy/vercel-migration) - Detailed migration docs for Vercel, Railway, and Heroku apps
+
+---
+
+*Looking for a SaaS starter template? `varitykit init` scaffolds a starter project with auth and database — this is experimental and not the recommended beta path for most developers.*
