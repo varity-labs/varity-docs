@@ -101,12 +101,12 @@ Possible causes and solutions:
 
 ## Authentication Issues
 
-### "PrivyStack: appId is required"
+### "AuthProvider: appId is required"
 
 Set your Auth App ID in environment variables:
 
 ```bash title=".env.local"
-NEXT_PUBLIC_PRIVY_APP_ID=your_app_id
+NEXT_PUBLIC_VARITY_AUTH_APP_ID=your_app_id
 ```
 
 Or use Varity development credentials (the SDK will use defaults if none provided).
@@ -115,11 +115,11 @@ Or use Varity development credentials (the SDK will use defaults if none provide
 
 <Steps>
 
-1. Verify `PrivyStack` wraps your application:
+1. Verify `AuthProvider` wraps your application:
    ```tsx
-   <PrivyStack appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID}>
+   <AuthProvider appId={process.env.NEXT_PUBLIC_VARITY_AUTH_APP_ID}>
      <App />
-   </PrivyStack>
+   </AuthProvider>
    ```
 
 2. Check browser console for errors
@@ -139,7 +139,7 @@ Sessions are stored in localStorage. Private browsing or clearing storage will l
 </Aside>
 
 Check that:
-- `PrivyStack` is at the root of your app
+- `AuthProvider` is at the root of your app
 - You're not accidentally clearing localStorage
 - Cookies are enabled in the browser
 
@@ -228,7 +228,7 @@ Common causes:
 3. Verify you're using tree-shaking:
    ```typescript
    // Good - tree-shakeable
-   import { PrivyStack } from '@varity-labs/ui-kit';
+   import { AuthProvider } from '@varity-labs/ui-kit';
 
    // Avoid - imports entire package
    import * as VarityUI from '@varity-labs/ui-kit';

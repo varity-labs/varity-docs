@@ -32,17 +32,17 @@ Let users sign in with accounts they already have. No new passwords, no email ve
 1. **Configure login methods**
 
    ```tsx title="app/layout.tsx"
-   import { PrivyStack } from '@varity-labs/ui-kit';
+   import { AuthProvider } from '@varity-labs/ui-kit';
 
    export default function RootLayout({ children }) {
      return (
        <html>
          <body>
-           <PrivyStack
+           <AuthProvider
              loginMethods={['email', 'google', 'twitter', 'discord']}
            >
              {children}
-           </PrivyStack>
+           </AuthProvider>
          </body>
        </html>
      );
@@ -51,13 +51,13 @@ Let users sign in with accounts they already have. No new passwords, no email ve
 
 2. **Add the login button**
 
-   The `PrivyLoginButton` automatically shows all configured providers:
+   The `LoginButton` automatically shows all configured providers:
 
    ```tsx title="components/LoginButton.tsx"
-   import { PrivyLoginButton } from '@varity-labs/ui-kit';
+   import { LoginButton } from '@varity-labs/ui-kit';
 
    export function LoginButton() {
-     return <PrivyLoginButton />;
+     return <LoginButton />;
    }
    ```
 
@@ -71,13 +71,13 @@ Users will see a modal with options for email and all configured social provider
 
 ## Accessing User Data
 
-After social login, user data is available through `usePrivy`:
+After social login, user data is available through `useAuth`:
 
 ```tsx title="components/UserInfo.tsx"
-import { usePrivy } from '@varity-labs/ui-kit';
+import { useAuth } from '@varity-labs/ui-kit';
 
 export function UserInfo() {
-  const { user } = usePrivy();
+  const { user } = useAuth();
 
   if (!user) return null;
 
@@ -117,7 +117,7 @@ export function UserInfo() {
 Customize the appearance of the login modal:
 
 ```tsx title="app/layout.tsx"
-<PrivyStack
+<AuthProvider
   loginMethods={['email', 'google', 'twitter']}
   appearance={{
     theme: 'light',
@@ -126,7 +126,7 @@ Customize the appearance of the login modal:
   }}
 >
   {children}
-</PrivyStack>
+</AuthProvider>
 ```
 
 ### Theme Options
@@ -142,11 +142,11 @@ Customize the appearance of the login modal:
 To disable email login and only allow social providers:
 
 ```tsx title="app/layout.tsx"
-<PrivyStack
+<AuthProvider
   loginMethods={['google', 'twitter', 'discord']}
 >
   {children}
-</PrivyStack>
+</AuthProvider>
 ```
 
 ## Best Practices
@@ -164,12 +164,12 @@ Pick providers your users actually use:
 ### Handle Login Errors
 
 ```tsx title="components/LoginWithErrorHandling.tsx"
-import { PrivyLoginButton } from '@varity-labs/ui-kit';
+import { LoginButton } from '@varity-labs/ui-kit';
 import { toast } from 'react-hot-toast';
 
 export function LoginWithErrorHandling() {
   return (
-    <PrivyLoginButton
+    <LoginButton
       onSuccess={(user) => {
         toast.success(`Welcome, ${user.email?.address || 'User'}!`);
       }}

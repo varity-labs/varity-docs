@@ -1,6 +1,6 @@
 ---
 title: "Components Reference"
-description: "Full API reference for @varity-labs/ui-kit React components: Button, Card, DataTable, Modal, Toast, PrivyStack, and 20+ more."
+description: "Full API reference for @varity-labs/ui-kit React components: Button, Card, DataTable, Modal, Toast, AuthProvider, and 20+ more."
 ---
 
 import { Aside } from '@astrojs/starlight/components';
@@ -23,15 +23,15 @@ import { ComponentName } from '@varity-labs/ui-kit';
 
 ## Providers
 
-### PrivyStack
+### AuthProvider
 
 All-in-one provider that sets up authentication and account management. Wrap your app with this once.
 
 ```tsx
-import { PrivyStack } from '@varity-labs/ui-kit';
+import { AuthProvider } from '@varity-labs/ui-kit';
 
-<PrivyStack
-  appId="your-privy-app-id"
+<AuthProvider
+  appId="your-varity-auth-app-id"
   loginMethods={['email', 'google']}
   appearance={{
     theme: 'light',
@@ -40,7 +40,7 @@ import { PrivyStack } from '@varity-labs/ui-kit';
   }}
 >
   {children}
-</PrivyStack>
+</AuthProvider>
 ```
 
 | Prop | Type | Default | Description |
@@ -58,7 +58,7 @@ Full-featured provider for dashboards. Includes authentication, React Query, and
 import { VarityDashboardProvider } from '@varity-labs/ui-kit';
 
 <VarityDashboardProvider
-  privyAppId={process.env.NEXT_PUBLIC_PRIVY_APP_ID}
+  appId={process.env.NEXT_PUBLIC_VARITY_AUTH_APP_ID}
   appearance={{ theme: 'light', logo: '/logo.png' }}
 >
   <Dashboard />
@@ -67,21 +67,21 @@ import { VarityDashboardProvider } from '@varity-labs/ui-kit';
 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
-| `privyAppId` | `string` | env var | Auth App ID |
+| `appId` | `string` | env var | Auth App ID |
 | `appearance` | `{ theme, accentColor, logo }` | - | UI customization |
 | `loginMethods` | `string[]` | `['email', 'google']` | Login options |
 | `children` | `ReactNode` | Required | App content |
 
-### VarityPrivyProvider
+### AuthBaseProvider
 
-Lower-level auth wrapper. Most apps should use `PrivyStack` instead.
+Lower-level auth wrapper. Most apps should use `AuthProvider` instead.
 
 ```tsx
-import { VarityPrivyProvider } from '@varity-labs/ui-kit';
+import { AuthBaseProvider } from '@varity-labs/ui-kit';
 
-<VarityPrivyProvider appId="your-privy-app-id">
+<AuthBaseProvider appId="your-varity-auth-app-id">
   {children}
-</VarityPrivyProvider>
+</AuthBaseProvider>
 ```
 
 ### ThemeProvider
@@ -137,22 +137,22 @@ function SaveButton() {
 
 ## Authentication Components
 
-### PrivyLoginButton
+### LoginButton
 
 Pre-built login button that opens the authentication modal.
 
 ```tsx
-import { PrivyLoginButton } from '@varity-labs/ui-kit';
+import { LoginButton } from '@varity-labs/ui-kit';
 
-<PrivyLoginButton />
+<LoginButton />
 
-<PrivyLoginButton
+<LoginButton
   onSuccess={() => router.push('/dashboard')}
   onError={(error) => console.error(error)}
   className="btn-primary"
 >
   Sign In to Continue
-</PrivyLoginButton>
+</LoginButton>
 ```
 
 | Prop | Type | Default | Description |
@@ -162,16 +162,16 @@ import { PrivyLoginButton } from '@varity-labs/ui-kit';
 | `onError` | `function` | - | Called on login error |
 | `className` | `string` | - | CSS class name |
 
-### PrivyUserProfile
+### UserProfile
 
 Displays user information with optional logout button.
 
 ```tsx
-import { PrivyUserProfile } from '@varity-labs/ui-kit';
+import { UserProfile } from '@varity-labs/ui-kit';
 
-<PrivyUserProfile showLogoutButton />
+<UserProfile showLogoutButton />
 
-<PrivyUserProfile
+<UserProfile
   showLogoutButton
   onLogout={() => router.push('/')}
 />
@@ -183,23 +183,23 @@ import { PrivyUserProfile } from '@varity-labs/ui-kit';
 | `onLogout` | `function` | - | Custom logout handler |
 | `className` | `string` | - | CSS class name |
 
-### PrivyProtectedRoute
+### ProtectedRoute
 
 Shows content only to authenticated users.
 
 ```tsx
-import { PrivyProtectedRoute } from '@varity-labs/ui-kit';
+import { ProtectedRoute } from '@varity-labs/ui-kit';
 
-<PrivyProtectedRoute>
+<ProtectedRoute>
   <Dashboard />
-</PrivyProtectedRoute>
+</ProtectedRoute>
 
-<PrivyProtectedRoute
+<ProtectedRoute
   fallback={<CustomLoginPage />}
   loadingComponent={<CustomSpinner />}
 >
   <Dashboard />
-</PrivyProtectedRoute>
+</ProtectedRoute>
 ```
 
 | Prop | Type | Default | Description |
@@ -208,20 +208,20 @@ import { PrivyProtectedRoute } from '@varity-labs/ui-kit';
 | `fallback` | `ReactNode` | Login prompt | Shown when not authenticated |
 | `loadingComponent` | `ReactNode` | Spinner | Shown while loading |
 
-### PrivyReadyGate
+### ReadyGate
 
 Prevents a blank screen during auth initialization (5-15 seconds).
 
 ```tsx
-import { PrivyReadyGate } from '@varity-labs/ui-kit';
+import { ReadyGate } from '@varity-labs/ui-kit';
 
-<PrivyReadyGate
+<ReadyGate
   timeout={10000}
   initializingScreen={<SplashScreen />}
   timeoutScreen={<ConnectionError />}
 >
   {children}
-</PrivyReadyGate>
+</ReadyGate>
 ```
 
 | Prop | Type | Default | Description |
@@ -235,9 +235,9 @@ import { PrivyReadyGate } from '@varity-labs/ui-kit';
 For convenience, these authentication hooks are re-exported from `@varity-labs/ui-kit`:
 
 ```tsx
-import { usePrivy, useLogin, useLogout } from '@varity-labs/ui-kit';
+import { useAuth, useLogin, useLogout } from '@varity-labs/ui-kit';
 
-const { authenticated, user, ready } = usePrivy();
+const { authenticated, user, ready } = useAuth();
 ```
 
 ---
@@ -1350,7 +1350,7 @@ The `Attribution` component is required per the Varity licensing agreement and m
 |------|--------|-------------|
 | `useToast` | `@varity-labs/ui-kit` | Access toast notifications (`success`, `error`, `info`) |
 | `useTheme` | `@varity-labs/ui-kit` | Access current `VarityTheme` from `ThemeProvider` |
-| `usePrivy` | `@varity-labs/ui-kit` | Auth state (`authenticated`, `user`, `ready`) |
+| `useAuth` | `@varity-labs/ui-kit` | Auth state (`authenticated`, `user`, `ready`) |
 | `useLogin` | `@varity-labs/ui-kit` | Programmatic login trigger |
 | `useLogout` | `@varity-labs/ui-kit` | Programmatic logout trigger |
 | `useVarityPayment` | `@varity-labs/ui-kit` | Programmatic payment control |
@@ -1361,40 +1361,40 @@ The `Attribution` component is required per the Varity licensing agreement and m
 
 ```tsx
 import {
-  PrivyStack,
-  PrivyLoginButton,
-  PrivyUserProfile,
-  PrivyProtectedRoute,
+  AuthProvider,
+  LoginButton,
+  UserProfile,
+  ProtectedRoute,
   DashboardLayout,
   KPICard,
   DataTable,
   Button,
   ToastProvider,
   useToast,
-  usePrivy,
+  useAuth,
 } from '@varity-labs/ui-kit';
 
 function App() {
   return (
-    <PrivyStack appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID}>
+    <AuthProvider appId={process.env.NEXT_PUBLIC_VARITY_AUTH_APP_ID}>
       <ToastProvider>
         <Header />
         <main>
-          <PrivyProtectedRoute>
+          <ProtectedRoute>
             <DashboardPage />
-          </PrivyProtectedRoute>
+          </ProtectedRoute>
         </main>
       </ToastProvider>
-    </PrivyStack>
+    </AuthProvider>
   );
 }
 
 function Header() {
-  const { authenticated } = usePrivy();
+  const { authenticated } = useAuth();
   return (
     <header className="flex justify-between p-4">
       <h1>My App</h1>
-      {authenticated ? <PrivyUserProfile showLogoutButton /> : <PrivyLoginButton />}
+      {authenticated ? <UserProfile showLogoutButton /> : <LoginButton />}
     </header>
   );
 }

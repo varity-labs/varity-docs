@@ -338,9 +338,7 @@ Automatically resolves credentials from environment variables with fallback to d
 
 ```typescript
 interface CredentialConfig {
-  privy: {
-    appId: string;
-  };
+  authAppId: string;
 
 **Returns:** `boolean` - `true` if using dev credentials
 
@@ -368,7 +366,7 @@ Checks if credentials are production-ready (opposite of `isUsingDevCredentials`)
 ```typescript
 import { isProductionCredentials } from '@varity-labs/sdk';
 
-const appId = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
+const appId = process.env.NEXT_PUBLIC_VARITY_AUTH_APP_ID;
 
 **Example:**
 

@@ -71,15 +71,15 @@ Just install the packages and start building. The UI Kit uses managed credential
 1. **Set up your auth provider**
 
    ```tsx title="app/layout.tsx"
-   import { PrivyStack } from '@varity-labs/ui-kit';
+   import { AuthProvider } from '@varity-labs/ui-kit';
 
    export default function RootLayout({ children }) {
      return (
        <html>
          <body>
-           <PrivyStack appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID}>
+           <AuthProvider appId={process.env.NEXT_PUBLIC_VARITY_AUTH_APP_ID}>
              {children}
-           </PrivyStack>
+           </AuthProvider>
          </body>
        </html>
      );
@@ -89,17 +89,17 @@ Just install the packages and start building. The UI Kit uses managed credential
 2. **Add a login button**
 
    ```tsx title="components/Header.tsx"
-   import { PrivyLoginButton, usePrivy } from '@varity-labs/ui-kit';
+   import { LoginButton, useAuth } from '@varity-labs/ui-kit';
 
    export function Header() {
-     const { authenticated, logout } = usePrivy();
+     const { authenticated, logout } = useAuth();
 
      return (
        <header>
          {authenticated ? (
            <button onClick={logout}>Sign Out</button>
          ) : (
-           <PrivyLoginButton />
+           <LoginButton />
          )}
        </header>
      );
@@ -109,13 +109,13 @@ Just install the packages and start building. The UI Kit uses managed credential
 3. **Protect routes**
 
    ```tsx title="app/dashboard/page.tsx"
-   import { PrivyProtectedRoute } from '@varity-labs/ui-kit';
+   import { ProtectedRoute } from '@varity-labs/ui-kit';
 
    export default function DashboardPage() {
      return (
-       <PrivyProtectedRoute>
+       <ProtectedRoute>
          <Dashboard />
-       </PrivyProtectedRoute>
+       </ProtectedRoute>
      );
    }
    ```
@@ -127,7 +127,7 @@ Just install the packages and start building. The UI Kit uses managed credential
 ### Next.js (App Router)
 
 ```tsx title="app/layout.tsx"
-import { PrivyStack } from '@varity-labs/ui-kit';
+import { AuthProvider } from '@varity-labs/ui-kit';
 
 export default function RootLayout({
   children,
@@ -137,9 +137,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <PrivyStack appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID}>
+        <AuthProvider appId={process.env.NEXT_PUBLIC_VARITY_AUTH_APP_ID}>
           {children}
-        </PrivyStack>
+        </AuthProvider>
       </body>
     </html>
   );
@@ -151,14 +151,14 @@ export default function RootLayout({
 ```tsx title="src/main.tsx"
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { PrivyStack } from '@varity-labs/ui-kit';
+import { AuthProvider } from '@varity-labs/ui-kit';
 import App from './App';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <PrivyStack appId={import.meta.env.VITE_PRIVY_APP_ID}>
+    <AuthProvider appId={import.meta.env.VITE_VARITY_AUTH_APP_ID}>
       <App />
-    </PrivyStack>
+    </AuthProvider>
   </React.StrictMode>
 );
 ```
@@ -168,7 +168,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 ```tsx title="src/index.tsx"
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { PrivyStack } from '@varity-labs/ui-kit';
+import { AuthProvider } from '@varity-labs/ui-kit';
 import App from './App';
 
 const root = ReactDOM.createRoot(
@@ -177,21 +177,21 @@ const root = ReactDOM.createRoot(
 
 root.render(
   <React.StrictMode>
-    <PrivyStack appId={process.env.REACT_APP_PRIVY_APP_ID}>
+    <AuthProvider appId={process.env.REACT_APP_VARITY_AUTH_APP_ID}>
       <App />
-    </PrivyStack>
+    </AuthProvider>
   </React.StrictMode>
 );
 ```
 
 ## Configuration Options
 
-`PrivyStack` accepts these configuration options:
+`AuthProvider` accepts these configuration options:
 
 ```tsx
-<PrivyStack
+<AuthProvider
   // Optional (uses dev defaults if not set)
-  appId="your-privy-app-id"
+  appId="your-varity-auth-app-id"
 
   // Login methods to show
   loginMethods={['email', 'google', 'twitter', 'discord']}
@@ -207,7 +207,7 @@ root.render(
   onAddressChange={(address) => console.log('Address:', address)}
 >
   {children}
-</PrivyStack>
+</AuthProvider>
 ```
 
 ## TypeScript Support
@@ -216,8 +216,8 @@ The UI Kit is fully typed. Import types as needed:
 
 ```typescript
 import type {
-  PrivyStackProps,
-  PrivyLoginButtonProps,
+  AuthProviderProps,
+  LoginButtonProps,
   PaymentWidgetProps,
 } from '@varity-labs/ui-kit';
 ```

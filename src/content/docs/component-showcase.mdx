@@ -282,25 +282,25 @@ Collapsible content for advanced/optional sections.
   Here's a complete example showing login, user state, and logout:
 
   ```tsx
-  import { PrivyStack, PrivyLoginButton, usePrivy } from '@varity-labs/ui-kit'
+  import { AuthProvider, LoginButton, useAuth } from '@varity-labs/ui-kit'
 
   // Set up auth provider
   function App() {
     return (
-      <PrivyStack appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID}>
+      <AuthProvider appId={process.env.NEXT_PUBLIC_VARITY_AUTH_APP_ID}>
         <AuthExample />
-      </PrivyStack>
+      </AuthProvider>
     )
   }
 
   // Use the auth hook for state
   function AuthExample() {
-    const { ready, authenticated, user, logout } = usePrivy()
+    const { ready, authenticated, user, logout } = useAuth()
 
     if (!ready) return <p>Loading...</p>
 
     if (!authenticated) {
-      return <PrivyLoginButton />
+      return <LoginButton />
     }
 
     return (

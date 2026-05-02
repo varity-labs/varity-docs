@@ -49,18 +49,18 @@ Add authentication to your app in under 5 minutes. No configuration required for
 
 1. **Wrap your app with the auth provider**
 
-   Add `PrivyStack` to your root layout. This provides authentication context to your entire app.
+   Add `AuthProvider` to your root layout. This provides authentication context to your entire app.
 
    ```tsx title="app/layout.tsx"
-   import { PrivyStack } from '@varity-labs/ui-kit';
+   import { AuthProvider } from '@varity-labs/ui-kit';
 
    export default function RootLayout({ children }) {
      return (
        <html>
          <body>
-           <PrivyStack appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID}>
+           <AuthProvider appId={process.env.NEXT_PUBLIC_VARITY_AUTH_APP_ID}>
              {children}
-           </PrivyStack>
+           </AuthProvider>
          </body>
        </html>
      );
@@ -68,25 +68,25 @@ Add authentication to your app in under 5 minutes. No configuration required for
    ```
 
    <Aside type="tip">
-   **No API keys needed for development.** Shared development credentials are used automatically. Add your own `NEXT_PUBLIC_PRIVY_APP_ID` before going to production.
+   **No API keys needed for development.** Shared development credentials are used automatically. Add your own `NEXT_PUBLIC_VARITY_AUTH_APP_ID` before going to production.
    </Aside>
 
 2. **Add a login button**
 
-   Use `PrivyLoginButton` to render a ready-made sign-in button. Use the `usePrivy()` hook to check auth state and sign users out.
+   Use `LoginButton` to render a ready-made sign-in button. Use the `useAuth()` hook to check auth state and sign users out.
 
    ```tsx title="components/Header.tsx"
-   import { PrivyLoginButton, usePrivy } from '@varity-labs/ui-kit';
+   import { LoginButton, useAuth } from '@varity-labs/ui-kit';
 
    export function Header() {
-     const { authenticated, logout } = usePrivy();
+     const { authenticated, logout } = useAuth();
 
      return (
        <header>
          {authenticated ? (
            <button onClick={logout}>Sign Out</button>
          ) : (
-           <PrivyLoginButton />
+           <LoginButton />
          )}
        </header>
      );
@@ -95,16 +95,16 @@ Add authentication to your app in under 5 minutes. No configuration required for
 
 3. **Protect routes**
 
-   Wrap any page with `PrivyProtectedRoute`. Unauthenticated users are automatically redirected to sign in.
+   Wrap any page with `ProtectedRoute`. Unauthenticated users are automatically redirected to sign in.
 
    ```tsx title="app/dashboard/page.tsx"
-   import { PrivyProtectedRoute } from '@varity-labs/ui-kit';
+   import { ProtectedRoute } from '@varity-labs/ui-kit';
 
    export default function DashboardPage() {
      return (
-       <PrivyProtectedRoute>
+       <ProtectedRoute>
          <Dashboard />
-       </PrivyProtectedRoute>
+       </ProtectedRoute>
      );
    }
    ```
@@ -115,13 +115,13 @@ That's it. Users can now sign in with email or social accounts.
 
 ## Access user data
 
-Use the `usePrivy()` hook anywhere in your app to read the current user.
+Use the `useAuth()` hook anywhere in your app to read the current user.
 
 ```tsx
-import { usePrivy } from '@varity-labs/ui-kit';
+import { useAuth } from '@varity-labs/ui-kit';
 
 function Profile() {
-  const { user, authenticated } = usePrivy();
+  const { user, authenticated } = useAuth();
 
   if (!authenticated) {
     return <p>Please sign in</p>;
@@ -149,5 +149,5 @@ function Profile() {
 
 - [Email Login](/build/auth/email-login): configure magic link options
 - [Social Login](/build/auth/social-login): Google, Twitter, Discord setup
-- [Protected Routes](/packages/ui-kit/components#privyprotectedroute): route protection API
+- [Protected Routes](/packages/ui-kit/components#protectedroute): route protection API
 - [Storage Guide](/build/storage/quickstart): upload and retrieve files
