@@ -21,9 +21,9 @@ Varity is built for developers who use AI coding tools to build and ship apps. T
 
 **Building something new with an AI tool** (vibe coding): You are using Claude Code, Cursor, or a similar tool to build an app from scratch. You want to go from "working locally" to "live URL" without leaving your editor. Varity's MCP server handles the entire deploy in one prompt.
 
-**Migrating from another platform**: You have an existing app on Vercel, Render, Railway, or another host and want lower costs. Run `varitykit migrate` to remove platform-specific config, then deploy. Most migrations take under 5 minutes.
+**Migrating from another platform**: You have an existing app on Vercel and want lower costs. Run `varitykit migrate` to remove platform-specific config, then deploy. Most migrations take under 5 minutes.
 
-**Starting from a template**: You want a production-ready starting point with auth, a database, and UI components already connected. Run `varity_init` and get a working app scaffold in seconds.
+**Starting from a template**: You want a production-ready starting point with auth, a database, and UI components already connected. Run `varity_init` and get a working app scaffold in seconds. This path is currently experimental during beta.
 
 In all three cases, you never configure infrastructure. You just build and deploy.
 
@@ -151,4 +151,4 @@ The Varity MCP server gives your AI coding tool direct access to the full deploy
 - [Quick Start](/getting-started/quickstart) - Deploy your first app
 - [Installation](/getting-started/installation) - Full setup guide
 - [MCP Server Setup](/ai-tools/mcp-server-spec) - Connect your AI coding tool
-- [Vercel Migration](/guides/migrate-from-vercel) - Move an existing app to Varity
+- [Vercel Migration](/deploy/vercel-migration) - Move an existing app to Varity
