@@ -21,8 +21,8 @@
     "lint": "astro check"
   },
   "dependencies": {
-    "@astrojs/starlight": "^0.37.7",
-    "astro": "^5.18.1"
+    "@astrojs/starlight": "^0.39.2",
+    "astro": "^6.3.2"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.8",
