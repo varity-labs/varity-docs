@@ -76,7 +76,7 @@ await posts.add({ title: 'Hello World', body: 'First post' });
 
 // Option 2: Create a custom instance with your own config
 const customDb = new Database({
-  proxyUrl: 'https://your-proxy.example.com',
+  databaseUrl: 'https://your-proxy.example.com',
   appToken: 'your-app-token',
 });
 const items = customDb.collection('items');
@@ -141,7 +141,7 @@ The SDK exports these TypeScript types from the main entry point:
 ```typescript
 import type {
   CredentialConfig,   // { authAppId: string }
-  DatabaseConfig,     // { proxyUrl?: string, appToken?: string }
+  DatabaseConfig,     // { databaseUrl?: string, appToken?: string }
   QueryOptions,       // { limit?, offset?, orderBy? }
   Document,           // { id: string, created_at?, updated_at?, [key]: any }
   CollectionResponse, // { success: boolean, data?: T, error?: string }
@@ -158,26 +158,26 @@ For apps that need direct access to advanced infrastructure configuration, the S
 
 ### Chains (`@varity-labs/sdk/chains`)
 
-Chain definitions for Varity L3, Arbitrum, and Base networks, plus USDC formatting utilities.
+Chain definitions for Varity L3, Arbitrum, and Base networks, plus stable amount formatting utilities.
 
 ```typescript
 import {
   varityL3,
   varityL3Testnet,
-  formatUSDC,
-  parseUSDC,
+  formatAmount,
+  parseAmount,
   formatAddress,
   getVarityExplorerUrl,
-  USDC_DECIMALS,
-  VARITY_USDC_ADDRESS,
+  AMOUNT_DECIMALS,
+  VARITY_TOKEN_ADDRESS,
   SUPPORTED_CHAINS,
 } from '@varity-labs/sdk/chains';
 
-// Format a raw USDC amount (6 decimals) for display
-const display = formatUSDC(BigInt(1500000)); // "1.50"
+// Format a raw stable amount amount (6 decimals) for display
+const display = formatAmount(BigInt(1500000)); // "1.50"
 
 // Parse a human-readable amount to raw
-const raw = parseUSDC('25.00'); // BigInt(25000000)
+const raw = parseAmount('25.00'); // BigInt(25000000)
 
 // Get an explorer URL
 const url = getVarityExplorerUrl('0xabc...');
@@ -185,14 +185,14 @@ const url = getVarityExplorerUrl('0xabc...');
 
 ### Gas Tracking (`@varity-labs/sdk/tracking`)
 
-Track gas usage, calculate costs in USDC, and manage billing cycles.
+Track gas usage, calculate costs in stable amount, and manage billing cycles.
 
 ```typescript
 import {
   trackGasUsage,
   trackTransactionGasUsage,
   waitForTransactionReceipt,
-  calculateGasInUSDC,
+  calculateGasCost,
   createGasTracker,
 } from '@varity-labs/sdk/tracking';
 ```

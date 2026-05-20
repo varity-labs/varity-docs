@@ -1,6 +1,6 @@
 ---
 title: "Payments Quick Start"
-description: "Set pricing, submit your app to the Varity App Store, and earn revenue with a 90/10 split. No payment integration code required."
+description: "Set pricing, submit your app to the App Store (post-beta), and earn revenue with a 90/10 split. No payment integration code required."
 ---
 
 import { Steps, Tabs, TabItem, Aside } from '@astrojs/starlight/components';
@@ -16,10 +16,10 @@ import PageMeta from '../../../../components/PageMeta.astro';
 # Payments Quick Start
 
 <Aside type="note">
-Payments are processed via the App Store checkout. Credit card payments via Stripe are also available: users can purchase deploy keys and subscriptions at [varity.so](https://varity.so).
+Payments are processed via the post-beta checkout surface. Credit card payments via Stripe are also available: users can purchase deploy keys and subscriptions at [varity.so](https://varity.so).
 </Aside>
 
-Monetize your app through the Varity App Store. Set your price, deploy, and earn revenue automatically.
+Monetize your app through the App Store (post-beta). Set your price, deploy, and earn revenue automatically.
 
 ## Revenue Model
 
@@ -38,20 +38,20 @@ This is handled automatically. No payment integration code required on your end.
 
 1. **Build your app** using Varity SDK
 
-2. **Deploy and submit** to the Varity App Store
+2. **Deploy and submit** to the App Store (post-beta)
 
    ```bash
-   varitykit app deploy --submit-to-store
+   varitykit app deploy
    ```
 
-3. **Set your pricing** in the [Developer Portal](https://developer.store.varity.so)
+3. **Set your pricing** in the Developer Portal (post-beta).
 
    Choose from:
    - **Free**: no charge, great for building an audience
    - **One-time purchase**: users pay once for lifetime access
    - **Monthly subscription**: recurring revenue
 
-4. **Users discover and purchase** your app on [store.varity.so](https://store.varity.so)
+4. **Users discover and purchase** your app on store.varity.so (post-beta).
 
 5. **You earn revenue**: 90% of every payment, deposited monthly
 
@@ -90,7 +90,7 @@ Configure these tiers in the Developer Portal after submitting your app.
 | App submission to store | Available |
 | Set pricing tiers (free, one-time, subscription) | Available |
 | 90/10 revenue split | Available |
-| App Store checkout | Available |
+| post-beta checkout surface | Available |
 | Monthly payouts | Available |
 | Credit card payments (Stripe) | Available at varity.so |
 | In-app payment widget | Available |
@@ -118,21 +118,21 @@ export function UpgradeButton({ appId }) {
 ```
 
 <Aside type="note">
-For App Store sales, users complete purchase through the App Store checkout. In-app `PaymentWidget` is for subscription upgrades within your deployed app.
+For App Store sales, users complete purchase through the post-beta checkout surface. In-app `PaymentWidget` is for subscription upgrades within your deployed app.
 </Aside>
 
 ## User Experience
 
 What your users see:
 
-1. **Find your app** in the Varity App Store
+1. **Find your app** in the App Store (post-beta)
 2. **Choose a plan** (free, one-time, or subscription)
-3. **Complete payment** via the App Store checkout
+3. **Complete payment** via the post-beta checkout surface
 4. **Access your app** immediately after purchase
 
 Users pay in their local currency using familiar payment methods. No special setup required on their end.
 
 ## Next Steps
 
-- [Deploy Your App](/deploy/deploy-your-app): Submit to the App Store
+- [Deploy Your App](/deploy/deploy-your-app): App Store status (post-beta)
 - [FAQ](/resources/faq): Pricing and billing questions

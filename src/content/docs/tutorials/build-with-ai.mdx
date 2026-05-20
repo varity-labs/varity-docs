@@ -40,7 +40,7 @@ Install the following (one-time setup):
 4. **Varity MCP**: install with:
 
    ```bash
-   claude mcp add varity -- npx -y @varity-labs/mcp
+   claude mcp add varity -- npx -y @varity-labs/mcp@beta
    ```
 
    Or for Cursor, add to `.cursor/mcp.json`:
@@ -50,7 +50,7 @@ Install the following (one-time setup):
      "mcpServers": {
        "varity": {
          "command": "npx",
-         "args": ["-y", "@varity-labs/mcp"]
+         "args": ["-y", "@varity-labs/mcp@beta"]
        }
      }
    }
@@ -214,10 +214,10 @@ That's it. No cloud provider accounts, no credit card, no complex setup.
 
    Prompt:
 
-   > "Submit my app to the Varity App Store for $29 per month"
+   > "Submit my app to the App Store (post-beta) for $29 per month"
 
-   **What happens:** The AI runs `varity_submit_to_store` to:
-   - List your app on [store.varity.so](https://store.varity.so)
+   **What happens:** The AI runs `varity_submit_to_store (post-beta)` to:
+   - List your app on [store.varity.so (post-beta)](https://store.varity.so)
    - Set up automatic billing (90% to you, 10% to Varity)
    - Make it discoverable to users
 
@@ -314,7 +314,7 @@ When you prompt the AI, here's what Varity does:
 | "Start dev server" | `varity_dev_server` | Runs `npm run dev`, returns localhost URL |
 | "Build for production" | `varity_build` | Compiles app, optimizes bundle |
 | "Deploy" | `varity_deploy` | Uploads to CDN, injects prod credentials |
-| "Submit to store" | `varity_submit_to_store` | Lists app, sets up billing |
+| "Submit to store" | `varity_submit_to_store (post-beta)` | Lists app, sets up billing |
 | "Show status" | `varity_deploy_status` | Fetches deployment info |
 | "Compare costs" | `varity_cost_calculator` | Calculates Varity vs AWS/Vercel |
 
@@ -330,7 +330,7 @@ pip install varitykit
 varitykit doctor
 ```
 
-**"Cannot find module @varity-labs/mcp"**
+**"Cannot find module @varity-labs/mcp@beta"**
 
 Verify Node.js 20+ is installed:
 ```bash

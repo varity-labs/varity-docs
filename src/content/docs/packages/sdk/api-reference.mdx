@@ -51,7 +51,7 @@ Pre-configured database singleton for immediate use.
 **Description:** Ready-to-use database instance that automatically resolves credentials from environment variables.
 
 **Auto-Configuration Sources:**
-- `NEXT_PUBLIC_VARITY_DB_PROXY_URL` or `VITE_VARITY_DB_PROXY_URL` or `REACT_APP_VARITY_DB_PROXY_URL` (proxy URL)
+- `NEXT_PUBLIC_VARITY_DATABASE_URL` or `VITE_VARITY_DATABASE_URL` or `REACT_APP_VARITY_DATABASE_URL` (database URL)
 - `NEXT_PUBLIC_VARITY_APP_TOKEN` or `VITE_VARITY_APP_TOKEN` or `REACT_APP_VARITY_APP_TOKEN` (authentication)
 - Fallback: Development credentials (automatic)
 
@@ -103,7 +103,7 @@ Database client class for custom configurations.
 
 ```typescript
 interface DatabaseConfig {
-  proxyUrl?: string;   // Database proxy URL
+  databaseUrl?: string;   // Database URL
   appToken?: string;   // JWT authentication token
 }
 ```
@@ -117,7 +117,7 @@ import { Database } from '@varity-labs/sdk';
 
 // Custom database instance
 const customDb = new Database({
-  proxyUrl: 'https://custom-db.example.com',
+  databaseUrl: 'https://custom-db.example.com',
   appToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
 });
 
@@ -401,7 +401,7 @@ import { Database } from '@varity-labs/sdk';
 // Custom database for multi-tenant app
 const createTenantDatabase = (tenantId: string) => {
   return new Database({
-    proxyUrl: `https://${tenantId}.db.varity.app`,
+    databaseUrl: `https://${tenantId}.db.varity.app`,
     appToken: process.env[`JWT_${tenantId.toUpperCase()}`],
   });
 };

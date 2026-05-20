@@ -88,7 +88,7 @@ Include:
 Integrate payments into my Varity app:
 - Add a "Pro" pricing tier at $29/month
 - Show an upgrade button on the dashboard
-- Use the Varity App Store for payment processing
+- Use the App Store (post-beta) for payment processing
 - Handle the 90/10 revenue split automatically
 
 Include instructions for submitting to the App Store.
@@ -274,7 +274,7 @@ const email = user?.email?.address;
 - `varitykit doctor` — Check environment setup
 - `varitykit init` — Scaffold new project from template
 - `varitykit app deploy` — Deploy app (auto-detects static/dynamic)
-- `varitykit app deploy --submit-to-store` — Deploy and submit to App Store
+- `varitykit app deploy` — Deploy and submit to App Store
 
 ## Environment Variables (Next.js)
 ```
@@ -289,7 +289,7 @@ NEXT_PUBLIC_VARITY_APP_ID=        # Your app ID (after deploy)
 - Use `'use client'` directive for hooks and interactive components
 - DashboardLayout has NO mobile support — implement mobile nav manually
 - Database credentials are auto-injected at deploy time by the CLI
-- For local dev, set NEXT_PUBLIC_VARITY_APP_TOKEN and NEXT_PUBLIC_VARITY_DB_PROXY_URL in .env.local, or build UI with mock data first
+- For local dev, set NEXT_PUBLIC_VARITY_APP_TOKEN and NEXT_PUBLIC_VARITY_DATABASE_URL in .env.local, or build UI with mock data first
 - .get() returns all docs — filter on client side (no server-side filtering)
 ````
 
@@ -457,7 +457,7 @@ varitykit app deploy
 ## Deploy and submit to App Store
 ```bash
 npm run build
-varitykit app deploy --submit-to-store
+varitykit app deploy
 ```
 
 ## Environment Variables

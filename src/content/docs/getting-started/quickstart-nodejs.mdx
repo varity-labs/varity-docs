@@ -279,10 +279,12 @@ You never need to set up a database, configure connection strings, or manage cre
 <Aside type="tip">
 To set custom credentials during development, use environment variables:
 ```bash
-VARITY_DB_PROXY_URL=https://your-proxy.example.com
+VARITY_DATABASE_URL=https://your-database.example.com
 VARITY_APP_TOKEN=your-jwt-token
 ```
 The SDK checks `NEXT_PUBLIC_VARITY_*`, `VITE_VARITY_*`, and `REACT_APP_VARITY_*` prefixed variables as well.
+
+Legacy setups may still use the older database environment variable name; prefer `VARITY_DATABASE_URL` for all new projects.
 </Aside>
 
 ## Deploy
@@ -303,10 +305,10 @@ The SDK checks `NEXT_PUBLIC_VARITY_*`, `VITE_VARITY_*`, and `REACT_APP_VARITY_*`
 
    Your API is live. Database credentials are injected automatically.
 
-3. **Submit to the App Store** (optional)
+3. **App Store status (post-beta)** (optional)
 
    ```bash
-   varitykit app deploy --submit-to-store
+   varitykit app deploy
    ```
 
 </Steps>

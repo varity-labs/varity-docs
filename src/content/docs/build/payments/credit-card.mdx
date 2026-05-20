@@ -1,6 +1,6 @@
 ---
-title: Credit Card Payments
-description: Accept credit card, Apple Pay, and Google Pay payments through the Varity App Store. 90/10 revenue split with automatic payouts.
+title: Payments Status
+description: Current MVP payment status for Varity docs.
 ---
 
 import { Aside } from '@astrojs/starlight/components';
@@ -9,132 +9,20 @@ import PageMeta from '../../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="March 2026"
+  lastUpdated="May 2026"
   stability="beta"
 />
 
-# Credit Card Payments
-
-Let users pay for your app using credit cards, Apple Pay, or Google Pay through the Varity App Store.
-
-<Aside type="note" title="Stripe Payments Available">
-Credit card payments via Stripe are now available. Users can purchase deploy keys and subscriptions using a credit card. Purchase a deploy key at [varity.so](https://varity.so) to get started.
+<Aside type="caution">
+In-app card checkout, App Store purchase widgets, and payout flows are not part of the currently shipped MVP docs surface.
 </Aside>
 
-## How It Works
+For the current launch state:
 
-1. User finds your app in the Varity App Store
-2. User clicks "Purchase" or "Subscribe"
-3. Secure checkout opens with familiar payment options
-4. Payment is processed automatically
-5. Revenue is split 90/10 (you keep 90%)
+- Billing card-on-file is used to gate deployment access in the developer flow.
+- App Store subscription checkout documentation is intentionally removed from this page until that surface is publicly shipped.
 
-Users never need special accounts or knowledge. They just pay with their card.
+If you only need deployment:
 
-## Setting Up Pricing
-
-Configure your app pricing in the [Developer Portal](https://developer.store.varity.so):
-
-| Pricing Model | Description |
-|---------------|-------------|
-| **Free** | No charge. Great for building an audience. |
-| **One-time** | Single purchase. User gets lifetime access. |
-| **Subscription** | Monthly recurring payment. |
-
-## In-App Payments
-
-Add payment components directly in your app:
-
-```tsx title="components/UpgradeButton.tsx"
-import { PaymentWidget } from '@varity-labs/ui-kit';
-import { useAuth } from '@varity-labs/ui-kit';
-
-export function UpgradeButton() {
-  const { user } = useAuth();
-
-  if (!user) {
-    return <p>Please log in to upgrade</p>;
-  }
-
-  return (
-    <PaymentWidget
-      appId={123}
-      price={5000}
-      onSuccess={(txHash) => {
-        console.log('Upgrade complete!', txHash);
-      }}
-      onError={(err) => console.error('Payment failed:', err)}
-    >
-      <button>Upgrade to Pro - $50.00</button>
-    </PaymentWidget>
-  );
-}
-```
-
-## Full Checkout Page (Post-Beta)
-
-For a complete payment experience:
-
-```tsx title="pages/checkout.tsx"
-import { PaymentGate } from '@varity-labs/ui-kit';
-import { useAuth } from '@varity-labs/ui-kit';
-import { useRouter } from 'next/navigation';
-
-export default function CheckoutPage() {
-  const { user, authenticated } = useAuth();
-  const router = useRouter();
-
-  if (!authenticated) {
-    router.push('/login');
-    return null;
-  }
-
-  return (
-    <div className="max-w-md mx-auto py-8">
-      <h1 className="text-2xl font-bold mb-6">Upgrade Your Plan</h1>
-
-      <PaymentGate
-        appId={123}
-        price={10000}
-        fallback={
-          <div>
-            <p>Upgrade to Business for $100.00/month</p>
-            <p>Get access to premium features.</p>
-          </div>
-        }
-      >
-        <div>
-          <h2>Welcome, Business member!</h2>
-          <p>You have full access to all premium features.</p>
-        </div>
-      </PaymentGate>
-    </div>
-  );
-}
-```
-
-## Payment Methods (Post-Beta)
-
-| Method | Availability |
-|--------|--------------|
-| Credit/Debit Card | All users |
-| Apple Pay | iOS/macOS users |
-| Google Pay | Android/Chrome users |
-
-## Revenue Split
-
-When users purchase your app:
-
-- **90%** goes to you (the developer)
-- **10%** goes to the Varity platform
-
-Revenue is tracked in the [Developer Portal](https://developer.store.varity.so).
-
-<Aside type="tip">
-**No setup needed for payments** - The Varity App Store handles all payment processing, compliance, and payouts. You just set your price.
-</Aside>
-
-## Next Steps
-
-- [Deploy Your App](/deploy/deploy-your-app): Submit your app to the store
-- [Authentication Quick Start](/build/auth/quickstart): Set up user accounts
+- Install `varitykit` with `pipx install varitykit`
+- Deploy with `varitykit app deploy`

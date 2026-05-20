@@ -1,6 +1,6 @@
 ---
 title: Quick Start
-description: Get started with Varity in minutes. Migrate an existing app, deploy a ready-made template, or build from scratch with AI tools.
+description: Get started with Varity in minutes. Migrate an existing app or deploy from your AI coding tool with the MCP server.
 ---
 
 import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid, Card } from '@astrojs/starlight/components';
@@ -13,14 +13,11 @@ import PageMeta from '../../../components/PageMeta.astro';
   stability="beta"
 />
 
-Three ways to get started. Pick the one that fits where you are today.
+Two ways to get started. Pick the one that fits where you are today.
 
 <CardGrid>
   <Card title="Migrate an existing app" icon="rocket">
     You already have an app on Vercel, Railway, Heroku, or anywhere else. One command migrates and deploys it.
-  </Card>
-  <Card title="Deploy a ready-made template" icon="puzzle">
-    Deploy Ollama, Postgres, or other production services in one command. No code required.
   </Card>
   <Card title="Build from scratch with AI tools" icon="laptop">
     Using Claude Code or Cursor? Add the Varity MCP server and ask your AI tool to deploy.
@@ -67,25 +64,7 @@ See the full [Migration Guide](/deploy/vercel-migration) for step-by-step detail
 
 ---
 
-## Path 2: Deploy a ready-made template
-
-Deploy open-source AI models, databases, and other services in one command. No code to write.
-
-```bash
-varitykit deploy --template ollama --name my-llama
-```
-
-Available templates include Ollama (open-source LLMs), Stable Diffusion, Postgres, Redis, and more.
-
-<Aside type="note" title="Shipping with the next release">
-The `varitykit deploy --template` command is available in the upcoming release. Check back here or watch the [changelog](https://github.com/varity-labs/varity-sdk/releases) for the exact version.
-</Aside>
-
-[Browse available templates →](/templates/overview)
-
----
-
-## Path 3: Build from scratch with AI tools
+## Path 2: Build from scratch with AI tools
 
 If you are using Claude Code or Cursor, the Varity MCP server lets your AI tool handle the entire deploy with plain English.
 
@@ -96,7 +75,7 @@ If you are using Claude Code or Cursor, the Varity MCP server lets your AI tool 
    <Tabs>
      <TabItem label="Claude Code">
        ```bash
-       claude mcp add varity -- npx -y @varity-labs/mcp
+       claude mcp add varity -- npx -y @varity-labs/mcp@beta
        ```
      </TabItem>
      <TabItem label="Cursor">
@@ -107,7 +86,7 @@ If you are using Claude Code or Cursor, the Varity MCP server lets your AI tool 
          "mcpServers": {
            "varity": {
              "command": "npx",
-             "args": ["-y", "@varity-labs/mcp"]
+             "args": ["-y", "@varity-labs/mcp@beta"]
            }
          }
        }

@@ -37,8 +37,8 @@ Varity has four websites:
 |------|-------------|
 | [**varity.so**](https://www.varity.so) | Marketing site |
 | [**docs.varity.so**](https://docs.varity.so) | Documentation and guides |
-| [**developer.store.varity.so**](https://developer.store.varity.so) | Developer portal: deploy, monitor, billing |
-| [**store.varity.so**](https://store.varity.so) | User app store (coming post-beta) |
+| [**developer.store.varity.so (post-beta)**](https://developer.store.varity.so) | Developer portal: deploy, monitor, billing |
+| [**store.varity.so (post-beta)**](https://store.varity.so) | User app store (coming post-beta) |
 
 ---
 
@@ -53,7 +53,7 @@ Here is how you go from idea to a live URL:
    Add Varity to your AI coding tool once. After that, every project you work on has Varity available.
 
    ```bash
-   claude mcp add varity -- npx -y @varity-labs/mcp
+   claude mcp add varity -- npx -y @varity-labs/mcp@beta
    ```
 
 2. **Open your project**
@@ -139,7 +139,7 @@ The Varity MCP server gives your AI coding tool direct access to the full deploy
 | `varity_deploy` | Deploy to production |
 | `varity_deploy_status` | Check deployment status |
 | `varity_deploy_logs` | View build and runtime logs |
-| `varity_submit_to_store` | Submit your app to the app store |
+| `varity_submit_to_store (post-beta)` | Legacy tool for a post-beta App Store surface |
 | `varity_migrate` | Migrate an existing app from Vercel to Varity |
 
 [Set up the MCP server](/ai-tools/mcp-server-spec) to get started.

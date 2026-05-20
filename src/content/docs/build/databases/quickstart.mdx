@@ -326,20 +326,20 @@ export function useTasks(projectId?: string) {
     ```bash title=".env.local"
     NEXT_PUBLIC_VARITY_APP_ID=your-app-id
     NEXT_PUBLIC_VARITY_APP_TOKEN=your-app-token
-    NEXT_PUBLIC_VARITY_DB_PROXY_URL=your-db-url
+    NEXT_PUBLIC_VARITY_DATABASE_URL=your-db-url
     ```
   </TabItem>
   <TabItem label="Vite / React">
     ```bash title=".env"
     VITE_VARITY_APP_ID=your-app-id
     VITE_VARITY_APP_TOKEN=your-app-token
-    VITE_VARITY_DB_PROXY_URL=your-db-url
+    VITE_VARITY_DATABASE_URL=your-db-url
     ```
   </TabItem>
 </Tabs>
 
 <Aside type="tip">
-**Don't have credentials?** When you deploy with `varitykit app deploy`, the CLI detects database usage in your code and automatically generates credentials (app ID, JWT token, proxy URL). These are injected into your build at deploy time. No manual setup needed for production. During local development, you can set these env vars manually or build your UI with mock data first.
+**Don't have credentials?** When you deploy with `varitykit app deploy`, the CLI detects database usage in your code and automatically generates credentials (app ID, JWT token, database URL). These are injected into your build at deploy time. No manual setup needed for production. During local development, you can set these env vars manually or build your UI with mock data first.
 </Aside>
 
 ## The Pattern: Collection, Hook, Page
