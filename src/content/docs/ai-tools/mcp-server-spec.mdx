@@ -257,7 +257,6 @@ Build and deploy the current project. Auto-detects framework (Next.js, React, Vu
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
 | `path` | string | No | Workspace root | Path to the project directory |
-| `submit_to_store` | boolean | No | false | Legacy flag for a post-beta App Store surface |
 
 **Annotations:** `destructiveHint: true` (deploys real infrastructure)
 
@@ -349,7 +348,6 @@ Here's the full build-to-monetize flow using the MCP tools:
 9. **"Deploy this"** → `varity_deploy`
 10. **"Did the deploy succeed?"** → `varity_deploy_status`
 11. **"Show me the build logs"** → `varity_deploy_logs` (if needed)
-12. **"Submit to the app store at $14.99"** → `varity_submit_to_store (post-beta, legacy flow)`
 
 **Migrating from Vercel:**
 

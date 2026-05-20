@@ -1,6 +1,5 @@
 ---
 title: "Payments Quick Start"
-description: "Set pricing, submit your app to the App Store (post-beta), and earn revenue with a 90/10 split. No payment integration code required."
 ---
 
 import { Steps, Tabs, TabItem, Aside } from '@astrojs/starlight/components';
@@ -19,7 +18,6 @@ import PageMeta from '../../../../components/PageMeta.astro';
 Payments are processed via the post-beta checkout surface. Credit card payments via Stripe are also available: users can purchase deploy keys and subscriptions at [varity.so](https://varity.so).
 </Aside>
 
-Monetize your app through the App Store (post-beta). Set your price, deploy, and earn revenue automatically.
 
 ## Revenue Model
 
@@ -38,7 +36,6 @@ This is handled automatically. No payment integration code required on your end.
 
 1. **Build your app** using Varity SDK
 
-2. **Deploy and submit** to the App Store (post-beta)
 
    ```bash
    varitykit app deploy
@@ -51,7 +48,6 @@ This is handled automatically. No payment integration code required on your end.
    - **One-time purchase**: users pay once for lifetime access
    - **Monthly subscription**: recurring revenue
 
-4. **Users discover and purchase** your app on store.varity.so (post-beta).
 
 5. **You earn revenue**: 90% of every payment, deposited monthly
 
@@ -118,14 +114,12 @@ export function UpgradeButton({ appId }) {
 ```
 
 <Aside type="note">
-For App Store sales, users complete purchase through the post-beta checkout surface. In-app `PaymentWidget` is for subscription upgrades within your deployed app.
 </Aside>
 
 ## User Experience
 
 What your users see:
 
-1. **Find your app** in the App Store (post-beta)
 2. **Choose a plan** (free, one-time, or subscription)
 3. **Complete payment** via the post-beta checkout surface
 4. **Access your app** immediately after purchase
@@ -134,5 +128,4 @@ Users pay in their local currency using familiar payment methods. No special set
 
 ## Next Steps
 
-- [Deploy Your App](/deploy/deploy-your-app): App Store status (post-beta)
 - [FAQ](/resources/faq): Pricing and billing questions
