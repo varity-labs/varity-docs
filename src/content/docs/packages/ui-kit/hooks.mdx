@@ -179,7 +179,7 @@ function PremiumFeature({ appId }: { appId: number }) {
     return (
       <div>
         {pricing && (
-          <p>Price: ${Number(pricing.priceUsdc) / 1_000_000}</p>
+          <p>Price: ${Number(pricing.priceUnits) / 1_000_000}</p>
         )}
         <button onClick={purchase} disabled={isPurchasing}>
           {isPurchasing ? 'Processing...' : 'Buy Now'}

@@ -28,10 +28,14 @@ Install the Varity tools that fit how you work. The MCP server is the primary pa
 
 The MCP server connects Varity to your AI coding tool. It gives you 17 tools for deploying, monitoring, and managing apps using plain English. You do not need to add any code to your project.
 
+```bash title="Install MCP package globally"
+npm install -g @varity-labs/mcp@beta
+```
+
 <Tabs>
   <TabItem label="Claude Code">
     ```bash
-    claude mcp add varity -- npx -y @varity-labs/mcp
+    claude mcp add varity -- npx -y @varity-labs/mcp@beta
     ```
 
     Restart Claude Code after running this command. You will see Varity tools available in your session.
@@ -44,7 +48,7 @@ The MCP server connects Varity to your AI coding tool. It gives you 17 tools for
       "mcpServers": {
         "varity": {
           "command": "npx",
-          "args": ["-y", "@varity-labs/mcp"]
+          "args": ["-y", "@varity-labs/mcp@beta"]
         }
       }
     }
@@ -58,7 +62,7 @@ The MCP server connects Varity to your AI coding tool. It gives you 17 tools for
     ```json
     {
       "command": "npx",
-      "args": ["-y", "@varity-labs/mcp"]
+      "args": ["-y", "@varity-labs/mcp@beta"]
     }
     ```
 

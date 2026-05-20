@@ -131,38 +131,38 @@ import {
 Types for interacting with the Varity L3 network are currently available via the SDK subpath import rather than the types package:
 
 ```typescript
-// Chain types and USDC utilities are available from the SDK:
+// Chain types and stable amount utilities are available from the SDK:
 import {
   varityL3Testnet,
-  USDC_DECIMALS,
-  formatUSDC,
-  parseUSDC,
+  AMOUNT_DECIMALS,
+  formatAmount,
+  parseAmount,
 } from '@varity-labs/sdk/chains';
 ```
 
 <Aside type="note">
-USDC utilities (`formatUSDC`, `parseUSDC`, `USDC_DECIMALS`) are available from `@varity-labs/sdk/chains`.
+stable amount utilities (`formatAmount`, `parseAmount`, `AMOUNT_DECIMALS`) are available from `@varity-labs/sdk/chains`.
 </Aside>
 
-## USDC Amount Handling
+## stable amount Amount Handling
 
 <Aside type="caution">
-**Critical:** Varity L3 uses USDC with **6 decimals**, not 18 like ETH. The helpers prevent costly mistakes.
+**Critical:** Varity L3 uses stable amount with **6 decimals**, not 18 like ETH. The helpers prevent costly mistakes.
 </Aside>
 
 ```typescript
-import { formatUSDC, parseUSDC, USDC_DECIMALS } from '@varity-labs/sdk/chains';
+import { formatAmount, parseAmount, AMOUNT_DECIMALS } from '@varity-labs/sdk/chains';
 
 // Convert human-readable to raw (for transactions)
-const amount = parseUSDC("10.50");
+const amount = parseAmount("10.50");
 // Returns: 10500000n (bigint)
 
 // Convert raw to human-readable (for display)
-const display = formatUSDC(10500000n);
+const display = formatAmount(10500000n);
 // Returns: "10.50" (string)
 
 // Always use the constant for decimals
-const scale = 10 ** USDC_DECIMALS; // 1,000,000
+const scale = 10 ** AMOUNT_DECIMALS; // 1,000,000
 ```
 
 ## Error Handling Utilities

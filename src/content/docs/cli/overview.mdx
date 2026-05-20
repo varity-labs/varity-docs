@@ -1,6 +1,6 @@
 ---
 title: "VarityKit CLI Overview"
-description: "VarityKit CLI overview: scaffold projects, run diagnostics, deploy apps, and manage domains. Python-based tool similar to Vercel CLI."
+description: "VarityKit CLI overview: run diagnostics, migrate Vercel apps, deploy apps, and manage domains. Python-based deployment toolchain."
 ---
 
 import { Card, CardGrid, Aside } from '@astrojs/starlight/components';
@@ -18,14 +18,8 @@ VarityKit is a Python-based CLI that helps you build, test, and deploy applicati
 ## What You Can Do
 
 <CardGrid>
-  <Card title="Initialize Projects" icon="document">
-    Scaffold new projects from starter templates with pre-configured auth and deployment.
-  </Card>
   <Card title="Deploy Applications" icon="rocket">
     Deploy any app with one command. Static sites and dynamic apps both supported.
-  </Card>
-  <Card title="Manage Templates" icon="seti:config">
-    Create, test, validate, and publish templates to the marketplace.
   </Card>
   <Card title="Validate Setup" icon="approve-check">
     Run diagnostics to ensure your development environment is ready.
@@ -40,7 +34,7 @@ VarityKit is a Python-based CLI that helps you build, test, and deploy applicati
 |---------|-------------|
 | [`varitykit login`](/cli/commands/auth) | Log in with your deploy key from the developer portal |
 | [`varitykit doctor`](/cli/commands/doctor) | Validate your development environment |
-| [`varitykit init`](/cli/commands/init) | Create a new project from a template |
+| [`varitykit init`](/cli/commands/init) | Legacy scaffolding command (not part of the primary MVP flow) |
 | [`varitykit dev`](#dev) | Start development servers (API + frontend) |
 | [`varitykit bootstrap`](#bootstrap) | Install project dependencies and set up environment |
 | [`varitykit completions`](#completions) | Set up shell completions (bash, zsh, fish) |
@@ -63,27 +57,12 @@ VarityKit is a Python-based CLI that helps you build, test, and deploy applicati
 | `varitykit app status` | Show deployment status |
 | `varitykit app rollback` | Rollback to a previous deployment |
 
-### Templates
+### Legacy Commands (not part of current MVP flow)
 
 | Command | Description |
 |---------|-------------|
-| `varitykit template create` | Create a new template with AI assistance |
-| `varitykit template test` | Run automated tests for a template |
-| `varitykit template preview` | Preview a template in the browser |
-| `varitykit template validate` | Validate template quality (code, tests, a11y, security) |
-| `varitykit template list` | List available templates |
-| `varitykit template info` | Show detailed template information |
-
-### Marketplace
-
-| Command | Description |
-|---------|-------------|
-| `varitykit marketplace publish` | Publish a template to the marketplace |
-| `varitykit marketplace search` | Search for templates |
-| `varitykit marketplace install` | Install a template from the marketplace |
-| `varitykit marketplace stats` | View your marketplace statistics |
-| `varitykit marketplace unpublish` | Remove a template from the marketplace |
-| `varitykit marketplace update` | Update a published template |
+| `varitykit template ...` | Legacy template tooling (not primary launch path) |
+| `varitykit marketplace ...` | Legacy marketplace tooling (not primary launch path) |
 
 ### Domains
 
@@ -107,16 +86,13 @@ VarityKit is a Python-based CLI that helps you build, test, and deploy applicati
 
 ```bash
 # Install the CLI
-pip install varitykit
+pipx install varitykit
 
 # Check your environment
 varitykit doctor
 
 # Log in with your developer portal deploy key
 varitykit login
-
-# Create a new project
-varitykit init my-app
 
 # Deploy (auto-detects static vs dynamic)
 varitykit app deploy
@@ -242,5 +218,4 @@ varitykit completions [OPTIONS]
 - [Install the CLI](/cli/installation) - Installation guide
 - [Log in](/cli/commands/auth) - Connect your developer account
 - [Run diagnostics](/cli/commands/doctor) - Check your setup
-- [Create your first project](/cli/commands/init) - Scaffold a project
 - [Deploy your application](/cli/commands/deploy) - Deploy to production

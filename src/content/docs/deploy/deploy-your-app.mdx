@@ -127,17 +127,14 @@ npm run start
 
 Visit `http://localhost:3000` and verify everything works.
 
-## Publish to App Store
 
-List your app in the Varity App Store for users to discover:
 
 ```bash
-varitykit app deploy --submit-to-store
+varitykit app deploy
 ```
 
 This will:
 1. Deploy your app
-2. Submit it for listing in the App Store
 3. Make it discoverable by users
 4. Enable monetization when available (coming soon)
 
@@ -248,7 +245,6 @@ varitykit app deploy --verbose
 | Option | Default | Description |
 |--------|---------|-------------|
 | `--hosting` | `static` | Hosting type: `static` or `dynamic` |
-| `--submit-to-store` | `false` | Submit to Varity App Store after deploy |
 | `--path` | `.` | Project directory |
 
 
