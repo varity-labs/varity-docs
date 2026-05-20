@@ -16,7 +16,7 @@ import PageMeta from '../../../components/PageMeta.astro';
 This tutorial shows you how to build and deploy a production-ready SaaS app using only natural language prompts. No coding knowledge required. You'll use Varity's MCP server in Cursor or Claude Code to handle everything from scaffolding to deployment to monetization.
 
 <Aside type="tip">
-The entire workflow takes 10-15 minutes and costs 60-80% less than AWS.
+The entire workflow takes 10-15 minutes and costs 60-80% less than Vercel/Render/Railway.
 </Aside>
 
 ## What You'll Build
@@ -236,7 +236,7 @@ That's it. No cloud provider accounts, no credit card, no complex setup.
 
     Prompt:
 
-    > "How much would this cost to host for 500 users on Varity vs AWS?"
+    > "How much would this cost to host for 500 users on Varity vs Vercel?"
 
     **What happens:** The AI runs `varity_cost_calculator` to show cost breakdown.
 
@@ -252,7 +252,7 @@ That's it. No cloud provider accounts, no credit card, no complex setup.
 
     Varity:
       - All-in-one: $75/month
-      - Savings: $175/month (70% cheaper)
+      - Savings: $175/month (~70% cheaper)
 
     Revenue (500 users × $29/mo):
       - Gross: $14,500/month
@@ -274,7 +274,7 @@ Here is what you accomplished, without writing any code:
 5. ✅ **Set up revenue stream**: 90% of subscription revenue goes to you
 
 **Total time:** 10-15 minutes  
-**Total cost:** 70% less than AWS/Vercel  
+**Total cost:** 70% less than Vercel/Render/Railway  
 **Code written:** 0 lines
 
 ## Next Steps
@@ -316,7 +316,7 @@ When you prompt the AI, here's what Varity does:
 | "Deploy" | `varity_deploy` | Uploads to CDN, injects prod credentials |
 | "Submit to store" | `varity_submit_to_store` | Lists app, sets up billing |
 | "Show status" | `varity_deploy_status` | Fetches deployment info |
-| "Compare costs" | `varity_cost_calculator` | Calculates Varity vs AWS/Vercel |
+| "Compare costs" | `varity_cost_calculator` | Calculates Varity vs Vercel/Render/Railway |
 
 Every tool runs locally or via Varity's infrastructure. No manual configuration needed.
 
