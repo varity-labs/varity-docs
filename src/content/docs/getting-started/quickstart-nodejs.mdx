@@ -64,7 +64,7 @@ Build a REST API with Express and Varity's zero-config database. No database set
 3. **Install the CLI** (for deployment)
 
    ```bash
-   pip install varitykit
+   pipx install varitykit
    ```
 
 </Steps>
@@ -279,7 +279,6 @@ You never need to set up a database, configure connection strings, or manage cre
 <Aside type="tip">
 To set custom credentials during development, use environment variables:
 ```bash
-VARITY_DB_PROXY_URL=https://your-proxy.example.com
 VARITY_APP_TOKEN=your-jwt-token
 ```
 The SDK checks `NEXT_PUBLIC_VARITY_*`, `VITE_VARITY_*`, and `REACT_APP_VARITY_*` prefixed variables as well.
@@ -292,7 +291,7 @@ The SDK checks `NEXT_PUBLIC_VARITY_*`, `VITE_VARITY_*`, and `REACT_APP_VARITY_*`
 1. **Install the CLI**
 
    ```bash
-   pip install varitykit
+   pipx install varitykit
    ```
 
 2. **Deploy your API**

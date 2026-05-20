@@ -66,7 +66,7 @@ The Varity MCP server lets your AI editor create, deploy, and manage Varity apps
   "mcpServers": {
     "varity": {
       "command": "npx",
-      "args": ["-y", "@varity-labs/mcp"]
+      "args": ["-y", "@varity-labs/mcp@beta"]
     }
   }
 }
@@ -75,7 +75,7 @@ The Varity MCP server lets your AI editor create, deploy, and manage Varity apps
 **For Claude Code:**
 
 ```bash
-claude mcp add varity -- npx -y @varity-labs/mcp
+claude mcp add varity -- npx -y @varity-labs/mcp@beta
 ```
 
 Then ask your AI to "create a Varity app" or "deploy this project." It has 15 tools for the full build-to-monetize workflow. See the [MCP Server Spec](/ai-tools/mcp-server-spec) for the complete tool reference, or check out the [Build with AI (No Code)](/tutorials/build-with-ai/) tutorial to get started.

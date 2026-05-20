@@ -289,7 +289,7 @@ NEXT_PUBLIC_VARITY_APP_ID=        # Your app ID (after deploy)
 - Use `'use client'` directive for hooks and interactive components
 - DashboardLayout has NO mobile support — implement mobile nav manually
 - Database credentials are auto-injected at deploy time by the CLI
-- For local dev, set NEXT_PUBLIC_VARITY_APP_TOKEN and NEXT_PUBLIC_VARITY_DB_PROXY_URL in .env.local, or build UI with mock data first
+- For local dev, set NEXT_PUBLIC_VARITY_APP_TOKEN in .env.local, or build UI with mock data first
 - .get() returns all docs — filter on client side (no server-side filtering)
 ````
 
@@ -444,7 +444,7 @@ const name = email?.split('@')[0];
 # Varity Deployment
 
 ## Prerequisites
-- pip install varitykit
+- pipx install varitykit
 - Node.js 20+
 - A built React/Next.js app
 
@@ -474,7 +474,7 @@ varitykit doctor
 
 ## Common Issues
 - "Module not found": Run npm install @varity-labs/sdk @varity-labs/ui-kit @varity-labs/types
-- "CLI not found": Run pip install varitykit
+- "CLI not found": Run pipx install varitykit
 - Build errors: Set `typescript: { ignoreBuildErrors: true }` in next.config.js during development
 - Static export: Use `output: 'export'` in next.config.js. No dynamic routes ([id]) — use client-side state instead.
 ````
