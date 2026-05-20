@@ -132,7 +132,7 @@ const DOCS_PAGES = [
 // NPM: 5 packages | PyPI: 1 package
 const VALID_NPM_PACKAGES = {
   '@varity-labs/sdk': { npm: true, version: '2.0.0-beta.6' },
-  '@varity-labs/ui-kit': { npm: true, version: '2.0.0-beta.7' },
+  '@varity-labs/ui-kit': { npm: true, version: '2.0.0-beta.16' },
   '@varity-labs/types': { npm: true, version: '2.0.0-beta.4' },
   '@varity-labs/mcp': { npm: true, version: '1.3.2' },
   'create-varity-app': { npm: true, version: '2.0.0-beta.9' },
