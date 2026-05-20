@@ -35,7 +35,7 @@ You can deploy from your AI editor using the Varity MCP server (recommended for 
     <Tabs>
       <TabItem label="Claude Code">
         ```bash
-        claude mcp add varity -- npx -y @varity-labs/mcp@beta
+        claude mcp add varity -- npx -y @varity-labs/mcp
         ```
       </TabItem>
       <TabItem label="Cursor">
@@ -46,7 +46,7 @@ You can deploy from your AI editor using the Varity MCP server (recommended for 
           "mcpServers": {
             "varity": {
               "command": "npx",
-              "args": ["-y", "@varity-labs/mcp@beta"]
+              "args": ["-y", "@varity-labs/mcp"]
             }
           }
         }
@@ -62,7 +62,7 @@ You can deploy from your AI editor using the Varity MCP server (recommended for 
           "mcpServers": {
             "varity": {
               "command": "npx",
-              "args": ["-y", "@varity-labs/mcp@beta"]
+              "args": ["-y", "@varity-labs/mcp"]
             }
           }
         }
@@ -92,7 +92,7 @@ You can deploy from your AI editor using the Varity MCP server (recommended for 
     **Step 1. Install the CLI**
 
     ```bash
-    pipx install varitykit
+    pip install varitykit
     ```
 
     Python 3.8 or later is required.
@@ -285,7 +285,7 @@ Run `npm install` first, then rebuild.
 **"varitykit not found" in terminal**
 
 ```bash
-pipx install varitykit
+pip install varitykit
 varitykit doctor
 ```
 

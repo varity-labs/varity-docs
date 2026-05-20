@@ -24,7 +24,7 @@ Works with Claude Code, Cursor, Windsurf, VS Code (Copilot), and any other edito
     Run this once from any directory:
 
     ```bash
-    claude mcp add varity -- npx -y @varity-labs/mcp@beta
+    claude mcp add varity -- npx -y @varity-labs/mcp
     ```
 
     Claude Code picks up the server automatically on the next conversation. Confirm it is registered:
@@ -43,7 +43,7 @@ Works with Claude Code, Cursor, Windsurf, VS Code (Copilot), and any other edito
       "mcpServers": {
         "varity": {
           "command": "npx",
-          "args": ["-y", "@varity-labs/mcp@beta"]
+          "args": ["-y", "@varity-labs/mcp"]
         }
       }
     }
@@ -59,7 +59,7 @@ Works with Claude Code, Cursor, Windsurf, VS Code (Copilot), and any other edito
       "mcpServers": {
         "varity": {
           "command": "npx",
-          "args": ["-y", "@varity-labs/mcp@beta"]
+          "args": ["-y", "@varity-labs/mcp"]
         }
       }
     }
@@ -75,7 +75,7 @@ Works with Claude Code, Cursor, Windsurf, VS Code (Copilot), and any other edito
       "mcpServers": {
         "varity": {
           "command": "npx",
-          "args": ["-y", "@varity-labs/mcp@beta"]
+          "args": ["-y", "@varity-labs/mcp"]
         }
       }
     }
@@ -84,7 +84,7 @@ Works with Claude Code, Cursor, Windsurf, VS Code (Copilot), and any other edito
 </Tabs>
 
 <Aside type="note">
-Node.js 20 or later and Python 3.8 or later are required. If you do not have `varitykit` installed, your AI editor will prompt you to install it: `pipx install varitykit`.
+Node.js 20 or later and Python 3.8 or later are required. If you do not have `varitykit` installed, your AI editor will prompt you to install it: `pip install varitykit`.
 </Aside>
 
 ## Deploy with one prompt
@@ -274,7 +274,7 @@ Re-add the server and restart:
 
 ```bash
 # Claude Code
-claude mcp add varity -- npx -y @varity-labs/mcp@beta
+claude mcp add varity -- npx -y @varity-labs/mcp
 ```
 
 Verify with `claude mcp list`.
@@ -282,7 +282,7 @@ Verify with `claude mcp list`.
 **Deploy fails with "varitykit not found"**
 
 ```bash
-pipx install varitykit
+pip install varitykit
 ```
 
 Then ask your AI to try again.

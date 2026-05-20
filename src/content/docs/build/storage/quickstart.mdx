@@ -269,8 +269,11 @@ const records = await customDb.collection('items').get();
 
 | Variable | Framework | Purpose |
 |----------|-----------|---------|
+| `NEXT_PUBLIC_VARITY_DB_PROXY_URL` | Next.js | Database proxy URL |
 | `NEXT_PUBLIC_VARITY_APP_TOKEN` | Next.js | App authentication token |
+| `VITE_VARITY_DB_PROXY_URL` | Vite | Database proxy URL |
 | `VITE_VARITY_APP_TOKEN` | Vite | App authentication token |
+| `REACT_APP_VARITY_DB_PROXY_URL` | CRA | Database proxy URL |
 | `REACT_APP_VARITY_APP_TOKEN` | CRA | App authentication token |
 
 When you deploy with `varitykit app deploy`, these are set automatically.
