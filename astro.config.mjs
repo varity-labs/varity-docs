@@ -135,6 +135,10 @@ export default defineConfig({
               slug: "getting-started/why-varity",
             },
             {
+              label: "Install",
+              slug: "getting-started/installation",
+            },
+            {
               label: "Deploy your first app",
               slug: "getting-started/quickstart",
             },
@@ -182,7 +186,6 @@ export default defineConfig({
             },
             { label: "AI Prompts", slug: "ai-tools/prompts" },
             { label: "CLI (varitykit)", slug: "cli/overview" },
-            { label: "Installation", slug: "getting-started/installation" },
           ],
         },
 
