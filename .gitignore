@@ -55,3 +55,12 @@ coverage/
 
 # TypeScript
 *.tsbuildinfo
+
+# Local dev / agent scratch — not for the public docs repo
+.playwright-mcp/
+drafts/
+CLAUDE.md
+
+# npm is canonical (package-lock.json) — ignore stray pnpm artifacts
+pnpm-lock.yaml
+pnpm-workspace.yaml
