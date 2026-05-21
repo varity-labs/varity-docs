@@ -91,7 +91,7 @@ Here is how you go from idea to a live URL:
 
 When you deploy, Varity inspects your project and makes all infrastructure decisions:
 
-**Framework detection:** Varity reads your `package.json` or `requirements.txt` to identify your framework (Next.js, React, Vue, FastAPI, Django, etc.) and selects the right build process.
+**Framework detection:** Varity reads your `package.json`, `requirements.txt`, or `pyproject.toml` to identify your framework (Next.js, React, Vue, FastAPI, Django, etc.) and selects the right build process.
 
 **Static vs. dynamic hosting:** Projects with a server or backend run in containers. Static sites (React, Vue, Next.js with export mode) go to a global CDN. You can override this with `--hosting dynamic` or `--hosting static` if needed.
 
@@ -112,7 +112,7 @@ You do not write connection strings or provision databases. Varity handles it.
 
 ## Pricing
 
-Varity pricing is based on reserved hardware profiles, while Vercel, Render, and Railway are primarily usage-metered. Your bill is tied to your selected profile rather than request spikes or invocation count.
+Varity pricing is based on reserved hardware profiles, while Vercel, Render, and Railway are primarily usage-metered. Your bill is tied to your selected profile and does not change with traffic spikes, bandwidth, or invocation count.
 
 Use the `varity_cost_calculator` MCP tool and `/resources/pricing` to estimate workload cost before deploying.
 
