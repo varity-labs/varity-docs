@@ -1,6 +1,6 @@
 ---
 title: Varity MCP Server
-description: Install and configure the Varity MCP server for AI editors. 16 tools for building, deploying, and managing apps via Cursor or Claude Code.
+description: Install and configure the Varity MCP server for AI editors. A full set of tools for building, deploying, and managing apps via Cursor or Claude Code.
 ---
 
 import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
@@ -9,11 +9,11 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="March 2026"
+  lastUpdated="May 2026"
   stability="stable"
 />
 
-The Varity MCP server (`@varity-labs/mcp`) gives AI editors 16 tools for the full build and deploy workflow. It runs locally via stdio. No API keys or accounts needed to get started.
+The Varity MCP server (`@varity-labs/mcp`) gives AI editors a full set of tools for the full build and deploy workflow. It runs locally via stdio. Install with the current beta tag.
 
 <Aside type="tip">
 The MCP server works with **any editor that supports MCP**: Cursor, Claude Code, VS Code (Copilot), Windsurf, and more. Setup takes under a minute.
@@ -23,7 +23,7 @@ The MCP server works with **any editor that supports MCP**: Cursor, Claude Code,
 
 - **Node.js 20+** (runs the MCP server)
 - **Python 3.8+** (needed for varitykit CLI)
-- **varitykit** (install with: pip install varitykit)
+- **varitykit** (install with: `pipx install varitykit`)
 
 ## Setup
 
@@ -36,7 +36,7 @@ The MCP server works with **any editor that supports MCP**: Cursor, Claude Code,
       "mcpServers": {
         "varity": {
           "command": "npx",
-          "args": ["-y", "@varity-labs/mcp"]
+          "args": ["-y", "@varity-labs/mcp@beta"]
         }
       }
     }
@@ -48,7 +48,7 @@ The MCP server works with **any editor that supports MCP**: Cursor, Claude Code,
     Run once from any directory:
 
     ```bash
-    claude mcp add varity -- npx -y @varity-labs/mcp
+    claude mcp add varity -- npx -y @varity-labs/mcp@beta
     ```
 
     Claude Code picks up the server automatically on the next conversation.
@@ -61,7 +61,7 @@ The MCP server works with **any editor that supports MCP**: Cursor, Claude Code,
       "mcpServers": {
         "varity": {
           "command": "npx",
-          "args": ["-y", "@varity-labs/mcp"]
+          "args": ["-y", "@varity-labs/mcp@beta"]
         }
       }
     }
@@ -75,7 +75,7 @@ The MCP server works with **any editor that supports MCP**: Cursor, Claude Code,
       "mcpServers": {
         "varity": {
           "command": "npx",
-          "args": ["-y", "@varity-labs/mcp"]
+          "args": ["-y", "@varity-labs/mcp@beta"]
         }
       }
     }
@@ -85,7 +85,7 @@ The MCP server works with **any editor that supports MCP**: Cursor, Claude Code,
 
 ## Tools Reference
 
-The server exposes 16 tools. Read-only tools run safely with no side effects. Destructive tools create files or deploy infrastructure.
+The server exposes a full set of tools. Read-only tools run safely with no side effects. Destructive tools create files or deploy infrastructure.
 
 ### `varity_doctor`: Check environment setup
 
@@ -131,7 +131,7 @@ Search Varity docs for guides, API references, and tutorials.
 
 ### `varity_cost_calculator`: Estimate costs
 
-Compare Varity hosting costs against AWS, Vercel, and other platforms.
+Compare Varity hosting costs against Vercel, Render, and Railway.
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
@@ -146,19 +146,9 @@ Compare Varity hosting costs against AWS, Vercel, and other platforms.
 
 ---
 
-### `varity_init`: Create a new app
+### `varity_init`: Create a new app (deferred path)
 
-Scaffold a production-ready app with auth, database, and payments.
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `name` | string | Yes | none | Project name (lowercase, hyphens allowed) |
-| `template` | `"saas-starter"` | No | `"saas-starter"` | Template to use |
-| `path` | string | No | Current directory | Directory to create the project in |
-
-**Annotations:** `destructiveHint: true` (creates files on your local filesystem)
-
-**Example prompt:** "Create a new Varity app called invoice-tracker"
+Scaffold a starter app locally. This path is currently deferred for public MVP; prefer deploying an existing repository with `varity_deploy`. The recommended flow is to build your app with your AI coding tool, then deploy it.
 
 ---
 
@@ -234,19 +224,18 @@ Open a URL in the user's default browser. Use after deploying to show the live a
 
 ### `varity_create_repo`: Create GitHub repository
 
-Create a new GitHub repository with the Varity SaaS template. Useful for browser-based workflows: create a repo, open it in Gitpod or StackBlitz, and deploy.
+Create a new GitHub repository and push your project to it. Useful for getting your code into version control before deploying.
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
 | `name` | string | Yes | none | Repository name (lowercase, hyphens allowed) |
 | `description` | string | No | none | Short description for the repo |
-| `template` | `"saas-starter"` | No | `"saas-starter"` | Template to use |
 | `visibility` | `"public"` \| `"private"` | No | `"public"` | Repository visibility |
 | `github_token` | string | No | none | GitHub personal access token with `repo` scope |
 
 **Annotations:** `destructiveHint: true` (creates an external GitHub repository)
 
-**Example prompt:** "Create a new GitHub repo called my-dashboard with the Varity template"
+**Example prompt:** "Create a new GitHub repo called my-dashboard and push my project"
 
 ---
 
@@ -257,7 +246,6 @@ Build and deploy the current project. Auto-detects framework (Next.js, React, Vu
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
 | `path` | string | No | Workspace root | Path to the project directory |
-| `submit_to_store` | boolean | No | false | Also submit to the Varity App Store (90% revenue to you) |
 
 **Annotations:** `destructiveHint: true` (deploys real infrastructure)
 
@@ -334,22 +322,18 @@ All tools return JSON with a consistent structure:
 
 ## Typical Workflow
 
-Here's the full build-to-monetize flow using the MCP tools:
+Here is the practical build-and-deploy flow using the MCP tools:
 
-**New app (build from scratch):**
+**Deploy an existing app:**
 
 1. **"Check if my environment is ready"** → `varity_doctor`
-2. **"Create a Varity app called my-saas"** → `varity_init` (local) or `varity_create_repo` (GitHub)
-3. **"Install dependencies"** → `varity_install_deps`
-4. **"Add an invoices collection with these fields..."** → `varity_add_collection`
-5. **"What will this cost for 200 users?"** → `varity_cost_calculator`
-6. *(Build your features)*
-7. **"Start the dev server"** → `varity_dev_server` → `varity_open_browser`
-8. **"Build for production"** → `varity_build`
-9. **"Deploy this"** → `varity_deploy`
-10. **"Did the deploy succeed?"** → `varity_deploy_status`
-11. **"Show me the build logs"** → `varity_deploy_logs` (if needed)
-12. **"Submit to the app store at $14.99"** → `varity_submit_to_store`
+2. **"Install dependencies"** → `varity_install_deps`
+3. **"What will this cost for 200 users?"** → `varity_cost_calculator`
+4. **"Start the dev server"** → `varity_dev_server` → `varity_open_browser`
+5. **"Build for production"** → `varity_build`
+6. **"Deploy this"** → `varity_deploy`
+7. **"Did the deploy succeed?"** → `varity_deploy_status`
+8. **"Show me the build logs"** → `varity_deploy_logs` (if needed)
 
 **Migrating from Vercel:**
 
@@ -363,13 +347,13 @@ Here's the full build-to-monetize flow using the MCP tools:
 Make sure Node.js 20+ is installed. Run `node --version` to check.
 
 **Deploy tools fail with "varitykit not found"**
-Install the CLI: `pip install varitykit`. Run `varitykit doctor` to verify.
+Install the CLI: `pipx install varitykit`. Run `varitykit doctor` to verify.
 
 **Server not showing in Cursor**
 Restart Cursor after adding the config. Check that `.cursor/mcp.json` is valid JSON.
 
 **Server not showing in Claude Code**
-Run `claude mcp list` to verify the server is registered. Re-add with `claude mcp add varity -- npx -y @varity-labs/mcp`.
+Run `claude mcp list` to verify the server is registered. Re-add with `claude mcp add varity -- npx -y @varity-labs/mcp@beta`.
 
 ## HTTP Transport (Claude.ai, ChatGPT, Browser-Based LLMs)
 
@@ -397,7 +381,7 @@ The first time you connect, you'll authenticate via the Varity login page.
 Run the HTTP server locally for development:
 
 ```bash
-npx -y @varity-labs/mcp --transport http --port 3100
+npx -y @varity-labs/mcp@beta --transport http --port 3100
 ```
 
 This starts the MCP server at `http://localhost:3100/mcp`.
@@ -417,4 +401,4 @@ For LLMs without MCP support, use the docs context files:
 
 - [Documentation](https://docs.varity.so/ai-tools/overview)
 - [Discord](https://discord.gg/7vWsdwa2Bg): ask in #general
-- [GitHub Issues](https://github.com/varity-labs/varity-sdk/issues)
+- [Varity on GitHub](https://github.com/varity-labs)

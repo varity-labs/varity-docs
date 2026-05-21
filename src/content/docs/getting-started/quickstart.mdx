@@ -1,6 +1,6 @@
 ---
 title: Quick Start
-description: Get started with Varity in minutes. Migrate an existing app, deploy a ready-made template, or build from scratch with AI tools.
+description: Get started with Varity in minutes. Migrate an existing app, deploy from your repo, or deploy with AI tools.
 ---
 
 import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid, Card } from '@astrojs/starlight/components';
@@ -17,10 +17,10 @@ Three ways to get started. Pick the one that fits where you are today.
 
 <CardGrid>
   <Card title="Migrate an existing app" icon="rocket">
-    You already have an app on Vercel, Railway, Heroku, or anywhere else. One command migrates and deploys it.
+    You already have an app on Vercel. One command migrates and deploys it.
   </Card>
-  <Card title="Deploy a ready-made template" icon="puzzle">
-    Deploy Ollama, Postgres, or other production services in one command. No code required.
+  <Card title="Deploy your current repo" icon="puzzle">
+    Already have code? Deploy directly with one command from your project folder.
   </Card>
   <Card title="Build from scratch with AI tools" icon="laptop">
     Using Claude Code or Cursor? Add the Varity MCP server and ask your AI tool to deploy.
@@ -31,7 +31,7 @@ Three ways to get started. Pick the one that fits where you are today.
 
 ## Path 1: Migrate your existing app
 
-If you already have a Next.js, React, or Python app — on Vercel, Railway, Heroku, or any GitHub repo — this is the fastest path.
+If you already have a Next.js, React, Vue, Node.js, Python, Astro, Qwik, or Vite app on Vercel, this is the fastest path.
 
 <Steps>
 
@@ -67,21 +67,16 @@ See the full [Migration Guide](/deploy/vercel-migration) for step-by-step detail
 
 ---
 
-## Path 2: Deploy a ready-made template
+## Path 2: Deploy your current repo
 
-Deploy open-source AI models, databases, and other services in one command. No code to write.
+If your project already runs locally, deploy it directly.
 
 ```bash
-varitykit deploy --template ollama --name my-llama
+cd my-app
+varitykit app deploy
 ```
 
-Available templates include Ollama (open-source LLMs), Stable Diffusion, Postgres, Redis, and more.
-
-<Aside type="note" title="Shipping with the next release">
-The `varitykit deploy --template` command is available in the upcoming release. Check back here or watch the [changelog](https://github.com/varity-labs/varity-sdk/releases) for the exact version.
-</Aside>
-
-[Browse available templates →](/templates/overview)
+Varity auto-detects the framework and hosting mode, then returns a live URL at `https://varity.app/<app-name>/`.
 
 ---
 
@@ -96,7 +91,7 @@ If you are using Claude Code or Cursor, the Varity MCP server lets your AI tool 
    <Tabs>
      <TabItem label="Claude Code">
        ```bash
-       claude mcp add varity -- npx -y @varity-labs/mcp
+       claude mcp add varity -- npx -y @varity-labs/mcp@beta
        ```
      </TabItem>
      <TabItem label="Cursor">
@@ -107,7 +102,7 @@ If you are using Claude Code or Cursor, the Varity MCP server lets your AI tool 
          "mcpServers": {
            "varity": {
              "command": "npx",
-             "args": ["-y", "@varity-labs/mcp"]
+             "args": ["-y", "@varity-labs/mcp@beta"]
            }
          }
        }
@@ -178,8 +173,8 @@ varitykit app status
 
 - [How Varity Works](/getting-started/how-varity-works) - Understand the full deployment flow
 - [Installation](/getting-started/installation) - Full setup guide for all tools
-- [Migration Guide](/deploy/vercel-migration) - Detailed migration docs for Vercel, Railway, and Heroku apps
+- [Migration Guide](/deploy/vercel-migration) - Detailed migration docs for Vercel apps
 
 ---
 
-*Looking for a SaaS starter template? `varitykit init` scaffolds a starter project with auth and database — this is experimental and not the recommended beta path for most developers.*
+*Need a starter project? Use your AI coding tool to scaffold app code first, then run `varitykit app deploy` or `varity_deploy`.*

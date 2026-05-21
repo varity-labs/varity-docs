@@ -1,6 +1,6 @@
 ---
 title: Why Varity
-description: Why Varity over AWS, Vercel, or Netlify. 60-80% cost savings, zero configuration, built-in auth and database, and one-command deploys for non-technical developers.
+description: Why Varity over Vercel, Render, or Railway. 60-80% cost savings, zero configuration, auto-configured auth and database, and one-command deploys for non-technical developers.
 ---
 
 import { Card, CardGrid } from '@astrojs/starlight/components';
@@ -9,11 +9,11 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="April 2026"
+  lastUpdated="May 2026"
   stability="stable"
 />
 
-Deploy any app in 60 seconds. 60-80% cheaper than Vercel/Render/Railway. No DevOps required.
+Deploy any Node or Python app, AI agent, or LLM in 60 seconds. 60-80% cheaper than Vercel, Render, or Railway. No DevOps required.
 
 ## The problem with traditional hosting
 
@@ -40,9 +40,9 @@ varitykit app deploy
 
 Your app is live in under 2 minutes, with auth, database, and hosting already configured.
 
-### 60-80% cheaper than Vercel/Render/Railway
+### 60-80% cheaper than Vercel, Render, or Railway
 
-Varity uses efficient distributed infrastructure that passes savings directly to developers. The same app that costs thousands per month on AWS costs a fraction on Varity.
+Varity charges one flat monthly cost per app, based on the hardware you reserve. Vercel, Render, and Railway bill on usage, so your bill grows with traffic, bandwidth, and invocations. With Varity, your bill does not change as your app scales.
 
 Use the [cost calculator](/resources/pricing) to estimate your specific app.
 
@@ -73,24 +73,24 @@ That is it. The MCP handles installation, building, and deploying. See [MCP Serv
 
 ## Comparing Varity to alternatives
 
-| | AWS | Vercel | Varity |
+| | Vercel | Render / Railway | Varity |
 |---|---|---|---|
-| **Cost** | High (add up services yourself) | Mid (front-end focused) | 60-80% less than Vercel/Render/Railway |
-| **Full-stack apps** | Yes (complex setup) | Limited (front-end focus) | Yes (auto-configured) |
-| **Auth included** | No | No | Yes |
-| **Database included** | No | No | Auto-provisioned |
-| **Setup time** | Days to weeks | Hours | Under 2 minutes |
-| **Target user** | DevOps engineers | Front-end devs | Non-technical developers |
+| **Cost** | Usage-based, grows with traffic | Usage-based, grows with traffic | Flat monthly per app, 60-80% less |
+| **Full-stack apps** | Limited (front-end focus) | Yes | Yes (auto-configured) |
+| **Auth included** | No | No | Auto-configured |
+| **Database included** | Separate add-on | Separate add-on | Auto-wired when detected |
+| **Setup time** | Hours | Hours | Under 2 minutes |
+| **Target user** | Front-end devs | Back-end devs | Non-technical developers |
 
 ### Compared to Vercel
 
-Vercel is excellent for front-end and Next.js apps. Varity is built for the same kind of developer but handles the full stack, is significantly cheaper, and requires no configuration at all.
+Vercel is excellent for front-end and Next.js apps. Varity is built for the same kind of developer but handles the full stack, costs less, and requires no configuration at all.
 
 If you are migrating from Vercel, see [Migrate from Vercel](/deploy/vercel-migration).
 
-### Compared to AWS
+### Compared to Render and Railway
 
-AWS gives you maximum control. Varity gives you maximum speed. If you are a non-technical developer building with AI tools, the configuration overhead of AWS is not worth it. Varity gives you the same reliability at a fraction of the cost and none of the complexity.
+Render and Railway handle full-stack apps, but they bill on usage, so your costs climb as your app grows. Varity charges one flat monthly cost per app based on reserved hardware, so success does not inflate your bill, and you still get auth and databases configured automatically.
 
 ## When to use Varity
 
@@ -102,7 +102,7 @@ AWS gives you maximum control. Varity gives you maximum speed. If you are a non-
 ## When Varity may not be the right fit
 
 - You need bare-metal server access or extreme infrastructure customization
-- You have a large existing AWS investment with reserved instances
+- Your app uses a framework Varity does not support yet (Go, Rust, Ruby, Java, PHP, and others are on the roadmap)
 - You need specific compliance certifications not yet supported (contact us for the roadmap)
 
 For most apps, Varity is the fastest path from code to production.

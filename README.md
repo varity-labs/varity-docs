@@ -1,6 +1,6 @@
 # Varity Documentation
 
-> **The easiest way to deploy any app, AI agent, or LLM. 60-80% cheaper than AWS.**
+> **The easiest way to deploy any app, AI agent, or LLM.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![Discord](https://img.shields.io/discord/7vWsdwa2Bg?label=Discord&logo=discord&logoColor=white)](https://discord.gg/7vWsdwa2Bg)
@@ -12,7 +12,7 @@
 
 ## What is Varity?
 
-Varity is the easiest way to deploy any app, AI agent, or LLM with your AI coding tool. You describe what you want to build and Varity handles the hosting, database, auth, and payments automatically — 60-80% cheaper than AWS.
+Varity is the easiest way to deploy any app, AI agent, or LLM with your AI coding tool. You describe what you want to build and Varity handles the hosting, database, auth, and payments automatically.
 
 No servers to configure. No infrastructure decisions. One command and your app is live.
 
@@ -39,10 +39,10 @@ npx -y @varity-labs/mcp@beta
 
 - **One-command deploy** — run `varitykit app deploy` from any Next.js, React, Vue, Node, or Python app
 - **Auto-configured infrastructure** — database, auth, and storage wired automatically based on your dependencies
-- **60-80% cheaper than AWS** — usage-based pricing, pay only for what you use
+- **Cost-aware deployment** — compare projected costs with the built-in calculator
 - **Vercel migration** — `varitykit migrate` converts your Vercel project in seconds
 - **AI IDE native** — install the MCP server in Claude Code, Cursor, or Windsurf and deploy with natural language
-- **16 MCP tools** — `varity_deploy`, `varity_init`, `varity_migrate`, `varity_cost_calculator`, and more
+- **16 MCP tools** — `varity_deploy`, `varity_migrate`, `varity_cost_calculator`, and more
 - **Auto-wired services** — Postgres, Redis, MongoDB, and Ollama detected and configured from `package.json`
 
 ## Supported Frameworks

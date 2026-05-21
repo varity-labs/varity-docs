@@ -111,15 +111,15 @@ Deployment credentials for hosting (both static and dynamic) are managed automat
 <Tabs>
   <TabItem label="Development">
     ```bash title=".env.local"
-    # Varity SDK (optional — dev defaults work automatically)
+    # Varity app ID (optional, dev defaults work automatically)
     NEXT_PUBLIC_VARITY_APP_ID=your-app-id
     ```
 
-    In development, the SDK uses shared credentials automatically. No other variables are needed.
+    In development, your app uses shared credentials automatically. No other variables are needed.
   </TabItem>
   <TabItem label="Production">
     ```bash title=".env.production"
-    # Varity SDK
+    # Varity app ID
     NEXT_PUBLIC_VARITY_APP_ID=your-app-id
     VARITY_API_URL=https://varity.app
     VARITY_API_KEY=your_production_api_key

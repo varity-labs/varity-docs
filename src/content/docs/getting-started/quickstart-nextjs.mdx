@@ -1,6 +1,6 @@
 ---
 title: Next.js Quick Start
-description: Build a full-stack Next.js app with Varity auth, database, and deployment in 5 minutes. Uses dashboard templates with auth and database pre-configured.
+description: Deploy a Next.js app to Varity. Varity detects your framework and wires hosting, auth, and databases automatically.
 ---
 
 import { Steps, Tabs, TabItem, Aside } from '@astrojs/starlight/components';
@@ -9,11 +9,11 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="April 2026"
+  lastUpdated="May 2026"
   stability="stable"
 />
 
-Build a full-stack Next.js app with authentication, database, and deployment in 5 minutes.
+Deploy an existing Next.js app to Varity in one command. Varity detects your framework, picks the right hosting mode, and wires any backend services your app needs automatically. You do not change your code.
 
 ## Prerequisites
 
@@ -21,7 +21,7 @@ Build a full-stack Next.js app with authentication, database, and deployment in 
 - npm, pnpm, or yarn
 - Python 3.8+ (for the CLI)
 
-## Create Your App
+## Deploy your app
 
 <Steps>
 
@@ -31,202 +31,57 @@ Build a full-stack Next.js app with authentication, database, and deployment in 
    pipx install varitykit
    ```
 
-2. **Scaffold a new project**
+2. **Open your project**
 
    ```bash
-   varitykit init my-app
    cd my-app
    ```
 
-   This launches an interactive template picker. Choose from the available dashboard templates (finance, healthcare, retail, ISO merchant, or generic business). Each includes auth, database, and a full dashboard already configured.
-
-3. **Install dependencies**
+3. **Confirm it runs locally** (optional)
 
    ```bash
    pnpm install
-   ```
-
-4. **Start the dev server**
-
-   ```bash
    pnpm dev
    ```
 
-   Open [http://localhost:3000](http://localhost:3000). You should see the landing page.
+   Open [http://localhost:3000](http://localhost:3000) to confirm your app works before deploying.
 
-</Steps>
-
-## What Gets Scaffolded
-
-`varitykit init` creates a `saas-starter` project with auth, database, and a full dashboard pre-configured. The template includes:
-
-- **Landing page** — hero, features, pricing, CTA sections
-- **Auth** — email + Google sign-in, zero-config dev credentials
-- **Dashboard** — KPI cards, projects, tasks, team, settings
-- **Database** — Varity DB with full CRUD hooks pre-wired
-- **UI components** — from `@varity-labs/ui-kit`
-
-## Project Structure
-
-The exact structure varies by template. All templates share this general shape:
-
-```
-my-app/
-├── src/
-│   ├── app/                     # Next.js App Router pages
-│   │   ├── page.tsx             # Landing page
-│   │   ├── login/page.tsx       # Login page
-│   │   ├── layout.tsx           # Root layout (auth provider)
-│   │   └── dashboard/           # Dashboard pages (routes vary by template)
-│   ├── lib/
-│   │   ├── database.ts          # Collection helpers
-│   │   ├── hooks.ts             # React hooks for data
-│   │   └── constants.ts         # App name, navigation
-│   ├── types/
-│   │   └── index.ts             # TypeScript interfaces
-│   └── components/ui/           # Shared components
-├── .env.example
-├── next.config.js
-└── package.json
-```
-
-## Understand the Key Files
-
-### Authentication (already configured)
-
-The login and dashboard layouts wrap their pages with the auth provider:
-
-```tsx title="src/app/login/page.tsx (simplified)"
-import { AuthProvider, useAuth } from '@varity-labs/ui-kit';
-
-export default function LoginPage() {
-  return (
-    <AuthProvider appId={process.env.NEXT_PUBLIC_VARITY_AUTH_APP_ID}>
-      <LoginContent />
-    </AuthProvider>
-  );
-}
-```
-
-<Aside type="tip">
-No `appId` needed during development. Varity provides shared credentials so you can start immediately.
-</Aside>
-
-### Database (already configured)
-
-Data types are defined in `src/types/index.ts`:
-
-```typescript title="src/types/index.ts"
-export interface Project {
-  id?: string;
-  name: string;
-  description: string;
-  status: 'active' | 'paused' | 'completed';
-  owner: string;
-  members: string[];
-  dueDate: string;
-  createdAt: string;
-}
-```
-
-Collections are set up in `src/lib/database.ts`:
-
-```typescript title="src/lib/database.ts"
-import { db } from '@varity-labs/sdk';
-import type { Project, Task, TeamMember } from '../types';
-
-export const projects = () => db.collection<Project>('projects');
-export const tasks = () => db.collection<Task>('tasks');
-export const teamMembers = () => db.collection<TeamMember>('team_members');
-```
-
-Hooks provide CRUD with optimistic updates in `src/lib/hooks.ts`:
-
-```typescript title="src/lib/hooks.ts (simplified)"
-export function useProjects() {
-  const [data, setData] = useState<Project[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // Auto-loads on mount, provides create/update/remove with optimistic UI
-  return { data, loading, error, create, update, remove, refresh };
-}
-```
-
-### Navigation
-
-Edit `src/lib/constants.ts` to change your app name and navigation:
-
-```typescript title="src/lib/constants.ts"
-export const APP_NAME = 'My App';  // set to your project name
-
-export const NAVIGATION_ITEMS = [
-  { label: 'Dashboard', icon: 'dashboard', path: '/dashboard' },
-  { label: 'Projects', icon: 'folder', path: '/dashboard/projects' },
-  { label: 'Tasks', icon: 'list', path: '/dashboard/tasks' },
-  { label: 'Team', icon: 'people', path: '/dashboard/team' },
-  { label: 'Settings', icon: 'settings', path: '/dashboard/settings' },
-];
-```
-
-## Deploy
-
-<Steps>
-
-1. **Build your app**
-
-   ```bash
-   pnpm build
-   ```
-
-2. **Deploy to Varity**
+4. **Deploy to Varity**
 
    ```bash
    varitykit app deploy
    ```
 
-3. **Your app is live!**
+   Varity detects that this is a Next.js project, chooses the right hosting mode (static export or dynamic runtime), builds your app, and deploys it.
 
-   The terminal shows your live URL. Your app is deployed with:
-   - Authentication ready (users can sign in immediately)
-   - Database credentials automatically injected
-   - Free usage for your end users (no fees)
+5. **Your app is live**
+
+   The terminal shows your live URL:
+
+   ```
+   https://varity.app/<app-name>/
+   ```
 
 </Steps>
 
-### Submit to the App Store
+## What gets auto-wired
 
-To list your app for users to discover and purchase:
+You do not import an SDK or change your code. When Varity deploys a Next.js project, it configures the backend automatically:
 
-```bash
-varitykit app deploy --submit-to-store
-```
+- **Hosting mode** - static export vs dynamic runtime is detected from your `next.config.js`.
+- **Databases and caches** - if Varity detects a database client in your dependencies (for example Prisma, `pg`, `mongoose`, or `redis`), it provisions the matching service and injects the connection details into your app's environment at runtime.
+- **Environment variables** - any variables you set are injected into the deployed container. See [Environment Variables](/deploy/env-variables).
+- **Live URL** - `https://varity.app/<app-name>/`, with HTTPS handled for you.
 
-This opens the Developer Portal where you can set pricing and app details.
+For the full list of detected frameworks and auto-wired services, see [Supported Frameworks](/deploy/supported-frameworks) and [Auto-wired Services](/deploy/auto-wired-services).
 
-## Customize
-
-### Change Branding
-
-1. **App name**: Edit `APP_NAME` in `src/lib/constants.ts`
-2. **Colors**: Edit CSS variables in `src/app/globals.css`
-3. **Logo**: Replace logo in `public/`
-
-### Add a New Page
-
-1. Create `src/app/dashboard/analytics/page.tsx`
-2. Add to `NAVIGATION_ITEMS` in `constants.ts`:
-   ```typescript
-   { label: 'Analytics', icon: 'dashboard', path: '/dashboard/analytics' }
-   ```
-
-### Add a New Data Model
-
-See the [Add a CRUD Feature](/tutorials/add-crud-feature) tutorial for a step-by-step guide.
+<Aside type="tip">
+You do not need to add any provider components, API keys, or config to your app. Varity supplies the credentials your deployed app needs.
+</Aside>
 
 ## Next Steps
 
-- [Customize the Template](/tutorials/customize-template): Branding, pages, data models
-- [Add a CRUD Feature](/tutorials/add-crud-feature): End-to-end feature tutorial
-- [Database Quick Start](/build/databases/quickstart): Deep dive into the database API
-- [Template Overview](/templates/overview): Available templates and features
+- [Supported Frameworks](/deploy/supported-frameworks): Everything Varity can detect and deploy
+- [Auto-wired Services](/deploy/auto-wired-services): How databases and caches are provisioned
+- [Migrate from Vercel](/deploy/vercel-migration): Move an existing Vercel app in one command
+- [Deploy your app](/deploy/deploy-your-app): Full deploy reference

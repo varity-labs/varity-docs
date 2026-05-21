@@ -1,6 +1,6 @@
 ---
 title: Deploy from Claude Code, Cursor, or Windsurf
-description: Deploy any app to production from inside your AI editor. Install the Varity MCP server once, then type "deploy this" and your app is live.
+description: Deploy any Node or Python app to production from inside your AI editor. Install the Varity MCP server once, then type "deploy this" and your app is live.
 ---
 
 import { Steps, Tabs, TabItem, Aside, Card, CardGrid } from '@astrojs/starlight/components';
@@ -24,7 +24,7 @@ Works with Claude Code, Cursor, Windsurf, VS Code (Copilot), and any other edito
     Run this once from any directory:
 
     ```bash
-    claude mcp add varity -- npx -y @varity-labs/mcp
+    claude mcp add varity -- npx -y @varity-labs/mcp@beta
     ```
 
     Claude Code picks up the server automatically on the next conversation. Confirm it is registered:
@@ -43,7 +43,7 @@ Works with Claude Code, Cursor, Windsurf, VS Code (Copilot), and any other edito
       "mcpServers": {
         "varity": {
           "command": "npx",
-          "args": ["-y", "@varity-labs/mcp"]
+          "args": ["-y", "@varity-labs/mcp@beta"]
         }
       }
     }
@@ -59,7 +59,7 @@ Works with Claude Code, Cursor, Windsurf, VS Code (Copilot), and any other edito
       "mcpServers": {
         "varity": {
           "command": "npx",
-          "args": ["-y", "@varity-labs/mcp"]
+          "args": ["-y", "@varity-labs/mcp@beta"]
         }
       }
     }
@@ -75,7 +75,7 @@ Works with Claude Code, Cursor, Windsurf, VS Code (Copilot), and any other edito
       "mcpServers": {
         "varity": {
           "command": "npx",
-          "args": ["-y", "@varity-labs/mcp"]
+          "args": ["-y", "@varity-labs/mcp@beta"]
         }
       }
     }
@@ -84,7 +84,7 @@ Works with Claude Code, Cursor, Windsurf, VS Code (Copilot), and any other edito
 </Tabs>
 
 <Aside type="note">
-Node.js 20 or later and Python 3.8 or later are required. If you do not have `varitykit` installed, your AI editor will prompt you to install it: `pip install varitykit`.
+Node.js 20 or later and Python 3.8 or later are required. If you do not have `varitykit` installed, your AI editor will prompt you to install it: `pipx install varitykit`.
 </Aside>
 
 ## Deploy with one prompt
@@ -146,7 +146,7 @@ Check my Varity environment, then build this project, deploy it, and open the li
 
 ## What the MCP server can do
 
-The Varity MCP server gives your AI editor 16 tools. Here are the most useful ones for the build-to-deploy workflow:
+The Varity MCP server gives your AI editor a full set of tools. Here are the most useful ones for the build-to-deploy workflow:
 
 | Tool | What to ask your AI |
 |---|---|
@@ -274,7 +274,7 @@ Re-add the server and restart:
 
 ```bash
 # Claude Code
-claude mcp add varity -- npx -y @varity-labs/mcp
+claude mcp add varity -- npx -y @varity-labs/mcp@beta
 ```
 
 Verify with `claude mcp list`.
@@ -282,7 +282,7 @@ Verify with `claude mcp list`.
 **Deploy fails with "varitykit not found"**
 
 ```bash
-pip install varitykit
+pipx install varitykit
 ```
 
 Then ask your AI to try again.
@@ -305,8 +305,7 @@ See [MCP Server Spec](/ai-tools/mcp-server-spec) for the full troubleshooting se
 
 ## Next steps
 
-- [MCP Server Spec](/ai-tools/mcp-server-spec): All 16 tools documented
-- [AI Prompts](/ai-tools/prompts): Copy-paste prompts for building Varity apps
+- [MCP Server Spec](/ai-tools/mcp-server-spec): The full tool reference
 - [Deploy a Next.js App](/guides/deploy-nextjs): Full Next.js deploy walkthrough
 - [Migrate from Vercel](/deploy/vercel-migration): One-command Vercel migration
 - [Auto-wired Services](/deploy/auto-wired-services): What gets provisioned automatically

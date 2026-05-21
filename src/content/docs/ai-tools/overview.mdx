@@ -9,51 +9,24 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="March 2026"
+  lastUpdated="May 2026"
   stability="stable"
 />
 
-Varity provides AI tooling to help you build faster. Copy a prompt into your AI assistant, and it already knows how to build, deploy, and debug Varity apps.
+Varity is built to be driven from your AI coding tool. Add the MCP server once, then ask your AI assistant to deploy, monitor, and manage your apps in plain English.
 
 ## Available Tools
 
 <CardGrid>
-  <Card title="AI Prompts" icon="document">
-    Ready-to-use prompts for Cursor, Claude Code, Copilot, and any AI assistant. Copy a prompt, start building.
-
-    [View Prompts →](/ai-tools/prompts)
-  </Card>
-  <Card title="Cursor Rules" icon="setting">
-    `.mdc` rule files that teach Cursor how to write Varity code. Drop into your project for intelligent autocomplete.
-  </Card>
-  <Card title="LLM-Optimized Docs" icon="open-book">
-    Machine-readable documentation for AI assistants. Available in two formats: `/llms.txt` (summary) and `/llms-full.txt` (detailed).
-  </Card>
   <Card title="MCP Server" icon="rocket">
     Model Context Protocol server for Cursor, Claude Code, VS Code, and Windsurf. Deploy, search docs, and manage apps from your AI editor.
 
     [View Spec →](/ai-tools/mcp-server-spec)
   </Card>
+  <Card title="LLM-Optimized Docs" icon="open-book">
+    Machine-readable documentation for AI assistants. Available in two formats: `/llms.txt` (summary) and `/llms-full.txt` (detailed).
+  </Card>
 </CardGrid>
-
-## Quick Start: AI Prompts
-
-The fastest way to get AI assistance with Varity is to copy one of our [AI Prompts](/ai-tools/prompts) into your project.
-
-**For Cursor:**
-1. Copy the Varity rules from our [AI Prompts page](/ai-tools/prompts)
-2. Save to `.cursor/rules/varity.mdc` in your project
-3. Cursor now understands Varity patterns automatically
-
-**For Claude Code:**
-1. Copy the prompt content from our [AI Prompts page](/ai-tools/prompts)
-2. Add to your project's `CLAUDE.md` file
-3. Claude Code now has full Varity context
-
-**For any AI assistant:**
-1. Copy the prompt from [AI Prompts](/ai-tools/prompts)
-2. Paste at the start of your conversation
-3. Ask it to build features using Varity
 
 ## Quick Start: MCP Server
 
@@ -66,7 +39,7 @@ The Varity MCP server lets your AI editor create, deploy, and manage Varity apps
   "mcpServers": {
     "varity": {
       "command": "npx",
-      "args": ["-y", "@varity-labs/mcp"]
+      "args": ["-y", "@varity-labs/mcp@beta"]
     }
   }
 }
@@ -75,29 +48,10 @@ The Varity MCP server lets your AI editor create, deploy, and manage Varity apps
 **For Claude Code:**
 
 ```bash
-claude mcp add varity -- npx -y @varity-labs/mcp
+claude mcp add varity -- npx -y @varity-labs/mcp@beta
 ```
 
-Then ask your AI to "create a Varity app" or "deploy this project." It has 15 tools for the full build-to-monetize workflow. See the [MCP Server Spec](/ai-tools/mcp-server-spec) for the complete tool reference, or check out the [Build with AI (No Code)](/tutorials/build-with-ai/) tutorial to get started.
-
-## Cursor Rules
-
-Pre-configured rules that teach Cursor IDE how to write Varity code correctly.
-
-**Available rules:**
-- **Varity App Development**: SDK patterns, database queries, auth setup
-- **Deployment**: CLI commands, environment variables, hosting options
-- **Authentication**: Auth setup, protected routes, user data
-- **Database**: Collections, typed queries, CRUD hooks
-
-**Install:**
-
-```bash
-mkdir -p .cursor/rules
-# Copy rule content from the AI Prompts page into .cursor/rules/varity.mdc
-```
-
-See the [AI Prompts page](/ai-tools/prompts) for the full rules file content.
+Then ask your AI to "deploy this project" or "migrate this app from Vercel." The MCP server provides a full set of tools for deploying, monitoring, and managing your apps. See the [MCP Server Spec](/ai-tools/mcp-server-spec) for the complete tool reference, or check out the [Build with AI (No Code)](/tutorials/build-with-ai/) tutorial to get started.
 
 ## LLM-Optimized Documentation
 
@@ -112,51 +66,27 @@ Point any AI tool at one of these URLs for instant Varity context. Use `llms.txt
 
 ## AI-Friendly Patterns
 
-Our tools teach AI assistants these patterns:
-
-### Infrastructure Abstraction
-
-AI assistants are trained to use developer-friendly language:
+When you point an AI tool at Varity's LLM-optimized docs, it learns to use developer-friendly language:
 
 - "Deploy your application" (not platform-specific hosting terms)
 - "Sign in" (the user just sees a normal login screen)
-- "Usage fees are covered" (not technical payment terms)
+- "Your backend is configured automatically" (no infrastructure jargon)
 
-### Type Safety
-
-```typescript
-import { db } from '@varity-labs/sdk';
-import type { Project } from '../types';
-
-// Always use typed collections
-const projects = db.collection<Project>('projects');
-```
-
-### Error Handling
-
-```typescript
-try {
-  await projects.add(data);
-} catch (error) {
-  if (error.code === 'VALIDATION_ERROR') {
-    // Handle specific error
-  }
-}
-```
+It also learns the real deploy flow: detect the framework, choose the hosting mode, auto-wire any databases or caches your app needs, and return a live URL, all without changing your code.
 
 ## Supported AI Tools
 
 | Tool | Integration | Level |
 |------|------------|-------|
-| **Cursor** | MCP Server + `.mdc` rules + prompts | Full |
-| **Claude Code** | MCP Server + `CLAUDE.md` + prompts | Full |
+| **Cursor** | MCP Server + `llms.txt` context | Full |
+| **Claude Code** | MCP Server + `llms.txt` context | Full |
 | **VS Code (Copilot)** | MCP Server + `llms.txt` context | Full |
-| **Windsurf** | MCP Server + Cursor-compatible rules | Full |
+| **Windsurf** | MCP Server + `llms.txt` context | Full |
 | **ChatGPT** | `llms.txt` context | Basic |
 | **Gemini** | `llms.txt` context | Basic |
 | **GitHub Copilot** | `llms.txt` context | Basic |
 
 ## What's Next
 
-- **[AI Prompts](/ai-tools/prompts)**: Ready-to-use prompts for every AI tool
 - **[MCP Server Spec](/ai-tools/mcp-server-spec)**: Setup guide and tool reference
+- **[Build with AI (No Code)](/tutorials/build-with-ai/)**: Deploy your first app from your AI editor

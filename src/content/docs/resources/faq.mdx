@@ -1,6 +1,6 @@
 ---
 title: "FAQ"
-description: "Frequently asked questions about Varity: pricing, security, data ownership, deployment, and how it compares to AWS, Vercel, and Netlify."
+description: "Frequently asked questions about Varity: deployment workflow, supported frameworks, and pricing model."
 ---
 
 import PageMeta from '../../../components/PageMeta.astro';
@@ -8,7 +8,7 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="March 2026"
+  lastUpdated="May 2026"
   stability="stable"
 />
 
@@ -18,28 +18,23 @@ Common questions from developers new to Varity.
 
 ### What is Varity?
 
-Varity is an application deployment platform that provides:
-- **Secure hosting** - Your app runs on distributed infrastructure
-- **Built-in authentication** - Email, Google, Twitter login out of the box
-- **Zero usage fees** - Users never pay operational fees
-- **60-80% cost savings** compared to Vercel, Render, and Railway
+Varity is an AI-native cloud platform focused on deployment. The two core packages are `varitykit` (CLI) and `@varity-labs/mcp` (MCP server).
 
-### How is Varity different from Vercel/Render/Railway?
+### How is Varity different from Vercel, Render, or Railway?
 
-| Feature | Traditional Cloud | Varity |
-|---------|------------------|--------|
-| Infrastructure | Centralized servers | Distributed network |
-| Pricing | Pay for compute time | Pay for what you use |
-| User fees | N/A | $0 (sponsored) |
-| Vendor lock-in | High | None (open standards) |
-| Data ownership | Provider controlled | You control |
+| Feature | Vercel / Render / Railway | Varity |
+|---------|---------------------------|--------|
+| Pricing | Usage-metered, grows with traffic | One flat monthly cost per app |
+| Backend services | Separate add-ons, separate bills | Auto-wired in the same deploy |
+| Auth | Configure separately | Configured automatically |
+| Setup | Build config and env wiring | Zero config, one command |
 
 ### Is my data secure?
 
 Yes. Varity uses:
-- End-to-end encryption for sensitive data
-- Distributed storage (no single point of failure)
-- Open-source code you can audit
+- Encryption for sensitive data in transit and at rest
+- Replicated storage across multiple regions
+- Automatic SSL on every deployment
 
 ### What frameworks are supported?
 
@@ -50,7 +45,7 @@ Yes. Varity uses:
 - Node.js backends (Express, Fastify, Nest, Koa, Hono)
 - Python backends (FastAPI, Django, Flask)
 
-**Not yet supported:** Go, Rust, Ruby, Elixir, Java, PHP, .NET. Deploying these will fail with an unsupported-language error. [Request framework support](https://github.com/varity-labs/varity-sdk/issues).
+**Not yet supported:** Go, Rust, Ruby, Elixir, Java, PHP, .NET. Deploying these will fail with an unsupported-language error. [Request framework support](https://github.com/varity-labs).
 
 ## Deployment
 
@@ -58,7 +53,7 @@ Yes. Varity uses:
 
 ```bash
 # Install the CLI
-pip install varitykit
+pipx install varitykit
 
 # Deploy
 varitykit app deploy
@@ -100,7 +95,7 @@ No special knowledge required for users.
 
 ### Do I need to set up authentication myself?
 
-No. Varity authentication is configured automatically when you deploy. Add the auth provider from `@varity-labs/ui-kit` to your app root and users can log in immediately. See the [UI Kit components](/packages/ui-kit/components) for the setup guide.
+No. Varity authentication is configured automatically when you deploy. You do not import an SDK or wire up an auth provider. Varity supplies the credentials and your users can log in immediately.
 
 ### What user data can I access?
 
@@ -109,23 +104,19 @@ No. Varity authentication is configured automatically when you deploy. Add the a
 - Profile picture (from social login)
 - Linked accounts (Google, Twitter, etc.)
 
-All data is accessible via the auth hooks in `@varity-labs/ui-kit`.
+This data is available to your deployed app through the auth session.
 
 ## Costs and Pricing
 
 ### How much does Varity cost?
 
-Varity is **pure usage-based**. There are no tiers, no seats, no subscriptions. You pay only for what you deploy.
+Varity pricing is profile-based and fixed per selected deployment profile. Competitors like Vercel, Render, and Railway are primarily usage-metered.
 
-A typical personal app costs around $5/month. A standard SaaS or business tool typically lands at $10-$25/month. Heavier multi-app projects scale linearly with usage.
-
-For specific numbers based on your app, use the [cost calculator](https://www.varity.so/beta#calculator).
+For current numbers, use [Pricing and Costs](/resources/pricing) or run `varity_cost_calculator`.
 
 ### How is this cheaper than Vercel?
 
-Vercel charges $20/seat/month plus overage fees for bandwidth, function invocations, and build minutes. Varity uses a different infrastructure model that passes lower compute costs to you directly. No seat fees, no per-function charges, bandwidth included up to a generous default.
-
-For most apps, Varity is **60-80% cheaper than Vercel/Render/Railway** and **70-80% cheaper than Vercel/Render/Railway**.
+Varity keeps bills predictable with fixed profiles. Usage-metered platforms can grow faster with traffic spikes because billing scales on invocations, bandwidth, and execution.
 
 ### Is there a contract or commitment?
 
@@ -136,12 +127,12 @@ No. Cancel anytime. No minimums, no lock-in, no exit fees.
 ### Do I need any special infrastructure knowledge?
 
 **No.** Varity abstracts all infrastructure complexity:
-- Users log in with email (standard login flow)
-- No usage fees to manage
-- Standard JavaScript/TypeScript SDK
-- Familiar React components
+- You deploy with one command
+- No servers, Docker, or DevOps to manage
+- Auth and databases are configured automatically when detected
+- Your app code stays unchanged
 
-The infrastructure is invisible -- you do not interact with it directly.
+Infrastructure complexity is abstracted. You use deploy commands and app-level settings.
 
 ### Can I use my existing database?
 
@@ -150,15 +141,7 @@ Yes. Varity does not replace your database. You can:
 - Host your database anywhere
 - Connect via standard database drivers
 
-Varity also provides a built-in database module via `@varity-labs/sdk`. See the [Database Quick Start](/build/databases/quickstart).
-
-### What are the SDK package sizes?
-
-- `@varity-labs/sdk`: ~50KB gzipped
-- `@varity-labs/ui-kit`: ~120KB gzipped
-- `@varity-labs/types`: ~5KB gzipped
-
-All packages support tree-shaking for smaller bundles.
+Varity can also auto-wire a database for you when it detects a database client in your dependencies. See [Auto-wired Services](/deploy/auto-wired-services).
 
 ## Troubleshooting
 
@@ -170,8 +153,8 @@ All packages support tree-shaking for smaller bundles.
 
 ### Authentication is not working
 
-1. Ensure the `@varity-labs/ui-kit` auth provider wraps your app root
-2. Check browser console for errors
+1. Confirm your deploy finished successfully with `varitykit app status`
+2. Check browser console for errors on your live URL
 3. Contact [support@varity.so](mailto:support@varity.so) if your domain needs to be allowed
 
 ### I cannot find my deployment
@@ -187,5 +170,5 @@ varitykit app status
 ## Getting Help
 
 - [Discord Community](https://discord.gg/7vWsdwa2Bg)
-- [GitHub Issues](https://github.com/varity-labs/varity-sdk/issues)
+- [Varity on GitHub](https://github.com/varity-labs)
 - [Email Support](mailto:support@varity.so)

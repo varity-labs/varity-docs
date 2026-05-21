@@ -27,7 +27,7 @@ Varity is currently in beta. Your deployments work exactly as in production, but
 1. **Install the CLI**
 
    ```bash
-   pip install varitykit
+   pipx install varitykit
    ```
 
 2. **Build your project**
@@ -63,7 +63,7 @@ When you run `varitykit app deploy`:
 2. **Builds your app** - Runs your build command (`npm run build`)
 3. **Uploads your files** - Stores them securely with automatic backups
 4. **Makes your app live** - Generates a public URL
-5. **Enables free operations** - Users never pay usage fees
+5. **Returns a live URL** - Your app is reachable at `varity.app/<name>/`
 
 All of this happens automatically in under 2 minutes.
 
@@ -79,7 +79,7 @@ Choose the right hosting for your application type:
     - Global CDN distribution
     - Instant cache invalidation
     - Automatic SSL certificates
-    - Usage-based pricing
+    - Fixed profile pricing
 
     ```bash
     varitykit app deploy
@@ -126,29 +126,6 @@ npm run start
 ```
 
 Visit `http://localhost:3000` and verify everything works.
-
-## Publish to App Store
-
-List your app in the Varity App Store for users to discover:
-
-```bash
-varitykit app deploy --submit-to-store
-```
-
-This will:
-1. Deploy your app
-2. Submit it for listing in the App Store
-3. Make it discoverable by users
-4. Enable monetization when available (coming soon)
-
-### Revenue Share
-
-When users purchase your app or subscribe:
-
-- **90%** goes to you (the developer)
-- **10%** goes to the Varity platform
-
-All payment processing is handled automatically. You receive payouts monthly.
 
 ## Manage Your Deployments
 
@@ -248,7 +225,6 @@ varitykit app deploy --verbose
 | Option | Default | Description |
 |--------|---------|-------------|
 | `--hosting` | `static` | Hosting type: `static` or `dynamic` |
-| `--submit-to-store` | `false` | Submit to Varity App Store after deploy |
 | `--path` | `.` | Project directory |
 
 

@@ -49,6 +49,33 @@ The following frameworks work today. Varity detects them from your project files
     ```
   </Card>
 
+  <Card title="Astro" icon="rocket">
+    Astro apps, including static documentation or content sites.
+
+    ```bash
+    pipx install varitykit
+    varitykit app deploy
+    ```
+  </Card>
+
+  <Card title="Qwik" icon="rocket">
+    Qwik and QwikCity projects.
+
+    ```bash
+    pipx install varitykit
+    varitykit app deploy
+    ```
+  </Card>
+
+  <Card title="Vite SPA" icon="rocket">
+    Vite projects are auto-detected and deployed as static apps.
+
+    ```bash
+    pipx install varitykit
+    varitykit app deploy
+    ```
+  </Card>
+
   <Card title="Express" icon="rocket">
     Node.js HTTP server with Express.
 
@@ -149,14 +176,14 @@ If your framework is in this list, `varitykit app deploy` will return an error l
 
 ```
 ProjectDetectionError: Framework not supported.
-Supported: Next.js, React, Vue, Express, Fastify, Nest.js, Koa, Hono, FastAPI, Django, Flask.
-To request support: https://github.com/varity-labs/varity-sdk/issues
+Supported: Next.js, Astro, React, Vue, Qwik/QwikCity, Express, Fastify, Nest.js, Koa, Hono, plain Node.js, FastAPI, Django, Flask.
+To request support: https://github.com/varity-labs
 ```
 
 No deployment is started and no charges are incurred.
 
 <Aside type="note">
-Don't see your framework? The Varity team is actively expanding support. [Open a request on GitHub](https://github.com/varity-labs/varity-sdk/issues) to let us know what you need.
+Don't see your framework? The Varity team is actively expanding support. [Open a request on GitHub](https://github.com/varity-labs) to let us know what you need.
 </Aside>
 
 ## How Framework Detection Works
@@ -166,8 +193,11 @@ When you run `varitykit app deploy`, Varity scans your project directory for the
 | Signal | Detected As |
 |--------|-------------|
 | `package.json` with `next` dependency | Next.js |
+| `package.json` with `astro` dependency | Astro |
 | `package.json` with `react` (no Next.js) | React |
 | `package.json` with `vue` | Vue |
+| `package.json` with `@builder.io/qwik` or `@builder.io/qwik-city` | Qwik |
+| `package.json` with `vite` | Vite SPA |
 | `package.json` with `express` | Express |
 | `package.json` with `fastify` | Fastify |
 | `package.json` with `@nestjs/core` | Nest.js |
@@ -176,6 +206,7 @@ When you run `varitykit app deploy`, Varity scans your project directory for the
 | `requirements.txt` with `fastapi` | FastAPI |
 | `requirements.txt` with `django` | Django |
 | `requirements.txt` with `flask` | Flask |
+| `package.json` with `scripts.start` and no known framework | Node.js |
 
 Detection happens in under a second and requires no configuration from you.
 

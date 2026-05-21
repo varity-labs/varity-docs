@@ -86,23 +86,13 @@ Redeploying with the same `--name` updates the existing deployment at that URL. 
 # First deploy
 varitykit app deploy --name my-app
 
-# Update the app — same URL, no re-registration needed
+# Update the app: same URL, no re-registration needed
 varitykit app deploy --name my-app
 ```
 
 ## SSL / HTTPS
 
 All `varity.app` subdomains are served over HTTPS automatically. No certificate setup is required. SSL is provisioned and renewed by Varity.
-
-## App Store URLs
-
-When you submit your app to the [App Store](/deploy/app-store), it appears at:
-
-```
-https://varity.app/{name}/
-```
-
-The same URL is used for direct access and App Store discovery. Keep your name stable once you publish.
 
 ## Bring Your Own Domain (Coming Soon)
 
@@ -120,5 +110,4 @@ Watch the [changelog](https://docs.varity.so) for availability.
 ## Related
 
 - [Deploy Your App](/deploy/deploy-your-app): full deployment guide
-- [App Store & Developer Portal](/deploy/app-store): publish your app for discovery
 - [CLI Reference: deploy](/cli/commands/deploy): all `app deploy` flags

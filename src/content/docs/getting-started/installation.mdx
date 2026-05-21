@@ -1,6 +1,6 @@
 ---
 title: Installation
-description: Install the Varity MCP server, CLI, and optional SDK packages. Everything you need to start deploying apps.
+description: Install the Varity MCP server and varitykit CLI for the current public MVP deploy flow.
 ---
 
 import { Steps, Tabs, TabItem, Aside, Card, CardGrid } from '@astrojs/starlight/components';
@@ -9,7 +9,7 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="April 2026"
+  lastUpdated="May 2026"
   stability="beta"
 />
 
@@ -26,12 +26,12 @@ Install the Varity tools that fit how you work. The MCP server is the primary pa
 
 ## Option 1: MCP Server (recommended for Claude Code and Cursor)
 
-The MCP server connects Varity to your AI coding tool. It gives you 17 tools for deploying, monitoring, and managing apps using plain English. You do not need to add any code to your project.
+The MCP server connects Varity to your AI coding tool. It gives you a full set of tools for deploying, monitoring, and managing apps using plain English. You do not need to add any code to your project.
 
 <Tabs>
   <TabItem label="Claude Code">
     ```bash
-    claude mcp add varity -- npx -y @varity-labs/mcp
+    claude mcp add varity -- npx -y @varity-labs/mcp@beta
     ```
 
     Restart Claude Code after running this command. You will see Varity tools available in your session.
@@ -44,7 +44,7 @@ The MCP server connects Varity to your AI coding tool. It gives you 17 tools for
       "mcpServers": {
         "varity": {
           "command": "npx",
-          "args": ["-y", "@varity-labs/mcp"]
+          "args": ["-y", "@varity-labs/mcp@beta"]
         }
       }
     }
@@ -58,7 +58,7 @@ The MCP server connects Varity to your AI coding tool. It gives you 17 tools for
     ```json
     {
       "command": "npx",
-      "args": ["-y", "@varity-labs/mcp"]
+      "args": ["-y", "@varity-labs/mcp@beta"]
     }
     ```
 
@@ -111,7 +111,7 @@ The CLI is a Python package called `varitykit`. If you are a JavaScript develope
    Or use plain `pip` if you prefer:
 
    ```bash
-   pip install varitykit
+   pipx install varitykit
    ```
 
 2. **Verify installation**
@@ -138,61 +138,9 @@ If `varitykit` is not found after installing with `pip` on Windows, your Python 
 
 ---
 
-## Option 3: npm Packages (optional, for SDK features)
-
-The npm packages are optional. You only need them if you want to use Varity SDK features in your app code (like auth hooks or UI components). You can deploy any app without them.
-
-<CardGrid>
-  <Card title="@varity-labs/sdk">
-    Auth, storage, and database helpers for your app code.
-
-    ```bash
-    npm install @varity-labs/sdk
-    ```
-  </Card>
-  <Card title="@varity-labs/ui-kit">
-    React components for login, dashboards, and account management.
-
-    ```bash
-    npm install @varity-labs/ui-kit
-    ```
-  </Card>
-  <Card title="@varity-labs/types">
-    TypeScript type definitions for all Varity interfaces.
-
-    ```bash
-    npm install @varity-labs/types
-    ```
-  </Card>
-</CardGrid>
-
-Install all three at once:
-
-<Tabs>
-  <TabItem label="npm">
-    ```bash
-    npm install @varity-labs/sdk @varity-labs/ui-kit @varity-labs/types
-    ```
-  </TabItem>
-  <TabItem label="pnpm">
-    ```bash
-    pnpm add @varity-labs/sdk @varity-labs/ui-kit @varity-labs/types
-    ```
-  </TabItem>
-  <TabItem label="yarn">
-    ```bash
-    yarn add @varity-labs/sdk @varity-labs/ui-kit @varity-labs/types
-    ```
-  </TabItem>
-</Tabs>
-
----
-
 ## No framework changes required
 
-You do not need to wrap your app in any provider component or change your existing code to deploy. Varity detects your framework and deploys it as-is.
-
-If you choose to use the `@varity-labs/sdk` or `@varity-labs/ui-kit` packages for auth or UI features, the SDK reference docs show how to add them.
+You do not need to wrap your app in any provider component or change your existing code to deploy. Varity detects your framework and deploys it as-is. Auth, databases, and other backend services are configured automatically when Varity detects that your app needs them.
 
 ---
 
@@ -229,13 +177,5 @@ node --version
 ```
 
 If you need to upgrade, use [nvm](https://github.com/nvm-sh/nvm) or download from [nodejs.org](https://nodejs.org).
-
-### TypeScript errors after installing SDK packages
-
-Make sure you are using TypeScript 5.0 or later:
-
-```bash
-npm install typescript@latest
-```
 
 For more help, see [Troubleshooting](/resources/troubleshooting) or join our [Discord](https://discord.gg/7vWsdwa2Bg).

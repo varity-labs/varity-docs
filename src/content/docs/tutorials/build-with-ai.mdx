@@ -1,6 +1,6 @@
 ---
 title: "Build an App Using Only AI (No Code Required)"
-description: "Build and deploy a production SaaS app using only AI prompts. Zero coding knowledge needed—Varity MCP handles the entire workflow from scaffold to monetization."
+description: "Build and deploy an app with your AI editor. Varity MCP handles setup checks, the deploy workflow, and cost estimation."
 ---
 
 import { Steps, Aside } from '@astrojs/starlight/components';
@@ -9,26 +9,25 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="April 2026"
+  lastUpdated="May 2026"
   stability="stable"
 />
 
-This tutorial shows you how to build and deploy a production-ready SaaS app using only natural language prompts. No coding knowledge required. You'll use Varity's MCP server in Cursor or Claude Code to handle everything from scaffolding to deployment to monetization.
+This tutorial shows you how to build and deploy an app using only natural language prompts. You'll use your AI editor (Cursor or Claude Code) to write the app, then use Varity's MCP server to handle setup checks, the deploy workflow, and status checks.
 
 <Aside type="tip">
-The entire workflow takes 10-15 minutes and costs 60-80% less than Vercel/Render/Railway.
+The entire workflow takes 10-15 minutes and costs 60-80% less than Vercel, Render, or Railway.
 </Aside>
 
 ## What You'll Build
 
 A client invoicing dashboard with:
-- User authentication (email + social login)
-- Database for storing invoices
+- User authentication (email + social login, configured automatically)
+- Database for storing invoices (auto-wired on deploy)
 - CRUD operations (create, read, update, delete)
-- Production hosting
-- App Store listing for monetization
+- Production hosting at a live URL
 
-All without writing a single line of code.
+All without writing a single line of code yourself. Your AI editor writes the app; Varity deploys it.
 
 ## Prerequisites
 
@@ -40,7 +39,7 @@ Install the following (one-time setup):
 4. **Varity MCP**: install with:
 
    ```bash
-   claude mcp add varity -- npx -y @varity-labs/mcp
+   claude mcp add varity -- npx -y @varity-labs/mcp@beta
    ```
 
    Or for Cursor, add to `.cursor/mcp.json`:
@@ -50,13 +49,13 @@ Install the following (one-time setup):
      "mcpServers": {
        "varity": {
          "command": "npx",
-         "args": ["-y", "@varity-labs/mcp"]
+        "args": ["-y", "@varity-labs/mcp@beta"]
        }
      }
    }
    ```
 
-That's it. No cloud provider accounts, no credit card, no complex setup.
+That's it. No complex infrastructure setup.
 
 ## Step-by-Step
 
@@ -80,41 +79,23 @@ That's it. No cloud provider accounts, no credit card, no complex setup.
 
    If any checks fail, the AI will guide you through fixing them.
 
-2. **Create your app**
+2. **Build your app with your AI editor**
 
    Prompt:
 
-   > "Create a new Varity app called invoice-manager"
+   > "Build a Next.js invoice manager called invoice-manager with a dashboard, login page, and a database for invoices"
 
-   **What happens:** The AI runs `varity_init` to scaffold a complete Next.js SaaS template with authentication, database, and UI components.
+   **What happens:** Your AI editor (Cursor or Claude Code) writes the app code: a Next.js project with a dashboard, login page, and the data layer for invoices. This is normal AI-assisted coding, no special Varity syntax.
 
-   **Expected output:**
-   ```
-   ✓ Created project at ./invoice-manager
-   ✓ Template: SaaS Starter
-   ✓ Included: Auth, database, dashboard, landing page
-   ```
-
-   You now have a fully working app, without writing any code.
+   You now have a working app in your project folder, without writing any code yourself.
 
 3. **Add your data model**
 
    Prompt:
 
-   > "Add a collection called invoices with fields: customerName (string), amount (number), dueDate (Date), status (string with options: draft, sent, paid, overdue)"
+   > "Add an invoices data model with fields: customerName (string), amount (number), dueDate (Date), status (one of: draft, sent, paid, overdue), and pages to create, list, edit, and delete invoices"
 
-   **What happens:** The AI runs `varity_add_collection` to create:
-   - TypeScript type definition for `Invoice`
-   - Database collection accessor
-   - React hook (`useInvoices()`) with CRUD operations
-   - (Optional) Dashboard page with table and form
-
-   **Expected output:**
-   ```
-   ✓ Created Invoice type in src/types/index.ts
-   ✓ Added invoices() collection to src/lib/database.ts
-   ✓ Generated useInvoices() hook in src/lib/hooks.ts
-   ```
+   **What happens:** Your AI editor adds the data model and the create, read, update, and delete pages to your project. When you deploy, Varity detects the database client in your dependencies and provisions the database for you.
 
 4. **Install dependencies**
 
@@ -210,29 +191,7 @@ That's it. No cloud provider accounts, no credit card, no complex setup.
      Created: 2 minutes ago
    ```
 
-9. **Monetize your app**
-
-   Prompt:
-
-   > "Submit my app to the Varity App Store for $29 per month"
-
-   **What happens:** The AI runs `varity_submit_to_store` to:
-   - List your app on [store.varity.so](https://store.varity.so)
-   - Set up automatic billing (90% to you, 10% to Varity)
-   - Make it discoverable to users
-
-   **Expected output:**
-   ```
-   ✓ Submitted to App Store
-   ✓ Listing: Invoice Manager
-   ✓ Price: $29/month
-   ✓ Your revenue: $26.10 per user per month (90%)
-   ✓ Live at: https://store.varity.so/apps/invoice-manager
-   ```
-
-   Users can now find, subscribe to, and use your app. You earn revenue automatically.
-
-10. **Compare costs**
+9. **Compare costs**
 
     Prompt:
 
@@ -244,46 +203,34 @@ That's it. No cloud provider accounts, no credit card, no complex setup.
     ```
     Hosting costs for 500 users:
 
-    AWS:
-      - Hosting: $120/month
-      - Database: $80/month
-      - Auth: $50/month
-      - Total: $250/month
-
     Varity:
-      - All-in-one: $75/month
-      - Savings: $175/month (~70% cheaper)
-
-    Revenue (500 users × $29/mo):
-      - Gross: $14,500/month
-      - Your share (90%): $13,050/month
-      - Varity fee (10%): $1,450/month
-      - Net profit: $12,975/month
+      - Profile-based monthly cost (fixed by selected deployment profile)
+    Competitors:
+      - Usage-based cost that grows with traffic and invocations
     ```
 
 </Steps>
 
 ## What Just Happened?
 
-Here is what you accomplished, without writing any code:
+Here is what you accomplished, without writing any code yourself:
 
-1. ✅ **Created a production SaaS app**: Authentication, database, dashboard
-2. ✅ **Added a custom data model**: Invoice collection with TypeScript types
-3. ✅ **Deployed to production**: Live URL on distributed infrastructure
-4. ✅ **Listed on the App Store**: Users can subscribe and pay
-5. ✅ **Set up revenue stream**: 90% of subscription revenue goes to you
+1. ✅ **Built a production app**: Authentication, database, dashboard
+2. ✅ **Added a custom data model**: Invoices with create, read, update, and delete
+3. ✅ **Deployed to production**: Live URL with auth and database configured automatically
+4. ✅ **Verified deployment status**: URL, framework, and runtime are visible in status output
 
 **Total time:** 10-15 minutes  
-**Total cost:** 70% less than Vercel/Render/Railway  
+**Total cost:** 60-80% cheaper than Vercel, Render, or Railway  
 **Code written:** 0 lines
 
 ## Next Steps
 
-Now that you have a live, monetized app, you can:
+Now that you have a live app, you can:
 
-- **Add more features:** "Add a clients collection with name, email, and company fields"
-- **Customize the UI:** "Change the primary color to purple" (edit `src/app/globals.css`)
-- **View analytics:** "Show me deployment logs" → `varity_deploy_logs`
+- **Add more features:** "Add a clients page with name, email, and company fields"
+- **Customize the UI:** "Change the primary color to purple"
+- **View logs:** "Show me deployment logs" → `varity_deploy_logs`
 - **Scale up:** "How much would 5,000 users cost?" → `varity_cost_calculator`
 
 ## Advanced Prompts
@@ -292,31 +239,27 @@ Now that you have a live, monetized app, you can:
 > "Allow users to sign in with Apple and Twitter in addition to email and Google"
 
 **Add a new page:**
-> "Create a reports page that shows total invoices, paid vs unpaid, and revenue this month"
+> "Create a reports page that shows total invoices, paid vs unpaid, and totals this month"
 
 **Add relationships:**
-> "Create a clients collection and link each invoice to a client"
+> "Create a clients page and link each invoice to a client"
 
 **Deploy updates:**
 > "Deploy my latest changes to production"
 
-**Check revenue:**
-> "How many users have subscribed to my app?" (coming soon: App Store analytics)
-
 ## Behind the Scenes
 
-When you prompt the AI, here's what Varity does:
+When you prompt your AI editor, here's what happens:
 
-| Your Prompt | MCP Tool | What Happens |
-|-------------|----------|--------------|
-| "Create a new app" | `varity_init` | Scaffolds Next.js SaaS template locally |
-| "Add a collection" | `varity_add_collection` | Generates TypeScript types, DB accessors, hooks |
-| "Start dev server" | `varity_dev_server` | Runs `npm run dev`, returns localhost URL |
-| "Build for production" | `varity_build` | Compiles app, optimizes bundle |
-| "Deploy" | `varity_deploy` | Uploads to CDN, injects prod credentials |
-| "Submit to store" | `varity_submit_to_store` | Lists app, sets up billing |
-| "Show status" | `varity_deploy_status` | Fetches deployment info |
-| "Compare costs" | `varity_cost_calculator` | Calculates Varity vs Vercel/Render/Railway |
+| Your Prompt | What Happens |
+|-------------|--------------|
+| "Build my app" | Your AI editor writes the app code in your project |
+| "Add a data model" | Your AI editor adds the model and pages |
+| "Start dev server" | `varity_dev_server` runs `npm run dev`, returns localhost URL |
+| "Build for production" | `varity_build` compiles the app, optimizes the bundle |
+| "Deploy" | `varity_deploy` deploys the app and injects credentials |
+| "Show status" | `varity_deploy_status` fetches deployment info |
+| "Compare costs" | `varity_cost_calculator` compares Varity vs Vercel, Render, or Railway |
 
 Every tool runs locally or via Varity's infrastructure. No manual configuration needed.
 
@@ -326,7 +269,7 @@ Every tool runs locally or via Varity's infrastructure. No manual configuration 
 
 Install the CLI:
 ```bash
-pip install varitykit
+pipx install varitykit
 varitykit doctor
 ```
 
@@ -351,35 +294,33 @@ The AI runs `varity_deploy_logs` to debug.
 ## Why This Works
 
 Traditional app development requires:
-- Learning 5+ technologies (Next.js, React, Tailwind, Postgres, Auth0)
-- Configuring cloud infrastructure (AWS, Vercel, Supabase)
+- Learning 5+ technologies (Next.js, React, Tailwind, Postgres, an auth provider)
+- Configuring hosting, a database add-on, and an auth service separately
 - Writing 1,000+ lines of boilerplate code
 - Managing environment variables, credentials, deployments
 
 Varity eliminates all of that:
-- **Pre-built templates** with best practices baked in
-- **Auto-configuration** of auth, database, hosting
-- **AI-powered workflow** via MCP tools
+- **Your AI editor** writes the app code with best practices baked in
+- **Auto-configuration** of auth, database, hosting on deploy
+- **AI-powered deploy workflow** via MCP tools
 - **One-command deploys** with automatic credential injection
 
 Result: You can build production apps in minutes instead of weeks.
 
 ## Cost Breakdown
 
-For a typical SaaS app with 500 users:
+Varity charges one flat monthly cost per app, based on the hardware you reserve. Vercel, Render, and Railway bill on usage, so the same app costs more as traffic grows and you add separate database and auth add-ons.
 
-**Traditional Stack (AWS + Vercel + Auth0):**
-- Hosting: $120/month
-- Database: $80/month
-- Auth: $50/month
-- **Total: $250/month**
+For a small production app with a database, a typical comparison looks like:
 
-**Varity Stack:**
-- All-in-one: $75/month
-- **Total: $75/month**
-- **Savings: $175/month (70%)**
+| Provider | At launch | At traction |
+|----------|-----------|-------------|
+| **Varity** | One flat monthly cost (fixed) | Same flat cost, your bill does not change with traffic |
+| Vercel / Render / Railway | Higher base, plus add-ons | Grows with bandwidth, invocations, and usage |
 
-Plus, Varity handles all configuration. No DevOps engineer needed.
+Overall, Varity is 60-80% cheaper than Vercel, Render, or Railway, and Varity handles all configuration. No DevOps engineer needed.
+
+For exact numbers, ask your AI editor to run `varity_cost_calculator`, or see [Pricing and Costs](/resources/pricing).
 
 ## Support
 
@@ -389,8 +330,8 @@ If you get stuck:
 - **Docs:** [docs.varity.so](https://docs.varity.so)
 - **MCP Reference:** [MCP Server Spec](/ai-tools/mcp-server-spec)
 
-## Related Tutorials
+## Related
 
-- [Build a SaaS App (Traditional)](/tutorials/build-saas-app): Step-by-step with CLI commands
-- [Customize the Template](/tutorials/customize-template): Change colors, branding, data models
-- [Add a CRUD Feature](/tutorials/add-crud-feature): Add new collections and pages
+- [Deploy a Next.js App](/guides/deploy-nextjs): Full Next.js deploy walkthrough
+- [Deploy from your AI IDE](/guides/deploy-from-ai-ide): Drive Varity from Cursor or Claude Code
+- [Migrate from Vercel](/deploy/vercel-migration): Move an existing app in one command

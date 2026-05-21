@@ -9,7 +9,7 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="March 2026"
+  lastUpdated="May 2026"
   stability="stable"
 />
 
@@ -25,7 +25,7 @@ The CLI is not installed or is not in your PATH.
 
 1. Install the CLI:
    ```bash
-   pip install varitykit
+   pipx install varitykit
    ```
 
 2. Verify installation:
@@ -101,30 +101,20 @@ Possible causes and solutions:
 
 ## Authentication Issues
 
-### "AuthProvider: appId is required"
+### Login not working on the deployed app
 
-Set your Auth App ID in environment variables:
-
-```bash title=".env.local"
-NEXT_PUBLIC_VARITY_AUTH_APP_ID=your_app_id
-```
-
-Or use Varity development credentials (the SDK will use defaults if none provided).
-
-### Login button not appearing
+Authentication is configured automatically when you deploy. If sign-in is not working:
 
 <Steps>
 
-1. Verify `AuthProvider` wraps your application:
-   ```tsx
-   <AuthProvider appId={process.env.NEXT_PUBLIC_VARITY_AUTH_APP_ID}>
-     <App />
-   </AuthProvider>
+1. Confirm the deploy finished successfully:
+   ```bash
+   varitykit app status
    ```
 
-2. Check browser console for errors
+2. Check browser console for errors on your live URL
 
-3. Ensure environment variables are loaded (restart dev server)
+3. If you set a custom auth App ID via `NEXT_PUBLIC_VARITY_AUTH_APP_ID`, confirm it is set correctly in your environment variables
 
 </Steps>
 
@@ -139,55 +129,24 @@ Sessions are stored in localStorage. Private browsing or clearing storage will l
 </Aside>
 
 Check that:
-- `AuthProvider` is at the root of your app
 - You're not accidentally clearing localStorage
 - Cookies are enabled in the browser
 
 ## Build Issues
 
-### TypeScript errors in Varity packages
-
-Ensure you're using compatible TypeScript version:
-
-```json title="package.json"
-{
-  "devDependencies": {
-    "typescript": "^5.0.0"
-  }
-}
-```
-
-### "Cannot find module '@varity-labs/sdk'"
+### Dependencies missing after install
 
 <Steps>
 
-1. Install packages:
-   ```bash
-   npm install @varity-labs/sdk @varity-labs/ui-kit @varity-labs/types
-   ```
+1. Check `package.json` includes all of your app's dependencies
 
-2. Check package.json includes the dependencies
-
-3. Clear and reinstall:
+2. Clear and reinstall:
    ```bash
    rm -rf node_modules
    npm install
    ```
 
 </Steps>
-
-### "React version mismatch"
-
-Varity UI Kit requires React 18+:
-
-```json title="package.json"
-{
-  "dependencies": {
-    "react": "^18.0.0",
-    "react-dom": "^18.0.0"
-  }
-}
-```
 
 ## Runtime Issues
 
@@ -207,7 +166,6 @@ Common causes:
 
 | Error | Solution |
 |-------|----------|
-| Insufficient funds | Operations are free -- contact support |
 | Service not found | Verify configuration is correct |
 | Invalid parameters | Check function arguments |
 
@@ -223,15 +181,6 @@ Common causes:
 2. Check bundle size:
    ```bash
    npm run analyze
-   ```
-
-3. Verify you're using tree-shaking:
-   ```typescript
-   // Good - tree-shakeable
-   import { AuthProvider } from '@varity-labs/ui-kit';
-
-   // Avoid - imports entire package
-   import * as VarityUI from '@varity-labs/ui-kit';
    ```
 
 </Steps>
@@ -269,7 +218,7 @@ If empty, no deployments have been made from this machine.
 
 If you're still stuck:
 
-1. **Search existing issues**: [GitHub Issues](https://github.com/varity-labs/varity-sdk/issues)
+1. **Search existing issues**: [Varity on GitHub](https://github.com/varity-labs)
 
 2. **Ask the community**: [Discord](https://discord.gg/7vWsdwa2Bg)
 

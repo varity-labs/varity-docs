@@ -1,9 +1,9 @@
 ---
 title: Varity Documentation
-description: Deploy any app, AI agent, or LLM in 60 seconds. 60-80% cheaper than Vercel/Render/Railway. Auth, database, and hosting included automatically.
+description: Deploy any Node or Python app, AI agent, or LLM in 60 seconds. 60-80% cheaper than Vercel, Render, or Railway. Auth, database, and hosting configured automatically.
 template: splash
 hero:
-  tagline: "Deploy any app, AI agent, or LLM in 60 seconds. 60-80% cheaper than Vercel/Render/Railway."
+  tagline: "Deploy any Node or Python app, AI agent, or LLM in 60 seconds. 60-80% cheaper than Vercel, Render, or Railway."
   image:
     file: ../../assets/varity-logo.svg
   actions:
@@ -11,7 +11,7 @@ hero:
       link: /getting-started/quickstart/
       icon: right-arrow
     - text: View on GitHub
-      link: https://github.com/varity-labs/varity-sdk
+      link: https://github.com/varity-labs
       icon: external
       variant: minimal
 ---
@@ -32,26 +32,26 @@ import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
   <ProductTile
     icon="deploy"
     title="Deploy"
-    description="Any app live in 60 seconds. One command, auto-configured."
+    description="Any Node or Python app live in 60 seconds. One command, auto-configured."
     href="/getting-started/quickstart/"
   />
   <ProductTile
-    icon="auth"
-    title="Auth"
-    description="Email and social login. No setup required."
-    href="/build/auth/quickstart/"
+    icon="cli"
+    title="Supported Frameworks"
+    description="Next.js, React, Vue, FastAPI, Django, and more, detected automatically."
+    href="/deploy/supported-frameworks/"
+  />
+  <ProductTile
+    icon="deploy"
+    title="Migrate from Vercel"
+    description="Move your existing app to Varity in minutes."
+    href="/deploy/vercel-migration/"
   />
   <ProductTile
     icon="database"
-    title="Database"
-    description="Auto-provisioned database with typed collections."
-    href="/build/databases/quickstart/"
-  />
-  <ProductTile
-    icon="storage"
-    title="Storage"
-    description="Secure, globally distributed file storage."
-    href="/build/storage/quickstart/"
+    title="Auto-wired Services"
+    description="Databases, caches, and AI runtimes configured when detected."
+    href="/deploy/auto-wired-services/"
   />
   <ProductTile
     icon="cli"
@@ -79,7 +79,7 @@ import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
   <Card title="One-command deploy" icon="rocket">
     Run `varitykit app deploy` and your app is live. No servers to configure. No Docker. No CI/CD pipelines.
   </Card>
-  <Card title="60-80% cheaper than Vercel/Render/Railway" icon="seti:dollar">
+  <Card title="60-80% cheaper than Vercel, Render, or Railway" icon="seti:dollar">
     Efficient distributed infrastructure passes savings directly to you. Use the [cost calculator](/resources/pricing) to estimate your app.
   </Card>
   <Card title="Zero configuration" icon="puzzle">

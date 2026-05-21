@@ -9,11 +9,11 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="April 2026"
+  lastUpdated="May 2026"
   stability="beta"
 />
 
-Varity deploys any app, AI agent, or LLM in under 60 seconds, 60-80% cheaper than Vercel/Render/Railway. You do not need Docker, infrastructure knowledge, or DevOps experience.
+Varity deploys Node and Python apps, AI agents, and LLM workloads with a fast, infrastructure-abstracted workflow. You do not need Docker, infrastructure knowledge, or DevOps experience.
 
 ## Who Varity is for
 
@@ -23,7 +23,7 @@ Varity is built for developers who use AI coding tools to build and ship apps. T
 
 **Migrating from another platform**: You have an existing app on Vercel, Render, Railway, or another host and want lower costs. Run `varitykit migrate` to remove platform-specific config, then deploy. Most migrations take under 5 minutes.
 
-**Starting from a template**: You want a production-ready starting point with auth, a database, and UI components already connected. Run `varity_init` and get a working app scaffold in seconds.
+**Deploying your current project**: You already have app code locally or in a GitHub repo and want a live URL fast. Run `varitykit app deploy` (or ask your MCP client to run `varity_deploy`) and ship.
 
 In all three cases, you never configure infrastructure. You just build and deploy.
 
@@ -31,14 +31,13 @@ In all three cases, you never configure infrastructure. You just build and deplo
 
 ## The platform
 
-Varity has four websites:
+Varity has three core websites:
 
 | Site | What it does |
 |------|-------------|
 | [**varity.so**](https://www.varity.so) | Marketing site |
 | [**docs.varity.so**](https://docs.varity.so) | Documentation and guides |
 | [**developer.store.varity.so**](https://developer.store.varity.so) | Developer portal: deploy, monitor, billing |
-| [**store.varity.so**](https://store.varity.so) | User app store (coming post-beta) |
 
 ---
 
@@ -53,7 +52,7 @@ Here is how you go from idea to a live URL:
    Add Varity to your AI coding tool once. After that, every project you work on has Varity available.
 
    ```bash
-   claude mcp add varity -- npx -y @varity-labs/mcp
+   claude mcp add varity -- npx -y @varity-labs/mcp@beta
    ```
 
 2. **Open your project**
@@ -113,15 +112,15 @@ You do not write connection strings or provision databases. Varity handles it.
 
 ## Pricing
 
-Varity is purely usage-based. You pay only for the compute and storage your app actually uses. There are no monthly fees and no subscription tiers.
+Varity pricing is based on reserved hardware profiles, while Vercel, Render, and Railway are primarily usage-metered. Your bill is tied to your selected profile rather than request spikes or invocation count.
 
-Use the `varity_cost_calculator` MCP tool to get an estimate for your project before deploying.
+Use the `varity_cost_calculator` MCP tool and `/resources/pricing` to estimate workload cost before deploying.
 
 ---
 
-## The MCP server: 16 tools
+## The MCP server
 
-The Varity MCP server gives your AI coding tool direct access to the full deployment workflow:
+The Varity MCP server gives your AI coding tool a full set of tools for deploying, monitoring, and managing your apps:
 
 | Tool | What it does |
 |------|-------------|
@@ -129,7 +128,6 @@ The Varity MCP server gives your AI coding tool direct access to the full deploy
 | `varity_login` | Authenticate with your Varity account |
 | `varity_search_docs` | Search Varity documentation |
 | `varity_cost_calculator` | Estimate costs for your project |
-| `varity_init` | Scaffold a new app from a template |
 | `varity_install_deps` | Install project dependencies |
 | `varity_add_collection` | Add a database collection with generated types |
 | `varity_dev_server` | Start a local development server |
@@ -139,7 +137,6 @@ The Varity MCP server gives your AI coding tool direct access to the full deploy
 | `varity_deploy` | Deploy to production |
 | `varity_deploy_status` | Check deployment status |
 | `varity_deploy_logs` | View build and runtime logs |
-| `varity_submit_to_store` | Submit your app to the app store |
 | `varity_migrate` | Migrate an existing app from Vercel to Varity |
 
 [Set up the MCP server](/ai-tools/mcp-server-spec) to get started.
@@ -151,4 +148,4 @@ The Varity MCP server gives your AI coding tool direct access to the full deploy
 - [Quick Start](/getting-started/quickstart) - Deploy your first app
 - [Installation](/getting-started/installation) - Full setup guide
 - [MCP Server Setup](/ai-tools/mcp-server-spec) - Connect your AI coding tool
-- [Vercel Migration](/guides/migrate-from-vercel) - Move an existing app to Varity
+- [Vercel Migration](/deploy/vercel-migration) - Move an existing app to Varity

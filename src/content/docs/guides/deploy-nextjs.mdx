@@ -19,8 +19,8 @@ Deploy a production Next.js app with authentication, a database, and a live URL 
   <Card title="Zero configuration" icon="rocket">
     Varity detects your framework, wires your database, and deploys. You run one command.
   </Card>
-  <Card title="60-80% cheaper than Vercel/Render/Railway" icon="seti:money">
-    Pay only for what you use. No idle server costs. No DevOps overhead.
+  <Card title="60-80% cheaper than Vercel, Render, or Railway" icon="seti:money">
+    One flat monthly cost per app. Your bill does not change with traffic. No DevOps overhead.
   </Card>
 </CardGrid>
 
@@ -35,7 +35,7 @@ You can deploy from your AI editor using the Varity MCP server (recommended for 
     <Tabs>
       <TabItem label="Claude Code">
         ```bash
-        claude mcp add varity -- npx -y @varity-labs/mcp
+        claude mcp add varity -- npx -y @varity-labs/mcp@beta
         ```
       </TabItem>
       <TabItem label="Cursor">
@@ -46,7 +46,7 @@ You can deploy from your AI editor using the Varity MCP server (recommended for 
           "mcpServers": {
             "varity": {
               "command": "npx",
-              "args": ["-y", "@varity-labs/mcp"]
+              "args": ["-y", "@varity-labs/mcp@beta"]
             }
           }
         }
@@ -62,7 +62,7 @@ You can deploy from your AI editor using the Varity MCP server (recommended for 
           "mcpServers": {
             "varity": {
               "command": "npx",
-              "args": ["-y", "@varity-labs/mcp"]
+              "args": ["-y", "@varity-labs/mcp@beta"]
             }
           }
         }
@@ -70,15 +70,15 @@ You can deploy from your AI editor using the Varity MCP server (recommended for 
       </TabItem>
     </Tabs>
 
-    **Step 2. Ask your AI to scaffold and deploy**
+    **Step 2. Ask your AI to deploy**
 
     Type this prompt in your AI editor:
 
     ```
-    Create a new Next.js app called my-app using Varity, install dependencies, then deploy it to production.
+    Build and deploy my current Next.js project to Varity.
     ```
 
-    The AI will call `varity_init`, `varity_install_deps`, `varity_build`, and `varity_deploy` in sequence. Your live URL appears when it is done.
+    The AI will call `varity_install_deps`, `varity_build`, and `varity_deploy` in sequence. Your live URL appears when it is done.
 
     **Step 3. Check the result**
 
@@ -92,19 +92,16 @@ You can deploy from your AI editor using the Varity MCP server (recommended for 
     **Step 1. Install the CLI**
 
     ```bash
-    pip install varitykit
+    pipx install varitykit
     ```
 
     Python 3.8 or later is required.
 
-    **Step 2. Scaffold your app**
+    **Step 2. Open your app directory**
 
     ```bash
-    varitykit init my-app
     cd my-app
     ```
-
-    The interactive picker lets you choose a template. The `saas-starter` template includes authentication, a database, and a working dashboard out of the box.
 
     **Step 3. Install dependencies**
 
@@ -148,15 +145,12 @@ No environment variables to copy, no credential files to manage. The auto-wired 
 
    This checks Node.js, Python, CLI, and authentication status. Fix anything it flags before proceeding.
 
-2. **Scaffold the app**
+2. **Open your app and install dependencies**
 
    ```bash
-   varitykit init my-nextjs-app
    cd my-nextjs-app
    npm install
    ```
-
-   The `saas-starter` template gives you a Next.js App Router project with auth, database, and a working dashboard.
 
 3. **Run locally**
 
@@ -215,7 +209,6 @@ These are the relevant MCP tools for a Next.js deploy workflow:
 | Tool | What it does |
 |---|---|
 | `varity_doctor` | Checks environment setup |
-| `varity_init` | Scaffolds a new project from a template |
 | `varity_install_deps` | Runs npm install |
 | `varity_build` | Builds for production |
 | `varity_deploy` | Deploys and returns the live URL |
@@ -258,7 +251,7 @@ Varity keeps the previous deployment available for instant rollback. See [Rollba
 
 ## Cost
 
-Varity is usage-based. A typical Next.js app with 100 monthly active users costs around 60-80% less than an equivalent AWS setup. Use the cost calculator to get a precise estimate:
+Varity uses fixed hardware profile pricing, while Vercel, Render, and Railway are usage-based. Use the cost calculator to get a precise estimate:
 
 ```
 How much would it cost to host a Next.js app with 500 users on Varity?
@@ -285,7 +278,7 @@ Run `npm install` first, then rebuild.
 **"varitykit not found" in terminal**
 
 ```bash
-pip install varitykit
+pipx install varitykit
 varitykit doctor
 ```
 

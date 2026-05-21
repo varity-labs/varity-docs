@@ -41,15 +41,15 @@ The doctor command runs 8 checks across 4 categories:
 | Memory | 3GB available |
 
 <Aside type="note">
-The Memory check requires 3GB available RAM. On WSL, CI machines, or low-memory VMs this check will often fail. It is a warning — your deploy will still succeed as long as builds complete locally.
+The Memory check requires 3GB available RAM. On WSL, CI machines, or low-memory VMs this check will often fail. It is a warning. Your deploy will still succeed as long as builds complete locally.
 </Aside>
 
 ### Project Configuration
 
 | Check | Requirement |
 |-------|-------------|
-| `varity.config.json` | Present (warns if missing — not required for all deploy paths) |
-| `.env` file | Present (optional — warns if absent) |
+| `varity.config.json` | Present (warns if missing, not required for all deploy paths) |
+| `.env` file | Present (optional, warns if absent) |
 
 ### Network
 
@@ -76,7 +76,7 @@ $ varitykit doctor
 │ Required Tools         │ git                    │ ✓ PASS       │ 2.43.0                  │
 │ System                 │ Disk Space             │ ✓ PASS       │ 50GB available          │
 │ System                 │ Memory                 │ ✓ PASS       │ 8GB available           │
-│ Project                │ varity.config.json     │ ⚠ WARN       │ Not found (run init)    │
+│ Project                │ varity.config.json     │ ⚠ WARN       │ Not found (optional)    │
 │ Project                │ .env File              │ ⚠ WARN       │ Optional                │
 │ Network                │ Internet               │ ✓ PASS       │ Connected               │
 ╰────────────────────────┴────────────────────────┴──────────────┴─────────────────────────╯
@@ -125,7 +125,7 @@ sudo apt install -y nodejs
 
 ### Low Memory Warning
 
-If the Memory check reports a warning (requires 3GB available), you can safely continue — the warning means builds may be slower on this machine, but deployments still work.
+If the Memory check reports a warning (requires 3GB available), you can safely continue. The warning means builds may be slower on this machine, but deployments still work.
 
 On WSL, run `wsl --shutdown` and reopen to reclaim memory from the host OS if needed.
 
@@ -145,8 +145,8 @@ This runs all infrastructure checks in addition to the standard environment chec
 
 ## Next Steps
 
-- [Initialize a project](/cli/commands/init) - Create a new project
 - [Deploy your app](/cli/commands/deploy) - Go to production
+- [Log in](/cli/commands/auth) - Connect your developer account
 
 ## Related Resources
 

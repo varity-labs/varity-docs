@@ -9,23 +9,23 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="March 2026"
+  lastUpdated="May 2026"
   stability="stable"
 />
 
-VarityKit is a Python-based CLI that helps you build, test, and deploy applications. If you have used tools like the Vercel CLI, Netlify CLI, or Firebase CLI, you will feel right at home.
+VarityKit is a Python-based CLI that helps you deploy and manage applications. If you have used tools like the Vercel CLI, Netlify CLI, or Firebase CLI, you will feel right at home.
 
 ## What You Can Do
 
 <CardGrid>
-  <Card title="Initialize Projects" icon="document">
-    Scaffold new projects from starter templates with pre-configured auth and deployment.
-  </Card>
   <Card title="Deploy Applications" icon="rocket">
-    Deploy any app with one command. Static sites and dynamic apps both supported.
+    Deploy any Node or Python app with one command. Static sites and dynamic apps both supported.
   </Card>
-  <Card title="Manage Templates" icon="seti:config">
-    Create, test, validate, and publish templates to the marketplace.
+  <Card title="Migrate from Vercel" icon="seti:config">
+    Move an existing Vercel app to Varity in one step: analyze, transform, and deploy.
+  </Card>
+  <Card title="Manage Deployments" icon="list-format">
+    List deployments, view status and logs, and roll back to a previous version.
   </Card>
   <Card title="Validate Setup" icon="approve-check">
     Run diagnostics to ensure your development environment is ready.
@@ -40,7 +40,6 @@ VarityKit is a Python-based CLI that helps you build, test, and deploy applicati
 |---------|-------------|
 | [`varitykit login`](/cli/commands/auth) | Log in with your deploy key from the developer portal |
 | [`varitykit doctor`](/cli/commands/doctor) | Validate your development environment |
-| [`varitykit init`](/cli/commands/init) | Create a new project from a template |
 | [`varitykit dev`](#dev) | Start development servers (API + frontend) |
 | [`varitykit bootstrap`](#bootstrap) | Install project dependencies and set up environment |
 | [`varitykit completions`](#completions) | Set up shell completions (bash, zsh, fish) |
@@ -62,28 +61,6 @@ VarityKit is a Python-based CLI that helps you build, test, and deploy applicati
 | `varitykit app info` | Show deployment details |
 | `varitykit app status` | Show deployment status |
 | `varitykit app rollback` | Rollback to a previous deployment |
-
-### Templates
-
-| Command | Description |
-|---------|-------------|
-| `varitykit template create` | Create a new template with AI assistance |
-| `varitykit template test` | Run automated tests for a template |
-| `varitykit template preview` | Preview a template in the browser |
-| `varitykit template validate` | Validate template quality (code, tests, a11y, security) |
-| `varitykit template list` | List available templates |
-| `varitykit template info` | Show detailed template information |
-
-### Marketplace
-
-| Command | Description |
-|---------|-------------|
-| `varitykit marketplace publish` | Publish a template to the marketplace |
-| `varitykit marketplace search` | Search for templates |
-| `varitykit marketplace install` | Install a template from the marketplace |
-| `varitykit marketplace stats` | View your marketplace statistics |
-| `varitykit marketplace unpublish` | Remove a template from the marketplace |
-| `varitykit marketplace update` | Update a published template |
 
 ### Domains
 
@@ -107,16 +84,13 @@ VarityKit is a Python-based CLI that helps you build, test, and deploy applicati
 
 ```bash
 # Install the CLI
-pip install varitykit
+pipx install varitykit
 
 # Check your environment
 varitykit doctor
 
 # Log in with your developer portal deploy key
 varitykit login
-
-# Create a new project
-varitykit init my-app
 
 # Deploy (auto-detects static vs dynamic)
 varitykit app deploy
@@ -161,7 +135,7 @@ varitykit app deploy
 ```
 
 - **Best for**: Marketing sites, documentation, SPAs
-- **Cost**: Usage-based, typically a few dollars per month
+- **Cost**: One flat monthly cost per app, starting around $5/mo
 - **Speed**: Global CDN distribution
 
 ### Dynamic Apps
@@ -173,7 +147,7 @@ varitykit app deploy --hosting dynamic
 ```
 
 - **Best for**: APIs, databases, server-side rendering, AI agents, LLMs
-- **Cost**: Pay for compute resources (usage-based)
+- **Cost**: One flat monthly cost per app, based on the hardware you reserve
 - **Features**: Containers, scaling, persistence
 
 The orchestration algorithm auto-detects when your app needs dynamic hosting (Express, Fastify, Next.js SSR, FastAPI, Django, Flask, etc.) and selects it automatically. Use `--hosting dynamic` only to force the mode explicitly.
@@ -191,7 +165,7 @@ Varity currently auto-detects and deploys the following frameworks:
 | Express, Fastify, Nest, Koa, Hono | N/A | ✅ |
 | FastAPI, Django, Flask | N/A | ✅ |
 
-**Not yet supported:** Go, Rust, Ruby, Elixir, Java, PHP, .NET. These will not be auto-detected and deployment will fail with an unsupported-language error. [Request support for your framework](https://github.com/varity-labs/varity-sdk/issues).
+**Not yet supported:** Go, Rust, Ruby, Elixir, Java, PHP, .NET. These will not be auto-detected and deployment will fail with an unsupported-language error. [Request support for your framework](https://github.com/varity-labs).
 
 ## Additional Command Details
 
@@ -242,5 +216,4 @@ varitykit completions [OPTIONS]
 - [Install the CLI](/cli/installation) - Installation guide
 - [Log in](/cli/commands/auth) - Connect your developer account
 - [Run diagnostics](/cli/commands/doctor) - Check your setup
-- [Create your first project](/cli/commands/init) - Scaffold a project
 - [Deploy your application](/cli/commands/deploy) - Deploy to production

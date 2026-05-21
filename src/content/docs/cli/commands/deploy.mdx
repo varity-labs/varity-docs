@@ -10,7 +10,7 @@ import PageMeta from '../../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="March 2026"
+  lastUpdated="May 2026"
   stability="stable"
 />
 
@@ -42,7 +42,7 @@ varitykit app deploy
 - Global CDN distribution
 - Permanent deployment URLs
 - Automatic SSL
-- Usage-based pricing: pay only for what you serve
+- One flat monthly cost per app, your bill does not change with traffic
 
 ### Dynamic Apps
 
@@ -61,7 +61,7 @@ varitykit app deploy --hosting dynamic
 **Features:**
 - Container hosting
 - Persistent storage
-- 60-80% cheaper than Vercel/Render/Railway
+- 60-80% cheaper than Vercel, Render, or Railway
 
 <Aside type="tip">
 Dynamic hosting is powered by cloud compute. Use `--hosting dynamic` for server-side frameworks (Next.js API routes, Express, etc.). Static hosting remains the default.
@@ -212,4 +212,4 @@ After deployment, a manifest file is created:
 
 - [Quick Start](/getting-started/quickstart) - Complete tutorial
 - [Troubleshooting](/resources/troubleshooting) - Fix common issues
-- [File Storage](/build/storage/quickstart) - File storage guide
+- [Auto-wired Services](/deploy/auto-wired-services) - Databases and caches configured automatically

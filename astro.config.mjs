@@ -14,7 +14,7 @@ export default defineConfig({
     starlight({
       title: "Varity Docs",
       description:
-        "Build, deploy, and monetize apps with one command. 60-80% cheaper than AWS.",
+        "Build and deploy apps with one command.",
       logo: {
         src: "./src/assets/varity-logo.svg",
         replacesTitle: false,
@@ -23,7 +23,7 @@ export default defineConfig({
         {
           icon: "github",
           label: "GitHub",
-          href: "https://github.com/varity-labs/varity-sdk",
+          href: "https://github.com/varity-labs",
         },
         {
           icon: "x.com",
@@ -161,10 +161,6 @@ export default defineConfig({
               label: "Deploy from Claude Code / Cursor / Windsurf",
               slug: "guides/deploy-from-ai-ide",
             },
-            {
-              label: "Error Handling",
-              slug: "guides/error-handling",
-            },
           ],
         },
 
@@ -185,18 +181,7 @@ export default defineConfig({
               slug: "ai-tools/mcp-server-spec",
             },
             { label: "CLI (varitykit)", slug: "cli/overview" },
-            {
-              label: "AI Prompts",
-              slug: "ai-tools/prompts",
-            },
-            {
-              label: "Templates",
-              collapsed: true,
-              items: [
-                { label: "Overview", slug: "templates/overview" },
-                { label: "SaaS Starter", slug: "templates/saas-starter" },
-              ],
-            },
+            { label: "Installation", slug: "getting-started/installation" },
           ],
         },
 
@@ -243,92 +228,14 @@ export default defineConfig({
           ],
         },
 
-        // ===== BUILD YOUR APP =====
+        // ===== CLI REFERENCE =====
         {
-          label: "Build Your App",
+          label: "CLI Reference",
           collapsed: true,
           items: [
-            {
-              label: "Authentication",
-              collapsed: false,
-              items: [
-                { label: "Quick Start", slug: "build/auth/quickstart" },
-                { label: "Email Login", slug: "build/auth/email-login" },
-                { label: "Social Login", slug: "build/auth/social-login" },
-              ],
-            },
-            {
-              label: "Database",
-              collapsed: false,
-              items: [
-                { label: "Quick Start", slug: "build/databases/quickstart" },
-              ],
-            },
-            {
-              label: "File Storage",
-              collapsed: false,
-              items: [
-                { label: "Quick Start", slug: "build/storage/quickstart" },
-                { label: "Upload Files", slug: "build/storage/upload" },
-                { label: "Retrieve Files", slug: "build/storage/retrieve" },
-              ],
-            },
-            {
-              label: "Payments",
-              collapsed: false,
-              items: [
-                {
-                  label: "Quick Start",
-                  slug: "build/payments/quickstart",
-                },
-                { label: "Credit Card Payments", slug: "build/payments/credit-card" },
-              ],
-            },
-          ],
-        },
-
-        // ===== REFERENCE =====
-        {
-          label: "Reference",
-          collapsed: true,
-          items: [
-            {
-              label: "@varity-labs/sdk",
-              collapsed: false,
-              items: [
-                { label: "Overview", slug: "packages/sdk/overview" },
-                { label: "Installation", slug: "packages/sdk/installation" },
-                { label: "API Reference", slug: "packages/sdk/api-reference" },
-                { label: "Configuration", slug: "packages/sdk/chains" },
-              ],
-            },
-            {
-              label: "@varity-labs/ui-kit",
-              collapsed: false,
-              items: [
-                { label: "Overview", slug: "packages/ui-kit/overview" },
-                { label: "Installation", slug: "packages/ui-kit/installation" },
-                { label: "Components", slug: "packages/ui-kit/components" },
-                { label: "Hooks", slug: "packages/ui-kit/hooks" },
-              ],
-            },
-            {
-              label: "@varity-labs/types",
-              collapsed: true,
-              items: [
-                { label: "Overview", slug: "packages/types/overview" },
-              ],
-            },
-            {
-              label: "CLI Commands",
-              collapsed: true,
-              items: [
-                { label: "login / auth", slug: "cli/commands/auth" },
-                { label: "doctor", slug: "cli/commands/doctor" },
-                { label: "init", slug: "cli/commands/init" },
-                { label: "deploy", slug: "cli/commands/deploy" },
-              ],
-            },
+            { label: "login / auth", slug: "cli/commands/auth" },
+            { label: "doctor", slug: "cli/commands/doctor" },
+            { label: "deploy", slug: "cli/commands/deploy" },
           ],
         },
 
@@ -337,12 +244,6 @@ export default defineConfig({
           label: "Tutorials",
           collapsed: true,
           items: [
-            {
-              label: "Build a SaaS App",
-              slug: "tutorials/build-saas-app",
-            },
-            { label: "Customize the Template", slug: "tutorials/customize-template" },
-            { label: "Add a CRUD Feature", slug: "tutorials/add-crud-feature" },
             { label: "Build with AI (No Code)", slug: "tutorials/build-with-ai" },
             { label: "Framework Quick Starts", slug: "getting-started/quickstart-nextjs" },
           ],
@@ -364,7 +265,6 @@ export default defineConfig({
             { label: "Troubleshooting", slug: "resources/troubleshooting" },
             { label: "Glossary", slug: "resources/glossary" },
             { label: "Getting Help", slug: "getting-started/getting-help" },
-            { label: "App Store Guide", slug: "deploy/app-store" },
           ],
         },
       ],

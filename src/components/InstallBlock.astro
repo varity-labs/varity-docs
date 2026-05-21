@@ -2,9 +2,9 @@
 /**
  * InstallBlock Component
  *
- * Two-panel install + code example block for the homepage.
- * Left: npm install command with copy button.
- * Right: 5-line db code example.
+ * Two-panel install + deploy block for the homepage.
+ * Left: install the CLI.
+ * Right: deploy your app in one command.
  */
 ---
 
@@ -17,7 +17,7 @@
         <span class="dot dot-green"></span>
       </div>
       <span class="panel-label">Terminal</span>
-      <button class="copy-btn" data-copy="npm install @varity-labs/sdk" aria-label="Copy install command">
+      <button class="copy-btn" data-copy="pipx install varitykit" aria-label="Copy install command">
         <svg class="icon-copy" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
           <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
@@ -27,18 +27,17 @@
         </svg>
       </button>
     </div>
-    <pre class="panel-code"><code><span class="prompt">$</span> npm install @varity-labs/sdk</code></pre>
+    <pre class="panel-code"><code><span class="prompt">$</span> pipx install varitykit</code></pre>
   </div>
 
   <div class="install-panel code-panel">
     <div class="panel-header">
-      <span class="panel-label">app.ts</span>
+      <span class="panel-label">Deploy</span>
     </div>
-    <pre class="panel-code"><code><span class="kw">import</span> {'{'} db {'}'} <span class="kw">from</span> <span class="str">'@varity-labs/sdk'</span>;
+    <pre class="panel-code"><code><span class="prompt">$</span> cd my-app
+<span class="prompt">$</span> varitykit app deploy
 
-<span class="kw">const</span> users = db.collection(<span class="str">'users'</span>);
-<span class="kw">await</span> users.add({'{'} name: <span class="str">'Alice'</span> {'}'});
-<span class="kw">const</span> all = <span class="kw">await</span> users.get();</code></pre>
+<span class="str"># Live at https://varity.app/my-app/</span></code></pre>
   </div>
 </div>
 
