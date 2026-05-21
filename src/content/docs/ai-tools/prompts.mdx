@@ -1,0 +1,72 @@
+---
+title: AI Prompts
+description: Ready-to-paste prompts for deploying to Varity from Claude Code, Cursor, Windsurf, or ChatGPT. No commands to memorize.
+---
+
+Varity is built for AI coding tools. You describe what you want in plain English, and your AI assistant deploys it for you. Copy any prompt below into Claude Code, Cursor, Windsurf, or ChatGPT.
+
+You only need to connect the Varity MCP once. After that, just ask.
+
+## Connect the Varity MCP (one time)
+
+Claude Code:
+
+```bash
+claude mcp add varity -- npx -y @varity-labs/mcp
+```
+
+Cursor (`.cursor/mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "varity": {
+      "command": "npx",
+      "args": ["-y", "@varity-labs/mcp"]
+    }
+  }
+}
+```
+
+## Deploy my app
+
+```text
+Deploy this project to Varity. Detect the framework, build it, and give me
+the live URL. If anything is missing, tell me exactly what to fix.
+```
+
+## Migrate from Vercel
+
+```text
+Migrate this app from Vercel to Varity. Remove the Vercel config, rename the
+VERCEL_* environment variables, deploy it, and show me the live URL plus what
+it will cost per month.
+```
+
+## Deploy an AI agent or LLM
+
+```text
+Deploy this AI agent to Varity. Auto-configure whatever it needs (a database,
+Redis, or a GPU), deploy it, and give me the live URL.
+```
+
+## Check a deployment
+
+```text
+Show me the status and logs for my latest Varity deployment, and what it
+costs per month.
+```
+
+## Estimate cost before deploying
+
+```text
+Using Varity's cost calculator, what will this app cost per month on Varity
+versus Vercel, Render, and Railway?
+```
+
+## Tips for the best results
+
+- Tell your AI tool the full path to your project so it deploys the right folder.
+- Varity deploys Node apps (Next.js, React, Vue, Astro, Qwik, Vite, Express, Fastify, NestJS, Koa, Hono) and Python apps (FastAPI, Django, Flask), plus static sites.
+- Auth and a database are configured automatically when your app needs them. You do not install anything extra.
+- Your bill is one flat monthly cost per app and does not change with traffic.

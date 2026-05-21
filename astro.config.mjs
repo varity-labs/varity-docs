@@ -180,6 +180,7 @@ export default defineConfig({
               label: "MCP Server (Claude Code / Cursor)",
               slug: "ai-tools/mcp-server-spec",
             },
+            { label: "AI Prompts", slug: "ai-tools/prompts" },
             { label: "CLI (varitykit)", slug: "cli/overview" },
             { label: "Installation", slug: "getting-started/installation" },
           ],
