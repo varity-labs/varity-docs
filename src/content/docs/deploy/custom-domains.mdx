@@ -13,7 +13,7 @@ import PageMeta from '../../../components/PageMeta.astro';
   stability="stable"
 />
 
-Every Varity deployment gets a public URL at `https://varity.app/{name}/`. This guide covers how to set a custom name for that URL and manage your registered domains.
+Every Varity deployment gets a public URL based on its hosting type: **static apps** (IPFS) are served at `https://varity.app/{name}/`, and **dynamic apps** (Node/Python servers) get their own subdomain at `https://{name}.varity.app/`. This guide covers how to set a custom name and manage your registered domains.
 
 <Aside type="note">
 **External custom domain support** (pointing `myapp.com` via DNS to your Varity deployment) is under development. This guide covers `varity.app` subdomain management, which is available now.
@@ -21,10 +21,14 @@ Every Varity deployment gets a public URL at `https://varity.app/{name}/`. This 
 
 ## How Your Domain Is Assigned
 
-When you run `varitykit app deploy`, Varity registers a subdomain at `varity.app` using your project's name:
+When you run `varitykit app deploy`, Varity registers a name for your app from your project's name. The resulting URL depends on hosting type:
 
 ```
+# Static (IPFS) apps — served on a sub-path
 https://varity.app/{your-app-name}/
+
+# Dynamic (Node/Python) apps — served on their own subdomain
+https://{your-app-name}.varity.app/
 ```
 
 Your app name is derived from the `name` field in your `package.json` by default. You can override it with the `--name` flag.
