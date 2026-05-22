@@ -84,6 +84,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a PR. Two rules matter mo
 ## Community
 
 - **Discord:** [discord.gg/7vWsdwa2Bg](https://discord.gg/7vWsdwa2Bg)
+- **X / Twitter:** [@VarityHQ](https://x.com/VarityHQ)
 - **Website:** [varity.so](https://www.varity.so)
 - **GitHub:** [github.com/varity-labs](https://github.com/varity-labs)
 

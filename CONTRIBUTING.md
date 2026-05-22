@@ -165,17 +165,17 @@ Use for showing multiple options (npm/yarn/pnpm, different frameworks, etc.):
 <Tabs>
   <TabItem label="npm">
     ```bash
-    npm install @varity-labs/sdk
+    npm install @varity-labs/mcp
     ```
   </TabItem>
   <TabItem label="yarn">
     ```bash
-    yarn add @varity-labs/sdk
+    yarn add @varity-labs/mcp
     ```
   </TabItem>
   <TabItem label="pnpm">
     ```bash
-    pnpm add @varity-labs/sdk
+    pnpm add @varity-labs/mcp
     ```
   </TabItem>
 </Tabs>
@@ -187,11 +187,11 @@ Use for visual grouping of related links:
 
 ```mdx
 <CardGrid>
-  <Card title="Authentication" icon="lock">
-    Add login to your app
+  <Card title="Deploy" icon="rocket">
+    Ship your app with one command
   </Card>
-  <Card title="Storage" icon="database">
-    Upload and retrieve files
+  <Card title="Databases" icon="database">
+    Auto-wired when Varity detects them
   </Card>
 </CardGrid>
 ```
@@ -214,9 +214,9 @@ Before publishing any code example:
 Always show the full imports at the top of code blocks:
 
 ```typescript
-import { createClient } from '@varity-labs/sdk';
+import express from 'express';
 
-const client = createClient();
+const app = express();
 ```
 
 ### Use Realistic Values
@@ -283,18 +283,19 @@ console.log(user);
 Show full, runnable components, not just snippets:
 
 ```tsx
-import { useAuth } from '@varity-labs/ui-kit';
+import { useState } from 'react';
 
-function LoginButton() {
-  const { login, isAuthenticated, isLoading } = useAuth();
+function Counter() {
+  const [count, setCount] = useState(0);
 
-  if (isLoading) return <button disabled>Loading...</button>;
-  if (isAuthenticated) return <span>Logged in!</span>;
-
-  return <button onClick={() => login()}>Log In</button>;
+  return (
+    <button onClick={() => setCount(count + 1)}>
+      Clicked {count} times
+    </button>
+  );
 }
 
-export default LoginButton;
+export default Counter;
 ```
 
 ## Terminology
