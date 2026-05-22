@@ -28,7 +28,7 @@ When you deploy with Varity, the platform automatically:
 - **Understands your app** - Figures out what your app needs without you telling it
 - **Configures deployment defaults** - Sets up hosting and runtime services based on your project
 - **Optimizes costs** - Picks the most affordable infrastructure for your specific app
-- **Handles scaling** - Your app grows with traffic, no manual intervention needed
+- **Handles hosting defaults** - Varity configures your runtime services automatically
 
 **No configuration files. No YAML. No Docker. No DevOps knowledge. Just one command.**
 
@@ -78,8 +78,8 @@ Every Varity app gets these services configured automatically - no setup require
     **Global, Fast, Reliable**
     - Automatically optimized for your app type
     - Global CDN included
-    - Auto-scaling with traffic
-    - 99.9% uptime guaranteed
+    - Managed runtime configuration
+    - High availability with managed routing
   </Card>
 
   <Card title="Database" icon="seti:db">
@@ -187,10 +187,10 @@ When you deploy, Varity automatically handles:
 - ✅ SSL certificates (automatic)
 - ✅ Domain routing (varity.app/your-app/)
 - ✅ CDN configuration (global edge caching)
-- ✅ Auto-scaling (based on traffic)
+- ✅ Managed hosting defaults
 - ✅ Sidecars: Postgres+pgvector, Redis, Ollama, MongoDB (when detected in your config)
 
-**Not yet supported:** Go, Rust, Ruby, Elixir, Java, PHP, .NET. Deploying these will fail with a clear unsupported-language error. [Request support for your framework](https://github.com/varity-labs).
+**Not yet supported:** Go, Rust, Ruby / Rails, Elixir / Phoenix, Java / Spring, Deno, PHP / Laravel, .NET. Deploying these will fail with a clear unsupported-language error. [Request support for your framework](https://github.com/varity-labs).
 
 ## Developer Experience
 
@@ -278,7 +278,7 @@ Deploying...
 ❌ CDN configuration
 ❌ Database connection strings
 ❌ Load balancer setup
-❌ Auto-scaling configuration
+❌ Manual hosting configuration
 
 ## Next Steps
 

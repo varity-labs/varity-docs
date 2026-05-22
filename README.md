@@ -1,6 +1,6 @@
 # Varity Documentation
 
-> **The easiest way to deploy any app, AI agent, or LLM.**
+> **The easiest way to deploy any Node or Python app, AI agent, or LLM.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![Discord](https://img.shields.io/discord/7vWsdwa2Bg?label=Discord&logo=discord&logoColor=white)](https://discord.gg/7vWsdwa2Bg)
@@ -12,7 +12,7 @@
 
 ## What is Varity?
 
-Varity is the easiest way to deploy any app, AI agent, or LLM with your AI coding tool. You describe what you want to build and Varity handles the hosting, database, auth, and payments automatically.
+Varity is the easiest way to deploy any Node or Python app, AI agent, or LLM with your AI coding tool. You describe what you want to build and Varity handles the hosting, database, auth, and payments automatically.
 
 No servers to configure. No infrastructure decisions. One command and your app is live.
 
@@ -37,13 +37,13 @@ npx -y @varity-labs/mcp@beta
 
 ## Features
 
-- **One-command deploy** — run `varitykit app deploy` from any Next.js, React, Vue, Node, or Python app
-- **Auto-configured infrastructure** — database, auth, and storage wired automatically based on your dependencies
-- **Cost-aware deployment** — compare projected costs with the built-in calculator
-- **Vercel migration** — `varitykit migrate` converts your Vercel project in seconds
-- **AI IDE native** — install the MCP server in Claude Code, Cursor, or Windsurf and deploy with natural language
-- **16 MCP tools** — `varity_deploy`, `varity_migrate`, `varity_cost_calculator`, and more
-- **Auto-wired services** — Postgres, Redis, MongoDB, and Ollama detected and configured from `package.json`
+- **One-command deploy**: run `varitykit app deploy` from any Next.js, React, Vue, Node, or Python app
+- **Auto-configured infrastructure**: database, auth, and storage wired automatically based on your dependencies
+- **Cost-aware deployment**: compare projected costs with the built-in calculator
+- **Vercel migration**: `varitykit migrate` converts your Vercel project in seconds
+- **AI IDE native**: install the MCP server in Claude Code, Cursor, or Windsurf and deploy with natural language
+- **MCP tools for AI IDE workflows**: includes `varity_deploy`, `varity_migrate`, `varity_cost_calculator`, and more
+- **Auto-wired services**: Postgres, Redis, MongoDB, and Ollama detected and configured from `package.json`
 
 ## Supported Frameworks
 
@@ -54,19 +54,19 @@ npx -y @varity-labs/mcp@beta
 | Vue | Ready |
 | Express / Fastify / Nest / Hono | Ready |
 | FastAPI / Django / Flask | Ready |
-| Go, Rust, Ruby, Java | Coming soon |
+| Go, Rust, Ruby / Rails, Elixir / Phoenix, Java / Spring, Deno, PHP / Laravel, .NET | Not supported yet |
 
 ## Documentation Structure
 
 ```
 src/content/docs/
 ├── getting-started/     # Introduction, installation, quickstart
-├── packages/            # SDK, UI Kit, Types reference
+├── packages/            # Legacy references (deferred, not current product surface)
 ├── build/               # Auth, databases, storage, payments guides
 ├── cli/                 # CLI commands reference
 ├── deploy/              # Deployment guides and Vercel migration
 ├── ai-tools/            # MCP server and AI IDE integration
-├── templates/           # App templates and scaffolding
+├── templates/           # Legacy scaffolding docs (deferred)
 └── resources/           # FAQ, glossary, troubleshooting
 ```
 
@@ -92,7 +92,7 @@ We welcome contributions! Read [CONTRIBUTING.md](CONTRIBUTING.md) for setup inst
 
 Key guidelines:
 - All code examples must be tested and working before submitting
-- Follow the [terminology guide](CONTRIBUTING.md#terminology) — no forbidden vocabulary in prose
+- Follow the [terminology guide](CONTRIBUTING.md#terminology): no forbidden vocabulary in prose
 - Open an issue before making large changes
 
 ## Community
@@ -108,4 +108,4 @@ This project follows the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.
 
 ## License
 
-MIT © [Varity Labs](https://www.varity.so) — see [LICENSE](LICENSE) for details.
+MIT © [Varity Labs](https://www.varity.so), see [LICENSE](LICENSE) for details.

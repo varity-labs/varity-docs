@@ -33,7 +33,6 @@ Varity is an AI-native cloud platform focused on deployment. The two core packag
 
 Yes. Varity uses:
 - Encryption for sensitive data in transit and at rest
-- Replicated storage across multiple regions
 - Automatic SSL on every deployment
 
 ### What frameworks are supported?
@@ -42,10 +41,13 @@ Yes. Varity uses:
 - Next.js 13+ (App Router)
 - React (Vite or Create React App)
 - Vue 3+
+- Astro
+- Qwik
+- Vite SPA
 - Node.js backends (Express, Fastify, Nest, Koa, Hono)
 - Python backends (FastAPI, Django, Flask)
 
-**Not yet supported:** Go, Rust, Ruby, Elixir, Java, PHP, .NET. Deploying these will fail with an unsupported-language error. [Request framework support](https://github.com/varity-labs).
+**Not yet supported:** Go, Rust, Ruby / Rails, Elixir / Phoenix, Java / Spring, Deno, PHP / Laravel, .NET. Deploying these will fail with an unsupported-language error. [Request framework support](https://github.com/varity-labs).
 
 ## Deployment
 
@@ -81,7 +83,7 @@ This creates a new deployment with your previous configuration.
 
 ### Where is my app hosted?
 
-Your app is hosted on Varity's secure, distributed infrastructure with global CDN delivery. Files are replicated across multiple regions for reliability.
+Your app is hosted on Varity's infrastructure with global CDN delivery and automatic SSL.
 
 ## Authentication
 
