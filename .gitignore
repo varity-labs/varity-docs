@@ -61,6 +61,13 @@ coverage/
 drafts/
 CLAUDE.md
 
+# Internal dev artifacts / reports / screenshots — never in the public docs repo
+/Screenshot*.png
+/*_REPORT.md
+/COMPONENT_*
+/DEPLOYMENT_VERIFICATION.md
+tests/NEXT-STEPS.md
+
 # npm is canonical (package-lock.json) — ignore stray pnpm artifacts
 pnpm-lock.yaml
 pnpm-workspace.yaml
