@@ -33,7 +33,6 @@ Varity is an AI-native cloud platform focused on deployment. The two core packag
 
 Yes. Varity uses:
 - Encryption for sensitive data in transit and at rest
-- Replicated storage across multiple regions
 - Automatic SSL on every deployment
 
 ### What frameworks are supported?
@@ -42,10 +41,13 @@ Yes. Varity uses:
 - Next.js 13+ (App Router)
 - React (Vite or Create React App)
 - Vue 3+
+- Astro
+- Qwik
+- Vite SPA
 - Node.js backends (Express, Fastify, Nest, Koa, Hono)
 - Python backends (FastAPI, Django, Flask)
 
-**Not yet supported:** Go, Rust, Ruby, Elixir, Java, PHP, .NET. Deploying these will fail with an unsupported-language error. [Request framework support](https://github.com/varity-labs).
+**Not yet supported:** Go, Rust, Ruby / Rails, Elixir / Phoenix, Java / Spring, Deno, PHP / Laravel, .NET. Deploying these will fail with an unsupported-language error. [Request framework support](https://github.com/varity-labs).
 
 ## Deployment
 
@@ -81,30 +83,17 @@ This creates a new deployment with your previous configuration.
 
 ### Where is my app hosted?
 
-Your app is hosted on Varity's secure, distributed infrastructure with global CDN delivery. Files are replicated across multiple regions for reliability.
+Your app is hosted on Varity's infrastructure with global CDN delivery and automatic SSL.
 
 ## Authentication
 
-### How do users log in?
+### Does Varity handle user login for my app?
 
-Users can log in with:
-- Email (magic link -- no password needed)
-- Google, Twitter, Discord, GitHub
+No. Varity deploys your app exactly as you built it. Authentication is whatever your application implements: use any auth library or provider that runs in a Node or Python app (for example NextAuth, Clerk, or Auth0). Varity does not add or manage an end-user identity layer.
 
-No special knowledge required for users.
+### Do I need to change my auth code to deploy?
 
-### Do I need to set up authentication myself?
-
-No. Varity authentication is configured automatically when you deploy. You do not import an SDK or wire up an auth provider. Varity supplies the credentials and your users can log in immediately.
-
-### What user data can I access?
-
-- Email address
-- Display name
-- Profile picture (from social login)
-- Linked accounts (Google, Twitter, etc.)
-
-This data is available to your deployed app through the auth session.
+No. Your existing auth works as-is. Set any secrets your provider needs as environment variables. See [Environment Variables](/deploy/env-variables).
 
 ## Costs and Pricing
 
@@ -129,7 +118,7 @@ No. Cancel anytime. No minimums, no lock-in, no exit fees.
 **No.** Varity abstracts all infrastructure complexity:
 - You deploy with one command
 - No servers, Docker, or DevOps to manage
-- Auth and databases are configured automatically when detected
+- Databases are configured automatically when detected
 - Your app code stays unchanged
 
 Infrastructure complexity is abstracted. You use deploy commands and app-level settings.

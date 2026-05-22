@@ -73,7 +73,7 @@ Dynamic hosting is powered by cloud compute. Use `--hosting dynamic` for server-
 |--------|---------|-------------|
 | `--hosting` | `auto` | Hosting type: `auto`, `static`, or `dynamic` |
 | `--path` | `.` | Project directory |
-| `--name` | - | Custom app name for `varity.app/{name}` |
+| `--name` | - | Custom app name. Static URLs use `varity.app/{name}`; dynamic URLs use `{name}.varity.app` |
 | `--mode` | `auto` | Deployment mode: `auto`, `guided`, or `expert` |
 
 ## Basic Deployment
@@ -100,7 +100,7 @@ Dynamic hosting is powered by cloud compute. Use `--hosting dynamic` for server-
    ✓ Registered on Varity
 
    Your app is live at:
-   https://varity.app/your-app/
+   https://your-app.varity.app
 
    Deployment ID: deploy-1737492000
    ```
@@ -121,7 +121,7 @@ The CLI automatically detects your framework:
 
 ## Environment Variables
 
-Storage and authentication credentials are auto-provided by Varity. No manual credential setup is required. See [Managed Credentials](/deploy/managed-credentials).
+Storage and service credentials are auto-provided by Varity. No manual credential setup is required. See [Managed Credentials](/deploy/managed-credentials).
 
 ## Rollback
 
@@ -144,8 +144,8 @@ Output:
 ```
 ID                  | Status  | URL
 --------------------|---------|---------------------------
-deploy-1737492000   | live    | https://varity.app/your-app/
-deploy-1737491000   | archived| https://varity.app/your-app/ (archived)
+deploy-1737492000   | live    | https://your-app.varity.app
+deploy-1737491000   | archived| https://your-app.varity.app (archived)
 ```
 
 ## View Deployment Details

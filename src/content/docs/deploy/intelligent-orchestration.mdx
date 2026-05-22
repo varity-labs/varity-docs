@@ -28,7 +28,7 @@ When you deploy with Varity, the platform automatically:
 - **Understands your app** - Figures out what your app needs without you telling it
 - **Configures deployment defaults** - Sets up hosting and runtime services based on your project
 - **Optimizes costs** - Picks the most affordable infrastructure for your specific app
-- **Handles scaling** - Your app grows with traffic, no manual intervention needed
+- **Handles hosting defaults** - Varity configures your runtime services automatically
 
 **No configuration files. No YAML. No Docker. No DevOps knowledge. Just one command.**
 
@@ -78,8 +78,8 @@ Every Varity app gets these services configured automatically - no setup require
     **Global, Fast, Reliable**
     - Automatically optimized for your app type
     - Global CDN included
-    - Auto-scaling with traffic
-    - 99.9% uptime guaranteed
+    - Managed runtime configuration
+    - Managed request routing
   </Card>
 
   <Card title="Database" icon="seti:db">
@@ -90,19 +90,10 @@ Every Varity app gets these services configured automatically - no setup require
     - Connection details injected at runtime
   </Card>
 
-  <Card title="Authentication" icon="approve-check">
-    **Email & Social Login**
-    - Configured automatically, no SDK to import
-    - Email, Google, GitHub, Twitter, Discord
-    - No complex OAuth setup
-    - No keys for you to manage
-  </Card>
-
   <Card title="Security" icon="seti:lock">
-    **Enterprise-Grade Security**
+    **Secure by Default**
     - SSL certificates (automatic)
-    - DDoS protection
-    - Secure user sessions
+    - Encrypted data in transit and at rest
     - No security configuration needed
   </Card>
 
@@ -123,7 +114,7 @@ Varity uses fixed profile pricing while Vercel, Render, and Railway use usage-me
 
 - **Smart Infrastructure Selection** - Varity automatically picks the most cost-effective hardware for your specific app
 - **No Over-Provisioning** - Your app is sized to the hardware it actually needs, and your monthly cost is fixed
-- **Included Services** - Database, auth, CDN, and SSL are included at no extra cost
+- **Included Services** - Database, CDN, and SSL are included at no extra cost
 - **Efficient Architecture** - Modern infrastructure designed for cost optimization from day one
 
 Use [Pricing and Costs](/resources/pricing) and `varity_cost_calculator` for current estimates.
@@ -183,14 +174,13 @@ When you deploy, Varity automatically handles:
 - ✅ Build configuration (Nixpacks auto-detection)
 - ✅ Container creation (no Docker install required)
 - ✅ Database provisioning (if your code needs it)
-- ✅ Authentication setup (managed automatically)
 - ✅ SSL certificates (automatic)
 - ✅ Domain routing (varity.app/your-app/)
 - ✅ CDN configuration (global edge caching)
-- ✅ Auto-scaling (based on traffic)
-- ✅ Sidecars: Postgres+pgvector, Redis, Ollama, MongoDB (when detected in your config)
+- ✅ Managed hosting defaults
+- ✅ Sidecars: Postgres+pgvector, Redis, MongoDB, MySQL, Ollama (when detected in your config)
 
-**Not yet supported:** Go, Rust, Ruby, Elixir, Java, PHP, .NET. Deploying these will fail with a clear unsupported-language error. [Request support for your framework](https://github.com/varity-labs).
+**Not yet supported:** Go, Rust, Ruby / Rails, Elixir / Phoenix, Java / Spring, Deno, PHP / Laravel, .NET. Deploying these will fail with a clear unsupported-language error. [Request support for your framework](https://github.com/varity-labs).
 
 ## Developer Experience
 
@@ -278,7 +268,7 @@ Deploying...
 ❌ CDN configuration
 ❌ Database connection strings
 ❌ Load balancer setup
-❌ Auto-scaling configuration
+❌ Manual hosting configuration
 
 ## Next Steps
 

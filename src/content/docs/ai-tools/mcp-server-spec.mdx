@@ -165,25 +165,6 @@ Install dependencies for a Varity project. Runs `npm install` for all packages o
 
 ---
 
-### `varity_add_collection`: Add database collection
-
-Add a new database collection to your project. Creates the TypeScript type, collection accessor, React hook, and optionally scaffolds a dashboard page.
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `name` | string | Yes | none | Collection name (lowercase, e.g., "invoices", "team_members") |
-| `fields` | array | Yes | none | Field definitions: `[{name: "amount", type: "number"}, {name: "status", type: "string"}]` |
-| `path` | string | No | Current directory | Project directory |
-| `add_page` | boolean | No | false | Scaffold a dashboard page with DataTable and Dialog |
-
-**Field types:** `"string"`, `"number"`, `"boolean"`, `"Date"`
-
-**Annotations:** `destructiveHint: true` (creates/modifies files in your project)
-
-**Example prompt:** "Add an invoices collection with amount (number) and status (string) fields"
-
----
-
 ### `varity_dev_server`: Manage local dev server
 
 Start, stop, or check the status of your local development server. Returns the localhost URL for previewing your app.
@@ -387,7 +368,7 @@ npx -y @varity-labs/mcp@beta --transport http --port 3100
 This starts the MCP server at `http://localhost:3100/mcp`.
 
 <Aside type="note">
-`varity_init` (scaffolding) is only available via stdio transport since it requires access to the local filesystem. All other tools work on both transports.
+`varity_init` (scaffolding) requires local filesystem access, so use stdio transport. Local-browser tools (`varity_open_browser`, `varity_dev_server`) are also stdio-only. Use stdio when you need local execution; use HTTP for remote connector workflows.
 </Aside>
 
 ### llms.txt Alternative

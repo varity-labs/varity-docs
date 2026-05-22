@@ -1,6 +1,6 @@
 ---
 title: Deploy Your Application
-description: Deploy your application to Varity with one CLI command. Automatic builds, custom domains at varity.app, and live in under 2 minutes.
+description: Deploy your application to Varity with one CLI command. Automatic builds, a live varity.app URL, and go live in under 2 minutes.
 ---
 
 import { Tabs, TabItem, Steps, Aside, Card, CardGrid } from '@astrojs/starlight/components';
@@ -10,7 +10,7 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="April 2026"
+  lastUpdated="May 2026"
   stability="stable"
 />
 
@@ -48,7 +48,7 @@ Varity is currently in beta. Your deployments work exactly as in production, but
 
    ```
    ✓ Deployed successfully!
-   ✓ URL: https://varity.app/your-app/
+   ✓ URL: https://your-app.varity.app
    ✓ Build time: 1m 23s
    ✓ Status: Live
    ```
@@ -63,7 +63,7 @@ When you run `varitykit app deploy`:
 2. **Builds your app** - Runs your build command (`npm run build`)
 3. **Uploads your files** - Stores them securely with automatic backups
 4. **Makes your app live** - Generates a public URL
-5. **Returns a live URL** - Your app is reachable at `varity.app/<name>/`
+5. **Returns a live URL** - Static apps use `https://varity.app/<name>/`; dynamic apps use `https://<name>.varity.app/`
 
 All of this happens automatically in under 2 minutes.
 
@@ -90,7 +90,7 @@ Choose the right hosting for your application type:
 
     **Features**:
     - Container-based compute
-    - Automatic scaling
+    - Managed container hosting
     - Database support
     - WebSocket support
 
@@ -110,8 +110,6 @@ Credentials are managed automatically by Varity. Optionally set your app ID:
 # Optional: Your Varity App ID
 NEXT_PUBLIC_VARITY_APP_ID=<your-app-id>
 
-# Optional: Custom domain
-VARITY_CUSTOM_DOMAIN=your-domain.com
 ```
 
 See [Environment Variables](/deploy/env-variables) for the complete list and [Managed Credentials](/deploy/managed-credentials) for how credential auto-provision works.
@@ -140,9 +138,9 @@ varitykit app list
 Output:
 ```
 ID                  Status    URL                                Deployed
-deploy-1737491000   live      https://varity.app/your-app/       2 hours ago
-deploy-1737484800   archived  https://varity.app/your-app-v2/    1 day ago
-deploy-1737398400   archived  https://varity.app/your-app-v1/    2 days ago
+deploy-1737491000   live      https://your-app.varity.app       2 hours ago
+deploy-1737484800   archived  https://your-app-v2.varity.app    1 day ago
+deploy-1737398400   archived  https://your-app-v1.varity.app    2 days ago
 ```
 
 ### Rollback to Previous Version
@@ -171,16 +169,17 @@ View overall deployment status:
 varitykit app status
 ```
 
-## Custom Domains
+## Deployment URL
 
-Every deployment gets a public URL at `https://varity.app/{name}/`. Set your app name with `--name`:
+Every deployment gets a public URL. URL format depends on hosting type:
 
 ```bash
 varitykit app deploy --name my-app
-# → https://varity.app/my-app/
+# Static hosting → https://varity.app/my-app/
+# Dynamic hosting → https://my-app.varity.app/
 ```
 
-See [Custom Domains](/deploy/custom-domains) for the full guide, including how to list your registered domains.
+See [Custom Domains](/deploy/custom-domains) for the current status of bring-your-own domains.
 
 :::note[Bring your own domain]
 Pointing `myapp.com` at a Varity deployment via DNS is under development. See [Custom Domains](/deploy/custom-domains) for status.

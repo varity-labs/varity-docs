@@ -10,14 +10,14 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="April 2026"
+  lastUpdated="May 2026"
   stability="stable"
 />
 
 Varity manages most credentials automatically. You only need to set environment variables for services you manage yourself, like your own API keys for OpenAI, Stripe, SendGrid, and similar third-party services.
 
 <Aside type="tip">
-**No credential setup required.** Authentication and storage credentials are provided automatically by Varity. See [Managed Credentials](/deploy/managed-credentials) for details.
+**No credential setup required.** Storage and service credentials are provided automatically by Varity. See [Managed Credentials](/deploy/managed-credentials) for details.
 </Aside>
 
 ## Custom Environment Variables
@@ -125,7 +125,7 @@ Deployment credentials for hosting (both static and dynamic) are managed automat
     VARITY_API_KEY=your_production_api_key
     ```
 
-    Production credentials for authentication and storage are auto-provided by the CLI during deployment.
+    Production credentials for storage and services are auto-provided by the CLI during deployment.
   </TabItem>
 </Tabs>
 

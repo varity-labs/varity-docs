@@ -9,7 +9,7 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="April 2026"
+  lastUpdated="May 2026"
   stability="stable"
 />
 
@@ -19,7 +19,7 @@ A guide to terms used in Varity documentation.
 
 ### App
 
-A web application deployed on Varity. Each app gets a public URL at `https://varity.app/{name}/` and a unique deployment ID.
+A web application deployed on Varity. Static apps get a URL at `https://varity.app/{name}/`, dynamic apps get `https://{name}.varity.app/`, and each deployment has a unique deployment ID.
 
 ### Deploy Key
 
@@ -68,24 +68,6 @@ When you deploy, Varity injects the right credentials at runtime. See [Managed C
 The Varity MCP (Model Context Protocol) server gives AI coding tools like Claude Code and Cursor a full set of tools for deploying and managing apps. Install it once and deploy from inside your AI editor.
 
 See [MCP Server](/ai-tools/mcp-server-spec).
-
-## Authentication Terms
-
-### Email Login
-
-A login method where users enter their email address and receive a one-time login link. No password required.
-
-**Equivalent:** The same as magic link login in Notion, Slack, or Linear.
-
-### Session
-
-A temporary authentication state. Created when users log in, expires when they log out.
-
-**Equivalent:** Standard browser session.
-
-### Social Login
-
-Logging in with an existing account from Google, GitHub, Discord, or Apple. Varity handles the integration automatically.
 
 ## Development Terms
 
