@@ -1,6 +1,6 @@
 ---
 title: Next.js Quick Start
-description: Deploy a Next.js app to Varity. Varity detects your framework and wires hosting, auth, and databases automatically.
+description: Deploy a Next.js app to Varity. Varity detects your framework and wires hosting and databases automatically.
 ---
 
 import { Steps, Tabs, TabItem, Aside } from '@astrojs/starlight/components';
@@ -76,7 +76,7 @@ You do not import an SDK or change your code. When Varity deploys a Next.js proj
 For the full list of detected frameworks and auto-wired services, see [Supported Frameworks](/deploy/supported-frameworks) and [Auto-wired Services](/deploy/auto-wired-services).
 
 <Aside type="tip">
-You do not need to add any provider components, API keys, or config to your app. Varity supplies the credentials your deployed app needs.
+You do not need to wire up connection details for auto-wired services. Varity injects them into your app's environment at runtime. Set any other secrets your app needs (such as third-party or auth-provider API keys) as environment variables.
 </Aside>
 
 ## Next Steps

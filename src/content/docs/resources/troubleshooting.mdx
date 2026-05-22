@@ -103,7 +103,7 @@ Possible causes and solutions:
 
 ### Login not working on the deployed app
 
-Authentication is configured automatically when you deploy. If sign-in is not working:
+Varity deploys your app as-is and does not manage authentication. Sign-in is handled by whatever auth library or provider your app uses, so debug it the same way you would locally:
 
 <Steps>
 
@@ -112,9 +112,9 @@ Authentication is configured automatically when you deploy. If sign-in is not wo
    varitykit app status
    ```
 
-2. Check browser console for errors on your live URL
+2. Check the browser console for errors on your live URL
 
-3. If you set a custom auth App ID via `NEXT_PUBLIC_VARITY_AUTH_APP_ID`, confirm it is set correctly in your environment variables
+3. Confirm any secrets your auth provider needs (API keys, client IDs, callback URLs) are set as environment variables. See [Environment Variables](/deploy/env-variables).
 
 </Steps>
 

@@ -12,7 +12,7 @@
 
 ## What is Varity?
 
-Varity is the easiest way to deploy any Node or Python app, AI agent, or LLM with your AI coding tool. You describe what you want to build and Varity handles the hosting, database, auth, and payments automatically.
+Varity is the easiest way to deploy any Node or Python app, AI agent, or LLM with your AI coding tool. You describe what you want to build and Varity handles the hosting and database automatically.
 
 No servers to configure. No infrastructure decisions. One command and your app is live.
 
@@ -38,7 +38,7 @@ npx -y @varity-labs/mcp@beta
 ## Features
 
 - **One-command deploy**: run `varitykit app deploy` from any Next.js, React, Vue, Node, or Python app
-- **Auto-configured infrastructure**: database, auth, and storage wired automatically based on your dependencies
+- **Auto-configured infrastructure**: databases and backend services wired automatically based on your dependencies
 - **Cost-aware deployment**: compare projected costs with the built-in calculator
 - **Vercel migration**: `varitykit migrate` converts your Vercel project in seconds
 - **AI IDE native**: install the MCP server in Claude Code, Cursor, or Windsurf and deploy with natural language
@@ -61,13 +61,12 @@ npx -y @varity-labs/mcp@beta
 ```
 src/content/docs/
 ├── getting-started/     # Introduction, installation, quickstart
-├── packages/            # Legacy references (deferred, not current product surface)
-├── build/               # Auth, databases, storage, payments guides
 ├── cli/                 # CLI commands reference
 ├── deploy/              # Deployment guides and Vercel migration
 ├── ai-tools/            # MCP server and AI IDE integration
-├── templates/           # Legacy scaffolding docs (deferred)
-└── resources/           # FAQ, glossary, troubleshooting
+├── guides/              # Framework and workflow guides
+├── tutorials/           # End-to-end build tutorials
+└── resources/           # FAQ, glossary, pricing, troubleshooting
 ```
 
 ## Local Development
