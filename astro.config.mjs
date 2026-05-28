@@ -101,6 +101,35 @@ export default defineConfig({
             content: "Varity Docs",
           },
         },
+        // Open Graph image (shared with marketing site for brand consistency)
+        {
+          tag: "meta",
+          attrs: {
+            property: "og:image",
+            content: "https://docs.varity.so/og-image.png",
+          },
+        },
+        {
+          tag: "meta",
+          attrs: {
+            property: "og:image:width",
+            content: "1200",
+          },
+        },
+        {
+          tag: "meta",
+          attrs: {
+            property: "og:image:height",
+            content: "630",
+          },
+        },
+        {
+          tag: "meta",
+          attrs: {
+            property: "og:image:alt",
+            content: "Varity Docs: Predictable cloud hosting",
+          },
+        },
         {
           tag: "meta",
           attrs: {
@@ -113,6 +142,20 @@ export default defineConfig({
           attrs: {
             name: "twitter:site",
             content: "@VarityHQ",
+          },
+        },
+        {
+          tag: "meta",
+          attrs: {
+            name: "twitter:creator",
+            content: "@VarityHQ",
+          },
+        },
+        {
+          tag: "meta",
+          attrs: {
+            name: "twitter:image",
+            content: "https://docs.varity.so/og-image.png",
           },
         },
         {
