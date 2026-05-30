@@ -1,0 +1,132 @@
+---
+// Custom Head override: renders Starlight's default <head> (preserving all
+// existing meta — including the og:image configured in astro.config.mjs), then
+// appends SEO structured data (JSON-LD) for richer Google results + LLM citation.
+//
+// Reads page data from Astro.locals.starlightRoute (Starlight 0.37 API), the
+// same source the default Head.astro consumes.
+import Default from "@astrojs/starlight/components/Head.astro";
+
+const SITE = "https://docs.varity.so";
+const OG_IMAGE = `${SITE}/og-image.png`;
+// No reliable per-page git mtime at build time here; use build time so the value
+// is honest (reflects the last published build) rather than a fabricated date.
+const BUILD_DATE = new Date().toISOString();
+
+const route = Astro.locals.starlightRoute;
+const data = route?.entry?.data ?? {};
+const slug = route?.slug ?? route?.id ?? "";
+
+const title = data.title ?? "Varity Docs";
+const description =
+  data.description ?? "Predictable cloud hosting. Deploy any app with one command.";
+
+// Canonical URL for this page.
+const path = slug ? `/${slug}/` : "/";
+const canonical = new URL(path, SITE).href;
+
+// Shared Organization node (reused as author + publisher; mirrors marketing site).
+const organization = {
+  "@type": "Organization",
+  "@id": `${SITE}/#organization`,
+  name: "Varity",
+  legalName: "Varity Platform Inc.",
+  url: "https://varity.so",
+  logo: {
+    "@type": "ImageObject",
+    url: `${SITE}/og-image.png`,
+  },
+  sameAs: [
+    "https://github.com/varity-labs",
+    "https://x.com/VarityHQ",
+    "https://discord.gg/7vWsdwa2Bg",
+  ],
+};
+
+// WebSite node for the docs property.
+const website = {
+  "@type": "WebSite",
+  "@id": `${SITE}/#website`,
+  name: "Varity Docs",
+  url: SITE,
+  publisher: { "@id": `${SITE}/#organization` },
+};
+
+// TechArticle node from the page's frontmatter.
+const article = {
+  "@type": "TechArticle",
+  headline: title,
+  description,
+  inLanguage: "en",
+  image: OG_IMAGE,
+  datePublished: BUILD_DATE,
+  dateModified: BUILD_DATE,
+  author: { "@id": `${SITE}/#organization` },
+  publisher: { "@id": `${SITE}/#organization` },
+  mainEntityOfPage: {
+    "@type": "WebPage",
+    "@id": canonical,
+  },
+  isPartOf: { "@id": `${SITE}/#website` },
+};
+
+// BreadcrumbList: Home -> [section group] -> current page, derived from the
+// Starlight sidebar. Find the group containing the current entry.
+function findSection(sidebar) {
+  if (!Array.isArray(sidebar)) return null;
+  for (const item of sidebar) {
+    if (item?.type === "group" && Array.isArray(item.entries)) {
+      const hit = item.entries.some(
+        (e) => e?.type === "link" && e.isCurrent
+      );
+      if (hit) return item.label;
+      // Nested groups (rare in this docs set, but handle gracefully).
+      const nested = findSection(item.entries);
+      if (nested) return nested;
+    }
+  }
+  return null;
+}
+
+const sectionLabel = findSection(route?.sidebar);
+
+const breadcrumbItems = [
+  {
+    "@type": "ListItem",
+    position: 1,
+    name: "Home",
+    item: `${SITE}/`,
+  },
+];
+let pos = 2;
+if (sectionLabel) {
+  breadcrumbItems.push({
+    "@type": "ListItem",
+    position: pos++,
+    name: sectionLabel,
+  });
+}
+// Don't duplicate the Home crumb for the homepage itself.
+if (slug) {
+  breadcrumbItems.push({
+    "@type": "ListItem",
+    position: pos++,
+    name: title,
+    item: canonical,
+  });
+}
+
+const breadcrumbs = {
+  "@type": "BreadcrumbList",
+  itemListElement: breadcrumbItems,
+};
+
+// Single @graph keeps the nodes cross-referenced (@id links resolve).
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [organization, website, article, breadcrumbs],
+};
+---
+
+<Default />
+<script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
