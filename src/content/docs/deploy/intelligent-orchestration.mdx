@@ -27,7 +27,7 @@ When you deploy with Varity, the platform automatically:
 
 - **Understands your app** - Figures out what your app needs without you telling it
 - **Configures deployment defaults** - Sets up hosting and runtime services based on your project
-- **Optimizes costs** - Picks the most affordable infrastructure for your specific app
+- **Right-sizes infrastructure** - Reserves the hardware your app actually needs, so your flat monthly cost is no higher than it has to be
 - **Handles hosting defaults** - Varity configures your runtime services automatically
 
 **No configuration files. No YAML. No Docker. No DevOps knowledge. Just one command.**
@@ -56,14 +56,13 @@ Think of Varity as your **AI-powered DevOps engineer** that does all the infrast
    - Analyzes your app to understand what it needs
    - Selects the best infrastructure for your specific use case
    - Configures deployment services (hosting, runtime, and detected sidecars)
-   - Optimizes for the lowest cost possible
+   - Right-sizes the reserved hardware to what your app needs
 
 4. **Your App Goes Live**
 
    You get a live URL. Everything works automatically:
    - ✅ Hosting configured
    - ✅ Database ready
-   - ✅ Authentication working
    - ✅ SSL certificate active
    - ✅ CDN enabled globally
 
@@ -112,7 +111,7 @@ Varity uses fixed profile pricing while Vercel, Render, and Railway use usage-me
 
 ### The Varity Advantage
 
-- **Smart Infrastructure Selection** - Varity automatically picks the most cost-effective hardware for your specific app
+- **Smart Infrastructure Selection** - Varity automatically right-sizes the reserved hardware to your specific app
 - **No Over-Provisioning** - Your app is sized to the hardware it actually needs, and your monthly cost is fixed
 - **Included Services** - Database, CDN, and SSL are included at no extra cost
 - **Efficient Architecture** - Modern infrastructure designed for cost optimization from day one
@@ -199,7 +198,7 @@ varitykit app deploy
 ```
 Analyzing your app...
   ✓ Detected: Next.js full-stack app
-  ✓ Setting up: Auth, database, hosting
+  ✓ Setting up: database, hosting
 
 Building...
   ✓ Installing dependencies
@@ -251,7 +250,6 @@ Building...
 Deploying...
   ✓ Provisioning hosting
   ✓ Setting up database
-  ✓ Configuring authentication
   ✓ Enabling SSL certificate
   ✓ Activating global CDN
 

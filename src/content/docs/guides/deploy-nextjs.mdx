@@ -26,7 +26,7 @@ Deploy a production Next.js app with a database and a live URL with one command.
 
 ## Two ways to deploy
 
-You can deploy from your AI editor using the Varity MCP server (recommended for vibe coders), or from the terminal using the CLI.
+You can deploy from your AI editor using the Varity MCP server (the fastest path), or from the terminal using the CLI.
 
 <Tabs>
   <TabItem label="From Claude Code or Cursor (MCP)">
@@ -126,7 +126,6 @@ When you deploy a Next.js app with Varity, these services are wired automaticall
 | Service | What Varity does |
 |---|---|
 | Database (Postgres) | Provisions a dedicated schema, injects connection credentials at deploy time |
-| Authentication | Auto-wires login flows so users can sign in immediately after deploy |
 | Hosting | Detects SSR vs. static and picks the right compute type |
 | SSL | HTTPS is on by default. No certificate setup needed |
 | Custom URL | Your app gets a live public URL at `varity.app/your-app` |
