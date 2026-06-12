@@ -20,6 +20,18 @@ Deploy your application to Varity with one command.
 Varity is currently in beta. Your deployments work exactly as in production, but with test data.
 :::
 
+## Three Ways In
+
+Varity accepts three kinds of input, from the CLI, the Developer Portal, or the MCP server in your AI coding tool:
+
+| Input | How | Best for |
+|-------|-----|----------|
+| **Your project / GitHub repo** | `varitykit app deploy` (this page) | Apps in a [supported framework](/deploy/supported-frameworks) — auto-detected, auto-built |
+| **A Docker image** | `varitykit app deploy --image <ref>` — see [Deploy a Docker Image](/deploy/deploy-docker-image) | Anything already containerized, any language |
+| **A template** | `varitykit app deploy --agent <name>` or the portal gallery — see [agent templates](/tutorials/deploy-ai-agent#one-click-agent-templates) | One-click AI agent and tool deployments |
+
+The rest of this page covers the first path: deploying your own project.
+
 ## Quick Deploy
 
 <Steps>

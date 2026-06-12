@@ -19,6 +19,49 @@ Varity automatically detects AI agent apps and configures the right hosting for 
 If your agent uses a local language model (via the `ollama` package), Varity detects it and auto-provisions a model server alongside your app. No extra setup required.
 </Aside>
 
+## One-Click Agent Templates
+
+Don't want to write code? Varity ships ready-to-deploy templates for popular open-source agent tools: **Agent Zero**, **Flowise**, **Langflow**, **Open WebUI**, **n8n**, and **Uptime Kuma**.
+
+<Tabs>
+  <TabItem label="Developer Portal">
+
+  Open the template gallery at [developer.store.varity.so/dashboard/deploy](https://developer.store.varity.so/dashboard/deploy) and click deploy on any template. That's it — one click, live URL.
+
+  </TabItem>
+  <TabItem label="CLI">
+
+  Requires `varitykit` 2.0.6 or later.
+
+  ```bash
+  # Browse available templates
+  varitykit agent list
+
+  # See what a template needs (including required environment variables)
+  varitykit agent info flowise
+
+  # Deploy it
+  varitykit app deploy --agent flowise
+  ```
+
+  If a template requires environment variables, pass each one with a repeated `--env` flag:
+
+  ```bash
+  varitykit app deploy --agent langflow --env API_KEY=... --env OTHER=...
+  ```
+
+  </TabItem>
+  <TabItem label="MCP (AI coding tools)">
+
+  With the [Varity MCP server](/ai-tools/mcp-server-spec) installed, use the `varity_deploy_agent` tool. Just ask:
+
+  > "Deploy Flowise on Varity"
+
+  </TabItem>
+</Tabs>
+
+The rest of this guide covers deploying an agent you wrote yourself.
+
 ## Prerequisites
 
 - Python 3.8+ or Node.js 20+

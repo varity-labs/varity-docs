@@ -242,6 +242,10 @@ export default defineConfig({
               slug: "deploy/deploy-your-app",
             },
             {
+              label: "Deploy a Docker Image",
+              slug: "deploy/deploy-docker-image",
+            },
+            {
               label: "Supported Frameworks",
               slug: "deploy/supported-frameworks",
             },

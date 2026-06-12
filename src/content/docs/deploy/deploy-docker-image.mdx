@@ -1,0 +1,106 @@
+---
+title: Deploy a Docker Image
+description: Deploy any public Docker image to Varity from the CLI, the Developer Portal, or your AI coding tool. No repo and no build step required.
+---
+
+import { Tabs, TabItem, Steps, Aside } from '@astrojs/starlight/components';
+import PageMeta from '../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="June 2026"
+  stability="stable"
+/>
+
+If your app is already packaged as a Docker image, you can deploy it to Varity directly. No repository, no build step — Varity pulls the image and runs it.
+
+This is also the path for languages Varity does not auto-detect yet (Go, Rust, Ruby, and others): package your app as an image and deploy it like any other container.
+
+```bash
+varitykit app deploy --image nginx:latest
+```
+
+Any public Docker image deploys as-is.
+
+## Three Ways to Deploy an Image
+
+<Tabs>
+  <TabItem label="CLI">
+
+  Pass an image reference instead of a project directory:
+
+  ```bash
+  varitykit app deploy --image ghcr.io/acme/my-api:1.4.2
+  ```
+
+  If your app listens on a port other than the image's default, set it explicitly:
+
+  ```bash
+  varitykit app deploy --image ghcr.io/acme/my-api:1.4.2 --port 8080
+  ```
+
+  For images in a private registry, supply credentials:
+
+  ```bash
+  varitykit app deploy \
+    --image registry.example.com/acme/my-api:1.4.2 \
+    --image-registry registry.example.com \
+    --image-username my-user \
+    --image-password my-token
+  ```
+
+  </TabItem>
+  <TabItem label="Developer Portal">
+
+  1. Open [developer.store.varity.so/dashboard/deploy](https://developer.store.varity.so/dashboard/deploy)
+  2. Select the **Docker image** tab
+  3. Enter the image reference (for example `ghcr.io/acme/my-api:1.4.2`) and, optionally, the container port
+  4. Click deploy
+
+  The portal supports **public images** today. For private registries, use the CLI or MCP.
+
+  </TabItem>
+  <TabItem label="MCP (AI coding tools)">
+
+  If you have the [Varity MCP server](/ai-tools/mcp-server-spec) installed in Claude Code, Cursor, or another AI coding tool, the `varity_deploy` tool accepts an `image` parameter (plus optional `port` and `image_credentials` for private registries). Just ask:
+
+  > "Deploy the Docker image ghcr.io/acme/my-api:1.4.2 on Varity"
+
+  </TabItem>
+</Tabs>
+
+## Public vs. Private Registries
+
+| Registry type | CLI | MCP | Developer Portal |
+|---------------|-----|-----|------------------|
+| Public (Docker Hub, GHCR, etc.) | ✅ | ✅ | ✅ |
+| Private (credentials required) | ✅ `--image-registry` / `--image-username` / `--image-password` | ✅ `image_credentials` | Not yet |
+
+## What Happens After Deploy
+
+1. Varity pulls your image and starts it on dynamic compute hosting
+2. The deployment gets a name derived from the image (override with `--name`)
+3. Your app is reachable at `https://varity.app/<name>/` — dynamic apps redirect to `https://<name>.varity.app/`
+4. Billing starts as one flat monthly cost for the reserved hardware — it does not change with traffic
+
+<Aside type="tip">
+Make sure your container listens on `0.0.0.0`, not `localhost`. If the app serves on a non-default port, pass `--port`.
+</Aside>
+
+## Delete a Deployment
+
+When you are done, delete the deployment to stop billing:
+
+```bash
+varitykit app delete <name>
+```
+
+You can also delete from the Developer Portal. Deleted apps move to the trash with a 30-day recovery window.
+
+## Related Guides
+
+- [Deploy Your App](/deploy/deploy-your-app)
+- [Supported Frameworks](/deploy/supported-frameworks)
+- [Deploy an AI Agent or LLM App](/tutorials/deploy-ai-agent)
+- [Environment Variables](/deploy/env-variables)
