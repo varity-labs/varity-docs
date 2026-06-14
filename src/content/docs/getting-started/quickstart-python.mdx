@@ -1,0 +1,106 @@
+---
+title: Python Quick Start
+description: Deploy a FastAPI, Django, or Flask app to Varity. Varity detects your framework and wires hosting and databases automatically.
+---
+
+import { Steps, Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+import PageMeta from '../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="June 2026"
+  stability="stable"
+/>
+
+Deploy an existing Python web app to Varity in one command. Varity detects your framework (FastAPI, Django, or Flask), provisions any backend services your app needs, and deploys it. You do not change your code.
+
+## Prerequisites
+
+- Python 3.11+ (for your app and the CLI)
+- A FastAPI, Django, or Flask project
+
+## Deploy your app
+
+<Steps>
+
+1. **Install the CLI**
+
+   ```bash
+   pipx install varitykit
+   ```
+
+2. **Open your project**
+
+   ```bash
+   cd my-api
+   ```
+
+3. **Confirm it runs locally** (optional)
+
+   <Tabs>
+     <TabItem label="FastAPI">
+
+     ```bash
+     uvicorn main:app --reload
+     ```
+
+     </TabItem>
+     <TabItem label="Django">
+
+     ```bash
+     python manage.py runserver
+     ```
+
+     </TabItem>
+     <TabItem label="Flask">
+
+     ```bash
+     flask run
+     ```
+
+     </TabItem>
+   </Tabs>
+
+4. **Deploy to Varity**
+
+   ```bash
+   varitykit app deploy
+   ```
+
+   Varity detects your framework, builds your app, and deploys it as a dynamic runtime.
+
+5. **Your app is live**
+
+   The terminal shows your live URL. Python web apps run as a dynamic runtime, so they're served on their own subdomain:
+
+   ```
+   https://<app-name>.varity.app/
+   ```
+
+</Steps>
+
+<Aside type="note">
+Make sure your app binds to the host and port Varity provides (read the `PORT` environment variable and bind to `0.0.0.0`), so it's reachable once deployed. Most framework defaults work; some production servers need this set explicitly.
+</Aside>
+
+## What gets auto-wired
+
+You do not import an SDK or change your code. When Varity deploys a Python app, it configures the backend automatically:
+
+- **Databases and caches** - if Varity detects a database client in your dependencies (for example `psycopg`, `SQLAlchemy`, `pymongo`, `redis`, or `mysqlclient`), it provisions the matching service and injects the connection details into your app's environment at runtime (`DATABASE_URL`, `REDIS_URL`, `MONGODB_URI`, `MYSQL_URL`).
+- **Environment variables** - any variables you set are injected into the deployed container. See [Environment Variables](/deploy/env-variables/).
+- **Live URL** - `https://<app-name>.varity.app/`, with HTTPS handled for you.
+
+For the full list of detected frameworks and auto-wired services, see [Supported Frameworks](/deploy/supported-frameworks/) and [Auto-wired Services](/deploy/auto-wired-services/).
+
+<Aside type="tip">
+You do not need to wire up connection details for auto-wired services. Varity injects them into your app's environment at runtime. Set any other secrets your app needs (such as third-party or auth-provider API keys) as environment variables.
+</Aside>
+
+## Next Steps
+
+- [Supported Frameworks](/deploy/supported-frameworks/): Everything Varity can detect and deploy
+- [Auto-wired Services](/deploy/auto-wired-services/): How databases and caches are provisioned
+- [Databases & Data](/deploy/databases/): Durability expectations in beta
+- [Deploy your app](/deploy/deploy-your-app/): Full deploy reference

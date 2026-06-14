@@ -309,7 +309,8 @@ export default defineConfig({
           collapsed: true,
           items: [
             { label: "Build with AI (No Code)", slug: "tutorials/build-with-ai" },
-            { label: "Framework Quick Starts", slug: "getting-started/quickstart-nextjs" },
+            { label: "Next.js Quick Start", slug: "getting-started/quickstart-nextjs" },
+            { label: "Python Quick Start", slug: "getting-started/quickstart-python" },
           ],
         },
 
