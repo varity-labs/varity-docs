@@ -10,7 +10,7 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="May 2026"
+  lastUpdated="June 2026"
   stability="stable"
 />
 
@@ -28,7 +28,7 @@ Varity accepts three kinds of input, from the CLI, the Developer Portal, or the 
 |-------|-----|----------|
 | **Your project / GitHub repo** | `varitykit app deploy` (this page) | Apps in a [supported framework](/deploy/supported-frameworks) — auto-detected, auto-built |
 | **A Docker image** | `varitykit app deploy --image <ref>` — see [Deploy a Docker Image](/deploy/deploy-docker-image) | Anything already containerized, any language |
-| **A template** | `varitykit app deploy --agent <name>` or the portal gallery — see [agent templates](/tutorials/deploy-ai-agent#one-click-agent-templates) | One-click AI agent and tool deployments |
+| **A template** | The portal gallery — see [agent templates](/tutorials/deploy-ai-agent#one-click-agent-templates) | One-click AI agent and tool deployments |
 
 The rest of this page covers the first path: deploying your own project.
 
@@ -73,7 +73,7 @@ When you run `varitykit app deploy`:
 
 1. **Detects your framework** - Automatically identifies Next.js, React, Vue, etc.
 2. **Builds your app** - Runs your build command (`npm run build`)
-3. **Uploads your files** - Stores them securely with automatic backups
+3. **Uploads your files** - Stores them securely
 4. **Makes your app live** - Generates a public URL
 5. **Returns a live URL** - Static apps use `https://varity.app/<name>/`; dynamic apps use `https://<name>.varity.app/`
 
@@ -103,8 +103,8 @@ Choose the right hosting for your application type:
     **Features**:
     - Container-based compute
     - Managed container hosting
-    - Database support
-    - WebSocket support
+    - Auto-wired database support
+    - Flat monthly pricing
 
     ```bash
     varitykit app deploy --hosting dynamic
@@ -155,15 +155,9 @@ deploy-1737484800   archived  https://your-app-v2.varity.app    1 day ago
 deploy-1737398400   archived  https://your-app-v1.varity.app    2 days ago
 ```
 
-### Rollback to Previous Version
+### Recover a Known-Good Version
 
-Revert to a previous deployment:
-
-```bash
-varitykit app rollback deploy-1737484800
-```
-
-Your app will instantly switch to the selected version. See [Rollback a Deployment](/deploy/rollback) for a full walkthrough, including how to find deployment IDs and handle caveats around environment variables and database migrations.
+To recover after a bad deploy, redeploy a known-good version of your app — check out the working commit and run `varitykit app deploy` again under the same `--name`. The deployment at that URL is replaced with the version you just built.
 
 ### View Deployment Details
 
@@ -191,10 +185,10 @@ varitykit app deploy --name my-app
 # Dynamic hosting → https://my-app.varity.app/
 ```
 
-See [Custom Domains](/deploy/custom-domains) for the current status of bring-your-own domains.
+See [App URLs & Subdomains](/deploy/custom-domains) for naming rules and the current status of bring-your-own domains.
 
 :::note[Bring your own domain]
-Pointing `myapp.com` at a Varity deployment via DNS is under development. See [Custom Domains](/deploy/custom-domains) for status.
+Pointing `myapp.com` at a Varity deployment via DNS is under development. See [App URLs & Subdomains](/deploy/custom-domains) for status.
 :::
 
 ## Troubleshooting
@@ -223,10 +217,10 @@ Check your internet connection:
 varitykit doctor
 ```
 
-If issues persist, try deploying with verbose output:
+If issues persist, you can preview what would deploy without deploying:
 
 ```bash
-varitykit app deploy --verbose
+varitykit app deploy --dry-run
 ```
 
 ## Advanced Configuration
@@ -235,8 +229,23 @@ varitykit app deploy --verbose
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `--hosting` | `static` | Hosting type: `static` or `dynamic` |
+| `--hosting` | `auto` | Hosting type: `auto`, `static`, or `dynamic` (auto picks based on your project) |
+| `--name` | from `package.json` | App name (and URL) for this deployment |
 | `--path` | `.` | Project directory |
+| `--mode` | auto | Override the detected build/run mode |
+| `--skip-build` | off | Skip the build step (deploy a pre-built output) |
+| `--repo-url` | — | Deploy directly from a GitHub repo URL instead of a local path |
+| `--dry-run` | off | Simulate the deploy: show what would deploy without deploying (not supported with `--image`) |
+
+### Deploy a prebuilt Docker image
+
+Instead of a project directory, you can deploy an existing image. See [Deploy a Docker Image](/deploy/deploy-docker-image) for the full flow.
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--image` | — | Image reference to deploy as-is (e.g. `ghcr.io/acme/api:1.4.2`) |
+| `--port` | `80` | Container port your app listens on |
+| `--image-registry` / `--image-username` / `--image-password` | — | Credentials for a private registry |
 
 
 ## Next Steps

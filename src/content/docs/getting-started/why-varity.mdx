@@ -9,11 +9,11 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="May 2026"
+  lastUpdated="June 2026"
   stability="stable"
 />
 
-Predictable cloud hosting for any Node or Python app, AI agent, or LLM. One flat monthly bill instead of usage-metered cloud bills. No DevOps required.
+Predictable cloud hosting for any Node or Python app, AI agent, or LLM app. One flat monthly bill instead of usage-metered cloud bills. No DevOps required.
 
 ## The problem with traditional hosting
 
@@ -42,7 +42,7 @@ Your app is live with database and hosting already configured.
 
 ### Predictable pricing instead of usage-metered cloud bills
 
-Varity charges one flat monthly cost per app, based on the hardware you reserve. Vercel, Render, and Railway bill on usage, so your bill grows with traffic, bandwidth, and invocations. With Varity, your bill on day 1 equals your bill on day 1000.
+Varity charges one flat monthly cost per app, based on the hardware you reserve. Usage-metered cloud bills on traffic, bandwidth, and invocations, so your bill grows as your app does. With Varity, your bill on day 1 equals your bill on day 1000.
 
 Use the [cost calculator](/resources/pricing) to estimate your specific app.
 
@@ -73,29 +73,27 @@ That is it. The MCP handles installation, building, and deploying. See [MCP Serv
 
 ## Comparing Varity to alternatives
 
-| | Vercel | Render / Railway | Varity |
-|---|---|---|---|
-| **Cost** | Usage-based, grows with traffic | Usage-based, grows with traffic | Flat monthly per app, predictable as you scale |
-| **Full-stack apps** | Limited (front-end focus) | Yes | Yes (auto-configured) |
-| **Managed credentials** | Separate setup | Separate setup | Managed by Varity |
-| **Database included** | Separate add-on | Separate add-on | Auto-wired when detected |
-| **Setup time** | Hours | Hours | One command |
-| **Setup** | Manual config | Manual config | Auto-detected, one command |
+| | Usage-metered cloud | Varity |
+|---|---|---|
+| **Cost** | Usage-based, grows with traffic | Flat monthly per app, predictable as you scale |
+| **Full-stack apps** | Varies by platform | Yes (auto-configured) |
+| **Managed credentials** | Separate setup | Managed by Varity |
+| **Database included** | Separate add-on | Auto-wired when detected |
+| **Setup time** | Minutes to hours | One command |
+| **Setup** | Manual config | Auto-detected, one command |
 
-### Compared to Vercel
+### Predictable pricing as you scale
 
-Vercel is excellent for front-end and Next.js apps. Varity handles the full stack, keeps your bill flat as you scale, and requires no configuration at all.
+Usage-metered hosting bills on traffic, bandwidth, and invocations, so your costs climb as your app grows. Varity charges one flat monthly cost per app based on reserved hardware, so success does not inflate your bill, and you still get databases configured automatically.
 
-If you are migrating from Vercel, see [Migrate from Vercel](/deploy/vercel-migration).
+### Migrating from Vercel?
 
-### Compared to Render and Railway
-
-Render and Railway handle full-stack apps, but they bill on usage, so your costs climb as your app grows. Varity charges one flat monthly cost per app based on reserved hardware, so success does not inflate your bill, and you still get databases configured automatically.
+If you have an existing app on Vercel, `varitykit migrate` moves it over in one command. See [Migrate from Vercel](/deploy/vercel-migration).
 
 ## When to use Varity
 
 - You built an app with Claude Code, Cursor, or another AI coding tool and want to deploy it
-- You are migrating an app from Vercel and want to cut hosting costs
+- You are migrating an app from Vercel and want a bill that stays flat as you scale
 - You want database and hosting to just work without writing infrastructure code
 - You are building an AI agent or LLM app and need reliable compute
 

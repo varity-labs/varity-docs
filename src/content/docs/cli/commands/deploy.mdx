@@ -10,7 +10,7 @@ import PageMeta from '../../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="May 2026"
+  lastUpdated="June 2026"
   stability="stable"
 />
 
@@ -73,8 +73,18 @@ Dynamic hosting is powered by cloud compute. Use `--hosting dynamic` for server-
 |--------|---------|-------------|
 | `--hosting` | `auto` | Hosting type: `auto`, `static`, or `dynamic` |
 | `--path` | `.` | Project directory |
-| `--name` | - | Custom app name. Static URLs use `varity.app/{name}`; dynamic URLs use `{name}.varity.app` |
-| `--mode` | `auto` | Deployment mode: `auto`, `guided`, or `expert` |
+| `--name` | - | Custom app name. Static apps live at `https://varity.app/<name>/`; dynamic apps live at `https://<name>.varity.app/` |
+| `--mode` | `auto` | Deployment mode (advanced) |
+| `--target` | - | Deployment target |
+| `--tier` | - | Hardware tier to reserve |
+| `--repo-url` | - | Deploy directly from a GitHub repo URL |
+| `--skip-build` | `false` | Skip the build step (deploy prebuilt output) |
+| `--image` | - | Deploy a prebuilt OCI image instead of building from source |
+| `--image-registry` | - | Registry host for a private `--image` |
+| `--image-username` | - | Username for a private `--image` |
+| `--image-password` | - | Password/token for a private `--image` |
+| `--port` | `80` | Port your dynamic app listens on |
+| `--dry-run` | `false` | Preview the deployment without shipping (not compatible with `--image`) |
 
 ## Basic Deployment
 
@@ -100,12 +110,16 @@ Dynamic hosting is powered by cloud compute. Use `--hosting dynamic` for server-
    ✓ Registered on Varity
 
    Your app is live at:
-   https://your-app.varity.app
+   https://varity.app/your-app/
 
    Deployment ID: deploy-1737492000
    ```
 
 </Steps>
+
+<Aside type="note">
+Static apps live at a path: `https://varity.app/<name>/`. Dynamic apps get their own subdomain: `https://<name>.varity.app/` (the apex path redirects to the subdomain).
+</Aside>
 
 ## Supported Frameworks
 
@@ -123,14 +137,6 @@ The CLI automatically detects your framework:
 
 Storage and service credentials are auto-provided by Varity. No manual credential setup is required. See [Managed Credentials](/deploy/managed-credentials).
 
-## Rollback
-
-Revert to a previous deployment:
-
-```bash
-varitykit app rollback deploy-1737491000
-```
-
 ## List Deployments
 
 View all deployments:
@@ -144,8 +150,8 @@ Output:
 ```
 ID                  | Status  | URL
 --------------------|---------|---------------------------
-deploy-1737492000   | live    | https://your-app.varity.app
-deploy-1737491000   | archived| https://your-app.varity.app (archived)
+deploy-1737492000   | live    | https://varity.app/your-app/
+deploy-1737491000   | archived| https://varity.app/your-app/ (archived)
 ```
 
 ## View Deployment Details
@@ -156,12 +162,12 @@ Get detailed information about a specific deployment:
 varitykit app info deploy-1737492000
 ```
 
-## Check Status
+## Delete a Deployment
 
-View overall deployment status:
+Remove a deployment:
 
 ```bash
-varitykit app status
+varitykit app delete deploy-1737492000 --yes
 ```
 
 ## Troubleshooting

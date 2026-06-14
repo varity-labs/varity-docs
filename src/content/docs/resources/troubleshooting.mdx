@@ -9,7 +9,7 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="May 2026"
+  lastUpdated="June 2026"
   stability="stable"
 />
 
@@ -33,7 +33,7 @@ The CLI is not installed or is not in your PATH.
    varitykit --version
    ```
 
-3. If still not found, check your Python path:
+3. If still not found, check your Python path (`varitykit` is a Python CLI and requires Python 3.11+):
    ```bash
    python -m varitykit --version
    ```
@@ -42,15 +42,15 @@ The CLI is not installed or is not in your PATH.
 
 ### "ModuleNotFoundError: No module named 'varitykit'"
 
-Python dependencies are missing.
+The `varitykit` CLI is a Python package installed with `pipx`. Reinstall it and confirm you are on Python 3.11 or newer:
 
 ```bash
-pip install --upgrade varitykit
+pipx install --force varitykit
 ```
 
-### Package installation fails
+### Your app's npm install fails during build
 
-If npm package installation fails:
+If your app's dependency install fails (this is your project's own `npm install`, not the `varitykit` CLI):
 
 ```bash
 # Clear npm cache
@@ -120,7 +120,7 @@ Varity deploys your app as-is and does not manage authentication. Sign-in is han
 
 ### "Domain not allowed" error
 
-Your domain needs to be allowed for authentication. Contact [support@varity.so](mailto:support@varity.so) to allow your domain, or include `localhost` for local development.
+This comes from your own auth provider, not from Varity (Varity does not maintain an authentication allowlist). In your auth provider's dashboard, add your Varity app URL to its allowed domains / callback URLs, and include `localhost` for local development.
 
 ### Session not persisting
 

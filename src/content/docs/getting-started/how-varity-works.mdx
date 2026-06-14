@@ -9,17 +9,17 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="May 2026"
+  lastUpdated="June 2026"
   stability="beta"
 />
 
-Varity deploys Node and Python apps, AI agents, and LLM workloads with a fast, infrastructure-abstracted workflow. You do not need Docker, infrastructure knowledge, or DevOps experience.
+Varity deploys Node and Python apps, AI agents, and LLM apps with a fast, infrastructure-abstracted workflow. You do not need Docker, infrastructure knowledge, or DevOps experience.
 
 ## Who Varity is for
 
 Varity works seamlessly with AI coding tools to build and ship apps. People reach for it in a few ways:
 
-**Building something new with an AI tool** (vibe coding): You are using Claude Code, Cursor, or a similar tool to build an app from scratch. You want to go from "working locally" to "live URL" without leaving your editor. Varity's MCP server handles the entire deploy in one prompt.
+**Building something new with an AI tool**: You are using Claude Code, Cursor, or a similar tool to build an app from scratch. You want to go from "working locally" to "live URL" without leaving your editor. Varity's MCP server handles the entire deploy in one prompt.
 
 **Migrating from Vercel**: You have an existing app on Vercel and want lower costs. Run `varitykit migrate` to remove Vercel-specific config, then deploy. Most migrations take under 5 minutes.
 
@@ -103,17 +103,18 @@ When you deploy, Varity inspects your project and makes all infrastructure decis
 | `pg`, `@prisma/client`, `drizzle-orm`, `psycopg` | Postgres database |
 | `ioredis`, `redis` | Redis cache |
 | `mongoose`, `mongodb`, `pymongo` | MongoDB |
+| `mysql`, `mysql2`, `PyMySQL` | MySQL database |
 | `@langchain/ollama`, `ollama` | Ollama AI runtime |
 
 You do not write connection strings or provision databases. Varity handles it.
 
-**Environment variables:** Varity reads your `.env.varity`, `.env.local`, or `.env` file and passes those variables to your running app. Platform-specific variables from Vercel, Netlify, Render, and similar hosts are filtered out automatically.
+**Environment variables:** Varity reads your `.env.varity`, `.env.local`, or `.env` file and passes those variables to your running app. Platform-specific variables left over from other hosting providers are filtered out automatically.
 
 ---
 
 ## Pricing
 
-Varity pricing is based on reserved hardware profiles, while Vercel, Render, and Railway are primarily usage-metered. Your bill is tied to your selected profile and does not change with traffic spikes, bandwidth, or invocation count.
+Varity pricing is based on reserved hardware profiles, while usage-metered cloud is billed by traffic, bandwidth, and invocations, so those bills grow as your app does. Your Varity bill is tied to your selected profile and does not change with traffic spikes, bandwidth, or invocation count.
 
 Use the `varity_cost_calculator` MCP tool and `/resources/pricing` to estimate workload cost before deploying.
 

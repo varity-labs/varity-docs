@@ -1,6 +1,6 @@
 ---
 title: Debugging Failed Deployments
-description: Diagnose and fix failed Varity deployments. Covers reading build logs, common error patterns for static and dynamic hosting, and recovery via rollback.
+description: Diagnose and fix failed Varity deployments. Covers reading build logs, common error patterns for static and dynamic hosting, and recovery by redeploying a known-good version.
 ---
 
 import { Steps, Aside, Tabs, TabItem } from '@astrojs/starlight/components';
@@ -9,22 +9,23 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="May 2026"
+  lastUpdated="June 2026"
   stability="stable"
 />
 
-When a deployment fails, the fastest path to recovery is: **get the logs → identify the error → fix or rollback**. This page walks through each step.
+When a deployment fails, the fastest path to recovery is: **get the logs → identify the error → fix and redeploy**. This page walks through each step.
 
 ## Step 1: Get the Build Logs
 
 Every deployment produces a build log. Always read it before guessing at a cause.
 
-### From the CLI (verbose mode)
+### From the CLI
 
-Re-run the deploy with `--verbose` to stream full output:
+Re-run the deploy to stream its full output, or preview what would deploy first with `--dry-run`:
 
 ```bash
-varitykit app deploy --verbose
+varitykit app deploy
+varitykit app deploy --dry-run   # preview without deploying
 ```
 
 ### From a past deployment
@@ -108,17 +109,16 @@ This checks connectivity to Varity's services and reports any reachability issue
 
 ---
 
-### Dynamic Deployment: "Lease acquisition failed"
+### Dynamic Deployment: "Could not acquire compute"
 
-For dynamic deployments (`--hosting dynamic`), the compute infrastructure must acquire resources before launching your container. This error means no lease could be established.
+For dynamic deployments (`--hosting dynamic`), Varity must reserve compute before launching your container. This error means no compute could be reserved.
 
 **Common causes:**
 
 | Cause | What to check |
 |-------|--------------|
 | No available compute capacity | Try deploying again (capacity fluctuates) |
-| Container image too large | Optimize your Docker layer or reduce dependencies |
-| Resource request too high | Check your compute config in `varity.config.json` |
+| Container image too large | Reduce your image size or trim dependencies |
 
 **Recovery:**
 
@@ -130,7 +130,7 @@ varitykit app deploy --hosting dynamic
 varitykit app status
 ```
 
-If the lease consistently fails, fall back to static hosting while you investigate:
+If it consistently fails, fall back to static hosting while you investigate (for apps that can run as static):
 
 ```bash
 varitykit app deploy --hosting static
@@ -140,7 +140,7 @@ varitykit app deploy --hosting static
 
 ### Dynamic Deployment: "Container failed to start"
 
-The lease was acquired but the container exited immediately after launch.
+Compute was reserved but the container exited immediately after launch.
 
 **Common causes:**
 
@@ -181,9 +181,9 @@ The deployment didn't become healthy within the expected window.
 
 ---
 
-### "SDL configuration error" / "Invalid manifest"
+### "Deployment configuration error"
 
-The container deployment manifest has a structural problem.
+The container deployment configuration has a structural problem.
 
 This error is rare and typically means an internal configuration was generated incorrectly. Run:
 
@@ -223,19 +223,20 @@ The deployment succeeded from Varity's perspective but the app isn't serving cor
 
 ---
 
-## Recovery Path: Rollback
+## Recovery Path: Redeploy a Known-Good Version
 
-If you can't diagnose the issue quickly, roll back to the last working version to restore service:
+If you can't diagnose the issue quickly, restore service by redeploying a version you know works under the same app name:
 
 ```bash
-# Find the last working deployment
-varitykit app list
+# Return to the last working version of your code
+git checkout <known-good-commit>
 
-# Roll back to it
-varitykit app rollback deploy-1737491000
+# Rebuild and redeploy under the same name
+npm run build
+varitykit app deploy --name my-app
 ```
 
-See the full [Rollback Guide](/deploy/rollback) for details on deployment IDs, caveats with database state, and verifying the restore worked.
+See the full [Recover a Previous Version](/deploy/rollback) guide for the step-by-step flow and caveats with environment variables and database state.
 
 ---
 
@@ -273,7 +274,7 @@ When reporting an issue, include:
 
 ## Related
 
-- [Rollback a Deployment](/deploy/rollback): revert to a previous version
+- [Recover a Previous Version](/deploy/rollback): redeploy a known-good version
 - [Deploy Your App](/deploy/deploy-your-app): full deployment guide
 - [Environment Variables](/deploy/env-variables): configure your app's environment
 - [MCP Server](/ai-tools/mcp-server-spec): `varity_deploy_logs`, `varity_deploy_status`

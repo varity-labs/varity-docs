@@ -262,7 +262,7 @@ export default defineConfig({
               slug: "deploy/custom-domains",
             },
             {
-              label: "Rollback",
+              label: "Recover a Previous Version",
               slug: "deploy/rollback",
             },
             {

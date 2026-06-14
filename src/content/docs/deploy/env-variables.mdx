@@ -10,7 +10,7 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="May 2026"
+  lastUpdated="June 2026"
   stability="stable"
 />
 
@@ -73,7 +73,7 @@ Keys that are **not** forwarded (Varity sets these automatically):
 | Key | Set by |
 |-----|--------|
 | `NODE_ENV`, `PORT`, `NODE_OPTIONS` | Runtime defaults |
-| `DATABASE_URL`, `REDIS_URL`, `MONGODB_URI`, `OLLAMA_URL` | Varity service wiring |
+| `DATABASE_URL`, `REDIS_URL`, `MONGODB_URI`, `MYSQL_URL`, `OLLAMA_URL` | Varity service wiring |
 | `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | Managed database config |
 | `APP_NAME` | Deployment metadata |
 
@@ -103,7 +103,7 @@ These variables are only needed for specific use cases:
 | `VARITY_API_KEY` | API authentication | Auto-provided |
 
 <Aside type="tip">
-Deployment credentials for hosting (both static and dynamic) are managed automatically by the Varity credential proxy. No manual credential setup is needed.
+Deployment credentials for hosting (both static and dynamic) are managed automatically by Varity. No manual credential setup is needed.
 </Aside>
 
 ## Example .env Files

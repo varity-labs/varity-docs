@@ -9,8 +9,8 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="May 2026"
-  stability="stable"
+  lastUpdated="June 2026"
+  stability="beta"
 />
 
 Every Varity deployment gets a public URL based on its hosting type: **static apps** are served at `https://varity.app/{name}/`, and **dynamic apps** (Node/Python servers) get their own subdomain at `https://{name}.varity.app/`. This guide covers how to set a custom name and manage your registered domains.
@@ -41,10 +41,14 @@ Pass `--name` to choose your subdomain at deploy time:
 varitykit app deploy --name my-app
 ```
 
-Your app will be available at:
+Your app will be available at the URL for its hosting type:
 
 ```
+# Static app
 https://varity.app/my-app/
+
+# Dynamic (Node/Python) app
+https://my-app.varity.app/
 ```
 
 ### Naming rules

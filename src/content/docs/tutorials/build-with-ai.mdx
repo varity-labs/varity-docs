@@ -9,7 +9,7 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="May 2026"
+  lastUpdated="June 2026"
   stability="stable"
 />
 
@@ -35,7 +35,7 @@ Install the following (one-time setup):
 
 1. **Cursor** or **Claude Code** (AI editor with MCP support)
 2. **Node.js 20+**: [download here](https://nodejs.org)
-3. **Python 3.8+**: [download here](https://python.org)
+3. **Python 3.11+**: [download here](https://python.org)
 4. **Varity MCP**: install with:
 
    ```bash
@@ -132,9 +132,7 @@ That's it. No complex infrastructure setup.
    - See the dashboard
    - Create, edit, and delete invoices
 
-   <Aside type="note">
-   All data is stored locally during development. When you deploy, it switches to production database automatically.
-   </Aside>
+   > **Note:** During local development your data is stored locally. When you deploy, Varity provisions the database automatically.
 
 6. **Build for production**
 
@@ -168,7 +166,7 @@ That's it. No complex infrastructure setup.
    ✓ Deploying invoice-manager...
    ✓ Build: 100%
    ✓ Upload: 100%
-   ✓ Live at: https://varity.app/invoice-manager-abc123/
+   ✓ Live at: https://invoice-manager-abc123.varity.app/
    ```
 
    Your app is now live on the internet. Anyone can access it.
@@ -184,7 +182,7 @@ That's it. No complex infrastructure setup.
    **Expected output:**
    ```
    Deployment: abc123
-     URL: https://varity.app/invoice-manager-abc123/
+     URL: https://invoice-manager-abc123.varity.app/
      Status: active
      Framework: Next.js
      Size: 2.4 MB
@@ -195,7 +193,7 @@ That's it. No complex infrastructure setup.
 
     Prompt:
 
-    > "How much would this cost to host for 500 users on Varity vs Vercel?"
+    > "How much would this cost to host for 500 users on Varity versus usage-metered hosting?"
 
     **What happens:** The AI runs `varity_cost_calculator` to show cost breakdown.
 
@@ -205,7 +203,7 @@ That's it. No complex infrastructure setup.
 
     Varity:
       - Profile-based monthly cost (fixed by selected deployment profile)
-    Competitors:
+    Usage-metered hosting:
       - Usage-based cost that grows with traffic and invocations
     ```
 
@@ -259,7 +257,7 @@ When you prompt your AI editor, here's what happens:
 | "Build for production" | `varity_build` compiles the app, optimizes the bundle |
 | "Deploy" | `varity_deploy` deploys the app and injects credentials |
 | "Show status" | `varity_deploy_status` fetches deployment info |
-| "Compare costs" | `varity_cost_calculator` compares Varity vs Vercel, Render, or Railway |
+| "Compare costs" | `varity_cost_calculator` compares Varity's flat cost against usage-metered hosting as traffic grows |
 
 Every tool runs locally or via Varity's infrastructure. No manual configuration needed.
 
@@ -309,14 +307,14 @@ Result: You can build production apps in minutes instead of weeks.
 
 ## Cost Breakdown
 
-Varity charges one flat monthly cost per app, based on the hardware you reserve. Vercel, Render, and Railway bill on usage, so the same app costs more as traffic grows and you add separate database and auth add-ons.
+Varity charges one flat monthly cost per app, based on the hardware you reserve. Usage-metered hosting bills on usage, so the same app costs more as traffic grows and you add separate database and auth add-ons.
 
 For a small production app with a database, a typical comparison looks like:
 
 | Provider | At launch | At traction |
 |----------|-----------|-------------|
 | **Varity** | One flat monthly cost (fixed) | Same flat cost, your bill does not change with traffic |
-| Vercel / Render / Railway | Higher base, plus add-ons | Grows with bandwidth, invocations, and usage |
+| Usage-metered hosting | Higher base, plus add-ons | Grows with bandwidth, invocations, and usage |
 
 Overall, Varity keeps your bill flat as your app scales while usage-metered platforms ramp with traffic, and Varity handles all configuration. No DevOps engineer needed.
 

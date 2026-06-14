@@ -8,7 +8,7 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="May 2026"
+  lastUpdated="June 2026"
   stability="stable"
 />
 
@@ -20,10 +20,10 @@ Common questions from developers new to Varity.
 
 Varity is a predictable cloud platform focused on deployment. The two core packages are `varitykit` (CLI) and `@varity-labs/mcp` (MCP server).
 
-### How is Varity different from Vercel, Render, or Railway?
+### How is Varity different from usage-metered hosting?
 
-| Feature | Vercel / Render / Railway | Varity |
-|---------|---------------------------|--------|
+| Feature | Usage-metered hosting | Varity |
+|---------|-----------------------|--------|
 | Pricing | Usage-metered, grows with traffic | One flat monthly cost per app |
 | Backend services | Separate add-ons, separate bills | Auto-wired in the same deploy |
 | Auth | Configure separately | Configured automatically |
@@ -71,16 +71,6 @@ See the [Quick Start](/getting-started/quickstart) guide for full details.
 | Marketing pages, docs | Apps with backend logic |
 | CDN delivery | Container-based hosting |
 
-### Can I rollback a deployment?
-
-Yes:
-
-```bash
-varitykit app rollback deploy-1737492000
-```
-
-This creates a new deployment with your previous configuration.
-
 ### Where is my app hosted?
 
 Your app is hosted on Varity's infrastructure with global CDN delivery and automatic SSL.
@@ -99,7 +89,7 @@ No. Your existing auth works as-is. Set any secrets your provider needs as envir
 
 ### How much does Varity cost?
 
-Varity pricing is profile-based and fixed per selected deployment profile. Competitors like Vercel, Render, and Railway are primarily usage-metered.
+Varity pricing is profile-based and fixed per selected deployment profile. Usage-metered hosting bills primarily by request volume, bandwidth, invocations, and execution time.
 
 For current numbers, use [Pricing and Costs](/resources/pricing) or run `varity_cost_calculator`.
 
@@ -142,9 +132,11 @@ Varity can also auto-wire a database for you when it detects a database client i
 
 ### Authentication is not working
 
+Varity deploys your app as-is and does not manage login, so debug auth the same way you would locally.
+
 1. Confirm your deploy finished successfully with `varitykit app status`
 2. Check browser console for errors on your live URL
-3. Contact [support@varity.so](mailto:support@varity.so) if your domain needs to be allowed
+3. In your auth provider's settings, add your Varity app URL to its allowed domains / callback URLs (Varity does not maintain an allowlist on its side)
 
 ### I cannot find my deployment
 

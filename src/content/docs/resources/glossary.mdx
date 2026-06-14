@@ -9,7 +9,7 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="May 2026"
+  lastUpdated="June 2026"
   stability="stable"
 />
 
@@ -46,7 +46,7 @@ A unique identifier for each deployment:
 deploy-1737492000
 ```
 
-Use this to track, roll back, or reference specific versions.
+Use this to track or reference specific versions.
 
 ### Intelligent Orchestration
 
@@ -59,9 +59,9 @@ You never configure any of this manually. See [Intelligent Orchestration](/deplo
 
 ### Managed Credentials
 
-Varity provides all the API keys and secrets your app needs automatically. You do not need to sign up for third-party services or manage credentials manually.
+Varity injects the infrastructure, database, and storage credentials your deployment needs at runtime. Your own app secrets (OpenAI, Stripe, and similar) are set as environment variables.
 
-When you deploy, Varity injects the right credentials at runtime. See [Managed Credentials](/deploy/managed-credentials).
+See [Managed Credentials](/deploy/managed-credentials).
 
 ### MCP Server
 
@@ -85,15 +85,9 @@ pipx install varitykit
 
 The compiled output of your application (for example, the `dist/` or `.next/` folder). Varity builds your app automatically during deployment.
 
-### Rollback
+### Redeploy a Previous Version
 
-Reverting to a previous deployment version. Instant with no downtime.
-
-```bash
-varitykit app rollback deploy-1737492000
-```
-
-See [Rollback a Deployment](/deploy/rollback).
+Varity tracks your deployment history locally. To return to an earlier version, redeploy that version of your code. This is a fresh deploy from your local history, not a managed rollback.
 
 ## Hosting Terms
 
@@ -101,7 +95,7 @@ See [Rollback a Deployment](/deploy/rollback).
 
 Files are stored and distributed globally via CDN. Best for React SPAs, Vue apps, Next.js static exports, and documentation sites.
 
-**Equivalent:** Like Netlify or Cloudflare Pages.
+**Use it for:** prebuilt sites with no server-side code, served as static files from the edge.
 
 **Automatically selected when:** your app has no server-side code, or uses `next.config` with `output: 'export'`.
 
@@ -109,7 +103,7 @@ Files are stored and distributed globally via CDN. Best for React SPAs, Vue apps
 
 Container-based compute for full-stack applications. Best for Next.js server-side rendering, Express APIs, FastAPI, Django, and any app with a backend.
 
-**Equivalent:** Like Heroku or Railway.
+**Use it for:** apps that run server-side code, handle requests at runtime, or connect to a database.
 
 **Automatically selected when:** your app has a `server/` directory, a Dockerfile, or a framework that requires server-side rendering.
 

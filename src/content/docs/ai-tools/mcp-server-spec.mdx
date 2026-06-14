@@ -9,7 +9,7 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="May 2026"
+  lastUpdated="June 2026"
   stability="stable"
 />
 
@@ -22,7 +22,7 @@ The MCP server works with **any editor that supports MCP**: Cursor, Claude Code,
 ## Prerequisites
 
 - **Node.js 20+** (runs the MCP server)
-- **Python 3.8+** (needed for varitykit CLI)
+- **Python 3.11+** (needed for varitykit CLI)
 - **varitykit** (install with: `pipx install varitykit`)
 
 ## Setup
@@ -131,7 +131,7 @@ Search Varity docs for guides, API references, and tutorials.
 
 ### `varity_cost_calculator`: Estimate costs
 
-Compare Varity hosting costs against Vercel, Render, and Railway.
+Compare Varity's flat hosting cost against usage-metered hosting as your traffic grows.
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
@@ -143,12 +143,6 @@ Compare Varity hosting costs against Vercel, Render, and Railway.
 **Annotations:** `readOnlyHint: true`
 
 **Example prompt:** "How much would it cost to host a SaaS app with 500 users on Varity?"
-
----
-
-### `varity_init`: Create a new app (deferred path)
-
-Scaffold a starter app locally. This path is currently deferred for public MVP; prefer deploying an existing repository with `varity_deploy`. The recommended flow is to build your app with your AI coding tool, then deploy it.
 
 ---
 
@@ -263,6 +257,20 @@ Get build and deployment logs for debugging failed or recent deployments.
 
 ---
 
+### `varity_delete_deployment`: Tear down a deployment
+
+Permanently remove a deployment and free its resources. Use when you no longer need an app you deployed.
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `deployment_id` | string | Yes | none | The deployment ID to delete |
+
+**Annotations:** `destructiveHint: true` (tears down live infrastructure)
+
+**Example prompt:** "Delete the deployment abc123"
+
+---
+
 ### `varity_migrate`: Migrate from Vercel to Varity
 
 Migrate a Vercel project to Varity in one step: clone the GitHub repository, remove Vercel-specific artifacts (`vercel.json`, `@vercel/*` packages, image optimizer config, env var renames), and deploy the transformed app to Varity.
@@ -315,6 +323,7 @@ Here is the practical build-and-deploy flow using the MCP tools:
 6. **"Deploy this"** → `varity_deploy`
 7. **"Did the deploy succeed?"** → `varity_deploy_status`
 8. **"Show me the build logs"** → `varity_deploy_logs` (if needed)
+9. **"Tear down this deployment"** → `varity_delete_deployment` (when you no longer need it)
 
 **Migrating from Vercel:**
 
@@ -368,7 +377,7 @@ npx -y @varity-labs/mcp@beta --transport http --port 3100
 This starts the MCP server at `http://localhost:3100/mcp`.
 
 <Aside type="note">
-`varity_init` (scaffolding) requires local filesystem access, so use stdio transport. Local-browser tools (`varity_open_browser`, `varity_dev_server`) are also stdio-only. Use stdio when you need local execution; use HTTP for remote connector workflows.
+Local-browser tools (`varity_open_browser`, `varity_dev_server`) require local execution, so they are stdio-only. Use stdio when you need local execution; use HTTP for remote connector workflows.
 </Aside>
 
 ### llms.txt Alternative

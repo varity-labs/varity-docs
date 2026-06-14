@@ -81,7 +81,7 @@ Any public Docker image deploys as-is.
 
 1. Varity pulls your image and starts it on dynamic compute hosting
 2. The deployment gets a name derived from the image (override with `--name`)
-3. Your app is reachable at `https://varity.app/<name>/` — dynamic apps redirect to `https://<name>.varity.app/`
+3. Image deploys run as dynamic apps, so your app is reachable at `https://<name>.varity.app/` (`https://varity.app/<name>` redirects there)
 4. Billing starts as one flat monthly cost for the reserved hardware — it does not change with traffic
 
 <Aside type="tip">
@@ -96,7 +96,7 @@ When you are done, delete the deployment to stop billing:
 varitykit app delete <name>
 ```
 
-You can also delete from the Developer Portal. Deleted apps move to the trash with a 30-day recovery window.
+You can also delete from the Developer Portal. Deleting an app stops its billing immediately.
 
 ## Related Guides
 

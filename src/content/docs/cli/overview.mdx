@@ -1,6 +1,6 @@
 ---
 title: "VarityKit CLI Overview"
-description: "VarityKit CLI overview: scaffold projects, run diagnostics, deploy apps, and manage domains. Python-based tool similar to Vercel CLI."
+description: "VarityKit CLI overview: deploy apps, run diagnostics, and manage domains. A familiar Python-based deploy CLI."
 ---
 
 import { Card, CardGrid, Aside } from '@astrojs/starlight/components';
@@ -9,11 +9,11 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="May 2026"
+  lastUpdated="June 2026"
   stability="stable"
 />
 
-VarityKit is a Python-based CLI that helps you deploy and manage applications. If you have used tools like the Vercel CLI, Netlify CLI, or Firebase CLI, you will feel right at home.
+VarityKit is a Python-based CLI that helps you deploy and manage applications. It is a familiar deploy CLI — install it, log in, and ship.
 
 ## What You Can Do
 
@@ -40,8 +40,6 @@ VarityKit is a Python-based CLI that helps you deploy and manage applications. I
 |---------|-------------|
 | [`varitykit login`](/cli/commands/auth) | Log in with your deploy key from the developer portal |
 | [`varitykit doctor`](/cli/commands/doctor) | Validate your development environment |
-| [`varitykit dev`](#dev) | Start development servers (API + frontend) |
-| [`varitykit bootstrap`](#bootstrap) | Install project dependencies and set up environment |
 | [`varitykit completions`](#completions) | Set up shell completions (bash, zsh, fish) |
 
 ### Authentication
@@ -59,8 +57,7 @@ VarityKit is a Python-based CLI that helps you deploy and manage applications. I
 | [`varitykit app deploy`](/cli/commands/deploy) | Deploy your application |
 | `varitykit app list` | List all deployments |
 | `varitykit app info` | Show deployment details |
-| `varitykit app status` | Show deployment status |
-| `varitykit app rollback` | Rollback to a previous deployment |
+| `varitykit app delete --yes` | Delete a deployment |
 
 ### Domains
 
@@ -117,7 +114,7 @@ Options:
 
 ## Requirements
 
-- **Python**: 3.8 or higher
+- **Python**: 3.11 or higher
 - **Node.js**: 20+ (for building JavaScript projects)
 
 <Aside type="tip">
@@ -135,7 +132,7 @@ varitykit app deploy
 ```
 
 - **Best for**: Marketing sites, documentation, SPAs
-- **Cost**: One flat monthly cost per app, starting around $5/mo
+- **Cost**: One flat monthly cost per app — your bill on day 1 equals your bill on day 1000. See the [pricing calculator](https://developer.store.varity.so/dashboard/pricing).
 - **Speed**: Global CDN distribution
 
 ### Dynamic Apps
@@ -147,10 +144,10 @@ varitykit app deploy --hosting dynamic
 ```
 
 - **Best for**: APIs, databases, server-side rendering, AI agents, LLMs
-- **Cost**: One flat monthly cost per app, based on the hardware you reserve
+- **Cost**: One flat monthly cost per app, based on the hardware you reserve. See the [pricing calculator](https://developer.store.varity.so/dashboard/pricing).
 - **Features**: Containers, scaling, persistence
 
-The orchestration algorithm auto-detects when your app needs dynamic hosting (Express, Fastify, Next.js SSR, FastAPI, Django, Flask, etc.) and selects it automatically. Use `--hosting dynamic` only to force the mode explicitly.
+Varity auto-detects when your app needs dynamic hosting (Express, Fastify, Next.js SSR, FastAPI, Django, Flask, etc.) and selects it automatically. Use `--hosting dynamic` only to force the mode explicitly.
 
 ## Supported Frameworks
 
@@ -165,38 +162,9 @@ Varity currently auto-detects and deploys the following frameworks:
 | Express, Fastify, Nest, Koa, Hono | N/A | ✅ |
 | FastAPI, Django, Flask | N/A | ✅ |
 
-**Not yet supported:** Go, Rust, Ruby / Rails, Elixir / Phoenix, Java / Spring, Deno, PHP / Laravel, .NET. These will not be auto-detected and deployment will fail with an unsupported-language error. [Request support for your framework](https://github.com/varity-labs).
+**Not yet supported:** Go, Rust, Ruby / Rails, Elixir / Phoenix, Java / Spring, Deno, PHP / Laravel, .NET. These are not auto-detected yet — the CLI returns a clean error with a feature-request link instead of failing midway. [Request support for your framework](https://github.com/varity-labs).
 
 ## Additional Command Details
-
-### dev
-
-Start development servers (API + frontend) with hot-reload:
-
-```bash
-varitykit dev [OPTIONS]
-```
-
-| Option | Default | Description |
-|--------|---------|-------------|
-| `--project` | `marketing` | Frontend project to run |
-| `--api-only` | `false` | Run only the API server |
-| `--frontend-only` | `false` | Run only the frontend |
-| `--port` | `3001` | API server port |
-
-### bootstrap
-
-Install project dependencies and set up the environment:
-
-```bash
-varitykit bootstrap [OPTIONS]
-```
-
-| Option | Description |
-|--------|-------------|
-| `--skip-npm` | Skip npm install |
-| `--skip-pip` | Skip pip install |
-| `--skip-docker` | Skip Docker setup |
 
 ### completions
 

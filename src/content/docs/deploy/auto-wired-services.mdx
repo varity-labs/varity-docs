@@ -9,8 +9,8 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="May 2026"
-  stability="stable"
+  lastUpdated="June 2026"
+  stability="beta"
 />
 
 When you deploy with Varity, the platform reads your `package.json` or `requirements.txt` and automatically provisions the databases and services your app depends on. You do not write any configuration files.
@@ -45,6 +45,8 @@ You do not configure ports, credentials, or connection strings. Varity handles a
 | `ollama` | AI model server | `OLLAMA_URL` |
 | `mongoose` | MongoDB database | `MONGODB_URI` |
 | `mongodb` | MongoDB database | `MONGODB_URI` |
+| `mysql` | MySQL database | `MYSQL_URL` |
+| `mysql2` | MySQL database | `MYSQL_URL` |
 
 ### Python (requirements.txt)
 
@@ -57,6 +59,7 @@ You do not configure ports, credentials, or connection strings. Varity handles a
 | `redis` | Redis cache | `REDIS_URL` |
 | `ollama` | AI model server | `OLLAMA_URL` |
 | `pymongo` | MongoDB database | `MONGODB_URI` |
+| `pymysql` | MySQL database | `MYSQL_URL` |
 
 ### Prisma Schema Detection
 
@@ -93,7 +96,17 @@ If your project includes a `prisma/schema.prisma` file, Varity reads the `dataso
 
     Your app receives `MONGODB_URI` automatically.
   </Card>
+
+  <Card title="MySQL Database" icon="seti:db">
+    A relational database for apps and frameworks that expect MySQL. Auto-provisioned alongside your app when a MySQL client is in your dependencies.
+
+    Your app receives `MYSQL_URL` automatically.
+  </Card>
 </CardGrid>
+
+<Aside type="note">
+Auto-provisioned databases are in beta. They are great for getting an app running end-to-end without standing up a separate database service; bring your own managed database (via [environment variables](/deploy/env-variables)) for workloads that need durability guarantees.
+</Aside>
 
 <Aside type="tip">
 The services start automatically when you deploy. No configuration needed.

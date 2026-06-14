@@ -9,14 +9,14 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="May 2026"
-  stability="stable"
+  lastUpdated="June 2026"
+  stability="beta"
 />
 
 Varity automatically configures everything for your app - no setup files, no DevOps knowledge required.
 
 :::note[The Varity Promise]
-Other platforms like Vercel, Render, and Railway still ask you to configure builds, environment variables, and separate add-on services. **Varity handles everything automatically**, so you can focus on building your app, not managing infrastructure.
+Usage-metered hosting still asks you to configure builds, environment variables, and separate add-on services, and the bill grows with your traffic. **Varity handles the configuration automatically** and charges a flat price for the hardware it reserves, so you can focus on building your app, not managing infrastructure.
 :::
 
 ## What Makes Varity Different
@@ -27,20 +27,20 @@ When you deploy with Varity, the platform automatically:
 
 - **Understands your app** - Figures out what your app needs without you telling it
 - **Configures deployment defaults** - Sets up hosting and runtime services based on your project
-- **Right-sizes infrastructure** - Reserves the hardware your app actually needs, so your flat monthly cost is no higher than it has to be
+- **Reserves the right hardware** - Reserves the hardware your app needs, so your flat monthly cost is no higher than it has to be
 - **Handles hosting defaults** - Varity configures your runtime services automatically
 
 **No configuration files. No YAML. No Docker. No DevOps knowledge. Just one command.**
 
 ## How It Works
 
-Think of Varity as your **AI-powered DevOps engineer** that does all the infrastructure work for you.
+Varity does all the infrastructure work for you.
 
 <Steps>
 
 1. **You Build Your App**
 
-   Focus on your product - use React, Next.js, Vue, or any framework you like. No special Varity syntax required.
+   Focus on your product - use React, Next.js, Vue, or any supported framework you like. No special Varity syntax required.
 
 2. **Run One Command**
 
@@ -54,19 +54,28 @@ Think of Varity as your **AI-powered DevOps engineer** that does all the infrast
 
    Behind the scenes, Varity automatically:
    - Analyzes your app to understand what it needs
-   - Selects the best infrastructure for your specific use case
+   - Picks the right hosting for your app (static or dynamic)
    - Configures deployment services (hosting, runtime, and detected sidecars)
-   - Right-sizes the reserved hardware to what your app needs
+   - Reserves hardware suited to your app
 
 4. **Your App Goes Live**
 
    You get a live URL. Everything works automatically:
    - ✅ Hosting configured
-   - ✅ Database ready
+   - ✅ Database ready (when your app needs one)
    - ✅ SSL certificate active
-   - ✅ CDN enabled globally
+   - ✅ Static assets served from a global CDN
 
 </Steps>
+
+## Your App's URL
+
+Varity gives every app a URL on `varity.app`. The shape depends on how your app is hosted:
+
+- **Static sites** are served at a path: `https://varity.app/<your-app>/`
+- **Dynamic apps** (servers, APIs, SSR, full-stack) get their own subdomain: `https://<your-app>.varity.app/`
+
+Varity decides which one fits your project automatically. You can influence it with `--hosting` (`auto`, `static`, or `dynamic`).
 
 ## What's Included (Automatically)
 
@@ -74,15 +83,15 @@ Every Varity app gets these services configured automatically - no setup require
 
 <CardGrid>
   <Card title="Hosting" icon="rocket">
-    **Global, Fast, Reliable**
-    - Automatically optimized for your app type
-    - Global CDN included
+    **Fast and Reliable**
+    - Automatically matched to your app type
+    - Global CDN for static assets
     - Managed runtime configuration
     - Managed request routing
   </Card>
 
   <Card title="Database" icon="seti:db">
-    **Production-Ready Database**
+    **Auto-provisioned database (beta)**
     - Provisioned automatically when detected
     - Secure by default
     - No connection strings to manage
@@ -92,35 +101,35 @@ Every Varity app gets these services configured automatically - no setup require
   <Card title="Security" icon="seti:lock">
     **Secure by Default**
     - SSL certificates (automatic)
-    - Encrypted data in transit and at rest
+    - Encrypted data in transit
     - No security configuration needed
   </Card>
 
-  <Card title="Performance" icon="star">
-    **Global Performance**
-    - Edge caching worldwide
-    - Instant page loads
-    - WebSocket support
-    - Zero configuration required
+  <Card title="Simplicity" icon="star">
+    **Zero Configuration**
+    - No build files to write
+    - No infrastructure to wire up
+    - Sensible defaults for your app type
+    - One command from local to live
   </Card>
 </CardGrid>
 
 ## Pricing Model
 
-Varity uses fixed profile pricing while Vercel, Render, and Railway use usage-metered billing.
+Varity charges a flat monthly price for the hardware it reserves for your app. Usage-metered hosting bills by traffic, bandwidth, invocations, and build minutes, so those bills grow as your app succeeds; your Varity bill stays the same.
 
 ### The Varity Advantage
 
-- **Smart Infrastructure Selection** - Varity automatically right-sizes the reserved hardware to your specific app
-- **No Over-Provisioning** - Your app is sized to the hardware it actually needs, and your monthly cost is fixed
+- **Reserved hardware, flat price** - Your app runs on hardware reserved for it, at a price that does not change with traffic
+- **No surprise overages** - No metered bandwidth, invocation, or build-minute charges
 - **Included Services** - Database, CDN, and SSL are included at no extra cost
-- **Efficient Architecture** - Modern infrastructure designed for cost optimization from day one
+- **Predictable from day one** - Your bill on day 1 is your bill on day 1000
 
 Use [Pricing and Costs](/resources/pricing) and `varity_cost_calculator` for current estimates.
 
 ## Zero Configuration Required
 
-Traditional platforms require extensive configuration:
+Traditional setups require extensive configuration:
 
 ```yaml title="Traditional: docker-compose.yml (100+ lines)"
 version: '3.8'
@@ -132,8 +141,7 @@ services:
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - REDIS_URL=${REDIS_URL}
-      - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
-      # ... 50+ more environment variables
+      # ... more environment variables
   postgres:
     image: postgres:15
     environment:
@@ -148,13 +156,11 @@ services:
 
 ```bash title="Traditional: Required credentials"
 # You have to manually set up:
-export AWS_ACCESS_KEY_ID=...
-export AWS_SECRET_ACCESS_KEY=...
 export DATABASE_URL=...
 export REDIS_URL=...
 export STRIPE_SECRET_KEY=...
 export SENDGRID_API_KEY=...
-# ... 20+ more credentials
+# ... more credentials
 ```
 
 **With Varity:**
@@ -170,16 +176,16 @@ That's it. No YAML files. No Docker setup. No environment variables during devel
 When you deploy, Varity automatically handles:
 
 - ✅ Framework detection (Next.js, React, Vue, Node.js, Python)
-- ✅ Build configuration (Nixpacks auto-detection)
+- ✅ Build configuration (automatic)
 - ✅ Container creation (no Docker install required)
 - ✅ Database provisioning (if your code needs it)
 - ✅ SSL certificates (automatic)
-- ✅ Domain routing (varity.app/your-app/)
-- ✅ CDN configuration (global edge caching)
+- ✅ App URL and routing (`varity.app/<your-app>/` for static, `<your-app>.varity.app/` for dynamic)
+- ✅ Global CDN for static assets
 - ✅ Managed hosting defaults
 - ✅ Sidecars: Postgres+pgvector, Redis, MongoDB, MySQL, Ollama (when detected in your config)
 
-**Not yet supported:** Go, Rust, Ruby / Rails, Elixir / Phoenix, Java / Spring, Deno, PHP / Laravel, .NET. Deploying these will fail with a clear unsupported-language error. [Request support for your framework](https://github.com/varity-labs).
+**Not yet supported:** Go, Rust, Ruby / Rails, Elixir / Phoenix, Java / Spring, Deno, PHP / Laravel, .NET. Deploying these source stacks returns a clear unsupported-language error with a feature-request link. (You can still deploy any of these by providing a prebuilt Docker image.) [Request support for your framework](https://github.com/varity-labs).
 
 ## Developer Experience
 
@@ -202,17 +208,15 @@ Analyzing your app...
 
 Building...
   ✓ Installing dependencies
-  ✓ Building with Nixpacks
+  ✓ Building your app
   ✓ Creating container image
 
 Deploying...
-  ✓ Provisioning compute resources
+  ✓ Reserving compute
   ✓ Provisioning database
   ✓ Configuring SSL certificate
-  ✓ Setting up CDN
 
-✅ Live at: https://varity.app/my-app/
-   Live URL: https://varity.app/my-app/
+✅ Live at: https://my-app.varity.app/
 ```
 
 ### What You Don't Need
@@ -241,19 +245,18 @@ varitykit app deploy
 ```
 Analyzing your app...
   ✓ Detected framework and dependencies
-  ✓ Configuring optimal infrastructure
+  ✓ Choosing the right hosting
 
 Building...
   ✓ Installing dependencies
-  ✓ Building optimized production bundle
+  ✓ Building a production bundle
 
 Deploying...
   ✓ Provisioning hosting
   ✓ Setting up database
   ✓ Enabling SSL certificate
-  ✓ Activating global CDN
 
-✅ Live at: https://varity.app/my-app/
+✅ Live at: https://my-app.varity.app/
 ```
 
 ### What You DON'T Need
@@ -261,11 +264,9 @@ Deploying...
 ❌ DevOps knowledge or experience
 ❌ Configuration files (no YAML, no Docker)
 ❌ Environment variable management
-❌ Credential setup for third-party services
+❌ Credential setup for Varity infrastructure
 ❌ SSL certificate installation
-❌ CDN configuration
 ❌ Database connection strings
-❌ Load balancer setup
 ❌ Manual hosting configuration
 
 ## Next Steps

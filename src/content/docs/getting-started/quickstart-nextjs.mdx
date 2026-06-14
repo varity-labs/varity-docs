@@ -9,7 +9,7 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="May 2026"
+  lastUpdated="June 2026"
   stability="stable"
 />
 
@@ -19,7 +19,7 @@ Deploy an existing Next.js app to Varity in one command. Varity detects your fra
 
 - Node.js 20 or later
 - npm, pnpm, or yarn
-- Python 3.8+ (for the CLI)
+- Python 3.11+ (for the CLI)
 
 ## Deploy your app
 
@@ -56,11 +56,14 @@ Deploy an existing Next.js app to Varity in one command. Varity detects your fra
 
 5. **Your app is live**
 
-   The terminal shows your live URL:
+   The terminal shows your live URL. The shape depends on the hosting mode Varity detected:
 
    ```
-   https://varity.app/<app-name>/
+   Static export:    https://varity.app/<app-name>/
+   Dynamic runtime:  https://<app-name>.varity.app/
    ```
+
+   A full-stack Next.js app (SSR, API routes, server actions) runs as a dynamic runtime and is served on its own subdomain.
 
 </Steps>
 
@@ -71,7 +74,7 @@ You do not import an SDK or change your code. When Varity deploys a Next.js proj
 - **Hosting mode** - static export vs dynamic runtime is detected from your `next.config.js`.
 - **Databases and caches** - if Varity detects a database client in your dependencies (for example Prisma, `pg`, `mongoose`, or `redis`), it provisions the matching service and injects the connection details into your app's environment at runtime.
 - **Environment variables** - any variables you set are injected into the deployed container. See [Environment Variables](/deploy/env-variables).
-- **Live URL** - `https://varity.app/<app-name>/`, with HTTPS handled for you.
+- **Live URL** - `https://varity.app/<app-name>/` for a static export, or `https://<app-name>.varity.app/` for a dynamic runtime, with HTTPS handled for you.
 
 For the full list of detected frameworks and auto-wired services, see [Supported Frameworks](/deploy/supported-frameworks) and [Auto-wired Services](/deploy/auto-wired-services).
 

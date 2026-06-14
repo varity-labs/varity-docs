@@ -3,32 +3,23 @@ title: "CLI Installation"
 description: "Install the VarityKit CLI via pip, pipx, or from source. Includes verification steps and troubleshooting for macOS, Linux, and Windows."
 ---
 
-import { Tabs, TabItem, Steps, Aside } from '@astrojs/starlight/components';
+import { Steps, Aside } from '@astrojs/starlight/components';
 import PageMeta from '../../../components/PageMeta.astro';
 
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="May 2026"
+  lastUpdated="June 2026"
   stability="stable"
 />
 
 Get the VarityKit CLI installed on your system.
 
-## Install with pip
+## Install with pipx
 
-<Tabs>
-  <TabItem label="pipx (Recommended)">
-    ```bash
-    pipx install varitykit
-    ```
-  </TabItem>
-  <TabItem label="pip">
-    ```bash
-    pipx install varitykit
-    ```
-  </TabItem>
-</Tabs>
+```bash
+pipx install varitykit
+```
 
 <Aside type="tip">
 **pipx** is recommended for CLI tools because it installs packages in isolated environments to avoid dependency conflicts.
@@ -43,7 +34,7 @@ varitykit --version
 You should see the current version number, for example:
 
 ```
-varitykit 1.2.24
+varitykit 2.0.6
 ```
 
 ## Run Diagnostics
@@ -62,7 +53,7 @@ You should see a table of checks with a `✓ All checks passed!` message at the 
 
 | Requirement | Minimum | Recommended |
 |-------------|---------|-------------|
-| Python | 3.8 | 3.12+ |
+| Python | 3.11 | 3.12+ |
 | Node.js | 20.0 | 22.0+ |
 | npm/pnpm/yarn | Any | Latest |
 
@@ -83,7 +74,7 @@ You should see a table of checks with a `✓ All checks passed!` message at the 
    NEXT_PUBLIC_VARITY_APP_ID=your-app-id
    ```
 
-   All deployment credentials (storage, service connections, hosting) are managed automatically by the Varity credential proxy. See [Managed Credentials](/deploy/managed-credentials).
+   All deployment credentials (storage, service connections, hosting) are managed automatically by Varity. See [Managed Credentials](/deploy/managed-credentials).
 
 2. **Verify your setup**:
 
@@ -123,10 +114,10 @@ export PATH="$HOME/.local/bin:$PATH"
 
 ### "ModuleNotFoundError"
 
-Python dependencies are missing:
+Python dependencies are missing. Reinstall to repair the isolated environment:
 
 ```bash
-pip install --upgrade varitykit
+pipx upgrade varitykit
 ```
 
 ### "Docker not found"
@@ -146,18 +137,11 @@ sudo apt install docker.io
 
 ### Permission denied
 
-On Linux/macOS, you may need to run:
+On Linux/macOS, `pipx` installs into an isolated, user-owned environment, which avoids most permission issues. If `pipx` itself is missing, install it first:
 
 ```bash
-pip install --user varitykit
-```
-
-Or use a virtual environment:
-
-```bash
-python -m venv .venv
-source .venv/bin/activate
-pipx install varitykit
+python -m pip install --user pipx
+python -m pipx ensurepath
 ```
 
 ## Updating
@@ -165,7 +149,7 @@ pipx install varitykit
 Update to the latest version:
 
 ```bash
-pip install --upgrade varitykit
+pipx upgrade varitykit
 ```
 
 ## Uninstalling
@@ -173,7 +157,7 @@ pip install --upgrade varitykit
 Remove the CLI:
 
 ```bash
-pip uninstall varitykit
+pipx uninstall varitykit
 ```
 
 ## Next Steps

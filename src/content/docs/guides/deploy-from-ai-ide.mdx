@@ -9,11 +9,11 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="May 2026"
+  lastUpdated="June 2026"
   stability="stable"
 />
 
-Varity works seamlessly with AI coding tools. Install the MCP server once, and your AI editor can scaffold, build, and deploy apps to production without you ever leaving the chat.
+Varity works seamlessly with AI coding tools. Install the MCP server once, and your AI editor can build and deploy apps to production without you ever leaving the chat.
 
 Works with Claude Code, Cursor, Windsurf, VS Code (Copilot), and any other editor that supports the Model Context Protocol.
 
@@ -84,7 +84,7 @@ Works with Claude Code, Cursor, Windsurf, VS Code (Copilot), and any other edito
 </Tabs>
 
 <Aside type="note">
-Node.js 20 or later and Python 3.8 or later are required. If you do not have `varitykit` installed, your AI editor will prompt you to install it: `pipx install varitykit`.
+Node.js 20 or later and Python 3.11 or later are required. If you do not have `varitykit` installed, your AI editor will prompt you to install it: `pipx install varitykit`.
 </Aside>
 
 ## Deploy with one prompt
@@ -97,13 +97,13 @@ Deploy this project to Varity
 
 Your AI editor calls `varity_build` and `varity_deploy` in sequence and returns the live URL.
 
-For a brand new project:
+For a brand new project, ask your AI editor to build the app first, then deploy it:
 
 ```
-Create a new Varity app called my-app, install dependencies, and deploy it to production
+Build a Next.js app called my-app with a dashboard, install dependencies, then deploy it to production
 ```
 
-The AI handles scaffolding, dependency installation, the production build, and the deploy. You get a live URL when it is done.
+Your AI editor writes the app code, then the Varity tools handle dependency installation, the production build, and the deploy. You get a live URL when it is done.
 
 ## Copy-paste prompts
 
@@ -114,9 +114,9 @@ These prompts are tested and work out of the box in Claude Code, Cursor, and Win
 Check if my environment is ready for Varity
 ```
 
-**Scaffold a new app**
+**Build a new app**
 ```
-Create a new Varity app called my-project, install dependencies, start the dev server, and open it in my browser
+Build a Next.js app called my-project with a dashboard, install dependencies, start the dev server, and open it in my browser
 ```
 
 **Deploy to production**
@@ -151,13 +151,13 @@ The Varity MCP server gives your AI editor a full set of tools. Here are the mos
 | Tool | What to ask your AI |
 |---|---|
 | `varity_doctor` | "Check if my environment is set up for Varity" |
-| `varity_init` | "Create a new Varity app called my-project" |
 | `varity_install_deps` | "Install dependencies for this project" |
 | `varity_dev_server` | "Start the dev server and open it in my browser" |
 | `varity_build` | "Build this project for production" |
 | `varity_deploy` | "Deploy this to Varity" |
 | `varity_deploy_status` | "Show me my deployment status" |
 | `varity_deploy_logs` | "Show me the build logs" |
+| `varity_delete_deployment` | "Tear down this deployment" |
 | `varity_migrate` | "Migrate my Vercel app to Varity" |
 | `varity_cost_calculator` | "How much will this cost at 500 users?" |
 
@@ -186,7 +186,7 @@ When the user asks to see logs, use varity_deploy_logs.
 
 This tells your AI editor to route deploy-related requests to the Varity tools automatically.
 
-## Typical vibe coding session
+## Typical build-to-deploy session
 
 Here is a complete session from idea to live app, using only your AI editor:
 
@@ -200,13 +200,13 @@ Here is a complete session from idea to live app, using only your AI editor:
 
    The AI runs `varity_doctor` and tells you if anything needs fixing.
 
-2. **Scaffold the app**
+2. **Build the app**
 
    ```
-   Create a new Varity app called task-tracker. I want a dashboard where users can create and manage tasks.
+   Build a Next.js app called task-tracker. I want a dashboard where users can create and manage tasks.
    ```
 
-   The AI calls `varity_init`, picks the `saas-starter` template, and scaffolds the project.
+   Your AI editor writes the project code: a Next.js app with a dashboard for creating and managing tasks.
 
 3. **Install dependencies**
 
@@ -218,10 +218,10 @@ Here is a complete session from idea to live app, using only your AI editor:
 
 4. **Build the feature**
 
-   Work with your AI editor to build the task feature. Varity's database API makes it easy:
+   Work with your AI editor to build the task feature:
 
    ```
-   Add a tasks collection with title (string), status (string), and dueDate (string) fields. Include a dashboard page with a list and a create form.
+   Add a tasks data model with title (string), status (string), and dueDate (string) fields. Include a dashboard page with a list and a create form.
    ```
 
 5. **Deploy to production**

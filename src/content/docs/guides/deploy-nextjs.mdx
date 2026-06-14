@@ -9,7 +9,7 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="May 2026"
+  lastUpdated="June 2026"
   stability="stable"
 />
 
@@ -95,7 +95,7 @@ You can deploy from your AI editor using the Varity MCP server (the fastest path
     pipx install varitykit
     ```
 
-    Python 3.8 or later is required.
+    Python 3.11 or later is required.
 
     **Step 2. Open your app directory**
 
@@ -128,7 +128,7 @@ When you deploy a Next.js app with Varity, these services are wired automaticall
 | Database (Postgres) | Provisions a dedicated schema, injects connection credentials at deploy time |
 | Hosting | Detects SSR vs. static and picks the right compute type |
 | SSL | HTTPS is on by default. No certificate setup needed |
-| Custom URL | Your app gets a live public URL at `varity.app/your-app` |
+| Custom URL | Your app gets a live public URL at `https://your-app.varity.app/` |
 
 No environment variables to copy, no credential files to manage. The auto-wired services are documented in [Auto-wired Services](/deploy/auto-wired-services).
 
@@ -180,7 +180,7 @@ No environment variables to copy, no credential files to manage. The auto-wired 
    Building app...          Done in 42s
    Deploying...             Done in 18s
    
-   Live at: https://varity.app/my-nextjs-app/
+   Live at: https://my-nextjs-app.varity.app/
    ```
 
 6. **Verify**
@@ -221,7 +221,7 @@ Check if my environment is ready for Varity
 ```
 
 ```
-Create a new Varity app called invoice-tracker, install dependencies
+Build a Next.js app called invoice-tracker, then install dependencies
 ```
 
 ```
@@ -246,11 +246,11 @@ Or from your AI editor:
 Build and redeploy my Varity app
 ```
 
-Varity keeps the previous deployment available for instant rollback. See [Rollback a Deployment](/deploy/rollback).
+Each redeploy publishes a fresh build at the same URL.
 
 ## Cost
 
-Varity uses fixed hardware profile pricing, while Vercel, Render, and Railway are usage-based. Use the cost calculator to get a precise estimate:
+Varity uses fixed hardware profile pricing, while usage-metered hosting bills on usage that grows with your traffic. Use the cost calculator to get a precise estimate:
 
 ```
 How much would it cost to host a Next.js app with 500 users on Varity?
@@ -298,6 +298,4 @@ See [Troubleshooting Deploys](/deploy/deployment-troubleshooting) for the full l
 
 - [Auto-wired Services](/deploy/auto-wired-services): What gets provisioned and how
 - [Environment Variables](/deploy/env-variables): What you can override
-- [Custom Domains](/deploy/custom-domains): Point your own domain at the deployment
 - [MCP Server Reference](/ai-tools/mcp-server-spec): Full MCP tool reference
-- [Rollback a Deployment](/deploy/rollback): Revert to a previous version
