@@ -412,8 +412,8 @@ i {
   font-family: var(--sl-font-mono);
   font-size: 0.875em;
   font-weight: var(--font-medium);
-  color: #fafafa;
-  background: #262626;
+  color: var(--sl-color-text);
+  background: var(--sl-color-bg-inline-code);
   padding: 0.125em 0.375rem;
   border-radius: 0.25rem;
 }
@@ -1143,15 +1143,25 @@ article.card .body {
    ======================================== */
 
 .expressive-code {
-  --ec-codeBg: #0a0a0a;
-  --ec-codeFg: var(--gray-200);
   --ec-codeBorder: var(--border-primary);
   --ec-brdRad: var(--radius-lg);
   margin: var(--space-6) 0;
 }
 
-.expressive-code pre {
+/* Dark-mode code surface: custom near-black gradient. In light mode we DON'T
+   force a dark background — Expressive Code's own light theme provides a
+   readable light surface (forcing dark bg here put dark syntax text on a
+   near-black background = unreadable code in light mode). */
+[data-theme="dark"] .expressive-code {
+  --ec-codeBg: #0a0a0a;
+  --ec-codeFg: var(--gray-200);
+}
+
+[data-theme="dark"] .expressive-code pre {
   background: linear-gradient(180deg, #0f0f12 0%, #0d0d0f 100%);
+}
+
+.expressive-code pre {
   border: 1px solid var(--border-primary);
   box-shadow: var(--shadow-md);
 }
@@ -1281,7 +1291,7 @@ tr:last-child td {
 }
 
 tr:hover td {
-  background: #262626;
+  background: var(--color-bg-hover, rgba(255, 255, 255, 0.03));
 }
 
 /* ========================================
