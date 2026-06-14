@@ -1,0 +1,75 @@
+---
+title: What You Can Deploy Today
+description: An honest snapshot of what Varity deploys today, what's in beta, and what isn't ready yet — so you know what to expect before you deploy.
+---
+
+import { Aside, CardGrid, Card } from '@astrojs/starlight/components';
+import PageMeta from '../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="June 2026"
+  stability="stable"
+/>
+
+Varity is a newly launched platform in active beta. This page is the honest snapshot of what works today, what's beta, and what isn't ready yet — so nothing surprises you after you deploy.
+
+## What Deploys Today
+
+<CardGrid>
+  <Card title="Node apps" icon="seti:javascript">
+    Next.js, React, Vue, Astro, Qwik, Vite, Express, Fastify, NestJS, Koa, Hono.
+  </Card>
+  <Card title="Python apps" icon="seti:python">
+    FastAPI, Django, Flask.
+  </Card>
+  <Card title="Static sites" icon="document">
+    Plain HTML and supported static build outputs.
+  </Card>
+  <Card title="Any Docker image" icon="seti:docker">
+    Already packaged as a container? Deploy any public image as-is — in any language.
+  </Card>
+</CardGrid>
+
+See [Supported Frameworks](/deploy/supported-frameworks/) for the full detection matrix.
+
+**Auto-wired services** (provisioned in the same deployment when your code needs them): Postgres (with pgvector), Redis, MongoDB, MySQL, and Ollama. See [Auto-wired Services](/deploy/auto-wired-services/).
+
+**Where your app lives:**
+- Static sites → `https://varity.app/<your-app>/`
+- Dynamic apps → `https://<your-app>.varity.app/`
+
+## Not Auto-Built From Source Yet
+
+Varity doesn't build these languages from source yet: **Go, Rust, Ruby / Rails, Elixir / Phoenix, Java / Spring, Deno, PHP / Laravel, .NET.**
+
+If you try, you get a clear error with a feature-request link — not a broken deploy. You can still ship any of these today by [deploying a prebuilt Docker image](/deploy/deploy-docker-image/).
+
+## Not Ready Yet
+
+These aren't available in the current beta. Don't plan around them yet:
+
+- Custom domains (your app lives at its `varity.app` URL for now)
+- Rollback as a one-click feature — recover by [redeploying a known-good version](/deploy/rollback/)
+- Cron jobs and scheduled tasks
+- Preview deployments
+- Multi-region and edge runtime
+- Dedicated GPUs for your own containers
+- A fully managed database product (see the durability note below)
+
+## Beta Expectations
+
+<Aside type="caution" title="Read this before deploying business-critical apps">
+Varity is in guided beta. For demos, side projects, and apps that tolerate beta, deploy freely. For **business-critical workloads or important customer data**, treat it as beta: bring your own external database for data you can't lose, and reach out so we can help size and monitor the deployment.
+</Aside>
+
+- **Databases are real but beta.** Auto-wired databases work and data survives container restarts within a deployment, but this is not yet a managed database product with automated backups, high availability, or point-in-time recovery. See [Databases & Data](/deploy/databases/).
+- **Private repos:** the safest path for a private or unsupported app today is a prebuilt Docker image.
+- **Heavy or unusual workloads** (browser automation, large file/video processing, long-running jobs, GPU work) may need a hand — reach out via [Getting Help](/getting-started/getting-help/).
+
+## Start Deploying
+
+- [Deploy from the Dashboard](/deploy/deploy-from-dashboard/)
+- [Deploy Your App (CLI)](/deploy/deploy-your-app/)
+- [Deploy a Docker Image](/deploy/deploy-docker-image/)

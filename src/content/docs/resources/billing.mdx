@@ -1,0 +1,49 @@
+---
+title: Billing
+description: How Varity billing works — a card on file before your first deploy, and a flat monthly price per app that doesn't change with traffic.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+import PageMeta from '../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="June 2026"
+  stability="stable"
+/>
+
+Varity billing is built to be predictable: a flat monthly price per app for the hardware it reserves, and a bill that doesn't move with your traffic. This page covers the practical side — adding a card, what you're charged for, and where to see your costs.
+
+## A Card on File
+
+Varity asks for a payment method **before your first deploy**, so your app can go live and keep running. You add it once in the dashboard; you're only charged for apps you actually deploy.
+
+## What You're Charged For
+
+You pay a **flat monthly price per app**, based on the hardware that app reserves. That's it.
+
+Your bill does **not** change with:
+
+- Traffic or bandwidth
+- Requests or invocations
+- Build minutes
+
+This is the core difference from usage-metered hosting, where the bill grows as your app gets more traffic. With Varity, your bill on day 1 is your bill on day 1000. For the full model, see [How Pricing Works](/resources/pricing/).
+
+<Aside type="note">
+Static sites and dynamic apps are priced differently because they reserve different resources. Use the cost calculator in the dashboard (or the `varity_cost_calculator` tool in your AI editor) for a current estimate before you deploy.
+</Aside>
+
+## Seeing Your Costs
+
+Your dashboard shows the monthly cost for each app and your overall bill. Because the price is fixed per app, the number you see is the number you pay — there's no end-of-month surprise from a traffic spike.
+
+## Deleting an App
+
+Deleting an app from the dashboard stops its billing immediately — you're not charged for hardware after you remove it.
+
+## Related
+
+- [How Pricing Works](/resources/pricing/) — the predictable-pricing model in full.
+- [What You Can Deploy Today](/deploy/what-you-can-deploy/) — what your bill covers in beta.

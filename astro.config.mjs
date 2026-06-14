@@ -187,6 +187,14 @@ export default defineConfig({
               slug: "getting-started/quickstart",
             },
             {
+              label: "Deploy from the Dashboard",
+              slug: "deploy/deploy-from-dashboard",
+            },
+            {
+              label: "What you can deploy",
+              slug: "deploy/what-you-can-deploy",
+            },
+            {
               label: "Migrate from Vercel",
               slug: "deploy/vercel-migration",
             },
@@ -254,6 +262,10 @@ export default defineConfig({
               slug: "deploy/auto-wired-services",
             },
             {
+              label: "Databases & Data",
+              slug: "deploy/databases",
+            },
+            {
               label: "Environment Variables",
               slug: "deploy/env-variables",
             },
@@ -306,6 +318,7 @@ export default defineConfig({
           label: "Pricing and Costs",
           items: [
             { label: "How pricing works", slug: "resources/pricing" },
+            { label: "Billing", slug: "resources/billing" },
             { label: "FAQ", slug: "resources/faq" },
           ],
         },

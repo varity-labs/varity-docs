@@ -1,0 +1,65 @@
+---
+title: Databases & Data
+description: How Varity provisions databases for your app, the connection details it injects, and the honest durability boundary in beta.
+---
+
+import { Aside, CardGrid, Card } from '@astrojs/starlight/components';
+import PageMeta from '../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="June 2026"
+  stability="beta"
+/>
+
+When your code needs a database, Varity provisions one in the same deployment and injects the connection details — you don't create accounts, copy connection strings, or wire anything up. This page explains what you get and, importantly, what the durability boundary is in beta.
+
+## What Gets Provisioned
+
+Varity detects these from your dependencies and provisions them alongside your app:
+
+<CardGrid>
+  <Card title="Postgres" icon="seti:db">
+    Relational database, with `pgvector` for embeddings. Injected as `DATABASE_URL`.
+  </Card>
+  <Card title="Redis" icon="seti:db">
+    In-memory cache / store. Injected as `REDIS_URL`.
+  </Card>
+  <Card title="MongoDB" icon="seti:db">
+    Document database. Injected as `MONGODB_URI`.
+  </Card>
+  <Card title="MySQL" icon="seti:db">
+    Relational database. Injected as `MYSQL_URL`.
+  </Card>
+</CardGrid>
+
+Varity also provisions an **Ollama** model server (`OLLAMA_URL`) when your app uses one. Detection and the full env-var list are covered in [Auto-wired Services](/deploy/auto-wired-services/).
+
+Your app reads these from its environment — no connection strings to manage:
+
+```js
+// Varity injects DATABASE_URL; just read it
+const db = process.env.DATABASE_URL;
+```
+
+## Durability in Beta — Read This
+
+<Aside type="caution" title="Not yet a managed database product">
+Auto-wired databases are real and your data survives container restarts within a deployment. They are **not** yet a managed database product: there are no automated backups, no high availability, and no point-in-time recovery. Do not store data you cannot afford to lose without your own backups.
+</Aside>
+
+What this means in practice:
+
+- **Good for:** demos, prototypes, side projects, and apps that tolerate beta.
+- **For business-critical data:** bring your own external managed database (point your app at it via an environment variable) until Varity's managed-database durability ships. Your app deploys exactly the same way — it just connects to your database instead of an auto-wired one.
+
+## Bring Your Own Database
+
+To use an external database, set its connection string as an environment variable (for example `DATABASE_URL`) when you deploy, and Varity won't provision its own. See [Environment Variables](/deploy/env-variables/).
+
+## Next Steps
+
+- [Auto-wired Services](/deploy/auto-wired-services/) — detection rules and the full service list.
+- [Environment Variables](/deploy/env-variables/) — how connection details are injected.
+- [What You Can Deploy Today](/deploy/what-you-can-deploy/) — the full beta picture.
