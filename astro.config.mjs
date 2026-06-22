@@ -37,7 +37,7 @@ export default defineConfig({
         },
       ],
       editLink: {
-        baseUrl: "https://github.com/varity-labs/varity-docs/edit/main/",
+        baseUrl: "https://github.com/varity-labs/varity-docs/edit/master/",
       },
       components: {
         ContentPanel: './src/components/overrides/ContentPanel.astro',
