@@ -324,6 +324,14 @@ export default defineConfig({
           ],
         },
 
+        // ===== SECURITY =====
+        {
+          label: "Security",
+          items: [
+            { label: "Security & shared responsibility", slug: "resources/security" },
+          ],
+        },
+
         // ===== HELP =====
         {
           label: "Help",
