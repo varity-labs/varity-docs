@@ -1,0 +1,52 @@
+---
+title: Security and shared responsibility
+description: How Varity secures your deployments, what you are responsible for, and how to report a security vulnerability.
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+import PageMeta from '../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="June 2026"
+  stability="stable"
+/>
+
+Security is a partnership between Varity and you. This page explains what Varity protects, what you are responsible for, and how to reach us about a security issue.
+
+## What Varity protects
+
+- **Encryption in transit** — all traffic between you, Varity, and your deployments is encrypted with TLS, with HTTP Strict Transport Security enforced.
+- **Isolated secrets** — environment variables and credentials are injected at runtime, never built into images, and never written to logs.
+- **Account isolation** — every account is isolated from every other account.
+- **Hardened deploy path** — inputs to the build and deploy pipeline are validated to prevent injection and server-side request forgery.
+
+## Shared-responsibility model
+
+<CardGrid>
+  <Card title="Varity owns">
+    The platform and control plane: edge encryption, routing, the deploy pipeline, secret injection, and patching our own services.
+  </Card>
+  <Card title="Infrastructure owns">
+    The underlying hosts: physical security, the host operating system, and container-runtime isolation. Varity selects and continuously evaluates providers.
+  </Card>
+  <Card title="You own">
+    Your application: your code and dependencies, your in-app authentication, the secret values you set, and the data your app stores.
+  </Card>
+</CardGrid>
+
+## Your responsibilities in practice
+
+- Keep your application dependencies up to date.
+- Implement authentication and authorization inside your own application.
+- Treat the environment variables you set as sensitive, and rotate them if they are ever exposed.
+- During beta, keep your own backups of business-critical data.
+
+## Reporting a vulnerability
+
+Found a security issue? Email **security@varity.so**. Please report it responsibly and do not open a public issue. We aim to acknowledge reports within 48 hours and will keep you updated on remediation.
+
+## On our roadmap
+
+We are transparent about what is in place today versus what is coming. In active development: platform-managed encryption at rest, tamper-evident audit logging, and team accounts with role-based access control.
