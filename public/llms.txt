@@ -82,6 +82,7 @@ Full docs: https://docs.varity.so
 - Auto-wired Services: https://docs.varity.so/deploy/auto-wired-services/
 - Vercel Migration: https://docs.varity.so/deploy/vercel-migration/
 - MCP Server: https://docs.varity.so/ai-tools/mcp-server-spec/
+- API Reference: https://docs.varity.so/ai-tools/api-reference/
 - Pricing: https://docs.varity.so/resources/pricing/
 - FAQ: https://docs.varity.so/resources/faq/
 - Troubleshooting: https://docs.varity.so/resources/troubleshooting/
@@ -105,7 +106,21 @@ Install for Claude Code:
 claude mcp add varity -- npx -y @varity-labs/mcp
 ```
 
-Core tools: varity_doctor, varity_deploy, varity_deploy_status, varity_deploy_logs, varity_migrate, varity_cost_calculator, varity_search_docs, varity_create_repo, varity_login, varity_install_deps, varity_build, varity_dev_server, varity_open_browser
+Tools (17): varity_doctor, varity_login, varity_search_docs, varity_cost_calculator, varity_install_deps, varity_build, varity_dev_server, varity_open_browser, varity_create_repo, varity_deploy, varity_deploy_status, varity_deploy_logs, varity_delete_deployment, varity_migrate, varity_list_agents, varity_agent_info, varity_deploy_agent
+
+Machine-readable MCP tool schema (exact tools/list from the published package): https://docs.varity.so/mcp-schema.json
+
+## HTTP API
+
+Agents and integrations can deploy and operate apps directly over HTTP. Machine-readable spec: https://docs.varity.so/openapi.yaml — full reference: https://docs.varity.so/ai-tools/api-reference/
+
+- Base URL: https://varity.app
+- Auth: `Authorization: Bearer <deploy-key>` on /v1 endpoints (get a key with `varitykit login`). Pricing + health are public.
+- POST /v1/deploy — start a deploy (body: app_name, source, and one of repo_url or image). Returns { run_id }.
+- GET /v1/deploy/{run_id} — status + result (frontend_url on success; error_message + failure_stage on failure).
+- GET /v1/deploy/{run_id}/logs — SSE stream of deploy progress.
+- DELETE /v1/deployments/{app_name} — stop a deployment and its billing.
+- GET /api/pricing?profile=web — live flat pricing (public).
 
 ## Support
 
