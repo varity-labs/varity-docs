@@ -106,7 +106,7 @@ Install for Claude Code:
 claude mcp add varity -- npx -y @varity-labs/mcp
 ```
 
-Tools (17): varity_doctor, varity_login, varity_search_docs, varity_cost_calculator, varity_install_deps, varity_build, varity_dev_server, varity_open_browser, varity_create_repo, varity_deploy, varity_deploy_status, varity_deploy_logs, varity_delete_deployment, varity_migrate, varity_list_agents, varity_agent_info, varity_deploy_agent
+Tools (19): varity_doctor, varity_login, varity_search_docs, varity_cost_calculator, varity_install_deps, varity_build, varity_dev_server, varity_open_browser, varity_create_repo, varity_deploy, varity_deploy_status, varity_deploy_logs, varity_set_env, varity_redeploy, varity_delete_deployment, varity_migrate, varity_list_agents, varity_agent_info, varity_deploy_agent
 
 Machine-readable MCP tool schema (exact tools/list from the published package): https://docs.varity.so/mcp-schema.json
 
@@ -119,6 +119,8 @@ Agents and integrations can deploy and operate apps directly over HTTP. Machine-
 - POST /v1/deploy — start a deploy (body: app_name, source, and one of repo_url or image). Returns { run_id }.
 - GET /v1/deploy/{run_id} — status + result (frontend_url on success; error_message + failure_stage on failure).
 - GET /v1/deploy/{run_id}/logs — SSE stream of deploy progress.
+- PUT /v1/deployments/{app_name}/env — set/update env vars (body: envVars map, optional replace) and redeploy in place.
+- POST /v1/deployments/{app_name}/redeploy — redeploy/restart an existing app in place (same URL, no new bid).
 - DELETE /v1/deployments/{app_name} — stop a deployment and its billing.
 - GET /api/pricing?profile=web — live flat pricing (public).
 

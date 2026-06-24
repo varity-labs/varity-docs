@@ -3,8 +3,9 @@ info:
   title: Varity HTTP API
   description: >
     The public, agent-facing HTTP contract for Varity. AI agents, CLIs, and integrators
-    call these endpoints to deploy a project, poll its status, stream deploy logs, stop a
-    deployment, and read live pricing. This is the same stable `/v1` contract the
+    call these endpoints to deploy a project, poll its status, stream deploy logs, update
+    its environment variables, redeploy it in place, stop a deployment, and read live
+    pricing. This is the same stable `/v1` contract the
     `varitykit` CLI and `@varity-labs/mcp` server use under the hood — point your agent at
     it directly, or use the MCP server (see https://docs.varity.so/ai-tools/mcp-server-spec/).
 
@@ -19,7 +20,7 @@ info:
     Internal control-plane routes (identity callbacks, billing, the deployment registry,
     telemetry ingest, and infrastructure plumbing) are intentionally not part of this
     public contract and may change without notice.
-  version: 1.0.0
+  version: 1.1.0
 servers:
   - url: https://varity.app
     description: Production API (the Varity gateway)
@@ -151,6 +152,87 @@ paths:
                   deleted: { type: boolean }
                   subdomain: { type: string }
                   appName: { type: string }
+        '401':
+          description: Missing or invalid deploy key.
+        '403':
+          description: The deploy key does not own this deployment.
+        '404':
+          description: Unknown deployment.
+  /v1/deployments/{subdomain}/env:
+    put:
+      operationId: setDeploymentEnv
+      tags: [Deploy]
+      summary: Set environment variables and redeploy in place
+      description: >
+        Set or update environment variables on an existing deployment, then redeploy it in
+        place — same URL, same reserved hardware, no new bid. By default the supplied
+        variables are merged over the current set; pass `replace: true` to overwrite the
+        entire set. Values are write-only and are never returned. The change goes live in
+        about a minute with no URL change.
+      security:
+        - deployKey: []
+      parameters:
+        - name: subdomain
+          in: path
+          required: true
+          description: The app name (the `{name}` in https://varity.app/{name}/).
+          schema:
+            type: string
+            pattern: '^[a-z0-9-]{1,63}$'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                envVars:
+                  type: object
+                  additionalProperties:
+                    type: string
+                  description: Environment variables to set, as a map of UPPER_SNAKE_CASE name to value.
+                replace:
+                  type: boolean
+                  default: false
+                  description: When true, replace the entire variable set instead of merging.
+              required: [envVars]
+      responses:
+        '200':
+          description: Variables applied; redeploy of the same deployment started.
+        '400':
+          description: Missing subdomain or an invalid env map.
+        '401':
+          description: Missing or invalid deploy key.
+        '403':
+          description: The deploy key does not own this deployment.
+        '404':
+          description: Unknown deployment.
+  /v1/deployments/{subdomain}/redeploy:
+    post:
+      operationId: redeployDeployment
+      tags: [Deploy]
+      summary: Redeploy an existing deployment in place
+      description: >
+        Redeploy or restart an existing app in place — re-pulling the image (or rebuilding
+        from source) and restarting the container on the SAME deployment: same URL, same
+        reserved hardware, no new bid. Takes no body and keeps the current environment
+        variables; use PUT `/v1/deployments/{subdomain}/env` to change config at the same
+        time. Goes live in about a minute with no URL change.
+      security:
+        - deployKey: []
+      parameters:
+        - name: subdomain
+          in: path
+          required: true
+          description: The app name (the `{name}` in https://varity.app/{name}/).
+          schema:
+            type: string
+            pattern: '^[a-z0-9-]{1,63}$'
+      responses:
+        '200':
+          description: Redeploy of the same deployment started.
+        '400':
+          description: Missing subdomain.
         '401':
           description: Missing or invalid deploy key.
         '403':
