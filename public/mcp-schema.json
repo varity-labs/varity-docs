@@ -1,10 +1,10 @@
 {
   "$schema": "https://modelcontextprotocol.io/schema/2024-11-05/tools-list",
-  "description": "Varity MCP server tool catalog. The canonical machine-readable schema for AI agents and MCP clients. Generated from the published @varity-labs/mcp package (the exact tools an agent receives from tools/list).",
+  "description": "Varity MCP server tool catalog. The canonical machine-readable schema for AI agents and MCP clients. Generated from the current @varity-labs/mcp package source (the exact tools an agent receives from tools/list).",
   "server": {
     "name": "varity",
     "package": "@varity-labs/mcp",
-    "version": "2.2.0",
+    "version": "2.3.0",
     "docs": "https://docs.varity.so/ai-tools/mcp-server-spec/",
     "install": {
       "claudeCode": "claude mcp add varity -- npx -y @varity-labs/mcp",

@@ -27,7 +27,7 @@ Varity accepts three kinds of input, from the CLI, the Developer Portal, or the 
 | Input | How | Best for |
 |-------|-----|----------|
 | **Your project / GitHub repo** | `varitykit app deploy` (this page) | Apps in a [supported framework](/deploy/supported-frameworks) — auto-detected, auto-built |
-| **A Docker image** | `varitykit app deploy --image <ref>` — see [Deploy a Docker Image](/deploy/deploy-docker-image) | Anything already containerized, any language |
+| **A Docker image** | `varitykit app deploy --image <ref>` — see [Deploy a Docker Image](/deploy/deploy-docker-image) | Prebuilt runnable HTTP service images, including unsupported source-language apps once containerized |
 | **A template** | The portal gallery — see [agent templates](/tutorials/deploy-ai-agent#one-click-agent-templates) | One-click AI agent and tool deployments |
 
 The rest of this page covers the first path: deploying your own project.
@@ -243,7 +243,7 @@ Instead of a project directory, you can deploy an existing image. See [Deploy a 
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `--image` | — | Image reference to deploy as-is (e.g. `ghcr.io/acme/api:1.4.2`) |
+| `--image` | — | Runnable HTTP service image reference (e.g. `ghcr.io/acme/api:1.4.2`) |
 | `--port` | `80` | Container port your app listens on |
 | `--image-registry` / `--image-username` / `--image-password` | — | Credentials for a private registry |
 
