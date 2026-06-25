@@ -266,29 +266,33 @@ Get build and deployment logs for debugging failed or recent deployments.
 
 ---
 
-### `varity_set_env`: Update environment variables
+### `varity_set_env`: Set env vars on a live app
 
-Set or update environment variables on an existing deployment, then redeploy it in place on the same URL and reserved hardware.
+Set or update environment variables (config + secrets) on an app that is **already deployed**, then redeploy it in place — same URL, same reserved hardware, no new bid, no downtime churn. By default the supplied variables are merged over the current set; pass `replace: true` to overwrite the entire set. Values are write-only and are never echoed back.
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
 | `name` | string | Yes | none | The app name / subdomain — the `<name>` in `https://varity.app/<name>/` |
-| `env` | object | Yes | none | Environment variables as `{ "NAME": "value" }`. Names must be `UPPER_SNAKE_CASE`. |
-| `replace` | boolean | No | `false` | When true, replace the full variable set instead of merging over the existing set. |
+| `env` | object | Yes | none | Variables to set, as a map of UPPER_SNAKE_CASE name to value |
+| `replace` | boolean | No | `false` | When true, replace the entire variable set instead of merging |
 
-**Example prompt:** "Set STRIPE_SECRET_KEY on my dashboard app"
+**Annotations:** `destructiveHint: true` (redeploys live infrastructure)
+
+**Example prompt:** "Set DATABASE_URL on my-api and redeploy" or "Rotate the API key on hermes-bot"
 
 ---
 
-### `varity_redeploy`: Redeploy or restart in place
+### `varity_redeploy`: Redeploy an app in place
 
-Redeploy or restart an existing app in place. Use this to pull the latest image, rebuild from the configured source, or recover a stuck deployment without creating a new URL.
+Redeploy or restart an app that is **already deployed**, in place — re-pulling the image (or rebuilding from source) and restarting the container on the **same** deployment: same URL, same reserved hardware, no new bid. Takes no body and keeps the current environment variables; use `varity_set_env` to change config at the same time.
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
 | `name` | string | Yes | none | The app name / subdomain — the `<name>` in `https://varity.app/<name>/` |
 
-**Example prompt:** "Redeploy my-api"
+**Annotations:** `destructiveHint: true` (restarts live infrastructure)
+
+**Example prompt:** "Redeploy my-api" or "My app is stuck — restart hermes-bot"
 
 ---
 
@@ -397,10 +401,9 @@ Here is the practical build-and-deploy flow using the MCP tools:
 5. **"Build for production"** → `varity_build`
 6. **"Deploy this"** → `varity_deploy`
 7. **"Did the deploy succeed?"** → `varity_deploy_status`
-8. **"Set DATABASE_URL on this app"** → `varity_set_env` (if configuration changes)
-9. **"Redeploy this app"** → `varity_redeploy` (if you need to restart or pull the latest source/image)
-10. **"Show me the build logs"** → `varity_deploy_logs` (if needed)
-11. **"Tear down this deployment"** → `varity_delete_deployment` (when you no longer need it)
+8. **"Show me the build logs"** → `varity_deploy_logs` (if needed)
+9. **"Update an env var and redeploy"** → `varity_set_env`; **"restart it"** → `varity_redeploy` (operate in place — same URL, no new bid)
+10. **"Tear down this deployment"** → `varity_delete_deployment` (when you no longer need it)
 
 **Migrating from Vercel:**
 

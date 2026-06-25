@@ -1,5 +1,5 @@
 {
-  "": "https://modelcontextprotocol.io/schema/2024-11-05/tools-list",
+  "$schema": "https://modelcontextprotocol.io/schema/2024-11-05/tools-list",
   "description": "Varity MCP server tool catalog. The canonical machine-readable schema for AI agents and MCP clients. Generated from the current @varity-labs/mcp package source (the exact tools an agent receives from tools/list).",
   "server": {
     "name": "varity",
@@ -346,10 +346,6 @@
           "volume_path": {
             "type": "string",
             "description": "Absolute container path to mount the persistent volume (e.g. '/data', '/home/node/.n8n'). Requires volume_size."
-          },
-          "private": {
-            "type": "boolean",
-            "description": "Require owner-only access behind Varity's generated password gate. Use for apps that should not be reachable without the returned access password."
           }
         },
         "additionalProperties": false,

@@ -96,6 +96,20 @@ Varity can auto-provision services when supported apps declare compatible depend
 
 Bring-your-own custom domains are not self-serve yet.
 
+## HTTP API
+
+Agents and integrations can deploy and operate apps directly over HTTP. Machine-readable spec: `https://docs.varity.so/openapi.yaml`.
+
+- Base URL: `https://varity.app`
+- Auth: `Authorization: Bearer <deploy-key>` on `/v1` endpoints (get a key with `varitykit login`). Pricing and health are public.
+- `POST /v1/deploy` - start a deploy (body: app_name, source, and one of repo_url or image). Returns `{ run_id }`.
+- `GET /v1/deploy/{run_id}` - status and result.
+- `GET /v1/deploy/{run_id}/logs` - SSE stream of deploy progress.
+- `PUT /v1/deployments/{app_name}/env` - set/update env vars and redeploy in place.
+- `POST /v1/deployments/{app_name}/redeploy` - redeploy/restart an existing app in place.
+- `DELETE /v1/deployments/{app_name}` - stop a deployment and its billing.
+- `GET /api/pricing?profile=web` - live flat pricing (public).
+
 ## Current beta boundaries
 
 - Source-build support is limited to the supported framework matrix above.
