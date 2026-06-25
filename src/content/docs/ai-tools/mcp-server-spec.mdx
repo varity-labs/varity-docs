@@ -13,7 +13,7 @@ import PageMeta from '../../../components/PageMeta.astro';
   stability="stable"
 />
 
-The Varity MCP server (`@varity-labs/mcp`) gives AI editors a full set of tools for the full build and deploy workflow. It runs locally via stdio. Install with the current beta tag.
+The Varity MCP server (`@varity-labs/mcp`) gives AI editors a full set of tools for the full build, deploy, and operate workflow. It runs locally via stdio. Install it from the current npm package.
 
 <Aside type="tip">
 The MCP server works with **any editor that supports MCP**: Cursor, Claude Code, VS Code (Copilot), Windsurf, and more. Setup takes under a minute.
@@ -266,6 +266,32 @@ Get build and deployment logs for debugging failed or recent deployments.
 
 ---
 
+### `varity_set_env`: Update environment variables
+
+Set or update environment variables on an existing deployment, then redeploy it in place on the same URL and reserved hardware.
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `name` | string | Yes | none | The app name / subdomain — the `<name>` in `https://varity.app/<name>/` |
+| `env` | object | Yes | none | Environment variables as `{ "NAME": "value" }`. Names must be `UPPER_SNAKE_CASE`. |
+| `replace` | boolean | No | `false` | When true, replace the full variable set instead of merging over the existing set. |
+
+**Example prompt:** "Set STRIPE_SECRET_KEY on my dashboard app"
+
+---
+
+### `varity_redeploy`: Redeploy or restart in place
+
+Redeploy or restart an existing app in place. Use this to pull the latest image, rebuild from the configured source, or recover a stuck deployment without creating a new URL.
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `name` | string | Yes | none | The app name / subdomain — the `<name>` in `https://varity.app/<name>/` |
+
+**Example prompt:** "Redeploy my-api"
+
+---
+
 ### `varity_delete_deployment`: Tear down a deployment
 
 Permanently remove a deployment by its app name and stop its billing immediately. Use when you no longer need an app you deployed.
@@ -371,8 +397,10 @@ Here is the practical build-and-deploy flow using the MCP tools:
 5. **"Build for production"** → `varity_build`
 6. **"Deploy this"** → `varity_deploy`
 7. **"Did the deploy succeed?"** → `varity_deploy_status`
-8. **"Show me the build logs"** → `varity_deploy_logs` (if needed)
-9. **"Tear down this deployment"** → `varity_delete_deployment` (when you no longer need it)
+8. **"Set DATABASE_URL on this app"** → `varity_set_env` (if configuration changes)
+9. **"Redeploy this app"** → `varity_redeploy` (if you need to restart or pull the latest source/image)
+10. **"Show me the build logs"** → `varity_deploy_logs` (if needed)
+11. **"Tear down this deployment"** → `varity_delete_deployment` (when you no longer need it)
 
 **Migrating from Vercel:**
 

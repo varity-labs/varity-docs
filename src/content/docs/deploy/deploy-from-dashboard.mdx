@@ -21,7 +21,7 @@ This is the path most people use. If you prefer the terminal, see [Deploy Your A
 
 - A Varity account — sign in at [developer.store.varity.so](https://developer.store.varity.so).
 - A payment method on file. Varity asks for a card before your first deploy so your app can go live and stay live; you are billed a flat monthly price for the hardware your app reserves, not for traffic. See [Billing](/resources/billing/).
-- Your app's source: a public GitHub repo, a connected GitHub account, or a public Docker image.
+- Your app's source: a supported public GitHub repo, or a prebuilt public/private Docker image that starts an HTTP service.
 
 ## Deploy in a Few Steps
 
@@ -34,8 +34,8 @@ This is the path most people use. If you prefer the terminal, see [Deploy Your A
 2. **Choose your source**
 
    Pick one of:
-   - **GitHub repo** — paste a repository URL, or connect your GitHub account and browse your repos.
-   - **Docker image** — provide a public image reference (for example `nginx:latest` or `ghcr.io/acme/api:1.4`). This is also the path for any language Varity doesn't build from source yet.
+   - **GitHub repo** — paste a public repository URL, or connect your GitHub account and browse repos where supported.
+   - **Docker image** — provide a public or private image reference (for example `nginx:latest` or `ghcr.io/acme/api:1.4`). Private registry images require pull credentials. This is also the path for languages Varity doesn't build from source yet.
    - **Template** — pick a ready-made app from the gallery and deploy it as-is.
 
 3. **Name and configure**
@@ -87,5 +87,5 @@ Everything after deploy lives in the dashboard:
 ## Next Steps
 
 - [What You Can Deploy Today](/deploy/what-you-can-deploy/) — supported stacks and current beta limits.
-- [Deploy a Docker Image](/deploy/deploy-docker-image/) — deploy any prebuilt image.
+- [Deploy a Docker Image](/deploy/deploy-docker-image/) — deploy a runnable HTTP service image.
 - [Migrate from Vercel](/deploy/vercel-migration/) — move an existing app over.

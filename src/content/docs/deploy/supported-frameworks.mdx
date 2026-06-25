@@ -15,15 +15,15 @@ import PageMeta from '../../../components/PageMeta.astro';
 
 Varity automatically detects your framework when you run `varitykit app deploy`. You do not need to specify your framework manually.
 
-## Runnable Public Docker Images
+## Runnable Docker Images
 
-If your app is already packaged as a Docker image, framework detection does not apply. Varity can run public Docker images that start a healthy HTTP service on the configured port:
+If your app is already packaged as a Docker image, framework detection does not apply. Varity can run public or private Docker images that start a healthy HTTP service on the configured port:
 
 ```bash
 varitykit app deploy --image ghcr.io/acme/my-api:1.4.2 --port 8080
 ```
 
-Private registries are supported from the CLI and MCP (the Developer Portal accepts public images today). See [Deploy a Docker Image](/deploy/deploy-docker-image) for all three deploy paths.
+Private registries are supported from the CLI, MCP, and Developer Portal. See [Deploy a Docker Image](/deploy/deploy-docker-image) for all three deploy paths.
 
 ## Supported Frameworks
 

@@ -1,10 +1,10 @@
 {
-  "$schema": "https://modelcontextprotocol.io/schema/2024-11-05/tools-list",
-  "description": "Varity MCP server tool catalog. The canonical machine-readable schema for AI agents and MCP clients. Generated from the published @varity-labs/mcp package (the exact tools an agent receives from tools/list).",
+  "": "https://modelcontextprotocol.io/schema/2024-11-05/tools-list",
+  "description": "Varity MCP server tool catalog. The canonical machine-readable schema for AI agents and MCP clients. Generated from the current @varity-labs/mcp package source (the exact tools an agent receives from tools/list).",
   "server": {
     "name": "varity",
     "package": "@varity-labs/mcp",
-    "version": "2.1.1",
+    "version": "2.3.0",
     "docs": "https://docs.varity.so/ai-tools/mcp-server-spec/",
     "install": {
       "claudeCode": "claude mcp add varity -- npx -y @varity-labs/mcp",
@@ -26,7 +26,7 @@
       "http"
     ]
   },
-  "toolCount": 17,
+  "toolCount": 19,
   "tools": [
     {
       "name": "varity_search_docs",
@@ -338,6 +338,18 @@
           "port": {
             "type": "integer",
             "description": "Container listen port for an --image deploy (default 80)."
+          },
+          "volume_size": {
+            "type": "integer",
+            "description": "Persistent volume size in GB for the app container (survives restart/redeploy). Use for stateful apps (databases, n8n, Ghost, etc.). Requires volume_path."
+          },
+          "volume_path": {
+            "type": "string",
+            "description": "Absolute container path to mount the persistent volume (e.g. '/data', '/home/node/.n8n'). Requires volume_size."
+          },
+          "private": {
+            "type": "boolean",
+            "description": "Require owner-only access behind Varity's generated password gate. Use for apps that should not be reachable without the returned access password."
           }
         },
         "additionalProperties": false,
@@ -425,6 +437,62 @@
           "name": {
             "type": "string",
             "description": "The subdomain / app name of the deployment to delete. This is the slug in https://varity.app/<name>/. Example: 'my-hermes-bot' or 'mvp-static-test'."
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "varity_set_env",
+      "title": "Set Environment Variables on an Existing Deployment",
+      "description": "Set or update environment variables (config + secrets) on an app that is ALREADY deployed, then redeploy it in place. Use this when a developer says 'add an env var to <name>', 'change the API key on <name>', 'set DATABASE_URL on my app', or 'update the config and redeploy'. The variables are applied to the SAME deployment — same URL, same reserved hardware, no new bid — so the change goes live in about a minute with no downtime churn. By default the new variables are MERGED over the existing set; pass replace=true to overwrite the entire set. Variable values are write-only and are never echoed back. To create a NEW deployment instead, use varity_deploy.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The subdomain / app name of the existing deployment to update, the slug in https://varity.app/<name>/. Example: 'my-api'."
+          },
+          "env": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Environment variables to set as a map of NAME to value, e.g. { \"DATABASE_URL\": \"postgres://...\", \"FEATURE_X\": \"on\" }. Names must be UPPER_SNAKE_CASE."
+          },
+          "replace": {
+            "type": "boolean",
+            "description": "When true, replace the entire variable set with `env` instead of merging it over the current set. Default false (merge)."
+          }
+        },
+        "required": [
+          "name",
+          "env"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "varity_redeploy",
+      "title": "Redeploy or Restart an Existing Deployment In Place",
+      "description": "Redeploy or restart an app that is ALREADY deployed, in place. Use this when a developer says 'redeploy <name>', 'restart <name>', 'my app is stuck — restart it', or 'pull the latest image and redeploy'. The app is re-deployed on the SAME deployment — same URL, same reserved hardware, no new bid — re-pulling the image (or rebuilding from source) and restarting the container, so it goes live in about a minute with no URL change. To change env vars at the same time, use varity_set_env. To create a NEW deployment instead, use varity_deploy.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The subdomain / app name of the existing deployment to redeploy, the slug in https://varity.app/<name>/. Example: 'my-api'."
           }
         },
         "required": [
