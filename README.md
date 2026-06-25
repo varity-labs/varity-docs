@@ -1,6 +1,6 @@
 # Varity Documentation
 
-> **The easiest way to deploy any Node or Python app, AI agent, or LLM.**
+> **Predictable cloud deployment for supported apps, Docker services, and curated AI agents.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![Discord](https://img.shields.io/badge/Discord-Join-5865F2?logo=discord&logoColor=white)](https://discord.gg/7vWsdwa2Bg)
@@ -9,7 +9,7 @@ This repository is the source for the official Varity documentation at **[docs.v
 
 ## What is Varity?
 
-Varity is the easiest way to deploy a Node or Python app, AI agent, or LLM straight from your AI coding tool. Run one command (or ask your AI editor) and Varity builds your project, provisions the backend services it needs, and returns a live URL. No servers to configure, no Docker, no DevOps. It is a fixed monthly cost per app, 60-80% cheaper than Vercel, Render, or Railway, and your bill does not change with traffic.
+Varity deploys supported Node, Python, Go, and static projects, plus runnable Docker HTTP services and curated AI agent templates. Run one command (or ask your AI editor) and Varity builds your project, provisions detected backend services, and returns a live URL. Pricing is a fixed monthly cost per app based on reserved hardware, so traffic does not change the bill for the same deployment profile.
 
 Varity ships as two packages:
 
@@ -29,7 +29,7 @@ varitykit app deploy
 Or add the MCP server to your AI editor and deploy with natural language:
 
 ```bash
-npx -y @varity-labs/mcp@beta
+npx -y @varity-labs/mcp
 ```
 
 ## Supported Frameworks
@@ -40,11 +40,12 @@ Varity auto-detects and deploys:
 |----------|-----------|
 | Node.js | Next.js, React, Vue, Astro, Qwik, Vite SPA, Express, Fastify, NestJS, Koa, Hono |
 | Python | FastAPI, Django, Flask |
+| Go | Go modules |
 | Static | Plain HTML and static builds |
 
-Auto-wired backend services (provisioned when Varity detects them in your dependencies): **Postgres** (with pgvector), **Redis**, **MongoDB**, **MySQL**, and **Ollama**.
+Auto-wired backend services (provisioned when Varity detects them in your dependencies): **Postgres** (with pgvector), **Redis**, **MongoDB**, **MySQL**, **Ollama**, and **MinIO** (S3-compatible object storage).
 
-**Not supported yet:** Go, Rust, Ruby / Rails, Elixir / Phoenix, Java / Spring, Deno, PHP / Laravel, .NET. Deploying these returns a clear unsupported-language error. [Request a framework](https://github.com/varity-labs).
+**Not supported yet for source builds:** Rust, Ruby / Rails, Elixir / Phoenix, Java / Spring, Deno, PHP / Laravel, .NET. Deploying these from source returns a clear unsupported-language error. You can still deploy them as runnable Docker images. [Request a framework](https://github.com/varity-labs).
 
 ## Contributing to the docs
 
