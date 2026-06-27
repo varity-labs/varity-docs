@@ -32,6 +32,7 @@ claude mcp add varity -- npx -y @varity-labs/mcp
 
 ## Pages
 
+- [API Reference](https://docs.varity.so/ai-tools/api-reference/): Agent-facing Varity HTTP API and MCP schemas for deploying, monitoring, streaming logs, and stopping apps programmatically.
 - [Varity MCP Server](https://docs.varity.so/ai-tools/mcp-server-spec/): Install and configure the Varity MCP server for AI editors. A full set of tools for building, deploying, and managing apps via Cursor or Claude Code.
 - [AI Tools for Varity](https://docs.varity.so/ai-tools/overview/): Accelerate Varity development with AI tools. Copy-paste prompts, Cursor rules, MCP server integration, and LLM-optimized documentation.
 - [AI Prompts](https://docs.varity.so/ai-tools/prompts/): Ready-to-paste prompts for deploying to Varity from Claude Code, Cursor, Windsurf, or ChatGPT. No commands to memorize.
@@ -71,6 +72,7 @@ claude mcp add varity -- npx -y @varity-labs/mcp
 - [FAQ](https://docs.varity.so/resources/faq/): Frequently asked questions about Varity: deployment workflow, supported frameworks, and pricing model.
 - [Glossary](https://docs.varity.so/resources/glossary/): Definitions of key Varity terms: deploy keys, managed credentials, deployment IDs, static hosting, dynamic hosting, and MCP tools.
 - [Pricing and Costs](https://docs.varity.so/resources/pricing/): Pricing model overview for Varity. Compare Varity's fixed reserved-hardware pricing with usage-metered cloud billing.
+- [Security and shared responsibility](https://docs.varity.so/resources/security/): How Varity secures your deployments, what you are responsible for, and how to report a security vulnerability.
 - [Troubleshooting](https://docs.varity.so/resources/troubleshooting/): Fix common Varity issues: CLI not found, build errors, authentication failures, deployment problems, and database connection troubleshooting.
 - [Build an App Using Only AI (No Code Required)](https://docs.varity.so/tutorials/build-with-ai/): Build and deploy an app with your AI editor. Varity MCP handles setup checks, the deploy workflow, and cost estimation.
 - [Deploy an AI Agent or LLM App](https://docs.varity.so/tutorials/deploy-ai-agent/): Step-by-step guide to deploying a Python or Node.js AI agent on Varity. Auto-detected compute and optional local model server included.

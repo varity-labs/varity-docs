@@ -37,7 +37,7 @@ export default defineConfig({
         },
       ],
       editLink: {
-        baseUrl: "https://github.com/varity-labs/varity-docs/edit/main/",
+        baseUrl: "https://github.com/varity-labs/varity-docs/edit/master/",
       },
       components: {
         ContentPanel: './src/components/overrides/ContentPanel.astro',
@@ -236,6 +236,7 @@ export default defineConfig({
               label: "MCP Server (Claude Code / Cursor)",
               slug: "ai-tools/mcp-server-spec",
             },
+            { label: "API Reference", slug: "ai-tools/api-reference" },
             { label: "AI Prompts", slug: "ai-tools/prompts" },
             { label: "CLI (varitykit)", slug: "cli/overview" },
           ],
@@ -321,6 +322,14 @@ export default defineConfig({
             { label: "How pricing works", slug: "resources/pricing" },
             { label: "Billing", slug: "resources/billing" },
             { label: "FAQ", slug: "resources/faq" },
+          ],
+        },
+
+        // ===== SECURITY =====
+        {
+          label: "Security",
+          items: [
+            { label: "Security & shared responsibility", slug: "resources/security" },
           ],
         },
 

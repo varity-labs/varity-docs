@@ -34,7 +34,7 @@ Varity detects these from your dependencies and provisions them alongside your a
   </Card>
 </CardGrid>
 
-Varity also provisions an **Ollama** model server (`OLLAMA_URL`) when your app uses one. Detection and the full env-var list are covered in [Auto-wired Services](/deploy/auto-wired-services/).
+Varity also provisions an **Ollama** model server (`OLLAMA_URL`) and an **S3-compatible object store** (`MINIO_URL`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`) when your app uses one. Detection and the full env-var list are covered in [Auto-wired Services](/deploy/auto-wired-services/).
 
 Your app reads these from its environment. No connection strings to manage:
 

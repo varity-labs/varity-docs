@@ -19,6 +19,10 @@ The Varity MCP server (`@varity-labs/mcp`) gives AI editors a full set of tools 
 The MCP server works with **any editor that supports MCP**: Cursor, Claude Code, VS Code (Copilot), Windsurf, and more. Setup takes under a minute.
 </Aside>
 
+<Aside type="note">
+**Machine-readable schema.** The exact tool catalog an agent receives from `tools/list` is published at [`/mcp-schema.json`](/mcp-schema.json), generated directly from the released `@varity-labs/mcp` package, so it is always the source of truth. The HTTP API the tools wrap is published as [`/openapi.yaml`](/openapi.yaml). See the [API Reference](/ai-tools/api-reference/) for both.
+</Aside>
+
 ## Prerequisites
 
 - **Node.js 20+** (runs the MCP server)
@@ -101,14 +105,11 @@ Verify that your development environment is ready to build and deploy Varity app
 
 ### `varity_login`: Authenticate with Varity
 
-Authenticate with Varity using a deploy key or browser-based login. Required before deploying apps.
+Log in to Varity to enable deployments. If a `deploy_key` is provided, it is saved to local config; otherwise the tool opens the developer portal where you add a payment method and copy your deploy key. Required before deploying apps.
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `method` | `"deploy-key"` \| `"browser"` | No | `"browser"` | Authentication method |
-| `deploy_key` | string | No | none | Deploy key (required when `method` is `"deploy-key"`) |
-
-**Annotations:** `destructiveHint: true` (writes credentials to local config)
+| `deploy_key` | string | No | none | Your deploy key from the developer portal (`developer.store.varity.so/dashboard/settings`). If omitted, opens the portal to get one. |
 
 **Example prompt:** "Log in to Varity" or "Authenticate with my deploy key"
 
@@ -205,8 +206,9 @@ Create a new GitHub repository and push your project to it. Useful for getting y
 |-----------|------|----------|---------|-------------|
 | `name` | string | Yes | none | Repository name (lowercase, hyphens allowed) |
 | `description` | string | No | none | Short description for the repo |
+| `path` | string | No | Current directory | Absolute path to the local project to push (e.g. `/home/user/my-app`) |
 | `visibility` | `"public"` \| `"private"` | No | `"public"` | Repository visibility |
-| `github_token` | string | No | none | GitHub personal access token with `repo` scope |
+| `github_token` | string | No | none | GitHub personal access token with `repo` scope (or set `GITHUB_TOKEN`) |
 
 **Annotations:** `destructiveHint: true` (creates an external GitHub repository)
 
@@ -216,25 +218,32 @@ Create a new GitHub repository and push your project to it. Useful for getting y
 
 ### `varity_deploy`: Deploy to production
 
-Build and deploy the current project. Auto-detects framework (Next.js, React, Vue), builds it, and returns a live URL.
+Deploy the current project to production. Detects the framework, selects static vs dynamic hosting, auto-configures any backend services your code needs, and returns a live URL at `https://varity.app/<name>/`. Deploy from source (a project path or a GitHub repo) or from a prebuilt Docker/OCI image.
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `path` | string | No | Workspace root | Path to the project directory |
+| `path` | string | No | MCP working dir | Absolute path to the project root (the directory with `package.json`). |
+| `repo_url` | string | No | auto-detected | GitHub repo URL. Required for dynamic deployments; auto-detected from `.git/config` if omitted. |
+| `app_name` | string | No | directory name | URL-safe name controlling the URL `https://varity.app/{app_name}/`. |
+| `image` | string | No | none | Deploy a prebuilt Docker/OCI image (e.g. `ghcr.io/you/app:latest`) instead of building. Mutually exclusive with `repo_url`. |
+| `image_credentials` | object | No | none | `{ host, username, password }` pull credentials for a **private** registry image. Omit for public images. |
+| `port` | integer | No | `80` | Container listen port for an `image` deploy. |
 
 **Annotations:** `destructiveHint: true` (deploys real infrastructure)
 
-**Example prompt:** "Deploy this project to Varity"
+**Example prompt:** "Deploy this project to Varity" or "Deploy the image ghcr.io/me/api:latest on port 8080"
 
 ---
 
 ### `varity_deploy_status`: Check deployments
 
-List all deployments or get status of a specific one. Shows URL, status, framework, size, and creation time.
+List deployments or get the status of a specific one. Shows URL, status, framework, size, and creation time.
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `deployment_id` | string | No | none | Specific deployment ID (omit to list all) |
+| `deployment_id` | string | No | none | Specific deployment ID (omit to list recent) |
+| `path` | string | No | none | Project directory. Only show deployments for this project |
+| `limit` | integer | No | 10 | Maximum deployments to return (max 50) |
 
 **Annotations:** `readOnlyHint: true`
 
@@ -257,17 +266,47 @@ Get build and deployment logs for debugging failed or recent deployments.
 
 ---
 
-### `varity_delete_deployment`: Tear down a deployment
+### `varity_set_env`: Set env vars on a live app
 
-Permanently remove a deployment and free its resources. Use when you no longer need an app you deployed.
+Set or update environment variables (config + secrets) on an app that is **already deployed**, then redeploy it in place with the same URL and same reserved hardware. By default the supplied variables are merged over the current set; pass `replace: true` to overwrite the entire set. Values are write-only and are never echoed back.
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `deployment_id` | string | Yes | none | The deployment ID to delete |
+| `name` | string | Yes | none | The app name or subdomain. The `<name>` in `https://varity.app/<name>/` |
+| `env` | object | Yes | none | Variables to set, as a map of UPPER_SNAKE_CASE name to value |
+| `replace` | boolean | No | `false` | When true, replace the entire variable set instead of merging |
+
+**Annotations:** `destructiveHint: true` (redeploys live infrastructure)
+
+**Example prompt:** "Set DATABASE_URL on my-api and redeploy" or "Rotate the API key on hermes-bot"
+
+---
+
+### `varity_redeploy`: Redeploy an app in place
+
+Redeploy or restart an app that is **already deployed**, in place. This re-pulls the image (or rebuilds from source) and restarts the container on the **same** deployment with the same URL and same reserved hardware. Takes no body and keeps the current environment variables; use `varity_set_env` to change config at the same time.
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `name` | string | Yes | none | The app name or subdomain. The `<name>` in `https://varity.app/<name>/` |
+
+**Annotations:** `destructiveHint: true` (restarts live infrastructure)
+
+**Example prompt:** "Redeploy my-api" or "My app is stuck. Restart hermes-bot"
+
+---
+
+### `varity_delete_deployment`: Tear down a deployment
+
+Permanently remove a deployment by its app name and stop its billing immediately. Use when you no longer need an app you deployed.
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `name` | string | Yes | none | The app name or subdomain. The `<name>` in `https://varity.app/<name>/` |
 
 **Annotations:** `destructiveHint: true` (tears down live infrastructure)
 
-**Example prompt:** "Delete the deployment abc123"
+**Example prompt:** "Stop my hermes-bot deployment" or "Delete the app my-dashboard"
 
 ---
 
@@ -358,6 +397,46 @@ Migrate a Vercel project to Varity in one step: clone the GitHub repository, rem
 
 ---
 
+### `varity_list_agents`: List curated AI agent templates
+
+List the curated AI agent templates Varity can deploy with one command (for example: a Telegram bot, a Claude-compatible chat UI, an autonomous research agent). Each entry includes a slug and an estimated monthly cost.
+
+*No parameters required.*
+
+**Annotations:** `readOnlyHint` not set (no side effects)
+
+**Example prompt:** "What AI agents can I deploy on Varity?"
+
+---
+
+### `varity_agent_info`: Get details for one agent template
+
+Show full details for a single agent template: image, ports, resources, required and optional environment variables, estimated monthly cost, and access mode.
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `name` | string | Yes | none | The agent slug (run `varity_list_agents` to see valid values) |
+
+**Example prompt:** "What env vars does the hermes agent need?"
+
+---
+
+### `varity_deploy_agent`: Deploy a curated AI agent
+
+Deploy a curated AI agent template in one command, live at `https://varity.app/<name>/`. Use this when the developer wants a ready-made agent rather than deploying their own code.
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `agent` | string | Yes | none | The agent slug to deploy (run `varity_list_agents` for options) |
+| `name` | string | No | `<agent>-<random>` | Memorable name; becomes the URL slug at `varity.app/<name>/` |
+| `env` | object | No | none | Environment variables for the agent container (pass the agent's required env from `varity_agent_info`) |
+
+**Annotations:** `destructiveHint: true` (deploys real infrastructure)
+
+**Example prompt:** "Deploy the hermes Telegram bot with my bot token"
+
+---
+
 ## Response Format
 
 All tools return JSON with a consistent structure:
@@ -396,7 +475,7 @@ Here is the practical build-and-deploy flow using the MCP tools:
 7. **"Did the deploy succeed?"** → `varity_deploy_status`
 8. **"Show me the build logs"** → `varity_deploy_logs` (if needed)
 9. **"Update env vars"** → `varity_set_env` (when live config changes)
-10. **"Redeploy this app"** → `varity_redeploy` (when you need an in-place restart)
+10. **"Redeploy this app"** → `varity_redeploy` (same URL, no new reservation)
 11. **"Tear down this deployment"** → `varity_delete_deployment` (when you no longer need it)
 
 **Deploying Agent Zero or another template:**
@@ -410,6 +489,13 @@ Here is the practical build-and-deploy flow using the MCP tools:
 1. **"Check if my environment is ready"** → `varity_doctor`
 2. **"Migrate my Vercel app at https://github.com/user/my-app"** → `varity_migrate`
 3. *(Done. The app is live on Varity infrastructure.)*
+
+**Deploying a curated AI agent:**
+
+1. **"What agents can I deploy?"** → `varity_list_agents`
+2. **"What does the hermes agent need?"** → `varity_agent_info`
+3. **"Deploy hermes with my bot token"** → `varity_deploy_agent`
+4. **"Did it come up?"** → `varity_deploy_status`
 
 ## Troubleshooting
 

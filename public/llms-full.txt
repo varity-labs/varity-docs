@@ -31,6 +31,183 @@ claude mcp add varity -- npx -y @varity-labs/mcp
 - `varity_set_env`
 
 
+## API Reference
+
+URL: https://docs.varity.so/ai-tools/api-reference/
+Description: Agent-facing Varity HTTP API and MCP schemas for deploying, monitoring, streaming logs, and stopping apps programmatically.
+
+Varity is built to be driven by AI agents. There are two equivalent ways to deploy and operate apps programmatically, and both are published as machine-readable schemas:
+
+| Surface | Best for | Schema |
+|---------|----------|--------|
+| **MCP tools** | Agents inside an AI editor (Claude Code, Cursor, Windsurf, VS Code) | [`/mcp-schema.json`](/mcp-schema.json) |
+| **HTTP API** | Direct integrations, custom agents, backend services | [`/openapi.yaml`](/openapi.yaml) |
+
+If your agent runs inside an AI editor, prefer the [MCP server](/ai-tools/mcp-server-spec/). `varity_deploy`, `varity_deploy_status`, `varity_deploy_logs`, and `varity_delete_deployment` wrap the HTTP API and handle auth, framework detection, and result parsing for you. The raw HTTP API below is for everything else.
+
+## Machine-readable schemas
+
+Point your tooling directly at these URLs. They are generated from the shipped code, so they never drift from reality:
+
+- **`https://docs.varity.so/openapi.yaml`**: the public HTTP API (OpenAPI 3.0). Import into Postman, an OpenAPI client generator, or an agent's tool layer.
+- **`https://docs.varity.so/mcp-schema.json`**: the exact `tools/list` catalog the released `@varity-labs/mcp` package serves, including every tool's JSON Schema and annotations.
+
+## Base URL & authentication
+
+All HTTP API calls go to:
+
+```
+https://varity.app
+```
+
+The `/v1` deploy endpoints require your **deploy key**, sent as a bearer token:
+
+```
+Authorization: Bearer <your-deploy-key>
+```
+
+Get a deploy key by running `varitykit login` (the CLI stores and sends it for you) or from the developer portal at `developer.store.varity.so/dashboard/settings`. The pricing and health endpoints are public and need no auth.
+
+## The operate loop
+
+The full lifecycle: **deploy → poll status → stream logs → update env → redeploy → stop**. Deploy and read the result; operate the live app in place (env, redeploy) without creating a new deployment; stop it when you're done.
+
+### 1. Deploy
+
+`POST /v1/deploy` deploys from a GitHub repo or a prebuilt image. It returns a `run_id` immediately. Exactly one of `repo_url` or `image` is required.
+
+<Tabs>
+
+    ```bash
+    curl -X POST https://varity.app/v1/deploy \
+      -H "Authorization: Bearer $VARITY_DEPLOY_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "app_name": "my-app",
+        "source": "cli",
+        "repo_url": "https://github.com/me/my-app"
+      }'
+    # → { "run_id": "..." }
+    ```
+
+
+    ```bash
+    curl -X POST https://varity.app/v1/deploy \
+      -H "Authorization: Bearer $VARITY_DEPLOY_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "app_name": "my-api",
+        "source": "cli",
+        "image": "ghcr.io/me/my-api:latest",
+        "port": 8080
+      }'
+    ```
+
+
+    ```bash
+    curl -X POST https://varity.app/v1/deploy \
+      -H "Authorization: Bearer $VARITY_DEPLOY_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "app_name": "my-api",
+        "source": "cli",
+        "image": "ghcr.io/me/private-api:latest",
+        "port": 8080,
+        "image_credentials": {
+          "host": "ghcr.io",
+          "username": "me",
+          "password": "<token>"
+        }
+      }'
+    ```
+
+
+The framework, hosting mode, and any backend services (Postgres, Redis, MongoDB, MySQL, Ollama, object storage) are detected and configured automatically, normally from your dependencies. See [Auto-wired Services](/deploy/auto-wired-services/).
+
+### 2. Poll status
+
+`GET /v1/deploy/{run_id}` returns the run's `status` (`queued` → `running` → `succeeded` / `failed`), the current `stage`, and on success the live `frontend_url`. On failure it returns a redacted `error_message` and a `failure_stage`.
+
+```bash
+curl https://varity.app/v1/deploy/$RUN_ID \
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
+# → { "run_id": "...", "status": "succeeded", "frontend_url": "https://varity.app/my-app/", ... }
+```
+
+### 3. Stream logs
+
+`GET /v1/deploy/{run_id}/logs` returns a Server-Sent Events stream of deploy progress (`detect` → `build` → `package` → `start` → `health` → `done`). The stream ends when the run reaches a terminal status.
+
+```bash
+curl -N https://varity.app/v1/deploy/$RUN_ID/logs \
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
+```
+
+This streams **deploy-time** progress, not the running container's runtime stdout/stderr.
+
+### 4. Update env vars (and redeploy)
+
+`PUT /v1/deployments/{app_name}/env` sets or updates environment variables on a live app, then redeploys it **in place**: same URL and same reserved hardware. Variables are merged over the current set by default; pass `"replace": true` to overwrite the whole set. Values are write-only and are never returned.
+
+```bash
+curl -X PUT https://varity.app/v1/deployments/my-app/env \
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"envVars": {"DATABASE_URL": "postgres://...", "FEATURE_X": "on"}}'
+```
+
+### 5. Redeploy in place
+
+`POST /v1/deployments/{app_name}/redeploy` re-pulls the image (or rebuilds from source) and restarts the container on the **same** deployment: same URL and same reserved hardware. No body; keeps the current env vars.
+
+```bash
+curl -X POST https://varity.app/v1/deployments/my-app/redeploy \
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
+```
+
+### 6. Stop (and stop billing)
+
+`DELETE /v1/deployments/{app_name}` permanently stops the app and ends its billing, freeing the reserved hardware.
+
+```bash
+curl -X DELETE https://varity.app/v1/deployments/my-app \
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
+```
+
+## Pricing (public)
+
+`GET /api/pricing?profile=<profile>` returns the flat monthly price for a workload profile plus a comparison against usage-metered hosts. No auth required.
+
+```bash
+curl "https://varity.app/api/pricing?profile=web"
+# → { "profile": "web", "varityMonthly": 6, "varityIsFlat": true, ... }
+```
+
+Pricing is a flat hardware reservation. It does not change with traffic, bandwidth, invocations, or build minutes.
+
+## Endpoint summary
+
+| Method | Path | Auth | Purpose |
+|--------|------|------|---------|
+| `POST` | `/v1/deploy` | deploy key | Start a deploy |
+| `GET` | `/v1/deploy/{run_id}` | deploy key | Get status + result |
+| `GET` | `/v1/deploy/{run_id}/logs` | deploy key | Stream deploy logs (SSE) |
+| `PUT` | `/v1/deployments/{app_name}/env` | deploy key | Set env vars + redeploy in place |
+| `POST` | `/v1/deployments/{app_name}/redeploy` | deploy key | Redeploy/restart in place |
+| `DELETE` | `/v1/deployments/{app_name}` | deploy key | Stop a deployment + billing |
+| `GET` | `/api/pricing` | public | Live flat pricing |
+| `GET` | `/health` | public | Service health |
+
+This is the complete public, agent-facing surface. Internal control-plane routes (identity, billing, the deployment registry, telemetry, and infrastructure plumbing) are intentionally not part of this contract and may change without notice.
+
+## Next steps
+
+- **[MCP Server Spec](/ai-tools/mcp-server-spec/)**: the full tool reference for AI editors
+- **[Deploy a Docker Image](/deploy/deploy-docker-image/)**: image-deploy details
+- **[Auto-wired Services](/deploy/auto-wired-services/)**: how databases and caches get attached
+
+---
+
 ## Varity MCP Server
 
 URL: https://docs.varity.so/ai-tools/mcp-server-spec/
@@ -39,6 +216,8 @@ Description: Install and configure the Varity MCP server for AI editors. A full 
 The Varity MCP server (`@varity-labs/mcp`) gives AI editors a full set of tools for the full build and deploy workflow. It runs locally via stdio. Install the current npm package.
 
 The MCP server works with **any editor that supports MCP**: Cursor, Claude Code, VS Code (Copilot), Windsurf, and more. Setup takes under a minute.
+
+**Machine-readable schema.** The exact tool catalog an agent receives from `tools/list` is published at [`/mcp-schema.json`](/mcp-schema.json), generated directly from the released `@varity-labs/mcp` package, so it is always the source of truth. The HTTP API the tools wrap is published as [`/openapi.yaml`](/openapi.yaml). See the [API Reference](/ai-tools/api-reference/) for both.
 
 ## Prerequisites
 
@@ -121,14 +300,11 @@ Verify that your development environment is ready to build and deploy Varity app
 
 ### `varity_login`: Authenticate with Varity
 
-Authenticate with Varity using a deploy key or browser-based login. Required before deploying apps.
+Log in to Varity to enable deployments. If a `deploy_key` is provided, it is saved to local config; otherwise the tool opens the developer portal where you add a payment method and copy your deploy key. Required before deploying apps.
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `method` | `"deploy-key"` \| `"browser"` | No | `"browser"` | Authentication method |
-| `deploy_key` | string | No | none | Deploy key (required when `method` is `"deploy-key"`) |
-
-**Annotations:** `destructiveHint: true` (writes credentials to local config)
+| `deploy_key` | string | No | none | Your deploy key from the developer portal (`developer.store.varity.so/dashboard/settings`). If omitted, opens the portal to get one. |
 
 **Example prompt:** "Log in to Varity" or "Authenticate with my deploy key"
 
@@ -225,8 +401,9 @@ Create a new GitHub repository and push your project to it. Useful for getting y
 |-----------|------|----------|---------|-------------|
 | `name` | string | Yes | none | Repository name (lowercase, hyphens allowed) |
 | `description` | string | No | none | Short description for the repo |
+| `path` | string | No | Current directory | Absolute path to the local project to push (e.g. `/home/user/my-app`) |
 | `visibility` | `"public"` \| `"private"` | No | `"public"` | Repository visibility |
-| `github_token` | string | No | none | GitHub personal access token with `repo` scope |
+| `github_token` | string | No | none | GitHub personal access token with `repo` scope (or set `GITHUB_TOKEN`) |
 
 **Annotations:** `destructiveHint: true` (creates an external GitHub repository)
 
@@ -236,25 +413,32 @@ Create a new GitHub repository and push your project to it. Useful for getting y
 
 ### `varity_deploy`: Deploy to production
 
-Build and deploy the current project. Auto-detects framework (Next.js, React, Vue), builds it, and returns a live URL.
+Deploy the current project to production. Detects the framework, selects static vs dynamic hosting, auto-configures any backend services your code needs, and returns a live URL at `https://varity.app/<name>/`. Deploy from source (a project path or a GitHub repo) or from a prebuilt Docker/OCI image.
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `path` | string | No | Workspace root | Path to the project directory |
+| `path` | string | No | MCP working dir | Absolute path to the project root (the directory with `package.json`). |
+| `repo_url` | string | No | auto-detected | GitHub repo URL. Required for dynamic deployments; auto-detected from `.git/config` if omitted. |
+| `app_name` | string | No | directory name | URL-safe name controlling the URL `https://varity.app/{app_name}/`. |
+| `image` | string | No | none | Deploy a prebuilt Docker/OCI image (e.g. `ghcr.io/you/app:latest`) instead of building. Mutually exclusive with `repo_url`. |
+| `image_credentials` | object | No | none | `{ host, username, password }` pull credentials for a **private** registry image. Omit for public images. |
+| `port` | integer | No | `80` | Container listen port for an `image` deploy. |
 
 **Annotations:** `destructiveHint: true` (deploys real infrastructure)
 
-**Example prompt:** "Deploy this project to Varity"
+**Example prompt:** "Deploy this project to Varity" or "Deploy the image ghcr.io/me/api:latest on port 8080"
 
 ---
 
 ### `varity_deploy_status`: Check deployments
 
-List all deployments or get status of a specific one. Shows URL, status, framework, size, and creation time.
+List deployments or get the status of a specific one. Shows URL, status, framework, size, and creation time.
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `deployment_id` | string | No | none | Specific deployment ID (omit to list all) |
+| `deployment_id` | string | No | none | Specific deployment ID (omit to list recent) |
+| `path` | string | No | none | Project directory. Only show deployments for this project |
+| `limit` | integer | No | 10 | Maximum deployments to return (max 50) |
 
 **Annotations:** `readOnlyHint: true`
 
@@ -277,17 +461,47 @@ Get build and deployment logs for debugging failed or recent deployments.
 
 ---
 
-### `varity_delete_deployment`: Tear down a deployment
+### `varity_set_env`: Set env vars on a live app
 
-Permanently remove a deployment and free its resources. Use when you no longer need an app you deployed.
+Set or update environment variables (config + secrets) on an app that is **already deployed**, then redeploy it in place with the same URL and same reserved hardware. By default the supplied variables are merged over the current set; pass `replace: true` to overwrite the entire set. Values are write-only and are never echoed back.
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `deployment_id` | string | Yes | none | The deployment ID to delete |
+| `name` | string | Yes | none | The app name or subdomain. The `<name>` in `https://varity.app/<name>/` |
+| `env` | object | Yes | none | Variables to set, as a map of UPPER_SNAKE_CASE name to value |
+| `replace` | boolean | No | `false` | When true, replace the entire variable set instead of merging |
+
+**Annotations:** `destructiveHint: true` (redeploys live infrastructure)
+
+**Example prompt:** "Set DATABASE_URL on my-api and redeploy" or "Rotate the API key on hermes-bot"
+
+---
+
+### `varity_redeploy`: Redeploy an app in place
+
+Redeploy or restart an app that is **already deployed**, in place. This re-pulls the image (or rebuilds from source) and restarts the container on the **same** deployment with the same URL and same reserved hardware. Takes no body and keeps the current environment variables; use `varity_set_env` to change config at the same time.
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `name` | string | Yes | none | The app name or subdomain. The `<name>` in `https://varity.app/<name>/` |
+
+**Annotations:** `destructiveHint: true` (restarts live infrastructure)
+
+**Example prompt:** "Redeploy my-api" or "My app is stuck. Restart hermes-bot"
+
+---
+
+### `varity_delete_deployment`: Tear down a deployment
+
+Permanently remove a deployment by its app name and stop its billing immediately. Use when you no longer need an app you deployed.
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `name` | string | Yes | none | The app name or subdomain. The `<name>` in `https://varity.app/<name>/` |
 
 **Annotations:** `destructiveHint: true` (tears down live infrastructure)
 
-**Example prompt:** "Delete the deployment abc123"
+**Example prompt:** "Stop my hermes-bot deployment" or "Delete the app my-dashboard"
 
 ---
 
@@ -378,6 +592,46 @@ Migrate a Vercel project to Varity in one step: clone the GitHub repository, rem
 
 ---
 
+### `varity_list_agents`: List curated AI agent templates
+
+List the curated AI agent templates Varity can deploy with one command (for example: a Telegram bot, a Claude-compatible chat UI, an autonomous research agent). Each entry includes a slug and an estimated monthly cost.
+
+*No parameters required.*
+
+**Annotations:** `readOnlyHint` not set (no side effects)
+
+**Example prompt:** "What AI agents can I deploy on Varity?"
+
+---
+
+### `varity_agent_info`: Get details for one agent template
+
+Show full details for a single agent template: image, ports, resources, required and optional environment variables, estimated monthly cost, and access mode.
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `name` | string | Yes | none | The agent slug (run `varity_list_agents` to see valid values) |
+
+**Example prompt:** "What env vars does the hermes agent need?"
+
+---
+
+### `varity_deploy_agent`: Deploy a curated AI agent
+
+Deploy a curated AI agent template in one command, live at `https://varity.app/<name>/`. Use this when the developer wants a ready-made agent rather than deploying their own code.
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `agent` | string | Yes | none | The agent slug to deploy (run `varity_list_agents` for options) |
+| `name` | string | No | `<agent>-<name>0` | Memorable name; becomes the URL slug at `varity.app/<name>1/` |
+| `env` | object | No | none | Environment variables for the agent container (pass the agent's required env from `varity_agent_info`) |
+
+**Annotations:** `destructiveHint: true` (deploys real infrastructure)
+
+**Example prompt:** "Deploy the hermes Telegram bot with my bot token"
+
+---
+
 ## Response Format
 
 All tools return JSON with a consistent structure:
@@ -416,7 +670,7 @@ Here is the practical build-and-deploy flow using the MCP tools:
 7. **"Did the deploy succeed?"** → `varity_deploy_status`
 8. **"Show me the build logs"** → `varity_deploy_logs` (if needed)
 9. **"Update env vars"** → `varity_set_env` (when live config changes)
-10. **"Redeploy this app"** → `varity_redeploy` (when you need an in-place restart)
+10. **"Redeploy this app"** → `varity_redeploy` (same URL, no new reservation)
 11. **"Tear down this deployment"** → `varity_delete_deployment` (when you no longer need it)
 
 **Deploying Agent Zero or another template:**
@@ -430,6 +684,13 @@ Here is the practical build-and-deploy flow using the MCP tools:
 1. **"Check if my environment is ready"** → `varity_doctor`
 2. **"Migrate my Vercel app at https://github.com/user/my-app"** → `varity_migrate`
 3. *(Done. The app is live on Varity infrastructure.)*
+
+**Deploying a curated AI agent:**
+
+1. **"What agents can I deploy?"** → `varity_list_agents`
+2. **"What does the hermes agent need?"** → `varity_agent_info`
+3. **"Deploy hermes with my bot token"** → `varity_deploy_agent`
+4. **"Did it come up?"** → `varity_deploy_status`
 
 ## Troubleshooting
 
@@ -510,6 +771,11 @@ Varity is built to be driven from your AI coding tool. Add the MCP server once, 
 
 
     Machine-readable documentation for AI assistants. Available in two formats: `/llms.txt` (summary) and `/llms-full.txt` (detailed).
+
+
+    Deploy and operate apps programmatically. Machine-readable [`/openapi.yaml`](/openapi.yaml) (HTTP API) and [`/mcp-schema.json`](/mcp-schema.json) (MCP tools).
+
+    [View API Reference →](/ai-tools/api-reference)
 
 
 ## Quick Start: MCP Server
@@ -1397,6 +1663,7 @@ You do not configure ports, credentials, or connection strings. Varity handles a
 | `mongodb` | MongoDB database | `MONGODB_URI` |
 | `mysql` | MySQL database | `MYSQL_URL` |
 | `mysql2` | MySQL database | `MYSQL_URL` |
+| `@aws-sdk/client-s3` | Object storage (S3-compatible) | `MINIO_URL`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY` |
 
 ### Python (requirements.txt)
 
@@ -1410,6 +1677,8 @@ You do not configure ports, credentials, or connection strings. Varity handles a
 | `ollama` | AI model server | `OLLAMA_URL` |
 | `pymongo` | MongoDB database | `MONGODB_URI` |
 | `pymysql` | MySQL database | `MYSQL_URL` |
+| `boto3` | Object storage (S3-compatible) | `MINIO_URL`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY` |
+| `minio` | Object storage (S3-compatible) | `MINIO_URL`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY` |
 
 ### Prisma Schema Detection
 
@@ -1451,6 +1720,12 @@ If your project includes a `prisma/schema.prisma` file, Varity reads the `dataso
     A relational database for apps and frameworks that expect MySQL. Auto-provisioned alongside your app when a MySQL client is in your dependencies.
 
     Your app receives `MYSQL_URL` automatically.
+
+
+
+    Object storage for files, uploads, and assets. Use it with an S3-compatible SDK or MinIO client. No separate bucket to provision. Auto-wired when your dependencies include an S3 client (`@aws-sdk/client-s3`, `boto3`, or `minio`).
+
+    Your app receives `MINIO_URL`, `MINIO_ACCESS_KEY`, and `MINIO_SECRET_KEY` automatically.
 
 
 Auto-provisioned databases are in beta. They are great for getting an app running end-to-end without standing up a separate database service; bring your own managed database (via [environment variables](/deploy/env-variables)) for workloads that need durability guarantees.
@@ -1511,6 +1786,18 @@ const db = new PrismaClient({
 from motor.motor_asyncio import AsyncIOMotorClient
 
 client = AsyncIOMotorClient(os.environ["MONGODB_URI"])
+```
+
+The object store speaks the S3 protocol, so point any S3 client at the injected endpoint and credentials:
+
+```python title="Object storage (boto3)"
+
+s3 = boto3.client(
+    "s3",
+    endpoint_url=os.environ["MINIO_URL"],
+    aws_access_key_id=os.environ["MINIO_ACCESS_KEY"],
+    aws_secret_access_key=os.environ["MINIO_SECRET_KEY"],
+)
 ```
 
 You do not need to add these variables to `.env` files yourself. Varity injects them at deploy time.
@@ -1649,7 +1936,7 @@ Varity detects these from your dependencies and provisions them alongside your a
     Relational database. Injected as `MYSQL_URL`.
 
 
-Varity also provisions an **Ollama** model server (`OLLAMA_URL`) when your app uses one. Detection and the full env-var list are covered in [Auto-wired Services](/deploy/auto-wired-services/).
+Varity also provisions an **Ollama** model server (`OLLAMA_URL`) and an **S3-compatible object store** (`MINIO_URL`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`) when your app uses one. Detection and the full env-var list are covered in [Auto-wired Services](/deploy/auto-wired-services/).
 
 Your app reads these from its environment. No connection strings to manage:
 
@@ -3605,7 +3892,7 @@ When you deploy, Varity inspects your project and makes all infrastructure decis
 | `mongoose`, `mongodb`, `pymongo` | MongoDB |
 | `mysql`, `mysql2`, `PyMySQL` | MySQL database |
 | `@langchain/ollama`, `ollama` | Ollama AI runtime |
-| `boto3`, `@aws-sdk/client-s3`, S3-compatible config | Object storage |
+| `@aws-sdk/client-s3`, `boto3`, `minio`, S3-compatible config | Object storage |
 
 You do not write connection strings or provision databases. Varity handles it.
 
@@ -5288,6 +5575,50 @@ For launch-critical pricing claims, always validate examples against the live `/
 - [Deploy Your App](/deploy/deploy-your-app)
 - [Managed Credentials](/deploy/managed-credentials)
 - [FAQ](/resources/faq)
+
+---
+
+## Security and shared responsibility
+
+URL: https://docs.varity.so/resources/security/
+Description: How Varity secures your deployments, what you are responsible for, and how to report a security vulnerability.
+
+Security is a partnership between Varity and you. This page explains what Varity protects, what you are responsible for, and how to reach us about a security issue.
+
+## What Varity protects
+
+- **Encryption in transit:** all traffic between you, Varity, and your deployments is encrypted with TLS, with HTTP Strict Transport Security enforced.
+- **Isolated secrets:** environment variables and credentials are injected at runtime, never built into images, and never written to logs.
+- **Account isolation:** every account is isolated from every other account.
+- **Hardened deploy path:** inputs to the build and deploy pipeline are validated to prevent injection and server-side request forgery.
+
+## Shared-responsibility model
+
+<CardGrid>
+
+    The platform and control plane: edge encryption, routing, the deploy pipeline, secret injection, and patching our own services.
+
+
+    The underlying hosts: physical security, the host operating system, and container-runtime isolation. Varity selects and continuously evaluates providers.
+
+
+    Your application: your code and dependencies, your in-app authentication, the secret values you set, and the data your app stores.
+
+
+## Your responsibilities in practice
+
+- Keep your application dependencies up to date.
+- Implement authentication and authorization inside your own application.
+- Treat the environment variables you set as sensitive, and rotate them if they are ever exposed.
+- During beta, keep your own backups of business-critical data.
+
+## Reporting a vulnerability
+
+Found a security issue? Email **security@varity.so**. Please report it responsibly and do not open a public issue. We aim to acknowledge reports within 48 hours and will keep you updated on remediation.
+
+## On our roadmap
+
+We are transparent about what is in place today versus what is coming. In active development: platform-managed encryption at rest, tamper-evident audit logging, and team accounts with role-based access control.
 
 ---
 
