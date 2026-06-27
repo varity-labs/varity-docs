@@ -270,7 +270,7 @@ export default defineConfig({
               slug: "deploy/env-variables",
             },
             {
-              label: "Custom Domains",
+              label: "App URLs and Names",
               slug: "deploy/custom-domains",
             },
             {

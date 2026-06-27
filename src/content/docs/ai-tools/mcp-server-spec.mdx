@@ -13,7 +13,7 @@ import PageMeta from '../../../components/PageMeta.astro';
   stability="stable"
 />
 
-The Varity MCP server (`@varity-labs/mcp`) gives AI editors a full set of tools for the full build and deploy workflow. It runs locally via stdio. Install with the current beta tag.
+The Varity MCP server (`@varity-labs/mcp`) gives AI editors a full set of tools for the full build and deploy workflow. It runs locally via stdio. Install the current npm package.
 
 <Aside type="tip">
 The MCP server works with **any editor that supports MCP**: Cursor, Claude Code, VS Code (Copilot), Windsurf, and more. Setup takes under a minute.
@@ -36,7 +36,7 @@ The MCP server works with **any editor that supports MCP**: Cursor, Claude Code,
       "mcpServers": {
         "varity": {
           "command": "npx",
-          "args": ["-y", "@varity-labs/mcp@beta"]
+          "args": ["-y", "@varity-labs/mcp"]
         }
       }
     }
@@ -48,7 +48,7 @@ The MCP server works with **any editor that supports MCP**: Cursor, Claude Code,
     Run once from any directory:
 
     ```bash
-    claude mcp add varity -- npx -y @varity-labs/mcp@beta
+    claude mcp add varity -- npx -y @varity-labs/mcp
     ```
 
     Claude Code picks up the server automatically on the next conversation.
@@ -61,7 +61,7 @@ The MCP server works with **any editor that supports MCP**: Cursor, Claude Code,
       "mcpServers": {
         "varity": {
           "command": "npx",
-          "args": ["-y", "@varity-labs/mcp@beta"]
+          "args": ["-y", "@varity-labs/mcp"]
         }
       }
     }
@@ -75,7 +75,7 @@ The MCP server works with **any editor that supports MCP**: Cursor, Claude Code,
       "mcpServers": {
         "varity": {
           "command": "npx",
-          "args": ["-y", "@varity-labs/mcp@beta"]
+          "args": ["-y", "@varity-labs/mcp"]
         }
       }
     }
@@ -271,6 +271,78 @@ Permanently remove a deployment and free its resources. Use when you no longer n
 
 ---
 
+### `varity_set_env`: Set environment variables
+
+Set or update environment variables on an existing deployment, then redeploy it in place on the same URL and reserved hardware.
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `name` | string | Yes | none | Existing deployment name, the slug in its Varity URL |
+| `env` | object | Yes | none | Environment variables as key-value pairs, for example `{ "OPENAI_API_KEY": "sk-..." }` |
+| `replace` | boolean | No | `false` | Replace the full env set instead of merging with existing variables |
+
+**Annotations:** `destructiveHint: true` (updates live deployment config)
+
+**Example prompt:** "Set OPENAI_API_KEY on my-api and redeploy it"
+
+---
+
+### `varity_redeploy`: Redeploy or restart in place
+
+Redeploy or restart an existing app in place. The deployment keeps the same URL and reserved hardware.
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `name` | string | Yes | none | Existing deployment name, the slug in its Varity URL |
+
+**Annotations:** `destructiveHint: true` (restarts live infrastructure)
+
+**Example prompt:** "Redeploy my-api in place"
+
+---
+
+### `varity_list_agents`: List AI agent templates
+
+List the curated AI agent templates Varity can deploy from the MCP.
+
+*No parameters required.*
+
+**Annotations:** `readOnlyHint: true`
+
+**Example prompt:** "What AI agents can Varity deploy?"
+
+---
+
+### `varity_agent_info`: Show agent template details
+
+Show the required environment variables, ports, resource profile, access mode, and notes for one agent template.
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `name` | `"hermes"` \| `"openclaw"` \| `"agent-zero"` \| `"autoresearch"` \| `"eliza-venice"` | Yes | none | Agent template slug |
+
+**Annotations:** `readOnlyHint: true`
+
+**Example prompt:** "Show details for Agent Zero"
+
+---
+
+### `varity_deploy_agent`: Deploy an AI agent template
+
+Deploy one curated AI agent template. Use this for templates such as Agent Zero instead of `varity_deploy`, which is for deploying a local project or Docker image.
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `agent` | `"hermes"` \| `"openclaw"` \| `"agent-zero"` \| `"autoresearch"` \| `"eliza-venice"` | Yes | none | Agent template slug |
+| `name` | string | No | generated name | Memorable deployment name for the URL slug |
+| `env` | object | No | none | Required environment variables for the selected agent |
+
+**Annotations:** `destructiveHint: true` (deploys real infrastructure)
+
+**Example prompt:** "Deploy Agent Zero on Varity"
+
+---
+
 ### `varity_migrate`: Migrate from Vercel to Varity
 
 Migrate a Vercel project to Varity in one step: clone the GitHub repository, remove Vercel-specific artifacts (`vercel.json`, `@vercel/*` packages, image optimizer config, env var renames), and deploy the transformed app to Varity.
@@ -323,7 +395,15 @@ Here is the practical build-and-deploy flow using the MCP tools:
 6. **"Deploy this"** → `varity_deploy`
 7. **"Did the deploy succeed?"** → `varity_deploy_status`
 8. **"Show me the build logs"** → `varity_deploy_logs` (if needed)
-9. **"Tear down this deployment"** → `varity_delete_deployment` (when you no longer need it)
+9. **"Update env vars"** → `varity_set_env` (when live config changes)
+10. **"Redeploy this app"** → `varity_redeploy` (when you need an in-place restart)
+11. **"Tear down this deployment"** → `varity_delete_deployment` (when you no longer need it)
+
+**Deploying Agent Zero or another template:**
+
+1. **"What AI agents can Varity deploy?"** → `varity_list_agents`
+2. **"Show details for Agent Zero"** → `varity_agent_info`
+3. **"Deploy Agent Zero"** → `varity_deploy_agent`
 
 **Migrating from Vercel:**
 
@@ -343,7 +423,7 @@ Install the CLI: `pipx install varitykit`. Run `varitykit doctor` to verify.
 Restart Cursor after adding the config. Check that `.cursor/mcp.json` is valid JSON.
 
 **Server not showing in Claude Code**
-Run `claude mcp list` to verify the server is registered. Re-add with `claude mcp add varity -- npx -y @varity-labs/mcp@beta`.
+Run `claude mcp list` to verify the server is registered. Re-add with `claude mcp add varity -- npx -y @varity-labs/mcp`.
 
 ## HTTP Transport (Claude.ai, ChatGPT, Browser-Based LLMs)
 
@@ -371,7 +451,7 @@ The first time you connect, you'll authenticate via the Varity login page.
 Run the HTTP server locally for development:
 
 ```bash
-npx -y @varity-labs/mcp@beta --transport http --port 3100
+npx -y @varity-labs/mcp --transport http --port 3100
 ```
 
 This starts the MCP server at `http://localhost:3100/mcp`.

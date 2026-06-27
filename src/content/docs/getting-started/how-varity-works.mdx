@@ -1,6 +1,6 @@
 ---
 title: How Varity Works
-description: How Varity deploys apps automatically. From project detection to a live URL, with zero infrastructure setup.
+description: How Varity deploys supported source apps and runnable Docker services from project detection to a live URL.
 ---
 
 import { Aside, Steps } from '@astrojs/starlight/components';
@@ -13,7 +13,7 @@ import PageMeta from '../../../components/PageMeta.astro';
   stability="beta"
 />
 
-Varity deploys Node and Python apps, AI agents, and LLM apps with a fast, infrastructure-abstracted workflow. You do not need Docker, infrastructure knowledge, or DevOps experience.
+Varity deploys supported Node, Python, Go, static, AI agent, and runnable Docker workloads with a fast, infrastructure-abstracted workflow. Source deployments do not require Docker setup; Docker image deployments are available when you already have a runnable HTTP service image.
 
 ## Who Varity is for
 
@@ -25,7 +25,7 @@ Varity works seamlessly with AI coding tools to build and ship apps. People reac
 
 **Deploying your current project**: You already have app code locally or in a GitHub repo and want a live URL fast. Run `varitykit app deploy` (or ask your MCP client to run `varity_deploy`) and ship.
 
-In all three cases, you never configure infrastructure. You just build and deploy.
+In each case, Varity handles the deployment infrastructure. You just build and deploy.
 
 ---
 
@@ -52,12 +52,12 @@ Here is how you go from idea to a live URL:
    Add Varity to your AI coding tool once. After that, every project you work on has Varity available.
 
    ```bash
-   claude mcp add varity -- npx -y @varity-labs/mcp@beta
+   claude mcp add varity -- npx -y @varity-labs/mcp
    ```
 
 2. **Open your project**
 
-   Open any existing project or create a new one. You do not need to change any code.
+   Open a supported source project, or use a runnable Docker/OCI HTTP image for stacks Varity does not source-build yet.
 
 3. **Deploy**
 
@@ -92,7 +92,7 @@ Here is how you go from idea to a live URL:
 
 When you deploy, Varity inspects your project and makes all infrastructure decisions:
 
-**Framework detection:** Varity reads your `package.json`, `requirements.txt`, or `pyproject.toml` to identify your framework (Next.js, React, Vue, FastAPI, Django, etc.) and selects the right build process.
+**Framework detection:** Varity reads your `package.json`, `requirements.txt`, `pyproject.toml`, or Go module files to identify your framework and selects the right build process.
 
 **Static vs. dynamic hosting:** Projects with a server or backend run in containers. Static sites (React, Vue, Next.js with export mode) go to a global CDN. You can override this with `--hosting dynamic` or `--hosting static` if needed.
 
@@ -105,6 +105,7 @@ When you deploy, Varity inspects your project and makes all infrastructure decis
 | `mongoose`, `mongodb`, `pymongo` | MongoDB |
 | `mysql`, `mysql2`, `PyMySQL` | MySQL database |
 | `@langchain/ollama`, `ollama` | Ollama AI runtime |
+| `boto3`, `@aws-sdk/client-s3`, S3-compatible config | Object storage |
 
 You do not write connection strings or provision databases. Varity handles it.
 
@@ -139,6 +140,9 @@ The Varity MCP server gives your AI coding tool a full set of tools for deployin
 | `varity_deploy_status` | Check deployment status |
 | `varity_deploy_logs` | View build and runtime logs |
 | `varity_migrate` | Migrate an existing app from Vercel to Varity |
+| `varity_set_env` | Set environment variables for an app |
+| `varity_redeploy` | Redeploy an existing app |
+| `varity_deploy_agent` | Deploy a supported agent template |
 
 [Set up the MCP server](/ai-tools/mcp-server-spec) to get started.
 
@@ -146,7 +150,7 @@ The Varity MCP server gives your AI coding tool a full set of tools for deployin
 
 ## Next steps
 
-- [Quick Start](/getting-started/quickstart) - Deploy your first app
-- [Installation](/getting-started/installation) - Full setup guide
-- [MCP Server Setup](/ai-tools/mcp-server-spec) - Connect your AI coding tool
-- [Vercel Migration](/deploy/vercel-migration) - Move an existing app to Varity
+- [Quick Start](/getting-started/quickstart): Deploy your first app
+- [Installation](/getting-started/installation): Full setup guide
+- [MCP Server Setup](/ai-tools/mcp-server-spec): Connect your AI coding tool
+- [Vercel Migration](/deploy/vercel-migration): Move an existing app to Varity

@@ -1149,7 +1149,7 @@ article.card .body {
 }
 
 /* Dark-mode code surface: custom near-black gradient. In light mode we DON'T
-   force a dark background — Expressive Code's own light theme provides a
+   force a dark background. Expressive Code's own light theme provides a
    readable light surface (forcing dark bg here put dark syntax text on a
    near-black background = unreadable code in light mode). */
 [data-theme="dark"] .expressive-code {

@@ -15,15 +15,15 @@ import PageMeta from '../../../components/PageMeta.astro';
 
 Varity automatically detects your framework when you run `varitykit app deploy`. You do not need to specify your framework manually.
 
-## Any Public Docker Image
+## Public and Private Docker Images
 
-If your app is already packaged as a Docker image, framework detection does not apply — **any public Docker image deploys as-is**, in any language:
+If your app is already packaged as a Docker image, framework detection does not apply. Public and private runnable Docker/OCI HTTP service images are supported:
 
 ```bash
 varitykit app deploy --image ghcr.io/acme/my-api:1.4.2 --port 8080
 ```
 
-Private registries are supported from the CLI and MCP (the Developer Portal accepts public images today). See [Deploy a Docker Image](/deploy/deploy-docker-image) for all three deploy paths.
+Private registries are supported from the CLI, MCP, and Developer Portal. See [Deploy a Docker Image](/deploy/deploy-docker-image) for all three deploy paths.
 
 ## Supported Frameworks
 
@@ -163,6 +163,32 @@ The following frameworks work today. Varity detects them from your project files
   </Card>
 </CardGrid>
 
+### Go
+
+<CardGrid>
+  <Card title="Go modules" icon="rocket">
+    Go projects with a `go.mod` file are supported.
+
+    ```bash
+    pipx install varitykit
+    varitykit app deploy
+    ```
+  </Card>
+</CardGrid>
+
+### Static
+
+<CardGrid>
+  <Card title="Plain HTML" icon="rocket">
+    Static sites with an `index.html` file are supported.
+
+    ```bash
+    pipx install varitykit
+    varitykit app deploy
+    ```
+  </Card>
+</CardGrid>
+
 <Aside type="tip">
 You do not need to tell Varity which framework you are using. It reads your `package.json`, `requirements.txt`, or project structure and figures it out.
 </Aside>
@@ -173,7 +199,6 @@ The following languages and frameworks are not auto-detected in the current beta
 
 | Language / Framework | Repo auto-detection | Workaround |
 |----------------------|---------------------|------------|
-| Go | Not supported | [Deploy as a Docker image](/deploy/deploy-docker-image) |
 | Rust | Not supported | [Deploy as a Docker image](/deploy/deploy-docker-image) |
 | Ruby / Rails | Not supported | [Deploy as a Docker image](/deploy/deploy-docker-image) |
 | Elixir / Phoenix | Not supported | [Deploy as a Docker image](/deploy/deploy-docker-image) |
@@ -187,9 +212,9 @@ Varity also does not yet offer cron jobs, multi-region deployments, an edge runt
 If your framework is in this list, `varitykit app deploy` will return an error like:
 
 ```
-ProjectDetectionError: Found go.mod - Go deployments are not yet supported.
-Varity currently supports: Next.js, Astro, React, Vue, Node.js (Express/Fastify/NestJS/Koa/Hono), Python (FastAPI/Django/Flask).
-Request Go support at https://github.com/varity-labs
+ProjectDetectionError: Found Cargo.toml - Rust deployments are not yet supported.
+Varity currently supports: Next.js, Astro, React, Vue, Qwik, Vite SPA, Node.js (Express/Fastify/NestJS/Koa/Hono), Python (FastAPI/Django/Flask), Go modules, and plain HTML.
+Request Rust support at https://github.com/varity-labs
 ```
 
 No deployment is started and no charges are incurred.
@@ -216,6 +241,8 @@ When you run `varitykit app deploy`, Varity scans your project directory for the
 | `package.json` with `koa` | Koa |
 | `package.json` with `hono` | Hono |
 | `requirements.txt` or `pyproject.toml` | Python project |
+| `go.mod` | Go modules |
+| `index.html` with no app framework | Plain HTML |
 | `package.json` with `scripts.start` and no known framework | Node.js |
 
 Detection happens in under a second and requires no configuration from you.
@@ -231,6 +258,8 @@ Varity also decides how to host your app based on what it detects:
 | Next.js with server features | Dynamic hosting |
 | Express, Fastify, Koa, Hono, Nest.js | Dynamic hosting |
 | FastAPI, Django, Flask | Dynamic hosting |
+| Go modules | Dynamic hosting |
+| Plain HTML | Static hosting |
 
 You can override the default with a flag:
 

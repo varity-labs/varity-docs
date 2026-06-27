@@ -3,8 +3,8 @@ import type { Props } from '@astrojs/starlight/props';
 import Default from '@astrojs/starlight/components/PageSidebar.astro';
 import AITools from '../AITools.astro';
 
-// Don't show AI Tools on homepage (splash template)
-const isHomepage = Astro.props.entry?.data?.template === 'splash';
+// Don't show AI Tools on the docs homepage.
+const isHomepage = Astro.props.entry?.id === 'index.mdx' || Astro.props.entry?.data?.template === 'splash';
 ---
 
 {!isHomepage && (

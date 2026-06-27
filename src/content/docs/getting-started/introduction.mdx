@@ -1,6 +1,6 @@
 ---
 title: Introduction
-description: Varity is predictable cloud hosting for any Node or Python app, AI agent, or LLM app. One flat monthly bill, with zero infrastructure to manage.
+description: Varity is predictable cloud hosting for supported source apps, AI agents, and runnable Docker services.
 ---
 
 import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
@@ -13,9 +13,9 @@ import PageMeta from '../../../components/PageMeta.astro';
   stability="beta"
 />
 
-Varity is predictable cloud hosting for any Node or Python app, AI agent, or LLM app. Point it at your project, and your app is live with one command, at a flat monthly cost that does not change with traffic.
+Varity is predictable cloud hosting for supported source apps, AI agents, and runnable Docker services. Point it at your project or image, and your app is live at a flat monthly cost that does not change with traffic.
 
-No Docker. No infrastructure setup. No DevOps.
+For supported source stacks, no Docker setup is required. For other stacks, deploy a prebuilt runnable Docker or OCI image.
 
 ## The fastest way to get started
 
@@ -23,7 +23,7 @@ The primary way to use Varity is through the MCP server inside Claude Code or Cu
 
 ```bash
 # Add the Varity MCP server to Claude Code
-claude mcp add varity -- npx -y @varity-labs/mcp@beta
+claude mcp add varity -- npx -y @varity-labs/mcp
 ```
 
 Then, inside Claude Code or Cursor:
@@ -87,6 +87,9 @@ Varity is in beta. Core features are live and stable.
 - Next.js, React, Vue, Astro, Qwik, Vite SPA
 - Express, Fastify, NestJS, Koa, Hono (Node.js)
 - FastAPI, Django, Flask (Python)
+- Go modules
+- Plain static HTML
+- Prebuilt runnable Docker/OCI HTTP services
 
 ## Next Steps
 

@@ -13,19 +13,19 @@ import PageMeta from '../../../components/PageMeta.astro';
   stability="stable"
 />
 
-VarityKit is a Python-based CLI that helps you deploy and manage applications. It is a familiar deploy CLI — install it, log in, and ship.
+VarityKit is a Python-based CLI that helps you deploy and manage applications. It is a familiar deploy CLI: install it, log in, and ship.
 
 ## What You Can Do
 
 <CardGrid>
   <Card title="Deploy Applications" icon="rocket">
-    Deploy any Node or Python app with one command. Static sites and dynamic apps both supported.
+    Deploy supported Node, Python, Go, static, and Docker workloads with one command.
   </Card>
   <Card title="Migrate from Vercel" icon="seti:config">
     Move an existing Vercel app to Varity in one step: analyze, transform, and deploy.
   </Card>
   <Card title="Manage Deployments" icon="list-format">
-    List deployments, view status and logs, and roll back to a previous version.
+    List deployments, view status and logs, and redeploy a known-good version when needed.
   </Card>
   <Card title="Validate Setup" icon="approve-check">
     Run diagnostics to ensure your development environment is ready.
@@ -132,7 +132,7 @@ varitykit app deploy
 ```
 
 - **Best for**: Marketing sites, documentation, SPAs
-- **Cost**: One flat monthly cost per app — your bill on day 1 equals your bill on day 1000. See the [pricing calculator](https://developer.store.varity.so/dashboard/pricing).
+- **Cost**: One flat monthly cost per app. Your bill on day 1 equals your bill on day 1000. See the [pricing calculator](https://developer.store.varity.so/dashboard/pricing).
 - **Speed**: Global CDN distribution
 
 ### Dynamic Apps
@@ -155,14 +155,17 @@ Varity currently auto-detects and deploys the following frameworks:
 
 | Framework | Static | Dynamic |
 |-----------|--------|---------|
-| Next.js 13+ | ✅ | ✅ |
-| React (Vite) | ✅ | ✅ |
-| React (CRA) | ✅ | ✅ |
-| Vue 3+ | ✅ | ✅ |
-| Express, Fastify, Nest, Koa, Hono | N/A | ✅ |
-| FastAPI, Django, Flask | N/A | ✅ |
+| Next.js 13+ | Supported | Supported |
+| React (Vite) | Supported | Supported |
+| React (CRA) | Supported | Supported |
+| Vue 3+ | Supported | Supported |
+| Express, Fastify, Nest, Koa, Hono | Not applicable | Supported |
+| FastAPI, Django, Flask | Not applicable | Supported |
+| Go modules | Not applicable | Supported |
+| Plain static HTML | Supported | Not applicable |
+| Runnable Docker/OCI HTTP images | Not applicable | Supported |
 
-**Not yet supported:** Go, Rust, Ruby / Rails, Elixir / Phoenix, Java / Spring, Deno, PHP / Laravel, .NET. These are not auto-detected yet — the CLI returns a clean error with a feature-request link instead of failing midway. [Request support for your framework](https://github.com/varity-labs).
+**Not yet source-built:** Rust, Ruby / Rails, Elixir / Phoenix, Java / Spring, Deno, PHP / Laravel, .NET. These return a clean unsupported-stack error as source projects. Deploy them today with a runnable Docker/OCI image, or [request source-build support](https://github.com/varity-labs).
 
 ## Additional Command Details
 
@@ -181,7 +184,7 @@ varitykit completions [OPTIONS]
 
 ## Next Steps
 
-- [Install the CLI](/getting-started/installation/) - Installation guide
-- [Log in](/cli/commands/auth) - Connect your developer account
-- [Run diagnostics](/cli/commands/doctor) - Check your setup
-- [Deploy your application](/cli/commands/deploy) - Deploy to production
+- [Install the CLI](/getting-started/installation/): Installation guide
+- [Log in](/cli/commands/auth): Connect your developer account
+- [Run diagnostics](/cli/commands/doctor): Check your setup
+- [Deploy your application](/cli/commands/deploy): Deploy to production

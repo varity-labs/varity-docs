@@ -68,6 +68,9 @@ CLAUDE.md
 /DEPLOYMENT_VERIFICATION.md
 tests/NEXT-STEPS.md
 
+# Local automation scratch — never in the public docs repo
+/scripts/
+
 # npm is canonical (package-lock.json) — ignore stray pnpm artifacts
 pnpm-lock.yaml
 pnpm-workspace.yaml

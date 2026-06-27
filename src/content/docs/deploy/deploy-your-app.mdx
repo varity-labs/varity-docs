@@ -26,9 +26,9 @@ Varity accepts three kinds of input, from the CLI, the Developer Portal, or the 
 
 | Input | How | Best for |
 |-------|-----|----------|
-| **Your project / GitHub repo** | `varitykit app deploy` (this page) | Apps in a [supported framework](/deploy/supported-frameworks) — auto-detected, auto-built |
-| **A Docker image** | `varitykit app deploy --image <ref>` — see [Deploy a Docker Image](/deploy/deploy-docker-image) | Anything already containerized, any language |
-| **A template** | The portal gallery — see [agent templates](/tutorials/deploy-ai-agent#one-click-agent-templates) | One-click AI agent and tool deployments |
+| **Your project / GitHub repo** | `varitykit app deploy` (this page) | Apps in a [supported framework](/deploy/supported-frameworks) with automatic detection and builds |
+| **A Docker image** | `varitykit app deploy --image <ref>`. See [Deploy a Docker Image](/deploy/deploy-docker-image) | Anything already containerized, any language |
+| **A template** | The portal gallery. See [agent templates](/tutorials/deploy-ai-agent#one-click-agent-templates) | One-click AI agent and tool deployments |
 
 The rest of this page covers the first path: deploying your own project.
 
@@ -71,11 +71,11 @@ The rest of this page covers the first path: deploying your own project.
 
 When you run `varitykit app deploy`:
 
-1. **Detects your framework** - Automatically identifies Next.js, React, Vue, etc.
-2. **Builds your app** - Runs your build command (`npm run build`)
-3. **Uploads your files** - Stores them securely
-4. **Makes your app live** - Generates a public URL
-5. **Returns a live URL** - Static apps use `https://varity.app/<name>/`; dynamic apps use `https://<name>.varity.app/`
+1. **Detects your framework:** automatically identifies Next.js, React, Vue, etc.
+2. **Builds your app:** runs your build command (`npm run build`)
+3. **Uploads your files:** stores them securely
+4. **Makes your app live:** generates a public URL
+5. **Returns a live URL:** static apps use `https://varity.app/<name>/`; dynamic apps use `https://<name>.varity.app/`
 
 All of this happens automatically.
 
@@ -157,7 +157,7 @@ deploy-1737398400   archived  https://your-app-v1.varity.app    2 days ago
 
 ### Recover a Known-Good Version
 
-To recover after a bad deploy, redeploy a known-good version of your app — check out the working commit and run `varitykit app deploy` again under the same `--name`. The deployment at that URL is replaced with the version you just built.
+To recover after a bad deploy, redeploy a known-good version of your app. Check out the working commit and run `varitykit app deploy` again under the same `--name`. The deployment at that URL is replaced with the version you just built.
 
 ### View Deployment Details
 
@@ -234,7 +234,7 @@ varitykit app deploy --dry-run
 | `--path` | `.` | Project directory |
 | `--mode` | auto | Override the detected build/run mode |
 | `--skip-build` | off | Skip the build step (deploy a pre-built output) |
-| `--repo-url` | — | Deploy directly from a GitHub repo URL instead of a local path |
+| `--repo-url` | None | Deploy directly from a GitHub repo URL instead of a local path |
 | `--dry-run` | off | Simulate the deploy: show what would deploy without deploying (not supported with `--image`) |
 
 ### Deploy a prebuilt Docker image
@@ -243,9 +243,9 @@ Instead of a project directory, you can deploy an existing image. See [Deploy a 
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `--image` | — | Image reference to deploy as-is (e.g. `ghcr.io/acme/api:1.4.2`) |
+| `--image` | None | Image reference to deploy as-is (e.g. `ghcr.io/acme/api:1.4.2`) |
 | `--port` | `80` | Container port your app listens on |
-| `--image-registry` / `--image-username` / `--image-password` | — | Credentials for a private registry |
+| `--image-registry` / `--image-username` / `--image-password` | None | Credentials for a private registry |
 
 
 ## Next Steps

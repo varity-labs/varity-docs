@@ -1,6 +1,6 @@
 ---
 title: Deploy a Docker Image
-description: Deploy any public Docker image to Varity from the CLI, the Developer Portal, or your AI coding tool. No repo and no build step required.
+description: Deploy public or private runnable Docker images to Varity from the CLI, the Developer Portal, or your AI coding tool. No repo and no build step required.
 ---
 
 import { Tabs, TabItem, Steps, Aside } from '@astrojs/starlight/components';
@@ -13,15 +13,15 @@ import PageMeta from '../../../components/PageMeta.astro';
   stability="stable"
 />
 
-If your app is already packaged as a Docker image, you can deploy it to Varity directly. No repository, no build step — Varity pulls the image and runs it.
+If your app is already packaged as a Docker image, you can deploy it to Varity directly. No repository, no build step. Varity pulls the image and runs it.
 
-This is also the path for languages Varity does not auto-detect yet (Go, Rust, Ruby, and others): package your app as an image and deploy it like any other container.
+This is also the path for languages Varity does not auto-detect yet (Rust, Ruby, Java, and others): package your app as a runnable HTTP service image and deploy it like any other container.
 
 ```bash
 varitykit app deploy --image nginx:latest
 ```
 
-Any public Docker image deploys as-is.
+Public and private Docker/OCI images are supported when the image starts a runnable HTTP service on the configured port.
 
 ## Three Ways to Deploy an Image
 
@@ -56,9 +56,8 @@ Any public Docker image deploys as-is.
   1. Open [developer.store.varity.so/dashboard/deploy](https://developer.store.varity.so/dashboard/deploy)
   2. Select the **Docker image** tab
   3. Enter the image reference (for example `ghcr.io/acme/my-api:1.4.2`) and, optionally, the container port
-  4. Click deploy
-
-  The portal supports **public images** today. For private registries, use the CLI or MCP.
+  4. For a private image, add the registry host, username, and token/password
+  5. Click deploy
 
   </TabItem>
   <TabItem label="MCP (AI coding tools)">
@@ -72,17 +71,24 @@ Any public Docker image deploys as-is.
 
 ## Public vs. Private Registries
 
-| Registry type | CLI | MCP | Developer Portal |
-|---------------|-----|-----|------------------|
-| Public (Docker Hub, GHCR, etc.) | ✅ | ✅ | ✅ |
-| Private (credentials required) | ✅ `--image-registry` / `--image-username` / `--image-password` | ✅ `image_credentials` | Not yet |
+### Public registries
+
+Public images from Docker Hub, GHCR, and similar registries are supported from the CLI, MCP, and Developer Portal.
+
+### Private registries
+
+Private images are supported in all three deploy paths:
+
+- **CLI:** pass `--image-registry`, `--image-username`, and `--image-password`
+- **MCP:** set `image_credentials`
+- **Developer Portal:** fill in the registry credential fields
 
 ## What Happens After Deploy
 
 1. Varity pulls your image and starts it on dynamic compute hosting
 2. The deployment gets a name derived from the image (override with `--name`)
 3. Image deploys run as dynamic apps, so your app is reachable at `https://<name>.varity.app/` (`https://varity.app/<name>` redirects there)
-4. Billing starts as one flat monthly cost for the reserved hardware — it does not change with traffic
+4. Billing starts as one flat monthly cost for the reserved hardware. It does not change with traffic
 
 <Aside type="tip">
 Make sure your container listens on `0.0.0.0`, not `localhost`. If the app serves on a non-default port, pass `--port`.

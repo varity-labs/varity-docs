@@ -1,6 +1,6 @@
 ---
 title: Deploy from the Dashboard
-description: Deploy a GitHub repo, a Docker image, or a ready-made template from the Varity developer dashboard — no command line required.
+description: Deploy a GitHub repo, a Docker image, or a ready-made template from the Varity developer dashboard without using the command line.
 ---
 
 import { Steps, Aside, Card, CardGrid } from '@astrojs/starlight/components';
@@ -13,13 +13,13 @@ import PageMeta from '../../../components/PageMeta.astro';
   stability="stable"
 />
 
-The dashboard is the simplest way to deploy — no command line, no local setup. Connect a GitHub repo (or paste its URL), deploy a Docker image, or start from a template, and Varity takes it live.
+The dashboard is the simplest way to deploy. No command line, no local setup. Connect a GitHub repo (or paste its URL), deploy a Docker image, or start from a template, and Varity takes it live.
 
 This is the path most people use. If you prefer the terminal, see [Deploy Your App](/deploy/deploy-your-app/) for the CLI.
 
 ## Before You Start
 
-- A Varity account — sign in at [developer.store.varity.so](https://developer.store.varity.so).
+- A Varity account. Sign in at [developer.store.varity.so](https://developer.store.varity.so).
 - A payment method on file. Varity asks for a card before your first deploy so your app can go live and stay live; you are billed a flat monthly price for the hardware your app reserves, not for traffic. See [Billing](/resources/billing/).
 - Your app's source: a public GitHub repo, a connected GitHub account, or a public Docker image.
 
@@ -34,9 +34,9 @@ This is the path most people use. If you prefer the terminal, see [Deploy Your A
 2. **Choose your source**
 
    Pick one of:
-   - **GitHub repo** — paste a repository URL, or connect your GitHub account and browse your repos.
-   - **Docker image** — provide a public image reference (for example `nginx:latest` or `ghcr.io/acme/api:1.4`). This is also the path for any language Varity doesn't build from source yet.
-   - **Template** — pick a ready-made app from the gallery and deploy it as-is.
+   - **GitHub repo:** paste a repository URL, or connect your GitHub account and browse your repos.
+   - **Docker image:** provide a public image reference (for example `nginx:latest` or `ghcr.io/acme/api:1.4`). This is also the path for any language Varity doesn't build from source yet.
+   - **Template:** pick a ready-made app from the gallery and deploy it as-is.
 
 3. **Name and configure**
 
@@ -49,8 +49,8 @@ This is the path most people use. If you prefer the terminal, see [Deploy Your A
 5. **Open your live app**
 
    When it's ready, you get a live URL:
-   - **Static sites** → `https://varity.app/<your-app>/`
-   - **Dynamic apps** (servers, APIs, full-stack) → `https://<your-app>.varity.app/`
+   - **Static sites:** `https://varity.app/<your-app>/`
+   - **Dynamic apps** (servers, APIs, full-stack): `https://<your-app>.varity.app/`
 
 </Steps>
 
@@ -70,7 +70,7 @@ Everything after deploy lives in the dashboard:
     View your app's output to diagnose issues.
   </Card>
   <Card title="Cost" icon="seti:db">
-    See your flat monthly cost per app — it doesn't move with traffic.
+    See your flat monthly cost per app. It doesn't move with traffic.
   </Card>
   <Card title="Delete" icon="trash">
     Remove an app from the dashboard. Deleting stops its billing immediately.
@@ -80,12 +80,12 @@ Everything after deploy lives in the dashboard:
 ## What Varity Handles for You
 
 - Framework detection and build (no config files)
-- Auto-provisioned databases and services your code needs — see [Auto-wired Services](/deploy/auto-wired-services/)
+- Auto-provisioned databases and services your code needs. See [Auto-wired Services](/deploy/auto-wired-services/)
 - SSL certificates and routing
-- A flat, predictable monthly bill — see [How Pricing Works](/resources/pricing/)
+- A flat, predictable monthly bill. See [How Pricing Works](/resources/pricing/)
 
 ## Next Steps
 
-- [What You Can Deploy Today](/deploy/what-you-can-deploy/) — supported stacks and current beta limits.
-- [Deploy a Docker Image](/deploy/deploy-docker-image/) — deploy any prebuilt image.
-- [Migrate from Vercel](/deploy/vercel-migration/) — move an existing app over.
+- [What You Can Deploy Today](/deploy/what-you-can-deploy/): supported stacks and current beta limits.
+- [Deploy a Docker Image](/deploy/deploy-docker-image/): deploy a runnable prebuilt image.
+- [Migrate from Vercel](/deploy/vercel-migration/): move an existing app over.

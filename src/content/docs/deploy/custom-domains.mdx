@@ -1,6 +1,6 @@
 ---
-title: Custom Domains
-description: Set your app name for Varity URLs. Static apps use varity.app/{name}, dynamic apps use {name}.varity.app. List registered domains with varitykit domains list.
+title: App URLs and Names
+description: Set your Varity app name. Static apps use varity.app/{name}, and dynamic apps use {name}.varity.app.
 ---
 
 import { Steps, Aside, Tabs, TabItem } from '@astrojs/starlight/components';
@@ -13,10 +13,10 @@ import PageMeta from '../../../components/PageMeta.astro';
   stability="beta"
 />
 
-Every Varity deployment gets a public URL based on its hosting type: **static apps** are served at `https://varity.app/{name}/`, and **dynamic apps** (Node/Python servers) get their own subdomain at `https://{name}.varity.app/`. This guide covers how to set a custom name and manage your registered domains.
+Every Varity deployment gets a public URL based on its hosting type: **static apps** are served at `https://varity.app/{name}/`, and **dynamic apps** get their own subdomain at `https://{name}.varity.app/`. This guide covers how to set a custom app name and list the `varity.app` names registered to your account.
 
 <Aside type="note">
-**External custom domain support** (pointing `myapp.com` via DNS to your Varity deployment) is under development. This guide covers `varity.app` subdomain management, which is available now.
+External custom domain support is not available yet. Use your assigned `varity.app` URL for current beta deployments.
 </Aside>
 
 ## How Your Domain Is Assigned
@@ -27,13 +27,13 @@ When you run `varitykit app deploy`, Varity registers a name for your app from y
 # Static apps: served on a sub-path
 https://varity.app/{your-app-name}/
 
-# Dynamic (Node/Python) apps: served on their own subdomain
+# Dynamic apps: served on their own subdomain
 https://{your-app-name}.varity.app/
 ```
 
 Your app name is derived from the `name` field in your `package.json` by default. You can override it with the `--name` flag.
 
-## Set a Custom Subdomain
+## Set a Custom App Name
 
 Pass `--name` to choose your subdomain at deploy time:
 
@@ -47,7 +47,7 @@ Your app will be available at the URL for its hosting type:
 # Static app
 https://varity.app/my-app/
 
-# Dynamic (Node/Python) app
+# Dynamic app
 https://my-app.varity.app/
 ```
 
@@ -102,18 +102,9 @@ varitykit app deploy --name my-app
 
 All `varity.app` subdomains are served over HTTPS automatically. No certificate setup is required. SSL is provisioned and renewed by Varity.
 
-## Bring Your Own Domain (Coming Soon)
+## External Domains
 
-External custom domain support is on the roadmap. When available, you'll be able to point `myapp.com` (apex domain) or `app.myapp.com` (subdomain) at your Varity deployment with automatic SSL provisioning.
-
-The expected setup will be:
-
-| Record Type | Name | Value |
-|-------------|------|-------|
-| `CNAME` | `app` | `varity.app` |
-| `A` | `@` | Varity IP (provided in dashboard) |
-
-Watch the [changelog](https://docs.varity.so) for availability.
+External custom domains are on the roadmap, but they are not part of the current beta. Do not configure DNS records for a custom domain until the dashboard exposes that workflow.
 
 ## Related
 

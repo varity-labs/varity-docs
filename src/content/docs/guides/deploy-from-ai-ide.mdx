@@ -1,6 +1,6 @@
 ---
 title: Deploy from Claude Code, Cursor, or Windsurf
-description: Deploy any Node or Python app to production from inside your AI editor. Install the Varity MCP server once, then type "deploy this" and your app is live.
+description: Deploy supported apps and runnable Docker services from your AI editor with the Varity MCP server.
 ---
 
 import { Steps, Tabs, TabItem, Aside, Card, CardGrid } from '@astrojs/starlight/components';
@@ -24,7 +24,7 @@ Works with Claude Code, Cursor, Windsurf, VS Code (Copilot), and any other edito
     Run this once from any directory:
 
     ```bash
-    claude mcp add varity -- npx -y @varity-labs/mcp@beta
+    claude mcp add varity -- npx -y @varity-labs/mcp
     ```
 
     Claude Code picks up the server automatically on the next conversation. Confirm it is registered:
@@ -43,7 +43,7 @@ Works with Claude Code, Cursor, Windsurf, VS Code (Copilot), and any other edito
       "mcpServers": {
         "varity": {
           "command": "npx",
-          "args": ["-y", "@varity-labs/mcp@beta"]
+          "args": ["-y", "@varity-labs/mcp"]
         }
       }
     }
@@ -59,7 +59,7 @@ Works with Claude Code, Cursor, Windsurf, VS Code (Copilot), and any other edito
       "mcpServers": {
         "varity": {
           "command": "npx",
-          "args": ["-y", "@varity-labs/mcp@beta"]
+          "args": ["-y", "@varity-labs/mcp"]
         }
       }
     }
@@ -75,7 +75,7 @@ Works with Claude Code, Cursor, Windsurf, VS Code (Copilot), and any other edito
       "mcpServers": {
         "varity": {
           "command": "npx",
-          "args": ["-y", "@varity-labs/mcp@beta"]
+          "args": ["-y", "@varity-labs/mcp"]
         }
       }
     }
@@ -274,7 +274,7 @@ Re-add the server and restart:
 
 ```bash
 # Claude Code
-claude mcp add varity -- npx -y @varity-labs/mcp@beta
+claude mcp add varity -- npx -y @varity-labs/mcp
 ```
 
 Verify with `claude mcp list`.

@@ -13,7 +13,7 @@ import PageMeta from '../../../components/PageMeta.astro';
   stability="beta"
 />
 
-Varity automatically configures everything for your app - no setup files, no DevOps knowledge required.
+Varity automatically configures deployment defaults for supported source apps and runnable Docker services.
 
 :::note[The Varity Promise]
 Usage-metered hosting still asks you to configure builds, environment variables, and separate add-on services, and the bill grows with your traffic. **Varity handles the configuration automatically** and charges a flat price for the hardware it reserves, so you can focus on building your app, not managing infrastructure.
@@ -25,12 +25,12 @@ Varity is built for a one-command deploy workflow from local project to live URL
 
 When you deploy with Varity, the platform automatically:
 
-- **Understands your app** - Figures out what your app needs without you telling it
-- **Configures deployment defaults** - Sets up hosting and runtime services based on your project
-- **Reserves the right hardware** - Reserves the hardware your app needs, so your flat monthly cost is no higher than it has to be
-- **Handles hosting defaults** - Varity configures your runtime services automatically
+- **Understands your app:** figures out what your app needs without you telling it
+- **Configures deployment defaults:** sets up hosting and runtime services based on your project
+- **Reserves the right hardware:** reserves the hardware your app needs, so your flat monthly cost is no higher than it has to be
+- **Handles hosting defaults:** Varity configures your runtime services automatically
 
-**No configuration files. No YAML. No Docker. No DevOps knowledge. Just one command.**
+For supported source stacks, no Docker setup is required. For other stacks, use a prebuilt runnable Docker or OCI image.
 
 ## How It Works
 
@@ -40,7 +40,7 @@ Varity does all the infrastructure work for you.
 
 1. **You Build Your App**
 
-   Focus on your product - use React, Next.js, Vue, or any supported framework you like. No special Varity syntax required.
+   Focus on your product. Use React, Next.js, Vue, or any supported framework you like. No special Varity syntax required.
 
 2. **Run One Command**
 
@@ -61,10 +61,10 @@ Varity does all the infrastructure work for you.
 4. **Your App Goes Live**
 
    You get a live URL. Everything works automatically:
-   - ✅ Hosting configured
-   - ✅ Database ready (when your app needs one)
-   - ✅ SSL certificate active
-   - ✅ Static assets served from a global CDN
+   - Hosting configured
+   - Database ready when your app needs one
+   - SSL certificate active
+   - Static assets served from a global CDN
 
 </Steps>
 
@@ -79,7 +79,7 @@ Varity decides which one fits your project automatically. You can influence it w
 
 ## What's Included (Automatically)
 
-Every Varity app gets these services configured automatically - no setup required:
+Every Varity app gets these services configured automatically. No setup required:
 
 <CardGrid>
   <Card title="Hosting" icon="rocket">
@@ -120,10 +120,10 @@ Varity charges a flat monthly price for the hardware it reserves for your app. U
 
 ### The Varity Advantage
 
-- **Reserved hardware, flat price** - Your app runs on hardware reserved for it, at a price that does not change with traffic
-- **No surprise overages** - No metered bandwidth, invocation, or build-minute charges
-- **Included Services** - Database, CDN, and SSL are included at no extra cost
-- **Predictable from day one** - Your bill on day 1 is your bill on day 1000
+- **Reserved hardware, flat price:** your app runs on hardware reserved for it, at a price that does not change with traffic
+- **No surprise overages:** no metered bandwidth, invocation, or build-minute charges
+- **Included Services:** database, CDN, and SSL are included at no extra cost
+- **Predictable from day one:** your bill on day 1 is your bill on day 1000
 
 Use [Pricing and Costs](/resources/pricing) and `varity_cost_calculator` for current estimates.
 
@@ -169,23 +169,23 @@ export SENDGRID_API_KEY=...
 varitykit app deploy
 ```
 
-That's it. No YAML files. No Docker setup. No environment variables during development.
+That's it for supported source projects. You still set app-specific secrets when your code needs them.
 
 ### What Varity Auto-Configures
 
 When you deploy, Varity automatically handles:
 
-- ✅ Framework detection (Next.js, React, Vue, Node.js, Python)
-- ✅ Build configuration (automatic)
-- ✅ Container creation (no Docker install required)
-- ✅ Database provisioning (if your code needs it)
-- ✅ SSL certificates (automatic)
-- ✅ App URL and routing (`varity.app/<your-app>/` for static, `<your-app>.varity.app/` for dynamic)
-- ✅ Global CDN for static assets
-- ✅ Managed hosting defaults
-- ✅ Sidecars: Postgres+pgvector, Redis, MongoDB, MySQL, Ollama (when detected in your config)
+- Framework detection (Next.js, React, Vue, Node.js, Python, Go, static sites)
+- Build configuration
+- Container creation with no local Docker install required for supported source projects
+- Database provisioning when your code needs it
+- SSL certificates
+- App URL and routing (`varity.app/<your-app>/` for static, `<your-app>.varity.app/` for dynamic)
+- Global CDN for static assets
+- Managed hosting defaults
+- Sidecars: Postgres+pgvector, Redis, MongoDB, MySQL, Ollama, and object storage when detected in your config
 
-**Not yet supported:** Go, Rust, Ruby / Rails, Elixir / Phoenix, Java / Spring, Deno, PHP / Laravel, .NET. Deploying these source stacks returns a clear unsupported-language error with a feature-request link. (You can still deploy any of these by providing a prebuilt Docker image.) [Request support for your framework](https://github.com/varity-labs).
+**Not yet source-built:** Rust, Ruby / Rails, Elixir / Phoenix, Java / Spring, Deno, PHP / Laravel, .NET. You can still deploy these by providing a prebuilt runnable Docker image. [Request support for your framework](https://github.com/varity-labs).
 
 ## Developer Experience
 
@@ -216,15 +216,15 @@ Deploying...
   ✓ Provisioning database
   ✓ Configuring SSL certificate
 
-✅ Live at: https://my-app.varity.app/
+Live at: https://my-app.varity.app/
 ```
 
 ### What You Don't Need
 
-❌ Docker installation
-❌ DevOps or infrastructure knowledge
-❌ Complex configuration files
-❌ Manual credential management
+- Docker installation for supported source projects
+- DevOps or infrastructure knowledge
+- Complex configuration files
+- Manual credential management
 
 ## The Developer Experience
 
@@ -234,7 +234,7 @@ Varity is designed for **people who want to build apps, not manage infrastructur
 
 ```bash
 # Build your features
-# (use React, Next.js, Vue - whatever you prefer)
+# (use React, Next.js, Vue, or whatever you prefer)
 
 # Deploy to production from your project folder
 varitykit app deploy
@@ -256,18 +256,18 @@ Deploying...
   ✓ Setting up database
   ✓ Enabling SSL certificate
 
-✅ Live at: https://my-app.varity.app/
+Live at: https://my-app.varity.app/
 ```
 
 ### What You DON'T Need
 
-❌ DevOps knowledge or experience
-❌ Configuration files (no YAML, no Docker)
-❌ Environment variable management
-❌ Credential setup for Varity infrastructure
-❌ SSL certificate installation
-❌ Database connection strings
-❌ Manual hosting configuration
+- DevOps knowledge or experience
+- Deployment YAML for supported source projects
+- Infrastructure credential setup
+- Credential setup for Varity infrastructure
+- SSL certificate installation
+- Database connection strings
+- Manual hosting configuration
 
 ## Next Steps
 

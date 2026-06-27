@@ -1,0 +1,587 @@
+---
+const quickStartItems = [
+  {
+    label: 'Claude Code',
+    href: '/ai-tools/mcp-server-spec/',
+  },
+  {
+    label: 'Cursor',
+    href: '/ai-tools/mcp-server-spec/',
+  },
+  {
+    label: 'CLI',
+    href: '/getting-started/quickstart/',
+  },
+  {
+    label: 'Next.js',
+    href: '/guides/deploy-nextjs/',
+  },
+  {
+    label: 'Python',
+    href: '/getting-started/quickstart-python/',
+  },
+  {
+    label: 'Docker',
+    href: '/deploy/deploy-docker-image/',
+  },
+]
+
+const productCards = [
+  {
+    title: 'Source deploys',
+    href: '/deploy/deploy-your-app/',
+    description: 'Deploy supported Node, Python, Go, and static projects from the CLI, dashboard, or MCP.',
+  },
+  {
+    title: 'Docker images',
+    href: '/deploy/deploy-docker-image/',
+    description: 'Deploy public or private runnable Docker/OCI HTTP service images.',
+  },
+  {
+    title: 'Supported stacks',
+    href: '/deploy/supported-frameworks/',
+    description: 'Review the current framework matrix, detection behavior, and unsupported source stacks.',
+  },
+  {
+    title: 'Auto-wired services',
+    href: '/deploy/auto-wired-services/',
+    description: 'Postgres, Redis, MongoDB, MySQL, object storage, and AI runtimes when detected.',
+  },
+  {
+    title: 'AI editor deploys',
+    href: '/guides/deploy-from-ai-ide/',
+    description: 'Connect the Varity MCP server to Claude Code, Cursor, Windsurf, and VS Code.',
+  },
+  {
+    title: 'Vercel migration',
+    href: '/deploy/vercel-migration/',
+    description: 'Analyze, transform, and deploy an existing Vercel project through the migration tool.',
+  },
+]
+
+const referenceGroups = [
+  {
+    title: 'Configure',
+    links: [
+      ['Environment variables', '/deploy/env-variables/'],
+      ['Managed credentials', '/deploy/managed-credentials/'],
+      ['Databases and data', '/deploy/databases/'],
+      ['App URLs and names', '/deploy/custom-domains/'],
+    ],
+  },
+  {
+    title: 'Operate',
+    links: [
+      ['Deployment troubleshooting', '/deploy/deployment-troubleshooting/'],
+      ['Recover a previous version', '/deploy/rollback/'],
+      ['Deployment status and logs', '/cli/commands/deploy/'],
+      ['Billing', '/resources/billing/'],
+    ],
+  },
+  {
+    title: 'Reference',
+    links: [
+      ['MCP server tools', '/ai-tools/mcp-server-spec/'],
+      ['CLI overview', '/cli/overview/'],
+      ['Pricing and costs', '/resources/pricing/'],
+      ['Glossary', '/resources/glossary/'],
+    ],
+  },
+]
+
+const resourceCards = [
+  {
+    title: 'What you can deploy today',
+    href: '/deploy/what-you-can-deploy/',
+    description: 'The current capability snapshot, beta expectations, and features not ready yet.',
+  },
+  {
+    title: 'Troubleshooting',
+    href: '/resources/troubleshooting/',
+    description: 'Common setup, CLI, and deployment issues with recovery steps.',
+  },
+  {
+    title: 'Getting help',
+    href: '/getting-started/getting-help/',
+    description: 'Where to get support when a deploy, migration, or setup step is blocked.',
+  },
+]
+---
+
+<div class="docs-home not-content">
+  <section class="docs-hero">
+    <div class="docs-hero-copy">
+      <p class="eyebrow">Varity Docs</p>
+      <h1 class="hero-title">Build, deploy, and operate apps on Varity.</h1>
+      <p class="lede">
+        Guides and references for deploying supported source projects, runnable Docker services, and AI-agent workloads with predictable cloud hosting.
+      </p>
+      <div class="hero-actions">
+        <a class="primary-action" href="/getting-started/quickstart/">Start deploying</a>
+        <a class="secondary-action" href="/ai-tools/mcp-server-spec/">Set up MCP</a>
+      </div>
+    </div>
+
+    <div class="command-panel" aria-label="Quick deploy commands">
+      <div class="command-header">
+        <span>Quick start</span>
+      </div>
+      <pre><code><span>$</span> pipx install varitykit
+<span>$</span> varitykit app deploy
+
+<em># live at https://varity.app/my-app/</em></code></pre>
+      <a href="/getting-started/installation/">Installation options</a>
+    </div>
+  </section>
+
+  <section class="quick-panel">
+    <div>
+      <h2>Getting started</h2>
+      <p>Choose the entry point that matches how you build. Each path includes commands, setup checks, and deployment boundaries.</p>
+    </div>
+    <div class="quick-grid">
+      {quickStartItems.map((item) => (
+        <a href={item.href}>{item.label}</a>
+      ))}
+    </div>
+  </section>
+
+  <section class="section-block">
+    <div class="section-heading">
+      <h2>Platform guides</h2>
+      <p>Start with deployment, then attach services, configure runtime settings, and move into operations.</p>
+    </div>
+
+    <div class="product-grid">
+      {productCards.map((item) => (
+        <a class="product-card" href={item.href}>
+          <strong>{item.title}</strong>
+          <p>{item.description}</p>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <section class="section-block guide-section">
+    <div class="section-heading">
+      <h2>Reference</h2>
+      <p>Keep these pages close when you are configuring production settings, debugging deploys, or automating through tools.</p>
+    </div>
+
+    <div class="guide-grid">
+      {referenceGroups.map((group) => (
+        <div class="guide-group">
+          <h3>{group.title}</h3>
+          <ul>
+            {group.links.map(([label, href]) => (
+              <li><a href={href}>{label}</a></li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <section class="section-block resource-section">
+    <div class="section-heading">
+      <h2>Resources</h2>
+      <p>Shortcuts for launch-readiness checks, troubleshooting, and support.</p>
+    </div>
+
+    <div class="resource-grid">
+      {resourceCards.map((item) => (
+        <a class="resource-card" href={item.href}>
+          <strong>{item.title}</strong>
+          <p>{item.description}</p>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <section class="status-band">
+    <div>
+      <h2>Current beta boundaries</h2>
+      <p>
+        Source deploys support Node, Python, Go, and static stacks. Other stacks can deploy with a runnable Docker/OCI image.
+        External custom domains, cron, preview deploys, and one-click rollback are not shipped yet.
+      </p>
+    </div>
+    <a href="/deploy/what-you-can-deploy/">Read the current capability snapshot</a>
+  </section>
+</div>
+
+<style>
+  .docs-home {
+    --home-border: rgba(148, 163, 184, 0.22);
+    --home-muted: var(--text-secondary);
+    max-width: 76rem;
+    margin: 0 auto;
+    padding: 4rem 1.5rem 5rem;
+  }
+
+  :global(body:has(.docs-home) main > .content-panel:first-child) {
+    display: none;
+  }
+
+  .docs-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(23rem, 0.82fr);
+    gap: 5rem;
+    align-items: center;
+    padding-bottom: 3.5rem;
+    border-bottom: 1px solid var(--home-border);
+  }
+
+  .eyebrow {
+    margin: 0;
+    color: var(--color-brand);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .hero-title {
+    max-width: 14ch;
+    margin: 0.75rem 0 1rem;
+    color: var(--text-primary);
+    font-size: 3rem;
+    font-weight: 800;
+    line-height: 1.06;
+    letter-spacing: 0;
+  }
+
+  .lede {
+    max-width: 42rem;
+    margin: 0;
+    color: var(--home-muted);
+    font-size: 1.0625rem;
+    line-height: 1.7;
+  }
+
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+  }
+
+  .primary-action,
+  .secondary-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.5rem;
+    padding: 0 1rem;
+    border-radius: 6px;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .primary-action {
+    background: var(--color-brand);
+    color: #031312;
+  }
+
+  .secondary-action {
+    border: 1px solid var(--home-border);
+    color: var(--text-primary);
+  }
+
+  .command-panel {
+    border: 1px solid var(--home-border);
+    border-radius: 8px;
+    background: #0c0d0f;
+    overflow: hidden;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22);
+  }
+
+  .command-header {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+    color: #a1a1aa;
+    font-family: var(--sl-font-mono);
+    font-size: 0.8125rem;
+  }
+
+  .command-panel pre {
+    margin: 0;
+    padding: 1.1rem 1rem;
+    overflow-x: auto;
+    color: #e4e4e7;
+    font-family: var(--sl-font-mono);
+    font-size: 0.875rem;
+    line-height: 1.8;
+  }
+
+  .command-panel code,
+  .command-panel span,
+  .command-panel em {
+    font-family: inherit;
+  }
+
+  .command-panel span,
+  .command-panel em {
+    color: var(--color-brand);
+    font-style: normal;
+  }
+
+  .command-panel a {
+    display: block;
+    padding: 0.85rem 1rem;
+    border-top: 1px solid rgba(148, 163, 184, 0.18);
+    color: var(--color-brand);
+    font-size: 0.875rem;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .section-block {
+    padding: 3.25rem 0;
+    border-bottom: 1px solid var(--home-border);
+  }
+
+  .quick-panel {
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr);
+    gap: 2rem;
+    align-items: start;
+    padding: 2rem 0;
+    border-bottom: 1px solid var(--home-border);
+  }
+
+  .quick-panel h2 {
+    margin: 0 0 0.5rem;
+    color: var(--text-primary);
+    font-size: 1.375rem;
+    letter-spacing: 0;
+  }
+
+  .quick-panel p {
+    margin: 0;
+    color: var(--home-muted);
+    line-height: 1.7;
+  }
+
+  .quick-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+
+  .quick-grid a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 4.25rem;
+    border: 1px solid var(--home-border);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-weight: 700;
+    text-decoration: none;
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .quick-grid a:hover {
+    border-color: rgba(20, 184, 166, 0.55);
+    background: rgba(20, 184, 166, 0.05);
+  }
+
+  .section-heading {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: 2rem;
+    align-items: start;
+    margin-bottom: 1.5rem;
+  }
+
+  .section-heading h2,
+  .status-band h2 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 1.375rem;
+    line-height: 1.25;
+    letter-spacing: 0;
+  }
+
+  .section-heading p,
+  .status-band p {
+    margin: 0;
+    color: var(--home-muted);
+    line-height: 1.7;
+  }
+
+  .product-grid,
+  .resource-grid,
+  .guide-grid {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .product-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .resource-grid,
+  .guide-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .product-card,
+  .resource-card,
+  .guide-group {
+    border: 1px solid var(--home-border);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .product-card,
+  .resource-card {
+    min-height: 10.25rem;
+    padding: 1.1rem;
+    color: inherit;
+    text-decoration: none;
+    transition: border-color 150ms ease, background-color 150ms ease;
+  }
+
+  .product-card:hover,
+  .resource-card:hover {
+    border-color: rgba(20, 184, 166, 0.6);
+    background: rgba(20, 184, 166, 0.05);
+  }
+
+  .product-card strong,
+  .resource-card strong {
+    display: block;
+    color: var(--text-primary);
+    font-size: 1rem;
+    line-height: 1.35;
+  }
+
+  .product-card p,
+  .resource-card p {
+    margin: 0.55rem 0 0;
+    color: var(--home-muted);
+    font-size: 0.875rem;
+    line-height: 1.55;
+  }
+
+  .guide-group {
+    padding: 1rem;
+  }
+
+  .guide-group h3 {
+    margin: 0 0 0.75rem;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    letter-spacing: 0;
+  }
+
+  .guide-group ul {
+    display: grid;
+    gap: 0.55rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .guide-group li::before {
+    display: none;
+  }
+
+  .guide-group a {
+    color: var(--home-muted);
+    font-size: 0.9rem;
+    text-decoration: none;
+  }
+
+  .guide-group a:hover {
+    color: var(--color-brand);
+  }
+
+  .status-band {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 2rem;
+    align-items: center;
+    margin-top: 3rem;
+    padding: 1.25rem;
+    border: 1px solid rgba(20, 184, 166, 0.35);
+    border-radius: 8px;
+    background: rgba(20, 184, 166, 0.06);
+  }
+
+  .status-band h2 {
+    margin-bottom: 0.45rem;
+    font-size: 1.1rem;
+  }
+
+  .status-band a {
+    color: var(--color-brand);
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  :global([data-theme="light"]) .command-panel {
+    background: #111827;
+  }
+
+  :global([data-theme="light"]) .quick-grid a,
+  :global([data-theme="light"]) .product-card,
+  :global([data-theme="light"]) .resource-card,
+  :global([data-theme="light"]) .guide-group {
+    background: #ffffff;
+  }
+
+  @media (max-width: 64rem) {
+    .docs-home {
+      padding-top: 2rem;
+    }
+
+    .docs-hero,
+    .quick-panel,
+    .section-heading,
+    .status-band {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+
+    .hero-title {
+      max-width: 18ch;
+      font-size: 2.35rem;
+    }
+
+    .product-grid,
+    .resource-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .guide-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .status-band a {
+      white-space: normal;
+    }
+  }
+
+  @media (max-width: 42rem) {
+    .docs-home {
+      padding-inline: 1rem;
+    }
+
+    .quick-grid,
+    .product-grid,
+    .resource-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .product-card,
+    .resource-card {
+      min-height: auto;
+    }
+  }
+</style>

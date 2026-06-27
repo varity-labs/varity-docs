@@ -71,10 +71,10 @@ Deploy an existing Next.js app to Varity in one command. Varity detects your fra
 
 You do not import an SDK or change your code. When Varity deploys a Next.js project, it configures the backend automatically:
 
-- **Hosting mode** - static export vs dynamic runtime is detected from your `next.config.js`.
-- **Databases and caches** - if Varity detects a database client in your dependencies (for example Prisma, `pg`, `mongoose`, or `redis`), it provisions the matching service and injects the connection details into your app's environment at runtime.
-- **Environment variables** - any variables you set are injected into the deployed container. See [Environment Variables](/deploy/env-variables).
-- **Live URL** - `https://varity.app/<app-name>/` for a static export, or `https://<app-name>.varity.app/` for a dynamic runtime, with HTTPS handled for you.
+- **Hosting mode:** static export vs dynamic runtime is detected from your `next.config.js`.
+- **Databases and caches:** if Varity detects a database client in your dependencies (for example Prisma, `pg`, `mongoose`, or `redis`), it provisions the matching service and injects the connection details into your app's environment at runtime.
+- **Environment variables:** any variables you set are injected into the deployed container. See [Environment Variables](/deploy/env-variables).
+- **Live URL:** `https://varity.app/<app-name>/` for a static export, or `https://<app-name>.varity.app/` for a dynamic runtime, with HTTPS handled for you.
 
 For the full list of detected frameworks and auto-wired services, see [Supported Frameworks](/deploy/supported-frameworks) and [Auto-wired Services](/deploy/auto-wired-services).
 

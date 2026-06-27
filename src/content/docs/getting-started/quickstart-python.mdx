@@ -88,9 +88,9 @@ Make sure your app binds to the host and port Varity provides (read the `PORT` e
 
 You do not import an SDK or change your code. When Varity deploys a Python app, it configures the backend automatically:
 
-- **Databases and caches** - if Varity detects a database client in your dependencies (for example `psycopg`, `SQLAlchemy`, `pymongo`, `redis`, or `mysqlclient`), it provisions the matching service and injects the connection details into your app's environment at runtime (`DATABASE_URL`, `REDIS_URL`, `MONGODB_URI`, `MYSQL_URL`).
-- **Environment variables** - any variables you set are injected into the deployed container. See [Environment Variables](/deploy/env-variables/).
-- **Live URL** - `https://<app-name>.varity.app/`, with HTTPS handled for you.
+- **Databases and caches:** if Varity detects a database client in your dependencies (for example `psycopg`, `SQLAlchemy`, `pymongo`, `redis`, or `mysqlclient`), it provisions the matching service and injects the connection details into your app's environment at runtime (`DATABASE_URL`, `REDIS_URL`, `MONGODB_URI`, `MYSQL_URL`).
+- **Environment variables:** any variables you set are injected into the deployed container. See [Environment Variables](/deploy/env-variables/).
+- **Live URL:** `https://<app-name>.varity.app/`, with HTTPS handled for you.
 
 For the full list of detected frameworks and auto-wired services, see [Supported Frameworks](/deploy/supported-frameworks/) and [Auto-wired Services](/deploy/auto-wired-services/).
 

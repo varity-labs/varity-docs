@@ -23,7 +23,7 @@ If your agent uses a local language model (via the `ollama` package), Varity det
 
 Don't want to write code? Varity ships ready-to-deploy templates for popular open-source agent tools: **Agent Zero**, **Flowise**, **Langflow**, **Open WebUI**, **n8n**, and **Uptime Kuma**.
 
-The proven path for these templates is the **Developer Portal**. Open the template gallery at [developer.store.varity.so/dashboard/deploy](https://developer.store.varity.so/dashboard/deploy) and click deploy on any template. That's it — one click, live URL. If a template needs environment variables (like an API key), the portal prompts you for them before deploying.
+The proven path for these templates is the **Developer Portal**. Open the template gallery at [developer.store.varity.so/dashboard/deploy](https://developer.store.varity.so/dashboard/deploy) and click deploy on any template. That's it. One click, live URL. If a template needs environment variables (like an API key), the portal prompts you for them before deploying.
 
 If you prefer the terminal or your AI editor, you can deploy any of these tools by its prebuilt Docker image:
 
@@ -39,9 +39,11 @@ If you prefer the terminal or your AI editor, you can deploy any of these tools 
   </TabItem>
   <TabItem label="MCP (AI coding tools)">
 
-  With the [Varity MCP server](/ai-tools/mcp-server-spec) installed, ask your AI editor to deploy the image with `varity_deploy`:
+  With the [Varity MCP server](/ai-tools/mcp-server-spec) installed, ask your AI editor to use the agent-template tools:
 
-  > "Deploy the flowiseai/flowise image on Varity"
+  > "Show details for Agent Zero, then deploy Agent Zero on Varity"
+
+  The MCP should call `varity_agent_info` first, then `varity_deploy_agent` with `agent: "agent-zero"`. Use `varity_deploy` for a local project or Docker image.
 
   </TabItem>
 </Tabs>
