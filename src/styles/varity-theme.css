@@ -553,7 +553,7 @@ i {
   /* TOC width - wider to prevent heading wrapping */
   --sl-toc-width: 14rem;  /* 224px - Supabase standard */
   /* Homepage content max width */
-  --varity-homepage-max: 68rem;
+  --varity-homepage-max: 96rem;
 }
 
 /* ========================================

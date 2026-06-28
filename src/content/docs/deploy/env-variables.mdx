@@ -20,8 +20,6 @@ Varity manages most credentials automatically. You only need to set environment 
 **No credential setup required.** Storage and service credentials are provided automatically by Varity. See [Managed Credentials](/deploy/managed-credentials) for details.
 </Aside>
 
-![Varity environment variable update flow using CLI deploy flags and MCP env tools](/docs/images/env-variables-flow.webp)
-
 ## Custom Environment Variables
 
 If your app uses third-party APIs (OpenAI, Stripe, SendGrid, Resend, or any other service), you need to inject those API keys into your deployment. Varity reads them from a `.env` file during `varitykit app deploy` and passes them through to your running app.

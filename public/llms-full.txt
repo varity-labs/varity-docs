@@ -219,8 +219,6 @@ The MCP server works with **any editor that supports MCP**: Cursor, Claude Code,
 
 **Machine-readable schema.** The Varity MCP tool catalog is published at [`/mcp-schema.json`](/mcp-schema.json), including tool names, descriptions, JSON Schema, and annotations. The HTTP API the tools wrap is published as [`/openapi.yaml`](/openapi.yaml). See the [API Reference](/ai-tools/api-reference/) for both.
 
-![Current Varity MCP tool groups generated from the released package](/docs/images/mcp-tool-map.webp)
-
 ## Prerequisites
 
 - **Node.js 20+** (runs the MCP server)
@@ -1913,8 +1911,6 @@ varitykit app deploy --image nginx:latest
 
 Public and private Docker/OCI images are supported when the image starts a runnable HTTP service on the configured port.
 
-![Varity dashboard Docker image deploy form with private registry credential fields](/docs/images/dashboard-private-docker.webp)
-
 ## Three Ways to Deploy an Image
 
 <Tabs>
@@ -2011,10 +2007,6 @@ The dashboard is the simplest way to deploy. No command line, no local setup. Co
 
 This is the path most people use. If you prefer the terminal, see [Deploy Your App](/deploy/deploy-your-app/) for the CLI.
 
-![Varity dashboard source repository deploy form with GitHub URL input](/docs/images/dashboard-source-repository.webp)
-
-![Varity dashboard template gallery with verified starter apps](/docs/images/dashboard-template-gallery.webp)
-
 ## Before You Start
 
 - A Varity account. Sign in at [developer.store.varity.so](https://developer.store.varity.so).
@@ -2097,8 +2089,6 @@ Varity is currently in beta. Your deployments work exactly as in production, but
 :::
 
 From the Dashboard, choose a GitHub repository, add environment variables, review the fixed monthly price for the reserved hardware, and deploy.
-
-![Varity dashboard source repository deploy form with a repository URL field](/docs/images/dashboard-source-repository.webp)
 
 ## Three Ways In
 
@@ -2609,8 +2599,6 @@ Description: Configure environment variables for Varity deployments. Inject cust
 Varity manages most credentials automatically. You only need to set environment variables for services you manage yourself, like your own API keys for OpenAI, Stripe, SendGrid, and similar third-party services.
 
 **No credential setup required.** Storage and service credentials are provided automatically by Varity. See [Managed Credentials](/deploy/managed-credentials) for details.
-
-![Varity environment variable update flow using CLI deploy flags and MCP env tools](/docs/images/env-variables-flow.webp)
 
 ## Custom Environment Variables
 
@@ -4113,8 +4101,6 @@ Three ways to get started. Pick the one that fits where you are today.
     Using Claude Code or Cursor? Add the Varity MCP server and ask your AI tool to deploy.
 
 
-![Varity first deploy terminal flow with install, doctor, and app deploy commands](/docs/images/quickstart-terminal.webp)
-
 ---
 
 ## Path 1: Migrate your existing app
@@ -4330,8 +4316,6 @@ Description: Deploy supported apps and runnable Docker services from your AI edi
 Varity works seamlessly with AI coding tools. Install the MCP server once, and your AI editor can build and deploy apps to production without you ever leaving the chat.
 
 Works with Claude Code, Cursor, Windsurf, VS Code (Copilot), and any other editor that supports the Model Context Protocol.
-
-![Varity MCP setup command for Claude Code and compatible AI editors](/docs/images/ai-editor-mcp-setup.webp)
 
 ## Install the MCP server
 
