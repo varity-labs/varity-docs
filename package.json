@@ -21,6 +21,7 @@
     "lint": "astro check"
   },
   "dependencies": {
+    "@astrojs/sitemap": "3.6.0",
     "@astrojs/starlight": "^0.37.7",
     "astro": "^5.18.1"
   },

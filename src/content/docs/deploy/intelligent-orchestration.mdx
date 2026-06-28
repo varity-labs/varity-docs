@@ -1,9 +1,9 @@
 ---
-title: Zero-Configuration Deployment
-description: Varity automatically configures deployment for your app with minimal setup and clear hosting defaults.
+title: Deployment Defaults on Varity
+description: How Varity chooses public deployment settings for supported source apps and runnable Docker services.
 ---
 
-import { Card, CardGrid, Aside, Steps } from '@astrojs/starlight/components';
+import { Aside, Card, CardGrid, Steps } from '@astrojs/starlight/components';
 import PageMeta from '../../../components/PageMeta.astro';
 
 <PageMeta
@@ -13,280 +13,136 @@ import PageMeta from '../../../components/PageMeta.astro';
   stability="beta"
 />
 
-Varity automatically configures deployment defaults for supported source apps and runnable Docker services.
+Varity turns a supported source project or a runnable Docker service image into a live app URL. This page explains the public settings Varity applies during that deploy, what you can override, and what remains private.
 
-:::note[The Varity Promise]
-Usage-metered hosting still asks you to configure builds, environment variables, and separate add-on services, and the bill grows with your traffic. **Varity handles the configuration automatically** and charges a flat price for the hardware it reserves, so you can focus on building your app, not managing infrastructure.
-:::
+<Aside type="note" title="Public docs boundary">
+This page describes the user visible deployment contract. Varity does not publish private system behavior, infrastructure credentials, reliability mechanics, or hosting internals.
+</Aside>
 
-## What Makes Varity Different
+## What Varity Decides
 
-Varity is built for a one-command deploy workflow from local project to live URL.
+When you deploy, Varity applies defaults across five areas:
 
-When you deploy with Varity, the platform automatically:
+| Area | Default behavior |
+|------|------------------|
+| Input type | Source project, GitHub repo, dashboard input, MCP request, or runnable Docker image |
+| Hosting mode | Static for static output, dynamic for servers, APIs, SSR apps, and images |
+| Build process | Framework specific build defaults for supported source projects |
+| Runtime settings | App name, URL shape, exposed port, environment variables, and health checks |
+| Services | Databases, cache, object storage, and model runtime when detected |
 
-- **Understands your app:** figures out what your app needs without you telling it
-- **Configures deployment defaults:** sets up hosting and runtime services based on your project
-- **Reserves the right hardware:** reserves the hardware your app needs, so your flat monthly cost is no higher than it has to be
-- **Handles hosting defaults:** Varity configures your runtime services automatically
+For supported source projects, Varity handles the build and runtime setup. For Docker image deploys, you provide an image that already runs an HTTP service.
 
-For supported source stacks, no Docker setup is required. For other stacks, use a prebuilt runnable Docker or OCI image.
-
-## How It Works
-
-Varity does all the infrastructure work for you.
+## Deployment Flow
 
 <Steps>
 
-1. **You Build Your App**
+1. **Read the input**
 
-   Focus on your product. Use React, Next.js, Vue, or any supported framework you like. No special Varity syntax required.
+   Varity accepts a project folder, GitHub repo, dashboard form, MCP tool request, or image reference.
 
-2. **Run One Command**
+2. **Classify the app**
 
-   ```bash
-   varitykit app deploy
-   ```
+   Varity checks framework files, package manifests, Python requirements, Go modules, static build output, Docker image settings, and any deploy flags you supplied.
 
-   That's it. No configuration files to write.
+3. **Apply public settings**
 
-3. **Varity Figures Everything Out**
+   Varity chooses static or dynamic hosting, sets the public app URL, forwards allowed environment variables, and applies framework specific build defaults.
 
-   Behind the scenes, Varity automatically:
-   - Analyzes your app to understand what it needs
-   - Picks the right hosting for your app (static or dynamic)
-   - Configures deployment services (hosting, runtime, and detected sidecars)
-   - Reserves hardware suited to your app
+4. **Attach detected services**
 
-4. **Your App Goes Live**
+   If your dependencies indicate Postgres, Redis, MongoDB, MySQL, object storage, or a model runtime, Varity starts the matching service and injects the runtime URL.
 
-   You get a live URL. Everything works automatically:
-   - Hosting configured
-   - Database ready when your app needs one
-   - SSL certificate active
-   - Static assets served from a global CDN
+5. **Launch and return status**
+
+   Varity deploys the app, returns the live URL, and exposes status, logs, environment updates, and redeploy tools through the CLI and MCP server.
 
 </Steps>
 
-## Your App's URL
+## What You Can Control
 
-Varity gives every app a URL on `varity.app`. The shape depends on how your app is hosted:
+| Setting | How to control it | Notes |
+|---------|-------------------|-------|
+| App name | `--name <name>` or dashboard field | Controls the Varity app URL |
+| Hosting mode | `--hosting auto`, `static`, or `dynamic` | Leave as `auto` unless you need to force the mode |
+| Environment variables | `.env.varity`, `.env.local`, `.env`, CLI, dashboard, or MCP | Varity filters known platform leftovers from other hosts |
+| Port | CLI, dashboard, or MCP image deploy input | Required for some Docker images |
+| Docker credentials | Dashboard or MCP deploy input | Used for private registry images |
+| Image reference | `--image <ref>` or dashboard image field | Must be a runnable HTTP service image |
+| Redeploy behavior | `varitykit app deploy`, `varity_redeploy`, or dashboard action | Keeps the same app name when you deploy under the same name |
 
-- **Static sites** are served at a path: `https://varity.app/<your-app>/`
-- **Dynamic apps** (servers, APIs, SSR, full-stack) get their own subdomain: `https://<your-app>.varity.app/`
+## Source Project Defaults
 
-Varity decides which one fits your project automatically. You can influence it with `--hosting` (`auto`, `static`, or `dynamic`).
-
-## What's Included (Automatically)
-
-Every Varity app gets these services configured automatically. No setup required:
+Varity detects supported source projects from files already in your repo:
 
 <CardGrid>
-  <Card title="Hosting" icon="rocket">
-    **Fast and Reliable**
-    - Automatically matched to your app type
-    - Global CDN for static assets
-    - Managed runtime configuration
-    - Managed request routing
+  <Card title="Node and frontend" icon="seti:javascript">
+    Next.js, React, Vue, Astro, Qwik, Vite, Express, Fastify, NestJS, Koa, and Hono are detected from `package.json` and framework config.
   </Card>
-
-  <Card title="Database" icon="seti:db">
-    **Auto-provisioned database (beta)**
-    - Provisioned automatically when detected
-    - Secure by default
-    - No connection strings to manage
-    - Connection details injected at runtime
+  <Card title="Python" icon="seti:python">
+    FastAPI, Django, and Flask are detected from `requirements.txt`, `pyproject.toml`, and app entry files.
   </Card>
-
-  <Card title="Security" icon="seti:lock">
-    **Secure by Default**
-    - SSL certificates (automatic)
-    - Encrypted data in transit
-    - No security configuration needed
+  <Card title="Go" icon="seti:go">
+    Go modules deploy when the project builds to a runnable HTTP service.
   </Card>
-
-  <Card title="Simplicity" icon="star">
-    **Zero Configuration**
-    - No build files to write
-    - No infrastructure to wire up
-    - Sensible defaults for your app type
-    - One command from local to live
+  <Card title="Static HTML" icon="document">
+    Plain static output deploys as static hosting at a `varity.app` path.
   </Card>
 </CardGrid>
 
-## Pricing Model
+Source deployments do not require a local Docker install. Unsupported source languages return a clear unsupported stack error. You can still deploy those workloads by providing a runnable Docker or OCI image.
 
-Varity charges a flat monthly price for the hardware it reserves for your app. Usage-metered hosting bills by traffic, bandwidth, invocations, and build minutes, so those bills grow as your app succeeds; your Varity bill stays the same.
+## Docker Image Defaults
 
-### The Varity Advantage
+Docker image deploys skip source detection and build steps. Varity expects the image to:
 
-- **Reserved hardware, flat price:** your app runs on hardware reserved for it, at a price that does not change with traffic
-- **No surprise overages:** no metered bandwidth, invocation, or build-minute charges
-- **Included Services:** database, CDN, and SSL are included at no extra cost
-- **Predictable from day one:** your bill on day 1 is your bill on day 1000
+- Pull successfully from the public registry or from the private registry credentials you provide
+- Start an HTTP service
+- Listen on the configured port
+- Stay healthy long enough for the deploy health check
 
-Use [Pricing and Costs](/resources/pricing) and `varity_cost_calculator` for current estimates.
+Use [Deploy a Docker Image](/deploy/deploy-docker-image/) for image examples, private registry setup, port configuration, and unsupported image patterns.
 
-## Zero Configuration Required
+## Service Defaults
 
-Traditional setups require extensive configuration:
+Varity starts supported services when your dependencies indicate they are needed:
 
-```yaml title="Traditional: docker-compose.yml (100+ lines)"
-version: '3.8'
-services:
-  app:
-    build: .
-    ports:
-      - "3000:3000"
-    environment:
-      - DATABASE_URL=${DATABASE_URL}
-      - REDIS_URL=${REDIS_URL}
-      # ... more environment variables
-  postgres:
-    image: postgres:15
-    environment:
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      # ... 20+ more lines
-  redis:
-    image: redis:7
-    # ... more configuration
-  nginx:
-    # ... more configuration
-```
+| Detected need | Runtime variable |
+|---------------|------------------|
+| Postgres | `DATABASE_URL` |
+| Redis | `REDIS_URL` |
+| MongoDB | `MONGODB_URI` |
+| MySQL | `MYSQL_URL` |
+| Object storage | `MINIO_URL`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY` |
+| Model runtime | `OLLAMA_URL` |
 
-```bash title="Traditional: Required credentials"
-# You have to manually set up:
-export DATABASE_URL=...
-export REDIS_URL=...
-export STRIPE_SECRET_KEY=...
-export SENDGRID_API_KEY=...
-# ... more credentials
-```
+The full detection table lives in [Auto wired Services](/deploy/auto-wired-services/).
 
-**With Varity:**
+## What Stays Abstracted
 
-```bash
-varitykit app deploy
-```
+The public contract is the deploy input, the app URL, supported configuration, logs, status, billing profile, and support path. The following are not public API:
 
-That's it for supported source projects. You still set app-specific secrets when your code needs them.
+- Infrastructure credentials
+- Private system behavior
+- Reliability and recovery mechanics
+- Private operational data
+- Hosting internals
 
-### What Varity Auto-Configures
+These details may change as Varity improves reliability, pricing, and workload support. Public tools should rely on the documented CLI, MCP, and HTTP API surfaces instead.
 
-When you deploy, Varity automatically handles:
+## When to Override Defaults
 
-- Framework detection (Next.js, React, Vue, Node.js, Python, Go, static sites)
-- Build configuration
-- Container creation with no local Docker install required for supported source projects
-- Database provisioning when your code needs it
-- SSL certificates
-- App URL and routing (`varity.app/<your-app>/` for static, `<your-app>.varity.app/` for dynamic)
-- Global CDN for static assets
-- Managed hosting defaults
-- Sidecars: Postgres+pgvector, Redis, MongoDB, MySQL, Ollama, and object storage when detected in your config
+Most deploys should keep `--hosting auto`. Override only when the detected setting does not match your app:
 
-**Not yet source-built:** Rust, Ruby / Rails, Elixir / Phoenix, Java / Spring, Deno, PHP / Laravel, .NET. You can still deploy these by providing a prebuilt runnable Docker image. [Request support for your framework](https://github.com/varity-labs).
+- Use `--hosting static` for a prebuilt site with no server runtime
+- Use `--hosting dynamic` for an API, SSR app, websocket app, or backend worker exposed over HTTP
+- Set the port when deploying an image that does not listen on the default port
+- Set environment variables when your app needs third party API keys or product specific configuration
 
-## Developer Experience
+## Related Pages
 
-The goal: **Deploy with one command and zero configuration.**
-
-### What You Run
-
-```bash
-# Deploy from your project folder
-cd my-app
-varitykit app deploy
-```
-
-### What Varity Does Automatically
-
-```
-Analyzing your app...
-  ✓ Detected: Next.js full-stack app
-  ✓ Setting up: database, hosting
-
-Building...
-  ✓ Installing dependencies
-  ✓ Building your app
-  ✓ Creating container image
-
-Deploying...
-  ✓ Reserving compute
-  ✓ Provisioning database
-  ✓ Configuring SSL certificate
-
-Live at: https://my-app.varity.app/
-```
-
-### What You Don't Need
-
-- Docker installation for supported source projects
-- DevOps or infrastructure knowledge
-- Complex configuration files
-- Manual credential management
-
-## The Developer Experience
-
-Varity is designed for **people who want to build apps, not manage infrastructure**.
-
-### What You Experience
-
-```bash
-# Build your features
-# (use React, Next.js, Vue, or whatever you prefer)
-
-# Deploy to production from your project folder
-varitykit app deploy
-```
-
-### What Varity Does Automatically
-
-```
-Analyzing your app...
-  ✓ Detected framework and dependencies
-  ✓ Choosing the right hosting
-
-Building...
-  ✓ Installing dependencies
-  ✓ Building a production bundle
-
-Deploying...
-  ✓ Provisioning hosting
-  ✓ Setting up database
-  ✓ Enabling SSL certificate
-
-Live at: https://my-app.varity.app/
-```
-
-### What You DON'T Need
-
-- DevOps knowledge or experience
-- Deployment YAML for supported source projects
-- Infrastructure credential setup
-- Credential setup for Varity infrastructure
-- SSL certificate installation
-- Database connection strings
-- Manual hosting configuration
-
-## Next Steps
-
-<CardGrid>
-  <Card title="Deploy Your First App" icon="rocket">
-    Learn how to deploy your application with one command.
-
-    [Deploy Guide →](/deploy/deploy-your-app)
-  </Card>
-
-  <Card title="Environment Variables" icon="seti:config">
-    Understand how Varity manages credentials automatically.
-
-    [Credentials Guide →](/deploy/managed-credentials)
-  </Card>
-
-  <Card title="CLI Reference" icon="seti:shell">
-    Explore all CLI commands and options.
-
-    [CLI Docs →](/cli/overview)
-  </Card>
-</CardGrid>
+- [How Varity Works](/getting-started/how-varity-works/)
+- [Deploy Your App](/deploy/deploy-your-app/)
+- [Deploy a Docker Image](/deploy/deploy-docker-image/)
+- [Auto wired Services](/deploy/auto-wired-services/)
+- [Environment Variables](/deploy/env-variables/)

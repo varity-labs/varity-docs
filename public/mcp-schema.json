@@ -75,7 +75,7 @@
               "ai-agent-gpu"
             ],
             "default": "web-app",
-            "description": "Pre-deploy estimate preset: static-site (flat $5/mo), web-app, web-app-db, ai-agent-cpu, ai-agent-gpu"
+            "description": "Pre-deploy estimate preset. Accepted values: static-site, web-app, web-app-db, ai-agent-cpu, ai-agent-gpu. Estimates are computed by the live Varity pricing API."
           },
           "subdomain": {
             "type": "string",
@@ -244,7 +244,7 @@
     {
       "name": "varity_create_repo",
       "title": "Create GitHub Repository",
-      "description": "Create a new GitHub repository and push your local project to it. Pass the 'path' parameter with the local project directory — this creates an empty repo and pushes your actual code to GitHub. The GitHub URL is required for dynamic deployments, so call this before varity_deploy when you have code locally but no repo yet. Requires a GitHub personal access token (classic) with repo scope from https://github.com/settings/tokens.",
+      "description": "Create a new GitHub repository and push your local project to it. Pass the 'path' parameter with the local project directory. This creates an empty repo and pushes your actual code to GitHub. The GitHub URL is required for dynamic deployments, so call this before varity_deploy when you have code locally but no repo yet. Requires a GitHub personal access token (classic) with repo scope from https://github.com/settings/tokens.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -293,7 +293,7 @@
     {
       "name": "varity_deploy",
       "title": "Deploy to Production",
-      "description": "Deploy the current project to production on Varity. Detects the framework, selects the right hosting, and ships it live at https://varity.app/<name>/. Zero configuration required. Flat hardware-reserved pricing — your bill stays the same as your app grows. No usage-based billing, no surprise overages. Use this when a developer wants to deploy, publish, ship, or make their app live. If the developer wants to deploy a curated AI agent (Telegram bot, chat UI, etc.) rather than their own code, use varity_deploy_agent instead. To stop a deployment and its billing, use varity_delete_deployment.",
+      "description": "Deploy the current project to production on Varity. Detects the framework, selects the right hosting, and ships it live at https://varity.app/<name>/. Zero configuration required. Flat hardware-reserved pricing. Your bill stays the same as your app grows. No usage-based billing, no surprise overages. Use this when a developer wants to deploy, publish, ship, or make their app live. If the developer wants to deploy a curated AI agent (Telegram bot, chat UI, etc.) rather than their own code, use varity_deploy_agent instead. To stop a deployment and its billing, use varity_delete_deployment.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -448,7 +448,7 @@
     {
       "name": "varity_set_env",
       "title": "Set Environment Variables on an Existing Deployment",
-      "description": "Set or update environment variables (config + secrets) on an app that is ALREADY deployed, then redeploy it in place. Use this when a developer says 'add an env var to <name>', 'change the API key on <name>', 'set DATABASE_URL on my app', or 'update the config and redeploy'. The variables are applied to the SAME deployment — same URL, same reserved hardware, no new bid — so the change goes live in about a minute with no downtime churn. By default the new variables are MERGED over the existing set; pass replace=true to overwrite the entire set. Variable values are write-only and are never echoed back. To create a NEW deployment instead, use varity_deploy.",
+      "description": "Set or update environment variables (config + secrets) on an app that is ALREADY deployed, then redeploy it in place. Use this when a developer says 'add an env var to <name>', 'change the API key on <name>', 'set DATABASE_URL on my app', or 'update the config and redeploy'. The variables are applied to the SAME deployment. Same URL, same reserved hardware, no new bid. The change goes live in about a minute with no downtime churn. By default the new variables are MERGED over the existing set; pass replace=true to overwrite the entire set. Variable values are write-only and are never echoed back. To create a NEW deployment instead, use varity_deploy.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -482,7 +482,7 @@
     {
       "name": "varity_redeploy",
       "title": "Redeploy or Restart an Existing Deployment In Place",
-      "description": "Redeploy or restart an app that is ALREADY deployed, in place. Use this when a developer says 'redeploy <name>', 'restart <name>', 'my app is stuck — restart it', or 'pull the latest image and redeploy'. The app is re-deployed on the SAME deployment — same URL, same reserved hardware, no new bid — re-pulling the image (or rebuilding from source) and restarting the container, so it goes live in about a minute with no URL change. To change env vars at the same time, use varity_set_env. To create a NEW deployment instead, use varity_deploy.",
+      "description": "Redeploy or restart an app that is ALREADY deployed, in place. Use this when a developer says 'redeploy <name>', 'restart <name>', 'my app is stuck, restart it', or 'pull the latest image and redeploy'. The app is re-deployed on the SAME deployment. Same URL, same reserved hardware, no new bid. It re-pulls the image (or rebuilds from source) and restarts the container, so it goes live in about a minute with no URL change. To change env vars at the same time, use varity_set_env. To create a NEW deployment instead, use varity_deploy.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -504,7 +504,7 @@
     {
       "name": "varity_list_agents",
       "title": "List Available AI Agent Templates",
-      "description": "List the curated AI agent templates Varity can deploy with one command. Available agents: hermes (Telegram bot, ~$16/mo), openclaw (Claude-compatible chat, ~$38/mo), agent-zero (general-purpose, zero config, ~$14/mo), autoresearch (GPU CUDA workstation, ~$280/mo), eliza-venice (Twitter automation, ~$168/mo). Use this when a developer asks 'what AI agents can I deploy?' or wants to compare options. Returns name, description, estimated monthly cost, required environment variables, exposed ports, and resource footprint. After picking one, deploy with varity_deploy_agent.",
+      "description": "List the curated AI agent templates Varity can deploy with one command. Available agents: hermes (Telegram bot), openclaw (Claude-compatible chat), agent-zero (general-purpose, zero config), autoresearch (GPU CUDA workstation), eliza-venice (Twitter automation). Use this when a developer asks 'what AI agents can I deploy?' or wants to compare options. Returns name, description, current estimate fields, required environment variables, exposed ports, and resource footprint. After picking one, deploy with varity_deploy_agent.",
       "inputSchema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",

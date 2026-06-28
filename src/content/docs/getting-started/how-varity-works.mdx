@@ -1,9 +1,9 @@
 ---
-title: How Varity Works
-description: How Varity deploys supported source apps and runnable Docker services from project detection to a live URL.
+title: How Varity Deployments Work
+description: The Varity deploy lifecycle from project input to live URL, status, logs, and redeploys.
 ---
 
-import { Aside, Steps } from '@astrojs/starlight/components';
+import { Aside, Card, CardGrid, Steps } from '@astrojs/starlight/components';
 import PageMeta from '../../../components/PageMeta.astro';
 
 <PageMeta
@@ -13,144 +13,106 @@ import PageMeta from '../../../components/PageMeta.astro';
   stability="beta"
 />
 
-Varity deploys supported Node, Python, Go, static, AI agent, and runnable Docker workloads with a fast, infrastructure-abstracted workflow. Source deployments do not require Docker setup; Docker image deployments are available when you already have a runnable HTTP service image.
+Varity takes a supported app input, prepares it for production hosting, returns a public URL, and gives you tools to manage the deployment afterward. This page is the lifecycle overview.
 
-## Who Varity is for
+For the exact framework matrix, use [Supported Frameworks](/deploy/supported-frameworks/). For the current beta boundary, use [What You Can Deploy Today](/deploy/what-you-can-deploy/).
 
-Varity works seamlessly with AI coding tools to build and ship apps. People reach for it in a few ways:
+## The Mental Model
 
-**Building something new with an AI tool**: You are using Claude Code, Cursor, or a similar tool to build an app from scratch. You want to go from "working locally" to "live URL" without leaving your editor. Varity's MCP server handles the entire deploy in one prompt.
+| Stage | What happens | Where to read next |
+|-------|--------------|--------------------|
+| Input | You provide source, a GitHub repo, dashboard settings, MCP request, or Docker image | [Deploy Your App](/deploy/deploy-your-app/) |
+| Build | Varity builds supported source projects or pulls a runnable image | [Supported Frameworks](/deploy/supported-frameworks/) |
+| Configure | Varity applies hosting, variables, services, and URL defaults | [Deployment Defaults](/deploy/intelligent-orchestration/) |
+| Launch | Your app becomes available on its Varity URL | [App URLs and Names](/deploy/custom-domains/) |
+| Operate | You use logs, status, environment updates, redeploy, and support | [Troubleshooting Deploys](/deploy/deployment-troubleshooting/) |
 
-**Migrating from Vercel**: You have an existing app on Vercel and want lower costs. Run `varitykit migrate` to remove Vercel-specific config, then deploy. Most migrations take under 5 minutes.
-
-**Deploying your current project**: You already have app code locally or in a GitHub repo and want a live URL fast. Run `varitykit app deploy` (or ask your MCP client to run `varity_deploy`) and ship.
-
-In each case, Varity handles the deployment infrastructure. You just build and deploy.
-
----
-
-## The platform
-
-Varity has three core websites:
-
-| Site | What it does |
-|------|-------------|
-| [**varity.so**](https://www.varity.so) | Marketing site |
-| [**docs.varity.so**](https://docs.varity.so) | Documentation and guides |
-| [**developer.store.varity.so**](https://developer.store.varity.so) | Developer portal: deploy, monitor, billing |
-
----
-
-## The developer flow
-
-Here is how you go from idea to a live URL:
+## Deploy Lifecycle
 
 <Steps>
 
-1. **Set up the MCP server**
+1. **Choose an input**
 
-   Add Varity to your AI coding tool once. After that, every project you work on has Varity available.
+   Use a supported source project, GitHub repo, dashboard deploy, MCP request, or Docker or OCI HTTP service image.
 
-   ```bash
-   claude mcp add varity -- npx -y @varity-labs/mcp
-   ```
+2. **Authenticate**
 
-2. **Open your project**
-
-   Open a supported source project, or use a runnable Docker/OCI HTTP image for stacks Varity does not source-build yet.
+   Sign in through the CLI, Developer Portal, or MCP server. See [Installation](/getting-started/installation/) for setup details.
 
 3. **Deploy**
 
-   Ask your AI tool to deploy:
-
-   ```
-   Deploy my app to Varity
-   ```
-
-   Or use the CLI:
+   Use the path that matches your workflow:
 
    ```bash
    varitykit app deploy
    ```
 
-4. **Your app is live**
-
-   Your app is now available at a public URL:
+   Or ask your AI editor:
 
    ```
-   Static hosting: https://varity.app/your-app-name/
-   Dynamic hosting: https://your-app-name.varity.app/
+   Deploy this app to Varity
    ```
 
-   Varity detects your framework, builds your project, provisions the resources it needs, and returns a working URL. All of this happens automatically.
+4. **Receive the live URL**
+
+   Static apps use a `varity.app/<name>/` path. Dynamic apps use a `<name>.varity.app` subdomain.
+
+5. **Operate the app**
+
+   Check status and logs, update environment variables, redeploy under the same app name, or get support if the workload needs manual review.
 
 </Steps>
 
----
+## What Varity Reads
 
-## What Varity detects automatically
+<CardGrid>
+  <Card title="Project files" icon="document">
+    Package manifests, Python requirements, Go modules, framework config, build output, and Docker image settings.
+  </Card>
+  <Card title="Deploy settings" icon="setting">
+    App name, hosting mode, port, environment variables, image reference, and registry credentials when supplied.
+  </Card>
+  <Card title="Service hints" icon="seti:db">
+    Database, cache, object storage, and model runtime dependencies that map to supported services.
+  </Card>
+  <Card title="Tool context" icon="laptop">
+    CLI flags, dashboard fields, or MCP tool arguments passed by your AI coding tool.
+  </Card>
+</CardGrid>
 
-When you deploy, Varity inspects your project and makes all infrastructure decisions:
+## What Varity Returns
 
-**Framework detection:** Varity reads your `package.json`, `requirements.txt`, `pyproject.toml`, or Go module files to identify your framework and selects the right build process.
+Every successful deploy returns the information you need to keep moving:
 
-**Static vs. dynamic hosting:** Projects with a server or backend run in containers. Static sites (React, Vue, Next.js with export mode) go to a global CDN. You can override this with `--hosting dynamic` or `--hosting static` if needed.
+- The public app URL
+- Deployment status
+- Logs and troubleshooting context
+- The fixed monthly price for that workload
+- Commands or MCP tools for redeploying and updating environment variables
 
-**Auto-wired services:** If your project lists database or caching dependencies, Varity provisions those services automatically and injects the connection details at runtime.
+Use [CLI Reference](/cli/overview/) and [MCP Server](/ai-tools/mcp-server-spec/) for the exact command and tool names.
 
-| Dependency in your project | Service added automatically |
-|---------------------------|----------------------------|
-| `pg`, `@prisma/client`, `drizzle-orm`, `psycopg` | Postgres database |
-| `ioredis`, `redis` | Redis cache |
-| `mongoose`, `mongodb`, `pymongo` | MongoDB |
-| `mysql`, `mysql2`, `PyMySQL` | MySQL database |
-| `@langchain/ollama`, `ollama` | Ollama AI runtime |
-| `@aws-sdk/client-s3`, `boto3`, `minio`, S3-compatible config | Object storage |
+## URL Shapes
 
-You do not write connection strings or provision databases. Varity handles it.
+| App type | URL shape |
+|----------|-----------|
+| Static site | `https://varity.app/<your-app>/` |
+| Dynamic app | `https://<your-app>.varity.app/` |
 
-**Environment variables:** Varity reads your `.env.varity`, `.env.local`, or `.env` file and passes those variables to your running app. Platform-specific variables left over from other hosting providers are filtered out automatically.
+Varity chooses the default based on the app type. You can force the mode with `--hosting static` or `--hosting dynamic` when needed.
 
----
+## Current Product Boundary
 
-## Pricing
+<Aside type="caution" title="Beta expectations">
+Varity is in guided beta. Use it freely for demos, side projects, AI agent apps, and apps that tolerate beta limits. Bring your own external database for business critical data until managed database durability, backups, and restore are shipped.
+</Aside>
 
-Varity pricing is based on reserved hardware profiles, while usage-metered cloud is billed by traffic, bandwidth, and invocations, so those bills grow as your app does. Your Varity bill is tied to your selected profile and does not change with traffic spikes, bandwidth, or invocation count.
+Varity currently supports Node, Python, Go, static projects, and Docker or OCI HTTP service images. External custom domains, cron jobs, preview deployments, one click rollback, and dedicated GPUs for user containers are not shipped yet.
 
-Use the `varity_cost_calculator` MCP tool and `/resources/pricing` to estimate workload cost before deploying.
+## Next Steps
 
----
-
-## The MCP server
-
-The Varity MCP server gives your AI coding tool a full set of tools for deploying, monitoring, and managing your apps:
-
-| Tool | What it does |
-|------|-------------|
-| `varity_doctor` | Check if your environment is ready |
-| `varity_login` | Authenticate with your Varity account |
-| `varity_search_docs` | Search Varity documentation |
-| `varity_cost_calculator` | Estimate costs for your project |
-| `varity_install_deps` | Install project dependencies |
-| `varity_dev_server` | Start a local development server |
-| `varity_build` | Build your project |
-| `varity_open_browser` | Open a URL in your browser |
-| `varity_create_repo` | Create a GitHub repo and push your code |
-| `varity_deploy` | Deploy to production |
-| `varity_deploy_status` | Check deployment status |
-| `varity_deploy_logs` | View build and runtime logs |
-| `varity_migrate` | Migrate an existing app from Vercel to Varity |
-| `varity_set_env` | Set environment variables for an app |
-| `varity_redeploy` | Redeploy an existing app |
-| `varity_deploy_agent` | Deploy a supported agent template |
-
-[Set up the MCP server](/ai-tools/mcp-server-spec) to get started.
-
----
-
-## Next steps
-
-- [Quick Start](/getting-started/quickstart): Deploy your first app
-- [Installation](/getting-started/installation): Full setup guide
-- [MCP Server Setup](/ai-tools/mcp-server-spec): Connect your AI coding tool
-- [Vercel Migration](/deploy/vercel-migration): Move an existing app to Varity
+- [Quickstart](/getting-started/quickstart/)
+- [Deploy from an AI editor](/guides/deploy-from-ai-ide/)
+- [Deploy a Docker Image](/deploy/deploy-docker-image/)
+- [Deployment Defaults](/deploy/intelligent-orchestration/)
+- [What You Can Deploy Today](/deploy/what-you-can-deploy/)

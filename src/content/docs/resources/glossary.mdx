@@ -1,5 +1,5 @@
 ---
-title: "Glossary"
+title: Varity Docs Glossary Guide
 description: "Definitions of key Varity terms: deploy keys, managed credentials, deployment IDs, static hosting, dynamic hosting, and MCP tools."
 ---
 
@@ -48,14 +48,15 @@ deploy-1737492000
 
 Use this to track or reference specific versions.
 
-### Intelligent Orchestration
+### Deployment Defaults
 
-Varity's automatic configuration system. When you deploy, it analyzes your project and automatically:
-- Detects your framework (Next.js, React, Python, etc.)
-- Provisions the services your app needs (database, cache, etc.)
-- Chooses the right hosting type (static or dynamic)
+The public deployment settings Varity applies when you deploy:
+- Framework and input detection
+- Static or dynamic hosting mode
+- Runtime variables and service URLs
+- App URL shape
 
-You never configure any of this manually. See [Intelligent Orchestration](/deploy/intelligent-orchestration).
+You can override supported settings such as app name, hosting mode, port, image reference, and environment variables. See [Deployment Defaults](/deploy/intelligent-orchestration).
 
 ### Managed Credentials
 

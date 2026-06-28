@@ -1,9 +1,9 @@
 ---
-title: Introduction
-description: Varity is predictable cloud hosting for supported source apps, AI agents, and runnable Docker services.
+title: What Is Predictable Cloud Hosting?
+description: "What predictable cloud hosting means in Varity: supported source apps, Docker services, AI agents, fixed monthly pricing, and deploy paths."
 ---
 
-import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
+import { Aside, Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
 import PageMeta from '../../../components/PageMeta.astro';
 
 <PageMeta
@@ -13,100 +13,60 @@ import PageMeta from '../../../components/PageMeta.astro';
   stability="beta"
 />
 
-Varity is predictable cloud hosting for supported source apps, AI agents, and runnable Docker services. Point it at your project or image, and your app is live at a flat monthly cost that does not change with traffic.
+Varity is predictable cloud hosting for supported source apps, AI agent apps, and Docker services. These docs cover the shipped developer workflow: deploy from the Dashboard, CLI, or MCP server, review the fixed monthly infrastructure price, configure runtime settings, and operate the live app.
 
-For supported source stacks, no Docker setup is required. For other stacks, deploy a prebuilt runnable Docker or OCI image.
-
-## The fastest way to get started
-
-The primary way to use Varity is through the MCP server inside Claude Code or Cursor. Add it once, then just ask your AI tool to deploy:
-
-```bash
-# Add the Varity MCP server to Claude Code
-claude mcp add varity -- npx -y @varity-labs/mcp
-```
-
-Then, inside Claude Code or Cursor:
-
-```
-"Deploy my app to Varity"
-```
-
-That's it. The MCP server handles detection, building, and deployment automatically.
-
-## Prefer the command line?
-
-If you want to deploy without an AI tool, install the CLI:
-
-```bash
-pipx install varitykit
-varitykit app deploy
-```
-
-Your app will be live at `https://varity.app/your-app-name/`.
-
-## Why Varity
-
-| | Usage-metered cloud platforms | Varity |
-|---|---|---|
-| **Cost** | Usage-based, grows with traffic | Flat monthly cost per app, predictable on day 1 and day 1000 |
-| **Setup time** | Minutes to hours | One command |
-| **Credentials** | Managed separately | Managed by Varity |
-| **Database** | Separate add-on, separate bill | Auto-wired when detected |
-| **DevOps** | Build config, env, SSL, DNS | Zero config |
-| **Hosting** | Static or serverless, framework-limited | Static and dynamic, automatic |
-
-## What's Included
+## Start Here
 
 <CardGrid>
-  <Card title="MCP Server" icon="rocket">
-    A full set of tools for Claude Code and Cursor. Deploy, monitor, and manage apps with plain English.
-    [View MCP docs](/ai-tools/mcp-server-spec)
+  <Card title="Deploy from an AI editor" icon="laptop">
+    Add the MCP server to Claude Code, Cursor, Windsurf, or VS Code.
+
+    ```bash
+    claude mcp add varity -- npx -y @varity-labs/mcp
+    ```
+
+    [Set up MCP](/ai-tools/mcp-server-spec/)
   </Card>
-  <Card title="varitykit CLI" icon="terminal">
-    Python CLI for deploying and managing apps from the command line.
-    [View CLI docs](/cli/overview)
+  <Card title="Deploy from the CLI" icon="seti:shell">
+    Install `varitykit` and deploy from a supported project folder.
+
+    ```bash
+    pipx install varitykit
+    varitykit app deploy
+    ```
+
+    [Quickstart](/getting-started/quickstart/)
   </Card>
 </CardGrid>
 
-## Current Status
+## What Varity Supports Today
 
-:::note[Beta]
-Varity is in beta. Core features are live and stable.
-:::
+<Aside type="note" title="Current beta surface">
+Source deployments support Node, Python, Go, and static projects. Docker image deployments support public and private Docker or OCI HTTP service images.
+</Aside>
 
-**Available now:**
-- Static app hosting (global CDN)
-- Dynamic app hosting (container-based, for full-stack and server apps)
-- Auto-wired databases, caches, and AI runtimes based on your dependencies
-- Vercel migration tool (`varitykit migrate`)
-- MCP server with a full set of tools for deploying, monitoring, and managing your apps in Claude Code and Cursor
-- VarityKit CLI with zero-config deploys
+**Supported source stacks:** Next.js, React, Vue, Astro, Qwik, Vite SPA, Express, Fastify, NestJS, Koa, Hono, FastAPI, Django, Flask, Go modules, and plain static HTML.
 
-**Supported frameworks:**
-- Next.js, React, Vue, Astro, Qwik, Vite SPA
-- Express, Fastify, NestJS, Koa, Hono (Node.js)
-- FastAPI, Django, Flask (Python)
-- Go modules
-- Plain static HTML
-- Prebuilt runnable Docker/OCI HTTP services
+**Supported services:** Postgres with vector extension support, Redis, MongoDB, MySQL, object storage, and model runtime services when detected from your app.
 
-## Next Steps
+**Not shipped yet:** external custom domains, cron jobs, preview deployments, one click rollback, managed database backups and restore, and dedicated GPUs for user containers.
+
+## Where to Go Next
 
 <LinkCard
-  title="Quick Start"
-  description="Deploy your first app in 5 minutes."
-  href="/getting-started/quickstart"
-/>
-
-<LinkCard
-  title="Installation"
-  description="Set up your development environment."
-  href="/getting-started/installation"
+  title="What You Can Deploy Today"
+  description="The honest capability snapshot for source apps, Docker images, services, and beta boundaries."
+  href="/deploy/what-you-can-deploy/"
 />
 
 <LinkCard
   title="How Varity Works"
-  description="Understand the full deployment flow."
-  href="/getting-started/how-varity-works"
+  description="The deploy lifecycle from project input to live URL, status, logs, and redeploys."
+  href="/getting-started/how-varity-works/"
+/>
+
+<LinkCard
+  title="Why Varity"
+  description="The product positioning: predictable hardware based billing instead of usage metering."
+  href="/getting-started/why-varity/"
 />

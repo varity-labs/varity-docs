@@ -6,12 +6,12 @@ info:
     call these endpoints to deploy a project, poll its status, stream deploy logs, update
     its environment variables, redeploy it in place, stop a deployment, and read live
     pricing. This is the same stable `/v1` contract the
-    `varitykit` CLI and `@varity-labs/mcp` server use under the hood — point your agent at
+    `varitykit` CLI and `@varity-labs/mcp` server use under the hood. Point your agent at
     it directly, or use the MCP server (see https://docs.varity.so/ai-tools/mcp-server-spec/).
 
 
     Most agents should prefer the MCP tools (`varity_deploy`, `varity_deploy_status`,
-    `varity_deploy_logs`, `varity_delete_deployment`) — they wrap this API and handle
+    `varity_deploy_logs`, `varity_delete_deployment`). They wrap this API and handle
     framework detection, auth, and result parsing. The raw HTTP API below is for direct
     integrations.
 
@@ -70,7 +70,7 @@ paths:
       summary: Get deploy status and result
       description: >
         Returns the current status of a deploy run and, once it reaches a terminal state,
-        the result (live URL, deployment id, selected hardware, and — on failure — a
+        the result (live URL, deployment id, selected hardware, and, on failure, a
         redacted reason and failure stage).
       security:
         - deployKey: []
@@ -165,7 +165,7 @@ paths:
       summary: Set environment variables and redeploy in place
       description: >
         Set or update environment variables on an existing deployment, then redeploy it in
-        place — same URL, same reserved hardware, no new bid. By default the supplied
+        place. Same URL, same reserved hardware, no new bid. By default the supplied
         variables are merged over the current set; pass `replace: true` to overwrite the
         entire set. Values are write-only and are never returned. The change goes live in
         about a minute with no URL change.
@@ -213,8 +213,8 @@ paths:
       tags: [Deploy]
       summary: Redeploy an existing deployment in place
       description: >
-        Redeploy or restart an existing app in place — re-pulling the image (or rebuilding
-        from source) and restarting the container on the SAME deployment: same URL, same
+        Redeploy or restart an existing app in place. It re-pulls the image (or rebuilds
+        from source) and restarts the container on the SAME deployment: same URL, same
         reserved hardware, no new bid. Takes no body and keeps the current environment
         variables; use PUT `/v1/deployments/{subdomain}/env` to change config at the same
         time. Goes live in about a minute with no URL change.
@@ -246,7 +246,7 @@ paths:
       summary: Get live flat per-app pricing
       description: >
         Returns Varity's flat monthly price for a workload profile (or an existing app)
-        plus a comparison against usage-metered hosts. Public — no authentication required.
+        plus a comparison against usage-metered hosts. Public. No authentication required.
         Pricing is a flat hardware reservation; it does not change with traffic, bandwidth,
         invocations, or build minutes.
       parameters:
@@ -276,7 +276,7 @@ paths:
       operationId: getHealth
       tags: [Service]
       summary: Service health
-      description: Liveness check for the Varity API. Public — no authentication required.
+      description: Liveness check for the Varity API. Public. No authentication required.
       responses:
         '200':
           description: Service is healthy.
@@ -369,17 +369,17 @@ components:
           type: number
           minimum: 0.25
           maximum: 4
-          description: Reserved CPU units — image/prebuilt paths only (default 0.5).
+          description: Reserved CPU units, image/prebuilt paths only (default 0.5).
         memory_mb:
           type: integer
           minimum: 256
           maximum: 8192
-          description: Reserved memory in MiB — image/prebuilt paths only (default 512).
+          description: Reserved memory in MiB, image/prebuilt paths only (default 512).
         storage_mb:
           type: integer
           minimum: 512
           maximum: 20480
-          description: Reserved storage in MiB — image/prebuilt paths only (default 1024).
+          description: Reserved storage in MiB, image/prebuilt paths only (default 1024).
       required: [app_name, source]
     ImageCredentials:
       type: object
@@ -463,7 +463,7 @@ components:
           description: Flat monthly price in USD.
         varityIsFlat:
           type: boolean
-          description: Always true — the bill does not change with usage.
+          description: Always true. The bill does not change with usage.
         mode:
           type: string
           enum: [static, dynamic]

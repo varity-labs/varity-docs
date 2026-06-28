@@ -1,6 +1,6 @@
 ---
-title: Deploy a Next.js App
-description: Predictable cloud hosting for a Next.js app with a database. One command. Flat monthly bill that does not grow with traffic.
+title: Deploy a Next.js App on Varity
+description: Predictable cloud hosting for a Next.js app with a database, automatic service wiring, and a flat monthly bill that does not grow with traffic.
 ---
 
 import { Steps, Tabs, TabItem, Aside, Card, CardGrid } from '@astrojs/starlight/components';
@@ -13,11 +13,11 @@ import PageMeta from '../../../components/PageMeta.astro';
   stability="stable"
 />
 
-Deploy a production Next.js app with a database and a live URL with one command. No server configuration, no environment variable setup, no infrastructure decisions.
+Deploy a production Next.js app with a database and a live URL. No server configuration, no environment variable setup, no infrastructure decisions.
 
 <CardGrid>
   <Card title="Zero configuration" icon="rocket">
-    Varity detects your framework, wires your database, and deploys. You run one command.
+    Varity detects your framework, wires your database, and deploys from your editor or terminal.
   </Card>
   <Card title="Predictable pricing instead of usage-metered cloud bills" icon="seti:money">
     One flat monthly cost per app. Your bill on day 1 equals your bill on day 1000. No DevOps overhead.
@@ -250,16 +250,10 @@ Each redeploy publishes a fresh build at the same URL.
 
 ## Cost
 
-Varity uses fixed hardware profile pricing, while usage-metered hosting bills on usage that grows with your traffic. Use the cost calculator to get a precise estimate:
+Varity uses fixed hardware profile pricing, while usage-metered hosting bills on usage that grows with your traffic. Use the Dashboard pricing view or ask your AI editor to run `varity_cost_calculator` for an estimate:
 
 ```
 How much would it cost to host a Next.js app with 500 users on Varity?
-```
-
-Or use the CLI:
-
-```bash
-varitykit cost-calculator --users 500 --has-database
 ```
 
 See [How pricing works](/resources/pricing) for details.
@@ -285,7 +279,7 @@ varitykit doctor
 
 ```bash
 varitykit doctor
-varitykit app deploy --verbose
+varitykit --verbose app deploy
 ```
 
 **App loads but database is empty**

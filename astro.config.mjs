@@ -1,6 +1,7 @@
 // @ts-check
 import { defineConfig } from "astro/config";
 import starlight from "@astrojs/starlight";
+import sitemap from "@astrojs/sitemap";
 
 // https://astro.build/config
 export default defineConfig({
@@ -11,10 +12,17 @@ export default defineConfig({
     service: { entrypoint: 'astro/assets/services/noop' }
   },
   integrations: [
+    sitemap({
+      filter: (page) =>
+        ![
+          "https://docs.varity.so/build/deploy/",
+          "https://docs.varity.so/introduction/",
+        ].includes(page),
+    }),
     starlight({
       title: "Varity Docs",
       description:
-        "Build and deploy apps with one command.",
+        "Build and deploy supported apps with predictable cloud hosting.",
       logo: {
         src: "./src/assets/varity-logo.svg",
         replacesTitle: false,
@@ -287,7 +295,7 @@ export default defineConfig({
               slug: "deploy/managed-credentials",
             },
             {
-              label: "Intelligent Orchestration",
+              label: "Deployment Defaults",
               slug: "deploy/intelligent-orchestration",
             },
           ],

@@ -1,9 +1,9 @@
 ---
-title: Why Varity
-description: Why Varity over usage-metered cloud platforms. Predictable pricing, automatic deploys, and auto-wired services.
+title: Why Developers Choose Varity
+description: Why Varity uses predictable hardware based billing instead of usage metering.
 ---
 
-import { Card, CardGrid } from '@astrojs/starlight/components';
+import { Aside, Card, CardGrid } from '@astrojs/starlight/components';
 import PageMeta from '../../../components/PageMeta.astro';
 
 <PageMeta
@@ -13,100 +13,59 @@ import PageMeta from '../../../components/PageMeta.astro';
   stability="stable"
 />
 
-Predictable cloud hosting for supported source apps, AI agents, and runnable Docker services. One flat monthly bill instead of usage-metered cloud bills, with infrastructure managed by Varity.
+Varity is built around one product property: your hosting bill is tied to the hardware your app reserves, not to traffic, bandwidth, invocations, or build minutes.
 
-## The problem with traditional hosting
+## The Category Difference
 
-If you have built an app with an AI coding tool like Cursor or Claude Code, you know the code part is fast. The frustrating part is getting it live.
+Usage metered hosting charges more as more people use your app. Varity charges a fixed monthly price per app based on the hardware profile you reserve.
 
-Traditional cloud platforms were designed for career DevOps engineers. They require:
+| Question | Usage metered hosting | Varity |
+|----------|-----------------------|--------|
+| What drives the bill? | Requests, bandwidth, invocations, storage, add ons, and build activity | Reserved hardware profile |
+| What happens during traffic spikes? | The bill can grow with usage | The app keeps the same monthly profile |
+| How do services affect cost? | Services are often separate products or meters | Supported services are attached as part of the deployment profile |
+| What should the builder think about? | Usage limits, surprise overages, and add on pricing | The workload profile and whether it fits the app |
 
-- Configuring servers, databases, CDNs, and scaling rules
-- Managing environment variables and secrets across environments
-- Setting up authentication from scratch with third-party services
-- Understanding Docker, CI/CD pipelines, and infrastructure-as-code
+Use [Pricing and Costs](/resources/pricing/) for the current pricing workflow and cost calculator.
 
-None of this is what you want to spend time on. It is not why you built the app.
-
-## How Varity is different
-
-Varity handles all of the above automatically. You describe your app (or just point it at your GitHub repo) and Varity figures out the rest.
-
-One command:
-
-```bash
-varitykit app deploy
-```
-
-Your app is live with database and hosting already configured.
-
-### Predictable pricing instead of usage-metered cloud bills
-
-Varity charges one flat monthly cost per app, based on the hardware you reserve. Usage-metered cloud bills on traffic, bandwidth, and invocations, so your bill grows as your app does. With Varity, your bill on day 1 equals your bill on day 1000.
-
-Use the [cost calculator](/resources/pricing) to estimate your specific app.
-
-### Zero configuration
+## What This Means in Practice
 
 <CardGrid>
-  <Card title="No servers to manage" icon="setting">
-    Varity chooses the right hosting for your app automatically. Static sites go to global CDN. Full-stack apps get container compute. You never configure either.
+  <Card title="Predictable cost" icon="approve-check-circle">
+    Your bill is planned around the app profile before deploy, then stays tied to that profile as traffic changes.
   </Card>
-  <Card title="No DevOps required" icon="puzzle">
-    Source deployments do not require Docker or infrastructure-as-code. Docker image deploys are available when you already have a runnable HTTP service image.
+  <Card title="Fast deploy path" icon="rocket">
+    Supported source projects and runnable images can deploy from the CLI, dashboard, or AI editor workflow.
   </Card>
-  <Card title="Managed credentials" icon="approve-check">
-    Varity handles provider credentials for deployments so you do not have to wire infrastructure keys yourself.
+  <Card title="Managed setup" icon="setting">
+    Varity applies hosting defaults, runtime variables, credentials, and detected service wiring for the supported surface.
   </Card>
-  <Card title="Database included" icon="list-format">
-    Your app gets a database automatically when Varity detects you need one. No connection strings to configure.
+  <Card title="Clear boundaries" icon="information">
+    Unsupported source stacks, business critical data, and unreleased features are documented openly so teams can plan around the beta.
   </Card>
 </CardGrid>
 
-### Built for AI coding tools
+## When Varity Is a Good Fit
 
-The Varity MCP server integrates directly with Claude Code, Cursor, and other AI editors. Instead of copying commands from docs, just ask your AI tool to deploy:
+- You want a live app URL without building infrastructure around a supported stack
+- You are deploying an app from an AI coding tool and want the deploy flow in the same workspace
+- You have a runnable Docker or OCI HTTP service image
+- You want the bill to be based on the app profile instead of usage meters
+- You are building with supported services such as Postgres, Redis, MongoDB, MySQL, object storage, or model runtime support
 
-"Deploy this to Varity"
+## When to Pause
 
-That is it. The MCP handles installation, building, and deploying. See [MCP Server](/ai-tools/mcp-server-spec).
+<Aside type="caution" title="Use the beta boundary">
+Varity is in guided beta. Bring your own external managed database for business critical data until managed database durability, backups, and restore are shipped.
+</Aside>
 
-## Comparing Varity to alternatives
+Varity may not be the right fit yet if you need external custom domains today, cron jobs, preview deployments, one click rollback, dedicated GPUs for your own containers, or a source build for Rust, Ruby, Elixir, Java, Deno, PHP, or .NET.
 
-| | Usage-metered cloud | Varity |
-|---|---|---|
-| **Cost** | Usage-based, grows with traffic | Flat monthly per app, predictable as you scale |
-| **Full-stack apps** | Varies by platform | Yes (auto-configured) |
-| **Managed credentials** | Separate setup | Managed by Varity |
-| **Database included** | Separate add-on | Auto-wired when detected |
-| **Setup time** | Minutes to hours | One command |
-| **Setup** | Manual config | Auto-detected, one command |
+Those unsupported source stacks can still deploy when packaged as runnable Docker or OCI HTTP service images.
 
-### Predictable pricing as you scale
+## Next Steps
 
-Usage-metered hosting bills on traffic, bandwidth, and invocations, so your costs climb as your app grows. Varity charges one flat monthly cost per app based on reserved hardware, so success does not inflate your bill, and you still get databases configured automatically.
-
-### Migrating from Vercel?
-
-If you have an existing app on Vercel, `varitykit migrate` moves it over in one command. See [Migrate from Vercel](/deploy/vercel-migration).
-
-## When to use Varity
-
-- You built an app with Claude Code, Cursor, or another AI coding tool and want to deploy it
-- You are migrating an app from Vercel and want a bill that stays flat as you scale
-- You want database and hosting to just work without writing infrastructure code
-- You are building an AI agent or LLM app and need reliable compute
-
-## When Varity may not be the right fit
-
-- You need bare-metal server access or extreme infrastructure customization
-- Your source app uses a framework Varity does not support yet (Rust, Ruby / Rails, Elixir / Phoenix, Java / Spring, Deno, PHP / Laravel, .NET). These can still deploy through a runnable Docker/OCI HTTP image.
-- You need specific compliance certifications not yet supported (contact us for the roadmap)
-
-For most apps, Varity is the fastest path from code to production.
-
-## Next steps
-
-- [Quick Start](/getting-started/quickstart) to deploy your first app in 5 minutes
-- [Installation](/getting-started/installation) to set up your environment
-- [Cost Calculator](/resources/pricing) to estimate your monthly costs
+- [What You Can Deploy Today](/deploy/what-you-can-deploy/)
+- [Quickstart](/getting-started/quickstart/)
+- [Deploy from an AI editor](/guides/deploy-from-ai-ide/)
+- [Pricing and Costs](/resources/pricing/)

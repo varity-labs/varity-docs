@@ -1,180 +1,240 @@
 ---
-const quickStartItems = [
+import { Icon } from '@astrojs/starlight/components';
+
+const entryPaths = [
   {
-    label: 'Claude Code',
+    title: 'AI editor',
     href: '/ai-tools/mcp-server-spec/',
+    icon: 'laptop',
+    summary: 'Connect Claude Code, Cursor, Windsurf, or VS Code to the Varity MCP server.',
+    action: 'Set up MCP',
+    command: 'claude mcp add varity -- npx -y @varity-labs/mcp',
   },
   {
-    label: 'Cursor',
-    href: '/ai-tools/mcp-server-spec/',
-  },
-  {
-    label: 'CLI',
+    title: 'Command line',
     href: '/getting-started/quickstart/',
+    icon: 'seti:shell',
+    summary: 'Install varitykit and deploy from a supported project folder.',
+    action: 'Deploy with CLI',
+    command: 'pipx install varitykit\nvaritykit app deploy',
   },
   {
-    label: 'Next.js',
-    href: '/guides/deploy-nextjs/',
+    title: 'Dashboard',
+    href: '/deploy/deploy-from-dashboard/',
+    icon: 'rocket',
+    summary: 'Deploy from the Developer Portal when you want a visual flow.',
+    action: 'Open dashboard guide',
+    command: 'developer.store.varity.so',
   },
   {
-    label: 'Python',
-    href: '/getting-started/quickstart-python/',
-  },
-  {
-    label: 'Docker',
+    title: 'Docker image',
     href: '/deploy/deploy-docker-image/',
+    icon: 'seti:docker',
+    summary: 'Deploy a public or private Docker or OCI HTTP service image.',
+    action: 'Deploy an image',
+    command: 'varitykit app deploy --image <ref>',
   },
-]
+];
 
-const productCards = [
+const platformGroups = [
   {
-    title: 'Source deploys',
-    href: '/deploy/deploy-your-app/',
-    description: 'Deploy supported Node, Python, Go, and static projects from the CLI, dashboard, or MCP.',
+    title: 'Start',
+    icon: 'rocket',
+    description: 'Install Varity, connect your tool, and ship the first app.',
+    links: [
+      ['Install', '/getting-started/installation/'],
+      ['Quickstart', '/getting-started/quickstart/'],
+      ['What you can deploy', '/deploy/what-you-can-deploy/'],
+    ],
   },
   {
-    title: 'Docker images',
-    href: '/deploy/deploy-docker-image/',
-    description: 'Deploy public or private runnable Docker/OCI HTTP service images.',
+    title: 'Deploy',
+    icon: 'cloud-download',
+    description: 'Choose source, Docker image, dashboard, or AI editor deploys.',
+    links: [
+      ['Deploy your app', '/deploy/deploy-your-app/'],
+      ['Deploy a Docker image', '/deploy/deploy-docker-image/'],
+      ['Deploy from AI editor', '/guides/deploy-from-ai-ide/'],
+    ],
   },
-  {
-    title: 'Supported stacks',
-    href: '/deploy/supported-frameworks/',
-    description: 'Review the current framework matrix, detection behavior, and unsupported source stacks.',
-  },
-  {
-    title: 'Auto-wired services',
-    href: '/deploy/auto-wired-services/',
-    description: 'Postgres, Redis, MongoDB, MySQL, object storage, and AI runtimes when detected.',
-  },
-  {
-    title: 'AI editor deploys',
-    href: '/guides/deploy-from-ai-ide/',
-    description: 'Connect the Varity MCP server to Claude Code, Cursor, Windsurf, and VS Code.',
-  },
-  {
-    title: 'Vercel migration',
-    href: '/deploy/vercel-migration/',
-    description: 'Analyze, transform, and deploy an existing Vercel project through the migration tool.',
-  },
-]
-
-const referenceGroups = [
   {
     title: 'Configure',
+    icon: 'setting',
+    description: 'Set runtime variables, credentials, services, and app URLs.',
     links: [
       ['Environment variables', '/deploy/env-variables/'],
       ['Managed credentials', '/deploy/managed-credentials/'],
-      ['Databases and data', '/deploy/databases/'],
       ['App URLs and names', '/deploy/custom-domains/'],
     ],
   },
   {
-    title: 'Operate',
+    title: 'Data and services',
+    icon: 'seti:db',
+    description: 'Understand databases, caches, object storage, and model runtimes.',
     links: [
-      ['Deployment troubleshooting', '/deploy/deployment-troubleshooting/'],
+      ['Auto wired services', '/deploy/auto-wired-services/'],
+      ['Databases and data', '/deploy/databases/'],
+      ['Supported frameworks', '/deploy/supported-frameworks/'],
+    ],
+  },
+  {
+    title: 'Operate',
+    icon: 'list-format',
+    description: 'Check deploy status, recover a version, and troubleshoot failures.',
+    links: [
+      ['Troubleshooting deploys', '/deploy/deployment-troubleshooting/'],
       ['Recover a previous version', '/deploy/rollback/'],
-      ['Deployment status and logs', '/cli/commands/deploy/'],
-      ['Billing', '/resources/billing/'],
+      ['CLI deploy command', '/cli/commands/deploy/'],
     ],
   },
   {
     title: 'Reference',
+    icon: 'open-book',
+    description: 'Use the exact public tool and API surfaces exposed to agents.',
     links: [
       ['MCP server tools', '/ai-tools/mcp-server-spec/'],
-      ['CLI overview', '/cli/overview/'],
-      ['Pricing and costs', '/resources/pricing/'],
+      ['API reference', '/ai-tools/api-reference/'],
       ['Glossary', '/resources/glossary/'],
     ],
   },
-]
+];
 
-const resourceCards = [
+const commonTasks = [
+  ['Deploy a Next.js app', '/guides/deploy-nextjs/'],
+  ['Deploy a Python app', '/getting-started/quickstart-python/'],
+  ['Migration guide', '/deploy/vercel-migration/'],
+  ['Set environment variables', '/deploy/env-variables/'],
+  ['Estimate costs', '/resources/pricing/'],
+  ['Get help', '/getting-started/getting-help/'],
+];
+
+const capabilityItems = [
   {
-    title: 'What you can deploy today',
-    href: '/deploy/what-you-can-deploy/',
-    description: 'The current capability snapshot, beta expectations, and features not ready yet.',
+    label: 'Source projects',
+    value: 'Node, Python, Go, and static stacks',
   },
   {
-    title: 'Troubleshooting',
-    href: '/resources/troubleshooting/',
-    description: 'Common setup, CLI, and deployment issues with recovery steps.',
+    label: 'Images',
+    value: 'Public and private Docker or OCI HTTP services',
   },
   {
-    title: 'Getting help',
-    href: '/getting-started/getting-help/',
-    description: 'Where to get support when a deploy, migration, or setup step is blocked.',
+    label: 'Services',
+    value: 'Postgres, Redis, MongoDB, MySQL, object storage, and model runtime',
   },
-]
+  {
+    label: 'URLs',
+    value: 'varity.app path and subdomain app URLs',
+  },
+];
+
+const trustLinks = [
+  ['Security', '/resources/security/'],
+  ['Billing', '/resources/billing/'],
+  ['Troubleshooting', '/resources/troubleshooting/'],
+  ['Current beta boundaries', '/deploy/what-you-can-deploy/'],
+];
 ---
 
 <div class="docs-home not-content">
   <section class="docs-hero">
-    <div class="docs-hero-copy">
+    <div class="hero-copy">
       <p class="eyebrow">Varity Docs</p>
-      <h1 class="hero-title">Build, deploy, and operate apps on Varity.</h1>
+      <h1>Deploy supported apps with predictable cloud hosting.</h1>
       <p class="lede">
-        Guides and references for deploying supported source projects, runnable Docker services, and AI-agent workloads with predictable cloud hosting.
+        The practical reference for shipping source projects, Docker services, AI agent apps, and managed runtime services on Varity.
       </p>
+
       <div class="hero-actions">
-        <a class="primary-action" href="/getting-started/quickstart/">Start deploying</a>
-        <a class="secondary-action" href="/ai-tools/mcp-server-spec/">Set up MCP</a>
+        <a class="primary-action" href="/getting-started/quickstart/">
+          <span>Start deploying</span>
+          <Icon name="right-arrow" />
+        </a>
+        <a class="secondary-action" href="/ai-tools/mcp-server-spec/">
+          <span>Set up MCP</span>
+          <Icon name="right-arrow" />
+        </a>
       </div>
     </div>
 
-    <div class="command-panel" aria-label="Quick deploy commands">
-      <div class="command-header">
-        <span>Quick start</span>
+    <div class="hero-console" aria-label="Varity quick deploy commands">
+      <div class="console-top">
+        <span>Quick path</span>
+        <span>CLI</span>
       </div>
       <pre><code><span>$</span> pipx install varitykit
 <span>$</span> varitykit app deploy
 
-<em># live at https://varity.app/my-app/</em></code></pre>
-      <a href="/getting-started/installation/">Installation options</a>
+<em>Live at https://varity.app/my-app/</em></code></pre>
+      <img
+        class="hero-product-shot"
+        src="/docs/images/dashboard-docker-image.webp"
+        width="556"
+        height="450"
+        loading="eager"
+        decoding="async"
+        alt="Varity dashboard Docker image deploy form with image and port fields"
+      />
+      <div class="console-links">
+        <a href="/getting-started/installation/">Install guide</a>
+        <a href="/cli/overview/">CLI reference</a>
+      </div>
     </div>
   </section>
 
-  <section class="quick-panel">
-    <div>
-      <h2>Getting started</h2>
-      <p>Choose the entry point that matches how you build. Each path includes commands, setup checks, and deployment boundaries.</p>
-    </div>
-    <div class="quick-grid">
-      {quickStartItems.map((item) => (
-        <a href={item.href}>{item.label}</a>
-      ))}
-    </div>
-  </section>
-
-  <section class="section-block">
+  <section class="entry-section" aria-labelledby="entry-title">
     <div class="section-heading">
-      <h2>Platform guides</h2>
-      <p>Start with deployment, then attach services, configure runtime settings, and move into operations.</p>
+      <div>
+        <p class="section-kicker">Choose your path</p>
+        <h2 id="entry-title">Start from the tool you already use.</h2>
+      </div>
+      <p>
+        Varity supports multiple entry points. Each route leads to the same live app workflow and the same public deployment URL.
+      </p>
     </div>
 
-    <div class="product-grid">
-      {productCards.map((item) => (
-        <a class="product-card" href={item.href}>
+    <div class="entry-grid">
+      {entryPaths.map((item) => (
+        <a class="entry-card" href={item.href}>
+          <span class="icon-box"><Icon name={item.icon} /></span>
           <strong>{item.title}</strong>
-          <p>{item.description}</p>
+          <p>{item.summary}</p>
+          <code>{item.command}</code>
+          <span class="card-link">
+            {item.action}
+            <Icon name="right-arrow" />
+          </span>
         </a>
       ))}
     </div>
   </section>
 
-  <section class="section-block guide-section">
+  <section class="platform-section" aria-labelledby="platform-title">
     <div class="section-heading">
-      <h2>Reference</h2>
-      <p>Keep these pages close when you are configuring production settings, debugging deploys, or automating through tools.</p>
+      <div>
+        <p class="section-kicker">Documentation map</p>
+        <h2 id="platform-title">Find the page by what you are trying to do.</h2>
+      </div>
+      <p>
+        The docs are organized around deployment, configuration, operation, and reference. This page is the index for the current product surface.
+      </p>
     </div>
 
-    <div class="guide-grid">
-      {referenceGroups.map((group) => (
-        <div class="guide-group">
-          <h3>{group.title}</h3>
+    <div class="platform-grid">
+      {platformGroups.map((group) => (
+        <div class="platform-card">
+          <div class="platform-card-header">
+            <span class="icon-box compact"><Icon name={group.icon} /></span>
+            <h3>{group.title}</h3>
+          </div>
+          <p>{group.description}</p>
           <ul>
             {group.links.map(([label, href]) => (
-              <li><a href={href}>{label}</a></li>
+              <li>
+                <a href={href}>
+                  <span>{label}</span>
+                  <Icon name="right-arrow" />
+                </a>
+              </li>
             ))}
           </ul>
         </div>
@@ -182,77 +242,148 @@ const resourceCards = [
     </div>
   </section>
 
-  <section class="section-block resource-section">
+  <section class="workflow-section" aria-labelledby="workflow-title">
+    <div class="workflow-panel">
+      <div class="workflow-copy">
+        <p class="section-kicker">How the deploy flow reads</p>
+        <h2 id="workflow-title">From project to live URL.</h2>
+        <p>
+          Varity detects supported frameworks, selects static or dynamic hosting, applies runtime defaults, attaches detected services, and returns the public app URL.
+        </p>
+        <a href="/deploy/intelligent-orchestration/">
+          Deployment defaults
+          <Icon name="right-arrow" />
+        </a>
+      </div>
+
+      <div class="workflow-steps" aria-label="Deployment flow">
+        <div>
+          <span>01</span>
+          <strong>Provide source or image</strong>
+          <p>Use a supported project, GitHub repo, dashboard input, MCP tool, or runnable image.</p>
+        </div>
+        <div>
+          <span>02</span>
+          <strong>Review generated settings</strong>
+          <p>Confirm hosting mode, app name, port, variables, and detected services before shipping.</p>
+        </div>
+        <div>
+          <span>03</span>
+          <strong>Deploy and operate</strong>
+          <p>Use status, logs, redeploy, environment updates, and support docs after launch.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="task-section" aria-labelledby="task-title">
     <div class="section-heading">
-      <h2>Resources</h2>
-      <p>Shortcuts for launch-readiness checks, troubleshooting, and support.</p>
+      <div>
+        <p class="section-kicker">Common tasks</p>
+        <h2 id="task-title">Shortcuts for frequent workflows.</h2>
+      </div>
+      <p>
+        These are the pages users usually need while connecting tools, deploying apps, pricing workloads, and recovering from setup issues.
+      </p>
     </div>
 
-    <div class="resource-grid">
-      {resourceCards.map((item) => (
-        <a class="resource-card" href={item.href}>
-          <strong>{item.title}</strong>
-          <p>{item.description}</p>
+    <div class="task-grid">
+      {commonTasks.map(([label, href]) => (
+        <a href={href}>
+          <span>{label}</span>
+          <Icon name="right-arrow" />
         </a>
       ))}
     </div>
   </section>
 
-  <section class="status-band">
-    <div>
-      <h2>Current beta boundaries</h2>
-      <p>
-        Source deploys support Node, Python, Go, and static stacks. Other stacks can deploy with a runnable Docker/OCI image.
-        External custom domains, cron, preview deploys, and one-click rollback are not shipped yet.
-      </p>
+  <section class="capability-section" aria-labelledby="capability-title">
+    <div class="capability-card">
+      <div>
+        <p class="section-kicker">Current beta surface</p>
+        <h2 id="capability-title">What is supported today.</h2>
+        <p>
+          Source deploys support Node, Python, Go, and static stacks. Other stacks can deploy with a prebuilt Docker or OCI HTTP service image. External custom domains, cron, preview deployments, and one click rollback are not shipped yet.
+        </p>
+      </div>
+      <dl>
+        {capabilityItems.map((item) => (
+          <div>
+            <dt>{item.label}</dt>
+            <dd>{item.value}</dd>
+          </div>
+        ))}
+      </dl>
     </div>
-    <a href="/deploy/what-you-can-deploy/">Read the current capability snapshot</a>
+  </section>
+
+  <section class="trust-section" aria-labelledby="trust-title">
+    <div>
+      <p class="section-kicker">Run with clarity</p>
+      <h2 id="trust-title">Security, billing, and support.</h2>
+    </div>
+    <div class="trust-links">
+      {trustLinks.map(([label, href]) => (
+        <a href={href}>
+          <span>{label}</span>
+          <Icon name="right-arrow" />
+        </a>
+      ))}
+    </div>
   </section>
 </div>
 
 <style>
   .docs-home {
     --home-border: rgba(148, 163, 184, 0.22);
+    --home-border-strong: rgba(148, 163, 184, 0.34);
+    --home-card: rgba(255, 255, 255, 0.025);
+    --home-card-hover: rgba(20, 184, 166, 0.06);
     --home-muted: var(--text-secondary);
-    max-width: 76rem;
+    max-width: 82rem;
     margin: 0 auto;
-    padding: 4rem 1.5rem 5rem;
+    padding: 3.5rem 1.5rem 5rem;
   }
 
   :global(body:has(.docs-home) main > .content-panel:first-child) {
     display: none;
   }
 
+  .docs-home a {
+    text-decoration: none;
+  }
+
   .docs-hero {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(23rem, 0.82fr);
-    gap: 5rem;
+    grid-template-columns: minmax(0, 1.02fr) minmax(23rem, 0.82fr);
+    gap: 4rem;
     align-items: center;
-    padding-bottom: 3.5rem;
+    padding-bottom: 3rem;
     border-bottom: 1px solid var(--home-border);
   }
 
-  .eyebrow {
+  .hero-copy h1 {
+    max-width: 15ch;
+    margin: 0.75rem 0 1rem;
+    color: var(--text-primary);
+    font-size: 3.25rem;
+    font-weight: 800;
+    line-height: 1.04;
+    letter-spacing: 0;
+  }
+
+  .eyebrow,
+  .section-kicker {
     margin: 0;
     color: var(--color-brand);
     font-size: 0.75rem;
-    font-weight: 700;
+    font-weight: 750;
     letter-spacing: 0.08em;
     text-transform: uppercase;
   }
 
-  .hero-title {
-    max-width: 14ch;
-    margin: 0.75rem 0 1rem;
-    color: var(--text-primary);
-    font-size: 3rem;
-    font-weight: 800;
-    line-height: 1.06;
-    letter-spacing: 0;
-  }
-
   .lede {
-    max-width: 42rem;
+    max-width: 44rem;
     margin: 0;
     color: var(--home-muted);
     font-size: 1.0625rem;
@@ -267,15 +398,23 @@ const resourceCards = [
   }
 
   .primary-action,
-  .secondary-action {
+  .secondary-action,
+  .workflow-copy a,
+  .card-link,
+  .task-grid a,
+  .trust-links a,
+  .platform-card a {
     display: inline-flex;
     align-items: center;
-    justify-content: center;
-    min-height: 2.5rem;
+    gap: 0.45rem;
+  }
+
+  .primary-action,
+  .secondary-action {
+    min-height: 2.55rem;
     padding: 0 1rem;
     border-radius: 6px;
     font-weight: 700;
-    text-decoration: none;
   }
 
   .primary-action {
@@ -284,31 +423,56 @@ const resourceCards = [
   }
 
   .secondary-action {
-    border: 1px solid var(--home-border);
+    border: 1px solid var(--home-border-strong);
     color: var(--text-primary);
   }
 
-  .command-panel {
+  .hero-actions :global(svg),
+  .workflow-copy :global(svg),
+  .card-link :global(svg),
+  .task-grid :global(svg),
+  .trust-links :global(svg),
+  .platform-card a :global(svg) {
+    width: 1rem;
+    height: 1rem;
+    flex: none;
+  }
+
+  .hero-console {
     border: 1px solid var(--home-border);
     border-radius: 8px;
     background: #0c0d0f;
     overflow: hidden;
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22);
+    box-shadow: 0 18px 52px rgba(0, 0, 0, 0.26);
   }
 
-  .command-header {
+  .console-top,
+  .console-links {
     display: flex;
     justify-content: space-between;
-    padding: 0.75rem 1rem;
+    gap: 1rem;
+    padding: 0.8rem 1rem;
     border-bottom: 1px solid rgba(148, 163, 184, 0.18);
     color: #a1a1aa;
     font-family: var(--sl-font-mono);
     font-size: 0.8125rem;
   }
 
-  .command-panel pre {
+  .console-links {
+    border-top: 1px solid rgba(148, 163, 184, 0.18);
+    border-bottom: 0;
+    font-family: var(--sl-font);
+    font-size: 0.875rem;
+    font-weight: 700;
+  }
+
+  .console-links a {
+    color: var(--color-brand);
+  }
+
+  .hero-console pre {
     margin: 0;
-    padding: 1.1rem 1rem;
+    padding: 1.15rem 1rem;
     overflow-x: auto;
     color: #e4e4e7;
     font-family: var(--sl-font-mono);
@@ -316,224 +480,350 @@ const resourceCards = [
     line-height: 1.8;
   }
 
-  .command-panel code,
-  .command-panel span,
-  .command-panel em {
+  .hero-product-shot {
+    display: block;
+    width: calc(100% - 2rem);
+    height: auto;
+    margin: 0 1rem 1rem;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    border-radius: 8px;
+    background: #070b14;
+  }
+
+  .hero-console code,
+  .hero-console span,
+  .hero-console em {
     font-family: inherit;
   }
 
-  .command-panel span,
-  .command-panel em {
+  .hero-console span,
+  .hero-console em {
     color: var(--color-brand);
     font-style: normal;
   }
 
-  .command-panel a {
-    display: block;
-    padding: 0.85rem 1rem;
-    border-top: 1px solid rgba(148, 163, 184, 0.18);
-    color: var(--color-brand);
-    font-size: 0.875rem;
-    font-weight: 700;
-    text-decoration: none;
-  }
-
-  .section-block {
-    padding: 3.25rem 0;
+  .entry-section,
+  .platform-section,
+  .workflow-section,
+  .task-section,
+  .capability-section,
+  .trust-section {
+    padding: 3rem 0;
     border-bottom: 1px solid var(--home-border);
-  }
-
-  .quick-panel {
-    display: grid;
-    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr);
-    gap: 2rem;
-    align-items: start;
-    padding: 2rem 0;
-    border-bottom: 1px solid var(--home-border);
-  }
-
-  .quick-panel h2 {
-    margin: 0 0 0.5rem;
-    color: var(--text-primary);
-    font-size: 1.375rem;
-    letter-spacing: 0;
-  }
-
-  .quick-panel p {
-    margin: 0;
-    color: var(--home-muted);
-    line-height: 1.7;
-  }
-
-  .quick-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.75rem;
-  }
-
-  .quick-grid a {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 4.25rem;
-    border: 1px solid var(--home-border);
-    border-radius: 8px;
-    color: var(--text-primary);
-    font-weight: 700;
-    text-decoration: none;
-    background: rgba(255, 255, 255, 0.02);
-  }
-
-  .quick-grid a:hover {
-    border-color: rgba(20, 184, 166, 0.55);
-    background: rgba(20, 184, 166, 0.05);
   }
 
   .section-heading {
     display: grid;
-    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
     gap: 2rem;
     align-items: start;
     margin-bottom: 1.5rem;
   }
 
   .section-heading h2,
-  .status-band h2 {
-    margin: 0;
+  .workflow-copy h2,
+  .capability-card h2,
+  .trust-section h2 {
+    margin: 0.45rem 0 0;
     color: var(--text-primary);
-    font-size: 1.375rem;
+    font-size: 1.45rem;
     line-height: 1.25;
     letter-spacing: 0;
   }
 
   .section-heading p,
-  .status-band p {
+  .workflow-copy p,
+  .capability-card p {
     margin: 0;
     color: var(--home-muted);
     line-height: 1.7;
   }
 
-  .product-grid,
-  .resource-grid,
-  .guide-grid {
+  .entry-grid,
+  .platform-grid {
     display: grid;
-    gap: 0.75rem;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.8rem;
   }
 
-  .product-grid {
+  .platform-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .resource-grid,
-  .guide-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .product-card,
-  .resource-card,
-  .guide-group {
+  .entry-card,
+  .platform-card,
+  .workflow-panel,
+  .task-grid a,
+  .capability-card,
+  .trust-links a {
     border: 1px solid var(--home-border);
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.02);
+    background: var(--home-card);
   }
 
-  .product-card,
-  .resource-card {
-    min-height: 10.25rem;
-    padding: 1.1rem;
+  .entry-card {
+    display: flex;
+    min-height: 17.5rem;
+    flex-direction: column;
+    padding: 1rem;
     color: inherit;
-    text-decoration: none;
     transition: border-color 150ms ease, background-color 150ms ease;
   }
 
-  .product-card:hover,
-  .resource-card:hover {
-    border-color: rgba(20, 184, 166, 0.6);
-    background: rgba(20, 184, 166, 0.05);
+  .entry-card:hover,
+  .platform-card:hover,
+  .task-grid a:hover,
+  .trust-links a:hover {
+    border-color: rgba(20, 184, 166, 0.58);
+    background: var(--home-card-hover);
   }
 
-  .product-card strong,
-  .resource-card strong {
-    display: block;
+  .icon-box {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    margin-bottom: 1rem;
+    border: 1px solid rgba(20, 184, 166, 0.25);
+    border-radius: 8px;
+    background: rgba(20, 184, 166, 0.08);
+    color: var(--color-brand);
+  }
+
+  .icon-box.compact {
+    width: 2rem;
+    height: 2rem;
+    margin: 0;
+  }
+
+  .icon-box :global(svg) {
+    width: 1.15rem;
+    height: 1.15rem;
+  }
+
+  .entry-card strong {
     color: var(--text-primary);
     font-size: 1rem;
     line-height: 1.35;
   }
 
-  .product-card p,
-  .resource-card p {
+  .entry-card p,
+  .platform-card p,
+  .workflow-steps p {
     margin: 0.55rem 0 0;
     color: var(--home-muted);
     font-size: 0.875rem;
-    line-height: 1.55;
+    line-height: 1.6;
   }
 
-  .guide-group {
-    padding: 1rem;
-  }
-
-  .guide-group h3 {
-    margin: 0 0 0.75rem;
+  .entry-card code {
+    display: block;
+    min-height: 4.6rem;
+    margin: 1rem 0;
+    padding: 0.75rem;
+    white-space: pre-wrap;
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    border-radius: 6px;
+    background: rgba(2, 6, 23, 0.38);
     color: var(--text-primary);
-    font-size: 0.95rem;
+    font-family: var(--sl-font-mono);
+    font-size: 0.72rem;
+    line-height: 1.6;
+  }
+
+  .card-link {
+    margin-top: auto;
+    color: var(--color-brand);
+    font-size: 0.875rem;
+    font-weight: 700;
+  }
+
+  .platform-card {
+    padding: 1rem;
+    transition: border-color 150ms ease, background-color 150ms ease;
+  }
+
+  .platform-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .platform-card h3 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 1rem;
     letter-spacing: 0;
   }
 
-  .guide-group ul {
+  .platform-card ul {
     display: grid;
     gap: 0.55rem;
-    margin: 0;
+    margin: 1rem 0 0;
     padding: 0;
     list-style: none;
   }
 
-  .guide-group li::before {
+  .platform-card li::before {
     display: none;
   }
 
-  .guide-group a {
+  .platform-card a {
+    justify-content: space-between;
     color: var(--home-muted);
-    font-size: 0.9rem;
-    text-decoration: none;
+    font-size: 0.88rem;
   }
 
-  .guide-group a:hover {
+  .platform-card a:hover {
     color: var(--color-brand);
   }
 
-  .status-band {
+  .workflow-panel {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 0.84fr) minmax(0, 1.16fr);
     gap: 2rem;
-    align-items: center;
-    margin-top: 3rem;
     padding: 1.25rem;
-    border: 1px solid rgba(20, 184, 166, 0.35);
-    border-radius: 8px;
-    background: rgba(20, 184, 166, 0.06);
   }
 
-  .status-band h2 {
-    margin-bottom: 0.45rem;
-    font-size: 1.1rem;
-  }
-
-  .status-band a {
+  .workflow-copy a {
+    margin-top: 1.25rem;
     color: var(--color-brand);
     font-weight: 700;
-    text-decoration: none;
-    white-space: nowrap;
   }
 
-  :global([data-theme="light"]) .command-panel {
+  .workflow-steps {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+
+  .workflow-steps div {
+    min-height: 11rem;
+    padding: 1rem;
+    border: 1px solid var(--home-border);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .workflow-steps span {
+    display: block;
+    color: var(--color-brand);
+    font-family: var(--sl-font-mono);
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+  .workflow-steps strong {
+    display: block;
+    margin-top: 0.55rem;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    line-height: 1.35;
+  }
+
+  .task-grid,
+  .trust-links {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+
+  .task-grid a,
+  .trust-links a {
+    justify-content: space-between;
+    min-height: 3.25rem;
+    padding: 0.85rem 1rem;
+    color: var(--text-primary);
+    font-weight: 700;
+    transition: border-color 150ms ease, background-color 150ms ease;
+  }
+
+  .capability-card {
+    display: grid;
+    grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.28fr);
+    gap: 2rem;
+    padding: 1.25rem;
+  }
+
+  .capability-card dl {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin: 0;
+  }
+
+  .capability-card dl div {
+    padding: 1rem;
+    border: 1px solid var(--home-border);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .capability-card dt {
+    color: var(--color-brand);
+    font-size: 0.75rem;
+    font-weight: 750;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .capability-card dd {
+    margin: 0.5rem 0 0;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    line-height: 1.45;
+  }
+
+  .trust-section {
+    display: grid;
+    grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.3fr);
+    gap: 2rem;
+    align-items: start;
+    border-bottom: 0;
+  }
+
+  .trust-links {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  :global([data-theme="light"]) .docs-home {
+    --home-border: rgba(148, 163, 184, 0.35);
+    --home-border-strong: rgba(107, 114, 128, 0.42);
+    --home-card: #ffffff;
+    --home-card-hover: rgba(13, 148, 136, 0.06);
+  }
+
+  :global([data-theme="light"]) .hero-console {
     background: #111827;
   }
 
-  :global([data-theme="light"]) .quick-grid a,
-  :global([data-theme="light"]) .product-card,
-  :global([data-theme="light"]) .resource-card,
-  :global([data-theme="light"]) .guide-group {
-    background: #ffffff;
+  :global([data-theme="light"]) .entry-card code {
+    background: #f8fafc;
+    color: #111827;
+  }
+
+  :global([data-theme="light"]) .workflow-steps div,
+  :global([data-theme="light"]) .capability-card dl div {
+    background: #f8fafc;
+  }
+
+  @media (max-width: 72rem) {
+    .entry-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .platform-grid,
+    .workflow-steps,
+    .task-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .workflow-panel,
+    .capability-card,
+    .trust-section {
+      grid-template-columns: 1fr;
+    }
   }
 
   @media (max-width: 64rem) {
@@ -542,29 +832,14 @@ const resourceCards = [
     }
 
     .docs-hero,
-    .quick-panel,
-    .section-heading,
-    .status-band {
+    .section-heading {
       grid-template-columns: 1fr;
       gap: 1.5rem;
     }
 
-    .hero-title {
+    .hero-copy h1 {
       max-width: 18ch;
-      font-size: 2.35rem;
-    }
-
-    .product-grid,
-    .resource-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .guide-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .status-band a {
-      white-space: normal;
+      font-size: 2.4rem;
     }
   }
 
@@ -573,15 +848,25 @@ const resourceCards = [
       padding-inline: 1rem;
     }
 
-    .quick-grid,
-    .product-grid,
-    .resource-grid {
+    .entry-grid,
+    .platform-grid,
+    .workflow-steps,
+    .task-grid,
+    .capability-card dl,
+    .trust-links {
       grid-template-columns: 1fr;
     }
 
-    .product-card,
-    .resource-card {
+    .entry-card {
       min-height: auto;
+    }
+
+    .entry-card code {
+      min-height: auto;
+    }
+
+    .console-links {
+      flex-direction: column;
     }
   }
 </style>

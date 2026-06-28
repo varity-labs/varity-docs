@@ -17,6 +17,8 @@ Varity works seamlessly with AI coding tools. Install the MCP server once, and y
 
 Works with Claude Code, Cursor, Windsurf, VS Code (Copilot), and any other editor that supports the Model Context Protocol.
 
+![Varity MCP setup command for Claude Code and compatible AI editors](/docs/images/ai-editor-mcp-setup.webp)
+
 ## Install the MCP server
 
 <Tabs>
@@ -151,15 +153,24 @@ The Varity MCP server gives your AI editor a full set of tools. Here are the mos
 | Tool | What to ask your AI |
 |---|---|
 | `varity_doctor` | "Check if my environment is set up for Varity" |
+| `varity_login` | "Log in to Varity" |
+| `varity_search_docs` | "Search the Varity docs for Docker image deploys" |
 | `varity_install_deps` | "Install dependencies for this project" |
 | `varity_dev_server` | "Start the dev server and open it in my browser" |
+| `varity_open_browser` | "Open the deployed app in my browser" |
 | `varity_build` | "Build this project for production" |
+| `varity_create_repo` | "Create a GitHub repo and push this project" |
 | `varity_deploy` | "Deploy this to Varity" |
 | `varity_deploy_status` | "Show me my deployment status" |
 | `varity_deploy_logs` | "Show me the build logs" |
+| `varity_set_env` | "Set environment variables on this app" |
+| `varity_redeploy` | "Redeploy this app in place" |
 | `varity_delete_deployment` | "Tear down this deployment" |
 | `varity_migrate` | "Migrate my Vercel app to Varity" |
 | `varity_cost_calculator` | "How much will this cost at 500 users?" |
+| `varity_list_agents` | "What AI agent templates can Varity deploy?" |
+| `varity_agent_info` | "What does the Agent Zero template need?" |
+| `varity_deploy_agent` | "Deploy Agent Zero with these environment variables" |
 
 Full reference at [MCP Server Spec](/ai-tools/mcp-server-spec).
 

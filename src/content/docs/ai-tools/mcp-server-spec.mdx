@@ -1,5 +1,5 @@
 ---
-title: Varity MCP Server
+title: Varity MCP Server Reference
 description: Install and configure the Varity MCP server for AI editors. A full set of tools for building, deploying, and managing apps via Cursor or Claude Code.
 ---
 
@@ -22,6 +22,8 @@ The MCP server works with **any editor that supports MCP**: Cursor, Claude Code,
 <Aside type="note">
 **Machine-readable schema.** The exact tool catalog an agent receives from `tools/list` is published at [`/mcp-schema.json`](/mcp-schema.json), generated directly from the released `@varity-labs/mcp` package, so it is always the source of truth. The HTTP API the tools wrap is published as [`/openapi.yaml`](/openapi.yaml). See the [API Reference](/ai-tools/api-reference/) for both.
 </Aside>
+
+![Current Varity MCP tool groups generated from the released package](/docs/images/mcp-tool-map.webp)
 
 ## Prerequisites
 
@@ -310,36 +312,6 @@ Permanently remove a deployment by its app name and stop its billing immediately
 
 ---
 
-### `varity_set_env`: Set environment variables
-
-Set or update environment variables on an existing deployment, then redeploy it in place on the same URL and reserved hardware.
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `name` | string | Yes | none | Existing deployment name, the slug in its Varity URL |
-| `env` | object | Yes | none | Environment variables as key-value pairs, for example `{ "OPENAI_API_KEY": "sk-..." }` |
-| `replace` | boolean | No | `false` | Replace the full env set instead of merging with existing variables |
-
-**Annotations:** `destructiveHint: true` (updates live deployment config)
-
-**Example prompt:** "Set OPENAI_API_KEY on my-api and redeploy it"
-
----
-
-### `varity_redeploy`: Redeploy or restart in place
-
-Redeploy or restart an existing app in place. The deployment keeps the same URL and reserved hardware.
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `name` | string | Yes | none | Existing deployment name, the slug in its Varity URL |
-
-**Annotations:** `destructiveHint: true` (restarts live infrastructure)
-
-**Example prompt:** "Redeploy my-api in place"
-
----
-
 ### `varity_list_agents`: List AI agent templates
 
 List the curated AI agent templates Varity can deploy from the MCP.
@@ -394,46 +366,6 @@ Migrate a Vercel project to Varity in one step: clone the GitHub repository, rem
 **Annotations:** `destructiveHint: true` (clones a repo and deploys infrastructure)
 
 **Example prompt:** "Migrate my Vercel app at https://github.com/user/my-app to Varity"
-
----
-
-### `varity_list_agents`: List curated AI agent templates
-
-List the curated AI agent templates Varity can deploy with one command (for example: a Telegram bot, a Claude-compatible chat UI, an autonomous research agent). Each entry includes a slug and an estimated monthly cost.
-
-*No parameters required.*
-
-**Annotations:** `readOnlyHint` not set (no side effects)
-
-**Example prompt:** "What AI agents can I deploy on Varity?"
-
----
-
-### `varity_agent_info`: Get details for one agent template
-
-Show full details for a single agent template: image, ports, resources, required and optional environment variables, estimated monthly cost, and access mode.
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `name` | string | Yes | none | The agent slug (run `varity_list_agents` to see valid values) |
-
-**Example prompt:** "What env vars does the hermes agent need?"
-
----
-
-### `varity_deploy_agent`: Deploy a curated AI agent
-
-Deploy a curated AI agent template in one command, live at `https://varity.app/<name>/`. Use this when the developer wants a ready-made agent rather than deploying their own code.
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `agent` | string | Yes | none | The agent slug to deploy (run `varity_list_agents` for options) |
-| `name` | string | No | `<agent>-<random>` | Memorable name; becomes the URL slug at `varity.app/<name>/` |
-| `env` | object | No | none | Environment variables for the agent container (pass the agent's required env from `varity_agent_info`) |
-
-**Annotations:** `destructiveHint: true` (deploys real infrastructure)
-
-**Example prompt:** "Deploy the hermes Telegram bot with my bot token"
 
 ---
 

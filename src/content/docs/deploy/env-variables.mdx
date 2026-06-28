@@ -1,5 +1,5 @@
 ---
-title: "Environment Variables"
+title: Environment Variables on Varity
 description: "Configure environment variables for Varity deployments. Inject custom API keys via .env.varity. Most Varity credentials are managed automatically."
 ---
 
@@ -19,6 +19,8 @@ Varity manages most credentials automatically. You only need to set environment 
 <Aside type="tip">
 **No credential setup required.** Storage and service credentials are provided automatically by Varity. See [Managed Credentials](/deploy/managed-credentials) for details.
 </Aside>
+
+![Varity environment variable update flow using CLI deploy flags and MCP env tools](/docs/images/env-variables-flow.webp)
 
 ## Custom Environment Variables
 
@@ -182,4 +184,3 @@ This checks:
 ### Credentials not working
 
 Run `varitykit doctor` to diagnose. Credentials are auto-provided. If they fail, check your network connection.
-
