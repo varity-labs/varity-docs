@@ -25,6 +25,7 @@ export default defineConfig({
         "Build and deploy supported apps with predictable cloud hosting.",
       logo: {
         src: "./src/assets/varity-logo.svg",
+        alt: "Varity Docs",
         replacesTitle: false,
       },
       social: [
@@ -50,6 +51,7 @@ export default defineConfig({
       components: {
         ContentPanel: './src/components/overrides/ContentPanel.astro',
         PageSidebar: './src/components/overrides/PageSidebar.astro',
+        PageTitle: './src/components/overrides/PageTitle.astro',
         Head: './src/components/overrides/Head.astro',
       },
       customCss: [

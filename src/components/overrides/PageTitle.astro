@@ -1,0 +1,9 @@
+---
+import Default from '@astrojs/starlight/components/PageTitle.astro';
+
+const route = Astro.locals.starlightRoute;
+const slug = route?.slug ?? route?.id ?? '';
+const isHome = slug === '';
+---
+
+{!isHome && <Default />}
