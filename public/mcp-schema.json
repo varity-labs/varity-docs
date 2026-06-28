@@ -1,6 +1,6 @@
 {
   "$schema": "https://modelcontextprotocol.io/schema/2024-11-05/tools-list",
-  "description": "Varity MCP server tool catalog. The canonical machine-readable schema for AI agents and MCP clients. Generated from the published @varity-labs/mcp package (the exact tools an agent receives from tools/list).",
+  "description": "Varity MCP server tool catalog. The canonical machine-readable schema for AI agents and MCP clients. Kept aligned with the @varity-labs/mcp tool catalog.",
   "server": {
     "name": "varity",
     "package": "@varity-labs/mcp",
