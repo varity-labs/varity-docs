@@ -21,18 +21,18 @@
     "lint": "astro check"
   },
   "dependencies": {
-    "@astrojs/sitemap": "3.6.0",
-    "@astrojs/starlight": "^0.37.7",
+    "@astrojs/sitemap": "3.7.3",
+    "@astrojs/starlight": "^0.41.1",
     "astro": "^5.18.1"
   },
   "devDependencies": {
-    "@astrojs/check": "^0.9.8",
+    "@astrojs/check": "^0.9.9",
     "typescript": "^6.0.3"
   },
   "overrides": {
     "vite": "^6.4.2",
     "h3": ">=1.15.9",
     "zod": "^3.24.0",
-    "@astrojs/sitemap": "3.6.0"
+    "@astrojs/sitemap": "3.7.3"
   }
 }
