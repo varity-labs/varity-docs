@@ -20,7 +20,7 @@ info:
     Internal control-plane routes (identity callbacks, billing, the deployment registry,
     telemetry ingest, and infrastructure plumbing) are intentionally not part of this
     public contract and may change without notice.
-  version: 1.1.0
+  version: 1.2.0
 servers:
   - url: https://varity.app
     description: Production API (the Varity gateway)
@@ -32,18 +32,40 @@ tags:
   - name: Service
     description: Service health.
 paths:
+  /v1/templates:
+    get:
+      operationId: listTemplates
+      tags: [Deploy]
+      summary: List certified deploy templates
+      description: >
+        Returns the gateway-owned certified template catalog used by the Developer
+        Portal, varitykit CLI, and MCP server. Raw image references are intentionally
+        omitted; deploy templates by passing `template_id` to `POST /v1/deploy`.
+      security:
+        - deployKey: []
+      responses:
+        '200':
+          description: Certified template catalog.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateCatalog'
+        '401':
+          description: Missing or invalid deploy key.
   /v1/deploy:
     post:
       operationId: createDeploy
       tags: [Deploy]
       summary: Start a deploy
       description: >
-        Deploy a project from a GitHub repo (`repo_url`) or a prebuilt Docker/OCI image
-        (`image`). The framework, hosting mode (static vs dynamic), and any backend
-        services your code needs (Postgres, Redis, MongoDB, MySQL, Ollama) are detected
-        and configured automatically. Returns immediately with a `run_id`; poll
+        Deploy a project from a GitHub repo (`repo_url`), a prebuilt Docker/OCI image
+        (`image`), or a certified Varity template (`template_id`). The framework,
+        hosting mode (static vs dynamic), and any backend services your code needs
+        (Postgres, Redis, MongoDB, MySQL, Ollama) are detected and configured
+        automatically for repo/image deploys. Template deploys use the certified
+        gateway-owned runtime profile. Returns immediately with a `run_id`; poll
         `GET /v1/deploy/{run_id}` for status and stream `GET /v1/deploy/{run_id}/logs` for
-        progress. Exactly one of `repo_url` or `image` must be supplied.
+        progress. Exactly one of `repo_url`, `image`, or `template_id` must be supplied.
       security:
         - deployKey: []
       requestBody:
@@ -60,7 +82,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/DeployAccepted'
         '400':
-          description: Invalid request (neither or both of repo_url/image supplied, or a bad manifest).
+          description: Invalid request (none or multiple deploy sources supplied, uncertified template, or a bad manifest).
         '401':
           description: Missing or invalid deploy key.
   /v1/deploy/{run_id}:
@@ -298,12 +320,89 @@ components:
         `varitykit login` (the CLI stores it and sends it for you). Required on all `/v1`
         deploy endpoints.
   schemas:
+    TemplateCatalog:
+      type: object
+      properties:
+        templates:
+          type: array
+          items:
+            $ref: '#/components/schemas/TemplateSummary'
+        count:
+          type: integer
+      required: [templates, count]
+    TemplateSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Template ID to pass as `template_id` in `POST /v1/deploy`.
+        name:
+          type: string
+        description:
+          type: string
+        framework:
+          type: string
+        language:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        category:
+          type: string
+        requiredEnv:
+          type: array
+          items:
+            type: string
+        hardware:
+          type: object
+          properties:
+            cpu:
+              type: number
+            memory_gb:
+              type: number
+            ephemeral_gb:
+              type: number
+        volume:
+          nullable: true
+          type: object
+          properties:
+            sizeGb:
+              type: integer
+            path:
+              type: string
+        private:
+          type: boolean
+          description: Whether the template deploys behind owner-only access by default.
+        resources:
+          type: array
+          items:
+            type: object
+            properties:
+              kind:
+                type: string
+              engine:
+                type: string
+              label:
+                type: string
+        certification:
+          type: object
+          properties:
+            state:
+              type: string
+              enum: [certified]
+            reason:
+              type: string
+            evidence:
+              type: string
+      required: [id, name, description, category, requiredEnv, hardware, private, resources, certification]
     DeployRequest:
       type: object
       description: >
-        The deploy manifest. Exactly one of `repo_url` or `image` is required. Resource
-        fields (`port`, `cpu_units`, `memory_mb`, `storage_mb`) apply to the Docker/OCI
-        image path; for repo builds, hosting and size are decided automatically.
+        The deploy manifest. Exactly one of `repo_url`, `image`, or `template_id` is
+        required. Resource fields (`port`, `cpu_units`, `memory_mb`, `storage_mb`) apply
+        to the Docker/OCI image path; for repo builds, hosting and size are decided
+        automatically. Template deploys use the gateway-owned certified profile.
       properties:
         app_name:
           type: string
@@ -315,7 +414,10 @@ components:
           description: Which client originated the deploy (used for telemetry).
         repo_url:
           type: string
-          description: GitHub https repo URL (alternative to a prebuilt `image`).
+          description: GitHub https repo URL (alternative to `image` or `template_id`).
+        template_id:
+          type: string
+          description: Certified template ID from `GET /v1/templates` (alternative to `repo_url` or `image`).
         commit:
           type: string
           maxLength: 64
@@ -355,7 +457,7 @@ components:
           type: string
           maxLength: 512
           description: >
-            OCI image ref for a direct Docker-image deploy (alternative to `repo_url`).
+            OCI image ref for a direct Docker-image deploy (alternative to `repo_url` or `template_id`).
             Bare Docker Hub refs are normalized (e.g. "nginx:alpine" →
             "docker.io/library/nginx:alpine").
         image_credentials:

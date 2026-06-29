@@ -10,25 +10,26 @@ claude mcp add varity -- npx -y @varity-labs/mcp
 
 ## Current MCP Tools
 
-- `varity_agent_info`
 - `varity_build`
 - `varity_cost_calculator`
 - `varity_create_repo`
 - `varity_delete_deployment`
 - `varity_deploy`
-- `varity_deploy_agent`
 - `varity_deploy_logs`
 - `varity_deploy_status`
 - `varity_dev_server`
 - `varity_doctor`
 - `varity_install_deps`
-- `varity_list_agents`
+- `varity_list_templates`
 - `varity_login`
 - `varity_migrate`
 - `varity_open_browser`
 - `varity_redeploy`
 - `varity_search_docs`
 - `varity_set_env`
+- `varity_template_info`
+- `varity_deploy_template`
+- Legacy aliases: `varity_list_agents`, `varity_agent_info`, `varity_deploy_agent`
 
 ## Pages
 

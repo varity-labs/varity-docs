@@ -4,7 +4,7 @@
   "server": {
     "name": "varity",
     "package": "@varity-labs/mcp",
-    "version": "2.2.0",
+    "version": "2.3.5",
     "docs": "https://docs.varity.so/ai-tools/mcp-server-spec/",
     "install": {
       "claudeCode": "claude mcp add varity -- npx -y @varity-labs/mcp",
@@ -26,7 +26,7 @@
       "http"
     ]
   },
-  "toolCount": 19,
+  "toolCount": 22,
   "tools": [
     {
       "name": "varity_search_docs",
@@ -293,7 +293,7 @@
     {
       "name": "varity_deploy",
       "title": "Deploy to Production",
-      "description": "Deploy the current project to production on Varity. Detects the framework, selects the right hosting, and ships it live at https://varity.app/<name>/. Zero configuration required. Flat hardware-reserved pricing. Your bill stays the same as your app grows. No usage-based billing, no surprise overages. Use this when a developer wants to deploy, publish, ship, or make their app live. If the developer wants to deploy a curated AI agent (Telegram bot, chat UI, etc.) rather than their own code, use varity_deploy_agent instead. To stop a deployment and its billing, use varity_delete_deployment.",
+      "description": "Deploy the current project to production on Varity. Detects the framework, selects the right hosting, and ships it live at https://varity.app/<name>/. Zero configuration required. Flat hardware-reserved pricing. Your bill stays the same as your app grows. No usage-based billing, no surprise overages. Use this when a developer wants to deploy, publish, ship, or make their app live. If the developer wants to deploy a certified template rather than their own code, use varity_deploy_template instead. To stop a deployment and its billing, use varity_delete_deployment.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -432,7 +432,7 @@
         "properties": {
           "name": {
             "type": "string",
-            "description": "The subdomain / app name of the deployment to delete. This is the slug in https://varity.app/<name>/. Example: 'my-hermes-bot' or 'mvp-static-test'."
+            "description": "The subdomain / app name of the deployment to delete. This is the slug in https://varity.app/<name>/. Example: 'worker-bot' or 'mvp-static-test'."
           }
         },
         "required": [
@@ -502,13 +502,93 @@
       }
     },
     {
-      "name": "varity_list_agents",
-      "title": "List Available AI Agent Templates",
-      "description": "List the curated AI agent templates Varity can deploy with one command. Available agents: hermes (Telegram bot), openclaw (Claude-compatible chat), agent-zero (general-purpose, zero config), autoresearch (GPU CUDA workstation), eliza-venice (Twitter automation). Use this when a developer asks 'what AI agents can I deploy?' or wants to compare options. Returns name, description, current estimate fields, required environment variables, exposed ports, and resource footprint. After picking one, deploy with varity_deploy_agent.",
+      "name": "varity_list_templates",
+      "title": "List Certified Varity Templates",
+      "description": "List the certified Varity deploy templates from the gateway-owned catalog. Use this before deploying a template.",
       "inputSchema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {}
+      },
+      "annotations": {
+        "readOnlyHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "varity_template_info",
+      "title": "Show Varity Template Details",
+      "description": "Show full details for a certified Varity template: required env, resources, access mode, hardware profile, and certification state.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "template": {
+            "type": "string",
+            "description": "Template ID from varity_list_templates."
+          }
+        },
+        "required": [
+          "template"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "varity_deploy_template",
+      "title": "Deploy a Varity Template",
+      "description": "Deploy a certified Varity template through varitykit. Call varity_template_info first for required environment variables.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "template": {
+            "type": "string",
+            "description": "Template ID from varity_list_templates."
+          },
+          "name": {
+            "type": "string",
+            "description": "Memorable deployment name. Defaults to <template>-derived name if omitted."
+          },
+          "env": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Environment variables to pass to the template container as key-value strings."
+          }
+        },
+        "required": [
+          "template"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "destructiveHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "varity_list_agents",
+      "title": "List Available AI Agent Templates",
+      "description": "Backward-compatible alias for varity_list_templates. Returns the gateway-owned certified template catalog, not a hardcoded MCP list.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {}
+      },
+      "annotations": {
+        "readOnlyHint": true
       },
       "execution": {
         "taskSupport": "forbidden"
@@ -517,20 +597,13 @@
     {
       "name": "varity_agent_info",
       "title": "Show AI Agent Template Details",
-      "description": "Show full details for a single AI agent template: image, ports, resources, required and optional environment variables, estimated monthly cost, access mode (web/SSH/Telegram), and operator notes. Use this when the developer has picked an agent (or is comparing 2-3) and wants to know exactly what they'll need to provide before deploying. Pass the agent slug from varity_list_agents (one of: hermes, openclaw, agent-zero, autoresearch, eliza-venice).",
+      "description": "Backward-compatible alias for varity_template_info. Pass a certified template ID from varity_list_templates.",
       "inputSchema": {
         "type": "object",
         "properties": {
           "name": {
             "type": "string",
-            "enum": [
-              "hermes",
-              "openclaw",
-              "agent-zero",
-              "autoresearch",
-              "eliza-venice"
-            ],
-            "description": "The agent slug. One of: hermes, openclaw, agent-zero, autoresearch, eliza-venice."
+            "description": "Template ID from varity_list_templates."
           }
         },
         "required": [
@@ -539,6 +612,9 @@
         "additionalProperties": false,
         "$schema": "http://json-schema.org/draft-07/schema#"
       },
+      "annotations": {
+        "readOnlyHint": true
+      },
       "execution": {
         "taskSupport": "forbidden"
       }
@@ -546,31 +622,24 @@
     {
       "name": "varity_deploy_agent",
       "title": "Deploy an AI Agent Template",
-      "description": "Deploy a curated AI agent from one of the 5 templates (hermes, openclaw, agent-zero, autoresearch, eliza-venice), accessible at https://varity.app/<your-name>/. Use this when the developer says 'deploy hermes', 'I want a Telegram bot', 'spin up agent-zero', or similar. Required environment variables (which the developer provides via the `env` parameter) vary per agent, call varity_agent_info first to see what's needed. Pass `name` to give the deployment a memorable URL slug. Use varity_delete_deployment to stop the deployment and its billing later.",
+      "description": "Backward-compatible alias for varity_deploy_template. Deploys a certified Varity template by ID.",
       "inputSchema": {
         "type": "object",
         "properties": {
           "agent": {
             "type": "string",
-            "enum": [
-              "hermes",
-              "openclaw",
-              "agent-zero",
-              "autoresearch",
-              "eliza-venice"
-            ],
-            "description": "The agent slug. One of: hermes, openclaw, agent-zero, autoresearch, eliza-venice. Run varity_list_agents to see all options."
+            "description": "Template ID from varity_list_templates."
           },
           "name": {
             "type": "string",
-            "description": "Memorable name for this deployment. Becomes the URL slug at varity.app/<name>/. Defaults to <agent>-<random> if omitted."
+            "description": "Memorable deployment name. Defaults to <template>-derived name if omitted."
           },
           "env": {
             "type": "object",
             "additionalProperties": {
               "type": "string"
             },
-            "description": "Environment variables to pass to the agent container, as a key-value object. Pass everything from the agent's required_env list (call varity_agent_info to see which). Example for hermes: { OPENAI_API_KEY: 'sk-...', TELEGRAM_BOT_TOKEN: '...', TELEGRAM_ALLOWED_USERS: '123,456' }"
+            "description": "Environment variables to pass to the template container as key-value strings."
           }
         },
         "required": [
@@ -578,6 +647,9 @@
         ],
         "additionalProperties": false,
         "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "destructiveHint": true
       },
       "execution": {
         "taskSupport": "forbidden"

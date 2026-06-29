@@ -10,25 +10,26 @@ claude mcp add varity -- npx -y @varity-labs/mcp
 
 ## Current MCP Tools
 
-- `varity_agent_info`
 - `varity_build`
 - `varity_cost_calculator`
 - `varity_create_repo`
 - `varity_delete_deployment`
 - `varity_deploy`
-- `varity_deploy_agent`
 - `varity_deploy_logs`
 - `varity_deploy_status`
 - `varity_dev_server`
 - `varity_doctor`
 - `varity_install_deps`
-- `varity_list_agents`
+- `varity_list_templates`
 - `varity_login`
 - `varity_migrate`
 - `varity_open_browser`
 - `varity_redeploy`
 - `varity_search_docs`
 - `varity_set_env`
+- `varity_template_info`
+- `varity_deploy_template`
+- Legacy aliases: `varity_list_agents`, `varity_agent_info`, `varity_deploy_agent`
 
 
 ## Varity HTTP API Reference
@@ -473,7 +474,7 @@ Set or update environment variables (config + secrets) on an app that is **alrea
 
 **Annotations:** `destructiveHint: true` (redeploys live infrastructure)
 
-**Example prompt:** "Set DATABASE_URL on my-api and redeploy" or "Rotate the API key on hermes-bot"
+**Example prompt:** "Set DATABASE_URL on my-api and redeploy" or "Rotate the API key on worker-bot"
 
 ---
 
@@ -487,7 +488,7 @@ Redeploy or restart an app that is **already deployed**, in place. This re-pulls
 
 **Annotations:** `destructiveHint: true` (restarts live infrastructure)
 
-**Example prompt:** "Redeploy my-api" or "My app is stuck. Restart hermes-bot"
+**Example prompt:** "Redeploy my-api" or "My app is stuck. Restart worker-bot"
 
 ---
 
@@ -501,29 +502,29 @@ Permanently remove a deployment by its app name and stop its billing immediately
 
 **Annotations:** `destructiveHint: true` (tears down live infrastructure)
 
-**Example prompt:** "Stop my hermes-bot deployment" or "Delete the app my-dashboard"
+**Example prompt:** "Stop my worker-bot deployment" or "Delete the app my-dashboard"
 
 ---
 
-### `varity_list_agents`: List AI agent templates
+### `varity_list_templates`: List certified templates
 
-List the curated AI agent templates Varity can deploy from the MCP.
+List the certified Varity templates from the gateway-owned catalog.
 
 *No parameters required.*
 
 **Annotations:** `readOnlyHint: true`
 
-**Example prompt:** "What AI agents can Varity deploy?"
+**Example prompt:** "What templates can Varity deploy?"
 
 ---
 
-### `varity_agent_info`: Show agent template details
+### `varity_template_info`: Show template details
 
-Show the required environment variables, ports, resource profile, access mode, and notes for one agent template.
+Show required environment variables, resource profile, access mode, hardware profile, and certification state for one certified template.
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `name` | `"hermes"` \| `"openclaw"` \| `"agent-zero"` \| `"autoresearch"` \| `"eliza-venice"` | Yes | none | Agent template slug |
+| `template` | string | Yes | none | Template ID from `varity_list_templates` |
 
 **Annotations:** `readOnlyHint: true`
 
@@ -531,17 +532,20 @@ Show the required environment variables, ports, resource profile, access mode, a
 
 ---
 
-### `varity_deploy_agent`: Deploy an AI agent template
+### `varity_deploy_template`: Deploy a template
 
-Deploy one curated AI agent template. Use this for templates such as Agent Zero instead of `varity_deploy`, which is for deploying a local project or Docker image.
+Deploy one certified Varity template. Use this for curated templates such as Agent Zero instead of `varity_deploy`, which is for deploying a local project or Docker image.
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `agent` | `"hermes"` \| `"openclaw"` \| `"agent-zero"` \| `"autoresearch"` \| `"eliza-venice"` | Yes | none | Agent template slug |
+| `template` | string | Yes | none | Template ID from `varity_list_templates` |
 | `name` | string | No | generated name | Memorable deployment name for the URL slug |
-| `env` | object | No | none | Required environment variables for the selected agent |
+| `env` | object | No | none | Required environment variables for the selected template |
 
 **Annotations:** `destructiveHint: true` (deploys real infrastructure)
+
+The older `varity_list_agents`, `varity_agent_info`, and `varity_deploy_agent`
+tools are backward-compatible aliases for the template tools above.
 
 **Example prompt:** "Deploy Agent Zero on Varity"
 
@@ -605,9 +609,9 @@ Here is the practical build-and-deploy flow using the MCP tools:
 
 **Deploying Agent Zero or another template:**
 
-1. **"What AI agents can Varity deploy?"** → `varity_list_agents`
-2. **"Show details for Agent Zero"** → `varity_agent_info`
-3. **"Deploy Agent Zero"** → `varity_deploy_agent`
+1. **"What templates can Varity deploy?"** → `varity_list_templates`
+2. **"Show details for Agent Zero"** → `varity_template_info`
+3. **"Deploy Agent Zero"** → `varity_deploy_template`
 
 **Migrating from Vercel:**
 
@@ -615,11 +619,11 @@ Here is the practical build-and-deploy flow using the MCP tools:
 2. **"Migrate my Vercel app at https://github.com/user/my-app"** → `varity_migrate`
 3. *(Done. The app is live on Varity infrastructure.)*
 
-**Deploying a curated AI agent:**
+**Deploying a certified template:**
 
-1. **"What agents can I deploy?"** → `varity_list_agents`
-2. **"What does the hermes agent need?"** → `varity_agent_info`
-3. **"Deploy hermes with my bot token"** → `varity_deploy_agent`
+1. **"What templates can I deploy?"** → `varity_list_templates`
+2. **"What does Agent Zero need?"** → `varity_template_info`
+3. **"Deploy Agent Zero"** → `varity_deploy_template`
 4. **"Did it come up?"** → `varity_deploy_status`
 
 ## Troubleshooting
@@ -4463,9 +4467,9 @@ The Varity MCP server gives your AI editor a full set of tools. Here are the mos
 | `varity_delete_deployment` | "Tear down this deployment" |
 | `varity_migrate` | "Migrate my Vercel app to Varity" |
 | `varity_cost_calculator` | "How much will this cost at 500 users?" |
-| `varity_list_agents` | "What AI agent templates can Varity deploy?" |
-| `varity_agent_info` | "What does the Agent Zero template need?" |
-| `varity_deploy_agent` | "Deploy Agent Zero with these environment variables" |
+| `varity_list_templates` | "What templates can Varity deploy?" |
+| `varity_template_info` | "What does the Agent Zero template need?" |
+| `varity_deploy_template` | "Deploy Agent Zero with these environment variables" |
 
 Full reference at [MCP Server Spec](/ai-tools/mcp-server-spec).
 
@@ -5835,29 +5839,30 @@ If your agent uses a local language model (via the `ollama` package), Varity det
 
 ## One-Click Agent Templates
 
-Don't want to write code? Varity ships ready-to-deploy templates for popular open-source agent tools: **Agent Zero**, **Flowise**, **Langflow**, **Open WebUI**, **n8n**, and **Uptime Kuma**.
+Don't want to write code? Varity ships ready-to-deploy certified templates for popular open-source tools including **Agent Zero**, **Flowise**, **Open WebUI**, and **Uptime Kuma**. The certified list is gateway-owned and changes as templates pass live deploy and browser verification.
 
 The proven path for these templates is the **Developer Portal**. Open the template gallery at [developer.store.varity.so/dashboard/deploy](https://developer.store.varity.so/dashboard/deploy) and click deploy on any template. That's it. One click, live URL. If a template needs environment variables (like an API key), the portal prompts you for them before deploying.
 
-If you prefer the terminal or your AI editor, you can deploy any of these tools by its prebuilt Docker image:
+If you prefer the terminal or your AI editor, deploy the same certified templates by template ID:
 
 <Tabs>
 
 
-  Requires `varitykit` 2.0.6 or later. Deploy an agent tool by its published image, passing any required environment variables with repeated `--env` flags:
+  List the certified catalog, then deploy by template ID. Pass any required environment variables with repeated `--env` flags:
 
   ```bash
-  varitykit app deploy --image flowiseai/flowise --env FLOWISE_USERNAME=... --env FLOWISE_PASSWORD=...
+  varitykit app templates
+  varitykit app deploy --template flowise --name my-flowise
   ```
 
 
 
 
-  With the [Varity MCP server](/ai-tools/mcp-server-spec) installed, ask your AI editor to use the agent-template tools:
+  With the [Varity MCP server](/ai-tools/mcp-server-spec) installed, ask your AI editor to use the template tools:
 
   > "Show details for Agent Zero, then deploy Agent Zero on Varity"
 
-  The MCP should call `varity_agent_info` first, then `varity_deploy_agent` with `agent: "agent-zero"`. Use `varity_deploy` for a local project or Docker image.
+  The MCP should call `varity_template_info` first, then `varity_deploy_template` with `template: "agent-zero"`. Use `varity_deploy` for a local project or Docker image.
 
 
 
