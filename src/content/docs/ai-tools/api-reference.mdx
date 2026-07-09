@@ -39,7 +39,7 @@ All HTTP API calls go to:
 https://varity.app
 ```
 
-The `/v1` deploy endpoints require your **deploy key**, sent as a bearer token:
+The `/v1` deploy endpoints require your **deploy key**, sent in the Authorization header:
 
 ```
 Authorization: Bearer <your-deploy-key>
@@ -95,7 +95,7 @@ The full lifecycle: **deploy → poll status → stream logs → update env → 
         "image_credentials": {
           "host": "ghcr.io",
           "username": "me",
-          "password": "<token>"
+          "password": "<registry-password>"
         }
       }'
     ```

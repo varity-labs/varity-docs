@@ -148,7 +148,7 @@ Compute was reserved but the container exited immediately after launch.
 
 2. **Port mismatch**: the container isn't listening on the expected port. Confirm your app listens on `0.0.0.0`, not `127.0.0.1`.
 
-3. **Out-of-memory (OOM)**: the process was killed by the kernel during startup. Check your `package.json` for memory-intensive build steps.
+3. **Out-of-memory (OOM)**: the process was killed by the operating system during startup. Check your `package.json` for memory-intensive build steps.
 
 **Get more detail from logs:**
 
