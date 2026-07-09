@@ -30,27 +30,36 @@ jobs:
         with:
           path: varity-workspace/varity-docs
 
+      - name: Require cross-repo checkout token
+        env:
+          VARITY_PRIVATE_REPO_TOKEN: ${{ secrets.VARITY_PRIVATE_REPO_TOKEN }}
+        run: |
+          if [ -z "$VARITY_PRIVATE_REPO_TOKEN" ]; then
+            echo "::error::Set VARITY_PRIVATE_REPO_TOKEN with read access to varity-ops, varity-mcp, and varity-sdk-private before enabling the full docs propagation gate."
+            exit 1
+          fi
+
       - name: Checkout ops verifier
         uses: actions/checkout@v4
         with:
           repository: varity-labs/varity-ops
           ref: ${{ github.event.inputs.ops_ref || 'master' }}
           path: varity-workspace/varity-ops
-          token: ${{ secrets.VARITY_PRIVATE_REPO_TOKEN || github.token }}
+          token: ${{ secrets.VARITY_PRIVATE_REPO_TOKEN }}
 
       - name: Checkout MCP source
         uses: actions/checkout@v4
         with:
           repository: varity-labs/varity-mcp
           path: varity-workspace/varity-mcp-standalone
-          token: ${{ secrets.VARITY_PRIVATE_REPO_TOKEN || github.token }}
+          token: ${{ secrets.VARITY_PRIVATE_REPO_TOKEN }}
 
       - name: Checkout private SDK source
         uses: actions/checkout@v4
         with:
           repository: Michael-Abril/varity-sdk-private
           path: varity-workspace/varity-sdk-private
-          token: ${{ secrets.VARITY_PRIVATE_REPO_TOKEN || github.token }}
+          token: ${{ secrets.VARITY_PRIVATE_REPO_TOKEN }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
