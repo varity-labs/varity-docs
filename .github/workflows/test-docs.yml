@@ -8,6 +8,11 @@ on:
   schedule:
     - cron: '0 8 * * *'
   workflow_dispatch:
+    inputs:
+      ops_ref:
+        description: varity-ops ref to test against
+        required: false
+        default: master
 
 permissions:
   contents: read
@@ -29,13 +34,16 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: varity-labs/varity-ops
+          ref: ${{ github.event.inputs.ops_ref || 'master' }}
           path: varity-workspace/varity-ops
+          token: ${{ secrets.VARITY_PRIVATE_REPO_TOKEN || github.token }}
 
       - name: Checkout MCP source
         uses: actions/checkout@v4
         with:
           repository: varity-labs/varity-mcp
           path: varity-workspace/varity-mcp-standalone
+          token: ${{ secrets.VARITY_PRIVATE_REPO_TOKEN || github.token }}
 
       - name: Checkout private SDK source
         uses: actions/checkout@v4
