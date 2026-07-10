@@ -1,6 +1,6 @@
 ---
-title: Varity HTTP API Reference
-description: Agent-facing Varity HTTP API and MCP schemas for deploying, monitoring, streaming logs, and stopping apps programmatically.
+title: Varity Public API Reference
+description: Varity public API for deploying, operating, and integrating apps programmatically.
 ---
 
 import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
@@ -9,183 +9,238 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="June 2026"
-  stability="stable"
+  lastUpdated="July 2026"
+  stability="beta"
 />
 
-Varity is built to be driven by AI agents. There are two equivalent ways to deploy and operate apps programmatically, and both are published as machine-readable schemas:
+Varity's public API is a resource API for apps, deployments, templates, pricing, credits, API keys, and webhooks. Use it for direct integrations, custom agents, launchpads, internal tools, and backend services that need to deploy or operate Varity apps without the dashboard.
 
-| Surface | Best for | Schema |
-|---------|----------|--------|
-| **MCP tools** | Agents inside an AI editor (Claude Code, Cursor, Windsurf, VS Code) | [`/mcp-schema.json`](/mcp-schema.json) |
-| **HTTP API** | Direct integrations, custom agents, backend services | [`/openapi.yaml`](/openapi.yaml) |
+The machine-readable source is:
 
-<Aside type="tip">
-If your agent runs inside an AI editor, prefer the [MCP server](/ai-tools/mcp-server-spec/). `varity_deploy`, `varity_deploy_status`, `varity_deploy_logs`, and `varity_delete_deployment` wrap the HTTP API and handle auth, framework detection, and result parsing for you. The raw HTTP API below is for everything else.
+- `https://docs.varity.so/openapi.yaml`
+- `https://varity.app/api/openapi.json`
+
+<Aside type="note">
+Older thin-client compatibility routes are not the public resource contract. New direct integrations should use the `/api/*` routes below.
 </Aside>
 
-## Machine-readable schemas
+## Base URL And Auth
 
-Point your tooling directly at these URLs. They are generated from the shipped code, so they never drift from reality:
+All public API calls use:
 
-- **`https://docs.varity.so/openapi.yaml`**: the public HTTP API (OpenAPI 3.0). Import into Postman, an OpenAPI client generator, or an agent's tool layer.
-- **`https://docs.varity.so/mcp-schema.json`**: the machine-readable Varity MCP tool catalog, including each tool's JSON Schema and annotations.
-
-## Base URL & authentication
-
-All HTTP API calls go to:
-
-```
-https://varity.app
+```text
+https://varity.app/api
 ```
 
-The `/v1` deploy endpoints require your **deploy key**, sent as a bearer token:
+For non-browser callers, send your Varity API key as a bearer credential:
 
+```text
+Authorization: Bearer $VARITY_API_KEY
 ```
-Authorization: Bearer <your-deploy-key>
-```
 
-Get a deploy key by running `varitykit login` (the CLI stores and sends it for you) or from the developer portal at `developer.store.varity.so/dashboard/settings`. The pricing and health endpoints are public and need no auth.
+Create API keys in the Developer Portal settings page. API key plaintext is shown once. Listing and revoking keys require an authenticated Developer Portal session; plaintext keys are never returned after creation.
 
-## The operate loop
+## Deploy
 
-The full lifecycle: **deploy → poll status → stream logs → update env → redeploy → stop**. Deploy and read the result; operate the live app in place (env, redeploy) without creating a new deployment; stop it when you're done.
-
-### 1. Deploy
-
-`POST /v1/deploy` deploys from a GitHub repo or a prebuilt image. It returns a `run_id` immediately. Exactly one of `repo_url` or `image` is required.
+`POST /api/deployments` creates a deployment from one source: repository, image, or template. Use `Idempotency-Key` on create requests so normal retries and replays cannot create duplicate deployments. Do not fire concurrent create requests with the same idempotency key; atomic concurrent idempotency is a backend hardening follow-up for v1.
 
 <Tabs>
-  <TabItem label="From a repo">
+  <TabItem label="Repository">
+
     ```bash
-    curl -X POST https://varity.app/v1/deploy \
-      -H "Authorization: Bearer $VARITY_DEPLOY_KEY" \
+    curl -X POST https://varity.app/api/deployments \
+      -H "Authorization: Bearer $VARITY_API_KEY" \
       -H "Content-Type: application/json" \
+      -H "Idempotency-Key: deploy-my-app-001" \
       -d '{
-        "app_name": "my-app",
-        "source": "cli",
-        "repo_url": "https://github.com/me/my-app"
-      }'
-    # → { "run_id": "..." }
-    ```
-  </TabItem>
-  <TabItem label="From an image">
-    ```bash
-    curl -X POST https://varity.app/v1/deploy \
-      -H "Authorization: Bearer $VARITY_DEPLOY_KEY" \
-      -H "Content-Type: application/json" \
-      -d '{
-        "app_name": "my-api",
-        "source": "cli",
-        "image": "ghcr.io/me/my-api:latest",
-        "port": 8080
-      }'
-    ```
-  </TabItem>
-  <TabItem label="Private image">
-    ```bash
-    curl -X POST https://varity.app/v1/deploy \
-      -H "Authorization: Bearer $VARITY_DEPLOY_KEY" \
-      -H "Content-Type: application/json" \
-      -d '{
-        "app_name": "my-api",
-        "source": "cli",
-        "image": "ghcr.io/me/private-api:latest",
-        "port": 8080,
-        "image_credentials": {
-          "host": "ghcr.io",
-          "username": "me",
-          "password": "<token>"
+        "name": "my-app",
+        "repository": {
+          "url": "https://github.com/me/my-app"
         }
       }'
     ```
+
+  </TabItem>
+  <TabItem label="Image">
+
+    ```bash
+    curl -X POST https://varity.app/api/deployments \
+      -H "Authorization: Bearer $VARITY_API_KEY" \
+      -H "Content-Type: application/json" \
+      -H "Idempotency-Key: deploy-my-api-001" \
+      -d '{
+        "name": "my-api",
+        "image": {
+          "ref": "ghcr.io/me/my-api:latest",
+          "port": 8080
+        }
+      }'
+    ```
+
+  </TabItem>
+  <TabItem label="Template">
+
+    ```bash
+    curl -X POST https://varity.app/api/templates/agent-zero/deploy \
+      -H "Authorization: Bearer $VARITY_API_KEY" \
+      -H "Content-Type: application/json" \
+      -H "Idempotency-Key: deploy-agent-zero-001" \
+      -d '{ "name": "my-agent" }'
+    ```
+
   </TabItem>
 </Tabs>
 
-The framework, hosting mode, and any backend services (Postgres, Redis, MongoDB, MySQL, Ollama, object storage) are detected and configured automatically, normally from your dependencies. See [Auto-wired Services](/deploy/auto-wired-services/).
-
-### 2. Poll status
-
-`GET /v1/deploy/{run_id}` returns the run's `status` (`queued` → `running` → `succeeded` / `failed`), the current `stage`, and on success the live `frontend_url`. On failure it returns a redacted `error_message` and a `failure_stage`.
+The response includes a Varity deployment id, public URL, run id, and `status_url`. Poll the run until it reaches `succeeded` or `failed`:
 
 ```bash
-curl https://varity.app/v1/deploy/$RUN_ID \
-  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
-# → { "run_id": "...", "status": "succeeded", "frontend_url": "https://varity.app/my-app/", ... }
+curl "https://varity.app/api/deployments/runs/$RUN_ID?app=my-app" \
+  -H "Authorization: Bearer $VARITY_API_KEY"
 ```
 
-### 3. Stream logs
+## Operate
 
-`GET /v1/deploy/{run_id}/logs` returns a Server-Sent Events stream of deploy progress (`detect` → `build` → `package` → `start` → `health` → `done`). The stream ends when the run reaches a terminal status.
+List deployments:
 
 ```bash
-curl -N https://varity.app/v1/deploy/$RUN_ID/logs \
-  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
+curl https://varity.app/api/deployments \
+  -H "Authorization: Bearer $VARITY_API_KEY"
 ```
 
-<Aside type="note">
-This streams **deploy-time** progress, not the running container's runtime stdout/stderr.
-</Aside>
-
-### 4. Update env vars (and redeploy)
-
-`PUT /v1/deployments/{app_name}/env` sets or updates environment variables on a live app, then redeploys it **in place**: same URL and same reserved hardware. Variables are merged over the current set by default; pass `"replace": true` to overwrite the whole set. Values are write-only and are never returned.
+Read one deployment:
 
 ```bash
-curl -X PUT https://varity.app/v1/deployments/my-app/env \
-  -H "Authorization: Bearer $VARITY_DEPLOY_KEY" \
+curl https://varity.app/api/deployments/$DEPLOYMENT_ID \
+  -H "Authorization: Bearer $VARITY_API_KEY"
+```
+
+Read logs and events:
+
+```bash
+curl https://varity.app/api/deployments/$DEPLOYMENT_ID/logs \
+  -H "Authorization: Bearer $VARITY_API_KEY"
+
+curl https://varity.app/api/deployments/$DEPLOYMENT_ID/events \
+  -H "Authorization: Bearer $VARITY_API_KEY"
+```
+
+List environment variable keys. Values are write-only and are not returned:
+
+```bash
+curl https://varity.app/api/deployments/$DEPLOYMENT_ID/env \
+  -H "Authorization: Bearer $VARITY_API_KEY"
+```
+
+Update environment variables and redeploy in place:
+
+```bash
+curl -X PATCH https://varity.app/api/deployments/$DEPLOYMENT_ID/env \
+  -H "Authorization: Bearer $VARITY_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"envVars": {"DATABASE_URL": "postgres://...", "FEATURE_X": "on"}}'
+  -d '{ "env": { "FEATURE_FLAG": "on" } }'
 ```
 
-### 5. Redeploy in place
-
-`POST /v1/deployments/{app_name}/redeploy` re-pulls the image (or rebuilds from source) and restarts the container on the **same** deployment: same URL and same reserved hardware. No body; keeps the current env vars.
+Redeploy, restart, or delete:
 
 ```bash
-curl -X POST https://varity.app/v1/deployments/my-app/redeploy \
-  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
+curl -X POST https://varity.app/api/deployments/$DEPLOYMENT_ID/redeploy \
+  -H "Authorization: Bearer $VARITY_API_KEY"
+
+curl -X POST https://varity.app/api/deployments/$DEPLOYMENT_ID/restart \
+  -H "Authorization: Bearer $VARITY_API_KEY"
+
+curl -X DELETE https://varity.app/api/deployments/$DEPLOYMENT_ID \
+  -H "Authorization: Bearer $VARITY_API_KEY"
 ```
 
-### 6. Stop (and stop billing)
+## Templates, Pricing, And Credits
 
-`DELETE /v1/deployments/{app_name}` permanently stops the app and ends its billing, freeing the reserved hardware.
+Templates are deployable app starters. Pricing is estimated from the live API, not a hardcoded table, and returns fixed monthly hardware-reservation cost for the requested profile. Credits show whether the caller can deploy with a payment method or active starter credit.
 
 ```bash
-curl -X DELETE https://varity.app/v1/deployments/my-app \
-  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
+curl https://varity.app/api/templates \
+  -H "Authorization: Bearer $VARITY_API_KEY"
+
+curl "https://varity.app/api/pricing/estimate?profile=web-app" \
+  -H "Authorization: Bearer $VARITY_API_KEY"
+
+curl https://varity.app/api/credits \
+  -H "Authorization: Bearer $VARITY_API_KEY"
 ```
 
-## Pricing (public)
+## Webhooks
 
-`GET /api/pricing?profile=<profile>` returns the flat monthly price for a workload profile plus a comparison against usage-metered hosts. No auth required.
+Create a webhook:
 
 ```bash
-curl "https://varity.app/api/pricing?profile=web"
-# → { "profile": "web", "varityMonthly": 6, "varityIsFlat": true, ... }
+curl -X POST https://varity.app/api/webhooks \
+  -H "Authorization: Bearer $VARITY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://example.com/varity/webhook",
+    "events": ["deployment.accepted", "deployment.live", "deployment.failed"]
+  }'
 ```
 
-Pricing is a flat hardware reservation. It does not change with traffic, bandwidth, invocations, or build minutes.
+The response includes `signing_secret` once. Store it to verify webhook deliveries. Varity signs each delivery with:
 
-## Endpoint summary
+- `X-Varity-Event-Id`
+- `X-Varity-Timestamp`
+- `X-Varity-Signature`
 
-| Method | Path | Auth | Purpose |
-|--------|------|------|---------|
-| `POST` | `/v1/deploy` | deploy key | Start a deploy |
-| `GET` | `/v1/deploy/{run_id}` | deploy key | Get status + result |
-| `GET` | `/v1/deploy/{run_id}/logs` | deploy key | Stream deploy logs (SSE) |
-| `PUT` | `/v1/deployments/{app_name}/env` | deploy key | Set env vars + redeploy in place |
-| `POST` | `/v1/deployments/{app_name}/redeploy` | deploy key | Redeploy/restart in place |
-| `DELETE` | `/v1/deployments/{app_name}` | deploy key | Stop a deployment + billing |
-| `GET` | `/api/pricing` | public | Live flat pricing |
-| `GET` | `/health` | public | Service health |
+The signature is `v1=` plus an HMAC-SHA256 over `timestamp.body` using the webhook signing secret. Webhook endpoint URLs must be public HTTPS URLs; local and private hosts are rejected.
+
+Webhook handlers should be idempotent. Delivery-time DNS/IP revalidation, durable delivery queue hardening, and additional signing-secret custody hardening remain non-blocking v1 follow-ups.
+
+List webhooks and delivery status:
+
+```bash
+curl "https://varity.app/api/webhooks?include_deliveries=true" \
+  -H "Authorization: Bearer $VARITY_API_KEY"
+```
+
+Delete a webhook:
+
+```bash
+curl -X DELETE https://varity.app/api/webhooks/$WEBHOOK_ID \
+  -H "Authorization: Bearer $VARITY_API_KEY"
+```
+
+## Endpoint Summary
+
+The OpenAPI document contains these 18 public paths:
+
+| Methods | Path | Purpose |
+|---------|------|---------|
+| `GET`, `POST` | `/api/deployments` | List or create deployments |
+| `GET` | `/api/deployments/runs/{run_id}` | Get deployment run status |
+| `GET`, `DELETE` | `/api/deployments/{deployment_id}` | Read or delete a deployment |
+| `GET` | `/api/deployments/{deployment_id}/logs` | Read deployment logs |
+| `GET` | `/api/deployments/{deployment_id}/events` | Read deployment events |
+| `GET`, `PATCH` | `/api/deployments/{deployment_id}/env` | List environment variable keys or update values |
+| `POST` | `/api/deployments/{deployment_id}/redeploy` | Redeploy in place |
+| `POST` | `/api/deployments/{deployment_id}/restart` | Restart in place |
+| `GET` | `/api/templates` | List templates |
+| `GET` | `/api/templates/{template_id}` | Read a template |
+| `POST` | `/api/templates/{template_id}/deploy` | Deploy a template |
+| `GET` | `/api/pricing/estimate` | Estimate fixed monthly cost |
+| `GET` | `/api/credits` | Read credit and deploy eligibility |
+| `GET`, `POST` | `/api/webhooks` | List or create webhooks |
+| `DELETE` | `/api/webhooks/{webhook_id}` | Delete a webhook |
+| `GET`, `POST` | `/api/api-keys` | List or create API keys in the Developer Portal |
+| `DELETE` | `/api/api-keys/{key_id}` | Revoke an API key in the Developer Portal |
+| `GET` | `/api/openapi.json` | Read the live OpenAPI contract |
 
 <Aside type="caution">
-This is the complete public, agent-facing surface. Internal control-plane routes (identity, billing, the deployment registry, telemetry, and infrastructure plumbing) are intentionally not part of this contract and may change without notice.
+Public API responses use Varity product resources only. Internal implementation details are not part of this contract.
 </Aside>
 
-## Next steps
+<Aside type="note">
+API-key management endpoints are Developer Portal session routes in v1. API keys authenticate non-browser API callers, but API keys cannot create, list, or revoke other API keys. Revoked keys can have a short cache-propagation window before every edge rejects them.
+</Aside>
 
-- **[MCP Server Spec](/ai-tools/mcp-server-spec/)**: the full tool reference for AI editors
+## Next Steps
+
+- **[MCP Server Spec](/ai-tools/mcp-server-spec/)**: the tool reference for AI editors
 - **[Deploy a Docker Image](/deploy/deploy-docker-image/)**: image-deploy details
-- **[Auto-wired Services](/deploy/auto-wired-services/)**: how databases and caches get attached
+- **[Environment Variables](/deploy/env-variables/)**: runtime configuration

@@ -47,7 +47,7 @@ Public and private Docker/OCI images are supported when the image starts a runna
     --image registry.example.com/acme/my-api:1.4.2 \
     --image-registry registry.example.com \
     --image-username my-user \
-    --image-password my-token
+    --image-password my-password
   ```
 
   </TabItem>
@@ -56,7 +56,7 @@ Public and private Docker/OCI images are supported when the image starts a runna
   1. Open [developer.store.varity.so/dashboard/deploy](https://developer.store.varity.so/dashboard/deploy)
   2. Select the **Docker image** tab
   3. Enter the image reference (for example `ghcr.io/acme/my-api:1.4.2`) and, optionally, the container port
-  4. For a private image, add the registry host, username, and token/password
+  4. For a private image, add the registry host, username, and password or secret value
   5. Click deploy
 
   </TabItem>
