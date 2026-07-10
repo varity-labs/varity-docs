@@ -33,7 +33,7 @@ claude mcp add varity -- npx -y @varity-labs/mcp
 
 ## Pages
 
-- [Varity HTTP API Reference](https://docs.varity.so/ai-tools/api-reference/): Agent-facing Varity HTTP API and MCP schemas for deploying, monitoring, streaming logs, and stopping apps programmatically.
+- [Varity Public API Reference](https://docs.varity.so/ai-tools/api-reference/): Public resource API for deploying and operating apps, templates, pricing, credits, API keys, and webhooks programmatically.
 - [Varity MCP Server Reference](https://docs.varity.so/ai-tools/mcp-server-spec/): Install and configure the Varity MCP server for AI editors. A full set of tools for building, deploying, and managing apps via Cursor or Claude Code.
 - [AI Tools for Varity Deploys](https://docs.varity.so/ai-tools/overview/): Accelerate Varity development with AI tools. Copy-paste prompts, Cursor rules, MCP server integration, and LLM-optimized documentation.
 - [AI Prompts for Varity Deploys](https://docs.varity.so/ai-tools/prompts/): Ready-to-paste prompts for deploying to Varity from Claude Code, Cursor, Windsurf, or ChatGPT. No commands to memorize.

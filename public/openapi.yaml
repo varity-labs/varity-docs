@@ -1,581 +1,1720 @@
-openapi: 3.0.3
-info:
-  title: Varity HTTP API
-  description: >
-    The public, agent-facing HTTP contract for Varity. AI agents, CLIs, and integrators
-    call these endpoints to deploy a project, poll its status, stream deploy logs, update
-    its environment variables, redeploy it in place, stop a deployment, and read live
-    pricing. This is the same stable `/v1` contract the
-    `varitykit` CLI and `@varity-labs/mcp` server use under the hood. Point your agent at
-    it directly, or use the MCP server (see https://docs.varity.so/ai-tools/mcp-server-spec/).
-
-
-    Most agents should prefer the MCP tools (`varity_deploy`, `varity_deploy_status`,
-    `varity_deploy_logs`, `varity_delete_deployment`). They wrap this API and handle
-    framework detection, auth, and result parsing. The raw HTTP API below is for direct
-    integrations.
-
-
-    Scope note: this spec documents only the endpoints intended for external/agent use.
-    Internal control-plane routes (identity callbacks, billing, the deployment registry,
-    telemetry ingest, and infrastructure plumbing) are intentionally not part of this
-    public contract and may change without notice.
-  version: 1.2.0
-servers:
-  - url: https://varity.app
-    description: Production API (the Varity gateway)
-tags:
-  - name: Deploy
-    description: Create, monitor, and stop deployments.
-  - name: Pricing
-    description: Read live, flat per-app pricing.
-  - name: Service
-    description: Service health.
-paths:
-  /v1/templates:
-    get:
-      operationId: listTemplates
-      tags: [Deploy]
-      summary: List certified deploy templates
-      description: >
-        Returns the gateway-owned certified template catalog used by the Developer
-        Portal, varitykit CLI, and MCP server. Raw image references are intentionally
-        omitted; deploy templates by passing `template_id` to `POST /v1/deploy`.
-      security:
-        - deployKey: []
-      responses:
-        '200':
-          description: Certified template catalog.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TemplateCatalog'
-        '401':
-          description: Missing or invalid deploy key.
-  /v1/deploy:
-    post:
-      operationId: createDeploy
-      tags: [Deploy]
-      summary: Start a deploy
-      description: >
-        Deploy a project from a GitHub repo (`repo_url`), a prebuilt Docker/OCI image
-        (`image`), or a certified Varity template (`template_id`). The framework,
-        hosting mode (static vs dynamic), and any backend services your code needs
-        (Postgres, Redis, MongoDB, MySQL, Ollama) are detected and configured
-        automatically for repo/image deploys. Template deploys use the certified
-        gateway-owned runtime profile. Returns immediately with a `run_id`; poll
-        `GET /v1/deploy/{run_id}` for status and stream `GET /v1/deploy/{run_id}/logs` for
-        progress. Exactly one of `repo_url`, `image`, or `template_id` must be supplied.
-      security:
-        - deployKey: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DeployRequest'
-      responses:
-        '202':
-          description: Deploy run accepted and queued.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DeployAccepted'
-        '400':
-          description: Invalid request (none or multiple deploy sources supplied, uncertified template, or a bad manifest).
-        '401':
-          description: Missing or invalid deploy key.
-  /v1/deploy/{run_id}:
-    get:
-      operationId: getDeploy
-      tags: [Deploy]
-      summary: Get deploy status and result
-      description: >
-        Returns the current status of a deploy run and, once it reaches a terminal state,
-        the result (live URL, deployment id, selected hardware, and, on failure, a
-        redacted reason and failure stage).
-      security:
-        - deployKey: []
-      parameters:
-        - name: run_id
-          in: path
-          required: true
-          description: The `run_id` returned by POST /v1/deploy.
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Current status and (when terminal) the result.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DeployStatus'
-        '401':
-          description: Missing or invalid deploy key.
-        '404':
-          description: Unknown run_id.
-  /v1/deploy/{run_id}/logs:
-    get:
-      operationId: getDeployLogs
-      tags: [Deploy]
-      summary: Stream deploy logs (Server-Sent Events)
-      description: >
-        Server-Sent Events stream of deploy progress (detect → build → bid → lease →
-        health → done) for the run. Each event is a `data:` line; the stream terminates
-        when the run reaches a terminal status. Note: this streams deploy-time progress,
-        not the running container's runtime stdout/stderr.
-      security:
-        - deployKey: []
-      parameters:
-        - name: run_id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: text/event-stream of log lines.
-          content:
-            text/event-stream:
-              schema:
-                type: string
-                description: "SSE-framed log lines, each as a data: event."
-        '401':
-          description: Missing or invalid deploy key.
-        '404':
-          description: Unknown run_id.
-  /v1/deployments/{subdomain}:
-    delete:
-      operationId: deleteDeployment
-      tags: [Deploy]
-      summary: Stop a deployment and its billing
-      description: >
-        Permanently stops the deployment identified by its app name (subdomain) and ends
-        its billing. This frees the reserved hardware; the app stops serving immediately.
-      security:
-        - deployKey: []
-      parameters:
-        - name: subdomain
-          in: path
-          required: true
-          description: The app name (the `{name}` in https://varity.app/{name}/).
-          schema:
-            type: string
-            pattern: '^[a-z0-9-]{1,63}$'
-      responses:
-        '200':
-          description: Deployment stopped.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success: { type: boolean }
-                  deleted: { type: boolean }
-                  subdomain: { type: string }
-                  appName: { type: string }
-        '401':
-          description: Missing or invalid deploy key.
-        '403':
-          description: The deploy key does not own this deployment.
-        '404':
-          description: Unknown deployment.
-  /v1/deployments/{subdomain}/env:
-    put:
-      operationId: setDeploymentEnv
-      tags: [Deploy]
-      summary: Set environment variables and redeploy in place
-      description: >
-        Set or update environment variables on an existing deployment, then redeploy it in
-        place. Same URL, same reserved hardware, no new bid. By default the supplied
-        variables are merged over the current set; pass `replace: true` to overwrite the
-        entire set. Values are write-only and are never returned. The change goes live in
-        about a minute with no URL change.
-      security:
-        - deployKey: []
-      parameters:
-        - name: subdomain
-          in: path
-          required: true
-          description: The app name (the `{name}` in https://varity.app/{name}/).
-          schema:
-            type: string
-            pattern: '^[a-z0-9-]{1,63}$'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                envVars:
-                  type: object
-                  additionalProperties:
-                    type: string
-                  description: Environment variables to set, as a map of UPPER_SNAKE_CASE name to value.
-                replace:
-                  type: boolean
-                  default: false
-                  description: When true, replace the entire variable set instead of merging.
-              required: [envVars]
-      responses:
-        '200':
-          description: Variables applied; redeploy of the same deployment started.
-        '400':
-          description: Missing subdomain or an invalid env map.
-        '401':
-          description: Missing or invalid deploy key.
-        '403':
-          description: The deploy key does not own this deployment.
-        '404':
-          description: Unknown deployment.
-  /v1/deployments/{subdomain}/redeploy:
-    post:
-      operationId: redeployDeployment
-      tags: [Deploy]
-      summary: Redeploy an existing deployment in place
-      description: >
-        Redeploy or restart an existing app in place. It re-pulls the image (or rebuilds
-        from source) and restarts the container on the SAME deployment: same URL, same
-        reserved hardware, no new bid. Takes no body and keeps the current environment
-        variables; use PUT `/v1/deployments/{subdomain}/env` to change config at the same
-        time. Goes live in about a minute with no URL change.
-      security:
-        - deployKey: []
-      parameters:
-        - name: subdomain
-          in: path
-          required: true
-          description: The app name (the `{name}` in https://varity.app/{name}/).
-          schema:
-            type: string
-            pattern: '^[a-z0-9-]{1,63}$'
-      responses:
-        '200':
-          description: Redeploy of the same deployment started.
-        '400':
-          description: Missing subdomain.
-        '401':
-          description: Missing or invalid deploy key.
-        '403':
-          description: The deploy key does not own this deployment.
-        '404':
-          description: Unknown deployment.
-  /api/pricing:
-    get:
-      operationId: getPricing
-      tags: [Pricing]
-      summary: Get live flat per-app pricing
-      description: >
-        Returns Varity's flat monthly price for a workload profile (or an existing app)
-        plus a comparison against usage-metered hosts. Public. No authentication required.
-        Pricing is a flat hardware reservation; it does not change with traffic, bandwidth,
-        invocations, or build minutes.
-      parameters:
-        - name: profile
-          in: query
-          required: false
-          description: A workload profile to price (e.g. `static`, `web`, `agent`, `gpu`).
-          schema:
-            type: string
-        - name: subdomain
-          in: query
-          required: false
-          description: Price an existing deployed app by name instead of a profile.
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Pricing for the requested profile or app.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Pricing'
-        '404':
-          description: Unknown app/profile.
-  /health:
-    get:
-      operationId: getHealth
-      tags: [Service]
-      summary: Service health
-      description: Liveness check for the Varity API. Public. No authentication required.
-      responses:
-        '200':
-          description: Service is healthy.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status: { type: string, example: healthy }
-                  service: { type: string, example: varity-gateway }
-                  version: { type: string }
-components:
-  securitySchemes:
-    deployKey:
-      type: http
-      scheme: bearer
-      description: >
-        Your Varity deploy key, sent as `Authorization: Bearer <key>`. Obtain it by running
-        `varitykit login` (the CLI stores it and sends it for you). Required on all `/v1`
-        deploy endpoints.
-  schemas:
-    TemplateCatalog:
-      type: object
-      properties:
-        templates:
-          type: array
-          items:
-            $ref: '#/components/schemas/TemplateSummary'
-        count:
-          type: integer
-      required: [templates, count]
-    TemplateSummary:
-      type: object
-      properties:
-        id:
-          type: string
-          description: Template ID to pass as `template_id` in `POST /v1/deploy`.
-        name:
-          type: string
-        description:
-          type: string
-        framework:
-          type: string
-        language:
-          type: string
-        tags:
-          type: array
-          items:
-            type: string
-        category:
-          type: string
-        requiredEnv:
-          type: array
-          items:
-            type: string
-        hardware:
-          type: object
-          properties:
-            cpu:
-              type: number
-            memory_gb:
-              type: number
-            ephemeral_gb:
-              type: number
-        volume:
-          nullable: true
-          type: object
-          properties:
-            sizeGb:
-              type: integer
-            path:
-              type: string
-        private:
-          type: boolean
-          description: Whether the template deploys behind owner-only access by default.
-        resources:
-          type: array
-          items:
-            type: object
-            properties:
-              kind:
-                type: string
-              engine:
-                type: string
-              label:
-                type: string
-        certification:
-          type: object
-          properties:
-            state:
-              type: string
-              enum: [certified]
-            reason:
-              type: string
-            evidence:
-              type: string
-      required: [id, name, description, category, requiredEnv, hardware, private, resources, certification]
-    DeployRequest:
-      type: object
-      description: >
-        The deploy manifest. Exactly one of `repo_url`, `image`, or `template_id` is
-        required. Resource fields (`port`, `cpu_units`, `memory_mb`, `storage_mb`) apply
-        to the Docker/OCI image path; for repo builds, hosting and size are decided
-        automatically. Template deploys use the gateway-owned certified profile.
-      properties:
-        app_name:
-          type: string
-          pattern: '^[a-z0-9-]{1,63}$'
-          description: Deployment / subdomain name. Controls the URL https://varity.app/{app_name}/.
-        source:
-          type: string
-          enum: [cli, portal, mcp, sandbox, staging]
-          description: Which client originated the deploy (used for telemetry).
-        repo_url:
-          type: string
-          description: GitHub https repo URL (alternative to `image` or `template_id`).
-        template_id:
-          type: string
-          description: Certified template ID from `GET /v1/templates` (alternative to `repo_url` or `image`).
-        commit:
-          type: string
-          maxLength: 64
-          default: HEAD
-          description: Commit/ref to build. SHA or simple ref.
-        framework:
-          type: string
-          description: Optional framework override; auto-detected if omitted.
-        hosting:
-          type: string
-          enum: [static, dynamic]
-          description: Optional hosting-mode override; auto-decided if omitted.
-        services:
-          type: array
-          items:
-            type: string
-            enum: [postgres, redis, ollama, mongodb, mysql, minio]
-          description: >
-            Backend services to attach. Normally inferred from your dependencies
-            (e.g. `pg` → Postgres, `redis` → Redis); set explicitly to override.
-        env_vars:
-          type: object
-          additionalProperties:
-            type: string
-          description: >
-            Build/runtime environment variables. Values may reference auto-attached service
-            env as ${KEY} (e.g. MONGO_URI=${MONGODB_URI}).
-        package_manager:
-          type: string
-          enum: [npm, yarn, pnpm]
-          description: Optional package manager for Node projects; auto-detected if omitted.
-        python_start_command:
-          type: string
-          maxLength: 512
-          description: Optional start command for Python apps; derived from the framework if omitted.
-        image:
-          type: string
-          maxLength: 512
-          description: >
-            OCI image ref for a direct Docker-image deploy (alternative to `repo_url` or `template_id`).
-            Bare Docker Hub refs are normalized (e.g. "nginx:alpine" →
-            "docker.io/library/nginx:alpine").
-        image_credentials:
-          $ref: '#/components/schemas/ImageCredentials'
-        port:
-          type: integer
-          minimum: 1
-          maximum: 65535
-          description: Container listen port for an image deploy (default 80).
-        cpu_units:
-          type: number
-          minimum: 0.25
-          maximum: 4
-          description: Reserved CPU units, image/prebuilt paths only (default 0.5).
-        memory_mb:
-          type: integer
-          minimum: 256
-          maximum: 8192
-          description: Reserved memory in MiB, image/prebuilt paths only (default 512).
-        storage_mb:
-          type: integer
-          minimum: 512
-          maximum: 20480
-          description: Reserved storage in MiB, image/prebuilt paths only (default 1024).
-      required: [app_name, source]
-    ImageCredentials:
-      type: object
-      description: Pull credentials for a PRIVATE registry image. Omit for a public image.
-      properties:
-        host:
-          type: string
-          maxLength: 255
-          description: Bare registry host, e.g. ghcr.io / docker.io.
-        username:
-          type: string
-          maxLength: 255
-        password:
-          type: string
-          description: Write-only; never returned or logged.
-      required: [host, username, password]
-    DeployAccepted:
-      type: object
-      properties:
-        run_id:
-          type: string
-          description: Opaque id for polling status and streaming logs.
-      required: [run_id]
-    DeployStatus:
-      type: object
-      properties:
-        run_id:
-          type: string
-        status:
-          type: string
-          enum: [queued, running, succeeded, failed]
-        stage:
-          type: string
-          nullable: true
-          enum: [detect, build, bid, lease, health, done, failed]
-          description: Where the run is right now (progress). Null until the first stage-bearing log line.
-        deployment_id:
-          type: string
-          nullable: true
-          description: Stable deployment id once the app is live.
-        frontend_url:
-          type: string
-          nullable: true
-          description: Live URL of the deployed app.
-        memory_mb:
-          type: integer
-          nullable: true
-        error_message:
-          type: string
-          nullable: true
-          description: Redacted, bounded reason the run failed; null on success.
-        failure_stage:
-          type: string
-          nullable: true
-          enum:
-            - repo_access
-            - framework_detection
-            - build_execution
-            - ipfs_upload
-            - sdl_submission
-            - bid_collection
-            - lease_acceptance
-            - container_health
-            - gateway_registration
-            - orchestration
-      required: [run_id, status]
-    Pricing:
-      type: object
-      description: >
-        Live pricing for a profile or app. Field set is additive and may grow; the stable
-        fields are `varityMonthly` (flat USD/month) and `varityIsFlat` (always true).
-      properties:
-        profile:
-          type: string
-          nullable: true
-        subdomain:
-          type: string
-          nullable: true
-        varityMonthly:
-          type: number
-          description: Flat monthly price in USD.
-        varityIsFlat:
-          type: boolean
-          description: Always true. The bill does not change with usage.
-        mode:
-          type: string
-          enum: [static, dynamic]
-        competitors:
-          type: array
-          description: Usage-metered comparison points.
-          items:
-            type: object
-            properties:
-              id: { type: string }
-              label: { type: string }
-              atLaunch: { type: number }
-              atTraction: { type: number }
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Varity Public Platform API",
+    "version": "2026-07-10",
+    "description": "Gateway-owned resource API for deploying and operating Varity apps."
+  },
+  "servers": [
+    {
+      "url": "https://varity.app/api"
+    }
+  ],
+  "security": [
+    {
+      "ApiKeyAuth": []
+    }
+  ],
+  "paths": {
+    "/deployments": {
+      "get": {
+        "operationId": "listDeployments",
+        "summary": "List deployments",
+        "responses": {
+          "200": {
+            "description": "Deployment list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeploymentList"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createDeployment",
+        "summary": "Create a deployment",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDeploymentRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Deployment accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AcceptedDeployment"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      }
+    },
+    "/deployments/runs/{run_id}": {
+      "get": {
+        "operationId": "getDeploymentRun",
+        "summary": "Get deployment run status",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/RunId"
+          },
+          {
+            "name": "app",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deployment run status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeploymentRunStatus"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      }
+    },
+    "/deployments/{deployment_id}": {
+      "get": {
+        "operationId": "getDeployment",
+        "summary": "Get a deployment",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeploymentId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deployment",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "deployment"
+                  ],
+                  "properties": {
+                    "deployment": {
+                      "$ref": "#/components/schemas/Deployment"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteDeployment",
+        "summary": "Delete a deployment",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeploymentId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deployment deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "status",
+                    "deleted"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "const": "deleted"
+                    },
+                    "deleted": {
+                      "const": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      }
+    },
+    "/deployments/{deployment_id}/redeploy": {
+      "post": {
+        "operationId": "redeployDeployment",
+        "summary": "Redeploy in place",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeploymentId"
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Redeploy accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AcceptedMutation"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      }
+    },
+    "/deployments/{deployment_id}/restart": {
+      "post": {
+        "operationId": "restartDeployment",
+        "summary": "Restart in place",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeploymentId"
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Restart accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AcceptedMutation"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      }
+    },
+    "/deployments/{deployment_id}/logs": {
+      "get": {
+        "operationId": "listDeploymentLogs",
+        "summary": "Read deployment logs",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeploymentId"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000,
+              "default": 200
+            }
+          },
+          {
+            "name": "since_seq",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deployment logs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LogList"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      }
+    },
+    "/deployments/{deployment_id}/events": {
+      "get": {
+        "operationId": "listDeploymentEvents",
+        "summary": "Read deployment events",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeploymentId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deployment events",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventList"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      }
+    },
+    "/deployments/{deployment_id}/env": {
+      "get": {
+        "operationId": "listDeploymentEnv",
+        "summary": "List environment variable keys",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeploymentId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Environment variable keys",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnvKeyList"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "patchDeploymentEnv",
+        "summary": "Update environment variables",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeploymentId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EnvUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Update accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AcceptedMutation"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      }
+    },
+    "/templates": {
+      "get": {
+        "operationId": "listTemplates",
+        "summary": "List templates",
+        "responses": {
+          "200": {
+            "description": "Template list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TemplateList"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      }
+    },
+    "/templates/{template_id}": {
+      "get": {
+        "operationId": "getTemplate",
+        "summary": "Get a template",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/TemplateId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Template",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "template"
+                  ],
+                  "properties": {
+                    "template": {
+                      "$ref": "#/components/schemas/Template"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      }
+    },
+    "/templates/{template_id}/deploy": {
+      "post": {
+        "operationId": "deployTemplate",
+        "summary": "Deploy a template",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/TemplateId"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TemplateDeployRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Deployment accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AcceptedDeployment"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      }
+    },
+    "/pricing/estimate": {
+      "get": {
+        "operationId": "estimatePricing",
+        "summary": "Estimate fixed monthly cost",
+        "parameters": [
+          {
+            "name": "profile",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "examples": [
+                "web-app",
+                "static-site",
+                "web-app-db"
+              ]
+            }
+          },
+          {
+            "name": "cpu",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "minimum": 0.25
+            }
+          },
+          {
+            "name": "memory_gb",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "minimum": 0.25
+            }
+          },
+          {
+            "name": "ephemeral_gb",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "persistent_gb",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "has_db",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pricing estimate",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PricingEstimate"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      }
+    },
+    "/credits": {
+      "get": {
+        "operationId": "getCredits",
+        "summary": "Get credit and payment state",
+        "responses": {
+          "200": {
+            "description": "Credit and payment state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreditState"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      }
+    },
+    "/webhooks": {
+      "get": {
+        "operationId": "listWebhooks",
+        "summary": "List webhooks",
+        "parameters": [
+          {
+            "name": "include_deliveries",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Webhook list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookList"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createWebhook",
+        "summary": "Create a webhook",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateWebhookRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Webhook created; signing_secret is shown once",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatedWebhook"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      }
+    },
+    "/webhooks/{webhook_id}": {
+      "delete": {
+        "operationId": "deleteWebhook",
+        "summary": "Delete a webhook",
+        "parameters": [
+          {
+            "name": "webhook_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Webhook deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "deleted"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "deleted": {
+                      "const": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      }
+    },
+    "/api-keys": {
+      "get": {
+        "security": [
+          {
+            "PortalSession": []
+          }
+        ],
+        "operationId": "listApiKeys",
+        "summary": "List API keys in the Developer Portal",
+        "description": "Requires an authenticated Developer Portal session. Plaintext API keys are never returned.",
+        "responses": {
+          "200": {
+            "description": "API key metadata",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiKeyList"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "PortalSession": []
+          }
+        ],
+        "operationId": "createApiKey",
+        "summary": "Create an API key in the Developer Portal",
+        "description": "Requires an authenticated Developer Portal session and active deploy eligibility. The plaintext key is shown once.",
+        "responses": {
+          "200": {
+            "description": "New API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IssuedApiKey"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      }
+    },
+    "/api-keys/{key_id}": {
+      "delete": {
+        "security": [
+          {
+            "PortalSession": []
+          }
+        ],
+        "operationId": "deleteApiKey",
+        "summary": "Revoke an API key in the Developer Portal",
+        "description": "Requires an authenticated Developer Portal session. Revocation is owner-scoped.",
+        "parameters": [
+          {
+            "name": "key_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "API key revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "revoked": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      }
+    },
+    "/openapi.json": {
+      "get": {
+        "security": [],
+        "operationId": "getOpenApiDocument",
+        "summary": "Get the public API contract",
+        "responses": {
+          "200": {
+            "description": "OpenAPI document"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "Varity API key"
+      },
+      "PortalSession": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "Developer Portal session credential"
+      }
+    },
+    "parameters": {
+      "DeploymentId": {
+        "name": "deployment_id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "RunId": {
+        "name": "run_id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "TemplateId": {
+        "name": "template_id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "IdempotencyKey": {
+        "name": "Idempotency-Key",
+        "in": "header",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "maxLength": 160
+        }
+      }
+    },
+    "responses": {
+      "PublicError": {
+        "description": "Public API error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/PublicError"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "PublicError": {
+        "type": "object",
+        "required": [
+          "code",
+          "message",
+          "action",
+          "retryable",
+          "docs_url"
+        ],
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "action": {
+            "type": "string"
+          },
+          "retryable": {
+            "type": "boolean"
+          },
+          "docs_url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "field": {
+            "type": "string"
+          },
+          "correlation_id": {
+            "type": "string"
+          }
+        }
+      },
+      "Deployment": {
+        "type": "object",
+        "required": [
+          "id",
+          "app_name",
+          "subdomain",
+          "status",
+          "runtime",
+          "public_url"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "app_name": {
+            "type": "string"
+          },
+          "subdomain": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "deploying",
+              "live",
+              "deleted",
+              "unknown"
+            ]
+          },
+          "runtime": {
+            "type": "string",
+            "enum": [
+              "static",
+              "dynamic"
+            ]
+          },
+          "public_url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "deleted_at": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "closure_reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "source": {
+            "$ref": "#/components/schemas/DeploymentSource"
+          },
+          "resource_profile": {
+            "$ref": "#/components/schemas/ResourceProfile"
+          },
+          "billing": {
+            "$ref": "#/components/schemas/DeploymentBilling"
+          }
+        }
+      },
+      "DeploymentSource": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "repository",
+              "image",
+              "template",
+              "unknown"
+            ]
+          },
+          "template_id": {
+            "type": "string"
+          }
+        }
+      },
+      "ResourceProfile": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "properties": {
+          "cpu_units": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "memory_mb": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "storage_mb": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "persistent_storage_gb": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "attached_resources": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "DeploymentBilling": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "properties": {
+          "fixed_monthly_cost_usd": {
+            "type": "number"
+          },
+          "fixed_monthly_usd": {
+            "type": "number"
+          },
+          "accrued_this_month_usd": {
+            "type": "number"
+          },
+          "currency": {
+            "type": "string"
+          }
+        }
+      },
+      "DeploymentList": {
+        "type": "object",
+        "required": [
+          "deployments"
+        ],
+        "properties": {
+          "deployments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Deployment"
+            }
+          }
+        }
+      },
+      "AcceptedDeployment": {
+        "type": "object",
+        "required": [
+          "id",
+          "app_name",
+          "status",
+          "runtime",
+          "public_url",
+          "run_id",
+          "status_url"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "app_name": {
+            "type": "string"
+          },
+          "subdomain": {
+            "type": "string"
+          },
+          "status": {
+            "const": "deploying"
+          },
+          "runtime": {
+            "type": "string",
+            "enum": [
+              "static",
+              "dynamic"
+            ]
+          },
+          "public_url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "run_id": {
+            "type": "string"
+          },
+          "status_url": {
+            "type": "string"
+          }
+        }
+      },
+      "AcceptedMutation": {
+        "type": "object",
+        "required": [
+          "id",
+          "status"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "app_name": {
+            "type": "string"
+          },
+          "subdomain": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "run_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "DeploymentRunStatus": {
+        "type": "object",
+        "properties": {
+          "runId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "running",
+              "succeeded",
+              "failed"
+            ]
+          },
+          "stage": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "frontendUrl": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "errorMessage": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "LogList": {
+        "type": "object",
+        "required": [
+          "lines",
+          "count"
+        ],
+        "properties": {
+          "lines": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "count": {
+            "type": "integer"
+          }
+        }
+      },
+      "EventList": {
+        "type": "object",
+        "required": [
+          "events"
+        ],
+        "properties": {
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "type",
+                "message",
+                "created_at"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "created_at": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "EnvKeyList": {
+        "type": "object",
+        "required": [
+          "keys",
+          "variables",
+          "count"
+        ],
+        "properties": {
+          "keys": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "variables": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "key",
+                "value",
+                "write_only"
+              ],
+              "properties": {
+                "key": {
+                  "type": "string"
+                },
+                "value": {
+                  "type": "null"
+                },
+                "write_only": {
+                  "const": true
+                }
+              }
+            }
+          },
+          "count": {
+            "type": "integer"
+          }
+        }
+      },
+      "EnvUpdateRequest": {
+        "type": "object",
+        "required": [
+          "env"
+        ],
+        "properties": {
+          "env": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "replace": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "CreateDeploymentRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "repository": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string",
+                "format": "uri"
+              },
+              "ref": {
+                "type": "string"
+              },
+              "dockerfile_path": {
+                "type": "string"
+              },
+              "docker_context_path": {
+                "type": "string"
+              }
+            }
+          },
+          "image": {
+            "type": "object",
+            "properties": {
+              "ref": {
+                "type": "string"
+              },
+              "port": {
+                "type": "integer"
+              },
+              "credentials": {
+                "type": "object",
+                "writeOnly": true
+              }
+            }
+          },
+          "template_id": {
+            "type": "string"
+          },
+          "env": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "writeOnly": true
+          },
+          "port": {
+            "type": "integer"
+          },
+          "command": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "args": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "health_path": {
+            "type": "string"
+          },
+          "resource_profile": {
+            "$ref": "#/components/schemas/ResourceProfile"
+          }
+        }
+      },
+      "TemplateDeployRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "subdomain": {
+            "type": "string"
+          },
+          "env": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "writeOnly": true
+          }
+        }
+      },
+      "Template": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "description",
+          "required_env",
+          "resource_profile",
+          "certification"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "framework": {
+            "type": "string"
+          },
+          "language": {
+            "type": "string"
+          },
+          "logo": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "category": {
+            "type": "string"
+          },
+          "required_env": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "resource_profile": {
+            "type": "object"
+          },
+          "resources": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "private": {
+            "type": "boolean"
+          },
+          "certification": {
+            "type": "object",
+            "properties": {
+              "state": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "TemplateList": {
+        "type": "object",
+        "required": [
+          "templates",
+          "count"
+        ],
+        "properties": {
+          "templates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Template"
+            }
+          },
+          "count": {
+            "type": "integer"
+          }
+        }
+      },
+      "PricingEstimate": {
+        "type": "object",
+        "required": [
+          "profile",
+          "currency",
+          "fixed_monthly_cost_usd",
+          "billing_model"
+        ],
+        "properties": {
+          "profile": {
+            "type": "string"
+          },
+          "verified": {
+            "type": "boolean"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "fixed_monthly_cost_usd": {
+            "type": "number"
+          },
+          "billing_model": {
+            "const": "fixed_monthly_resource_reservation"
+          },
+          "mode": {
+            "type": "string"
+          }
+        }
+      },
+      "CreditState": {
+        "type": "object",
+        "properties": {
+          "has_payment_method": {
+            "type": "boolean"
+          },
+          "deploy_allowed": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "starter_credit": {
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "billing_summary": {
+            "type": [
+              "object",
+              "null"
+            ]
+          }
+        }
+      },
+      "ApiKeyList": {
+        "type": "object",
+        "required": [
+          "api_keys"
+        ],
+        "properties": {
+          "api_keys": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ApiKey"
+            }
+          }
+        }
+      },
+      "ApiKey": {
+        "type": "object",
+        "required": [
+          "id",
+          "tier",
+          "active"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "tier": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "last_used_at": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "revoked_at": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "active": {
+            "type": "boolean"
+          }
+        }
+      },
+      "IssuedApiKey": {
+        "type": "object",
+        "required": [
+          "api_key",
+          "tier"
+        ],
+        "properties": {
+          "api_key": {
+            "type": "string",
+            "writeOnly": true
+          },
+          "tier": {
+            "type": "string"
+          }
+        }
+      },
+      "WebhookEventType": {
+        "type": "string",
+        "enum": [
+          "deployment.accepted",
+          "deployment.progress",
+          "deployment.live",
+          "deployment.failed",
+          "deployment.unhealthy",
+          "deployment.env_updated",
+          "deployment.redeploy_requested",
+          "deployment.redeploy_completed",
+          "deployment.restart_requested",
+          "deployment.deleted",
+          "credit.updated"
+        ]
+      },
+      "Webhook": {
+        "type": "object",
+        "required": [
+          "id",
+          "url",
+          "events",
+          "active",
+          "created_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WebhookEventType"
+            }
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "WebhookDelivery": {
+        "type": "object",
+        "required": [
+          "id",
+          "webhook_id",
+          "event_id",
+          "event_type",
+          "status",
+          "attempts"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "webhook_id": {
+            "type": "string"
+          },
+          "event_id": {
+            "type": "string"
+          },
+          "event_type": {
+            "$ref": "#/components/schemas/WebhookEventType"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "delivered",
+              "retrying",
+              "failed"
+            ]
+          },
+          "attempts": {
+            "type": "integer"
+          },
+          "status_code": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "last_error": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "next_retry_at": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        }
+      },
+      "WebhookList": {
+        "type": "object",
+        "required": [
+          "webhooks",
+          "count"
+        ],
+        "properties": {
+          "webhooks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Webhook"
+            }
+          },
+          "count": {
+            "type": "integer"
+          },
+          "deliveries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WebhookDelivery"
+            }
+          }
+        }
+      },
+      "CreateWebhookRequest": {
+        "type": "object",
+        "required": [
+          "url"
+        ],
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Absolute HTTPS endpoint URL. Private and local hosts are rejected."
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WebhookEventType"
+            }
+          }
+        }
+      },
+      "CreatedWebhook": {
+        "type": "object",
+        "required": [
+          "webhook",
+          "signing_secret"
+        ],
+        "properties": {
+          "webhook": {
+            "$ref": "#/components/schemas/Webhook"
+          },
+          "signing_secret": {
+            "type": "string",
+            "writeOnly": true,
+            "description": "Shown once. Store it to verify X-Varity-Signature."
+          }
+        }
+      }
+    }
+  }
+}

@@ -39,7 +39,6 @@ const tabsId = `tabs-${Math.random().toString(36).slice(2, 11)}`
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.varity-tabs').forEach(tabsContainer => {
-      const tabsId = tabsContainer.getAttribute('data-tabs-id')
       const defaultTab = tabsContainer.getAttribute('data-default-tab')
       const queryGroup = tabsContainer.getAttribute('data-query-group')
 
@@ -50,6 +49,7 @@ const tabsId = `tabs-${Math.random().toString(36).slice(2, 11)}`
 
       // Initialize active tab
       const activeTab = defaultTab || tabButtons[0].getAttribute('data-tab-id')
+      if (!activeTab) return
 
       function activateTab(tabId: string) {
         tabButtons.forEach(button => {
@@ -81,7 +81,8 @@ const tabsId = `tabs-${Math.random().toString(36).slice(2, 11)}`
       })
 
       // Keyboard navigation
-      tabsContainer.addEventListener('keydown', (e) => {
+      tabsContainer.addEventListener('keydown', (event) => {
+        const e = event as KeyboardEvent
         const target = e.target as HTMLElement
         if (target.getAttribute('role') !== 'tab') return
 

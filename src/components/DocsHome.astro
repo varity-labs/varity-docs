@@ -34,7 +34,7 @@ const entryPaths = [
     action: 'Deploy an image',
     command: 'varitykit app deploy --image <ref>',
   },
-];
+] as const;
 
 const platformGroups = [
   {
@@ -97,7 +97,7 @@ const platformGroups = [
       ['Glossary', '/resources/glossary/'],
     ],
   },
-];
+] as const;
 
 const commonTasks = [
   ['Deploy a Next.js app', '/guides/deploy-nextjs/'],
