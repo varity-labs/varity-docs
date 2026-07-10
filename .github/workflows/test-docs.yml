@@ -2,9 +2,9 @@ name: Docs Quality Check
 
 on:
   push:
-    branches: [main]
+    branches: [master]
   pull_request:
-    branches: [main]
+    branches: [master]
   schedule:
     - cron: '0 8 * * *'
   workflow_dispatch:
