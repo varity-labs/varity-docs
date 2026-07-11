@@ -34,12 +34,17 @@ jobs:
         with:
           path: varity-workspace/varity-docs
 
-      - name: Require cross-repo checkout token
+      - name: Require cross-repo checkout tokens
         env:
-          VARITY_PRIVATE_REPO_TOKEN: ${{ secrets.VARITY_PRIVATE_REPO_TOKEN }}
+          VARITY_OPS_REPO_TOKEN: ${{ secrets.VARITY_OPS_REPO_TOKEN }}
+          VARITY_SDK_PRIVATE_REPO_TOKEN: ${{ secrets.VARITY_SDK_PRIVATE_REPO_TOKEN }}
         run: |
-          if [ -z "$VARITY_PRIVATE_REPO_TOKEN" ]; then
-            echo "::error::Set VARITY_PRIVATE_REPO_TOKEN with read access to varity-ops, varity-mcp, and varity-sdk-private before enabling the full docs propagation gate."
+          if [ -z "$VARITY_OPS_REPO_TOKEN" ]; then
+            echo "::error::Set VARITY_OPS_REPO_TOKEN with read access to varity-labs/varity-ops and varity-labs/varity-mcp before enabling the full docs propagation gate."
+            exit 1
+          fi
+          if [ -z "$VARITY_SDK_PRIVATE_REPO_TOKEN" ]; then
+            echo "::error::Set VARITY_SDK_PRIVATE_REPO_TOKEN with read access to Michael-Abril/varity-sdk-private before enabling the full docs propagation gate."
             exit 1
           fi
 
@@ -49,14 +54,14 @@ jobs:
           repository: varity-labs/varity-ops
           ref: ${{ github.event.inputs.ops_ref || 'master' }}
           path: varity-workspace/varity-ops
-          token: ${{ secrets.VARITY_PRIVATE_REPO_TOKEN }}
+          token: ${{ secrets.VARITY_OPS_REPO_TOKEN }}
 
       - name: Checkout MCP source
         uses: actions/checkout@v4
         with:
           repository: varity-labs/varity-mcp
           path: varity-workspace/varity-mcp-standalone
-          token: ${{ secrets.VARITY_PRIVATE_REPO_TOKEN }}
+          token: ${{ secrets.VARITY_OPS_REPO_TOKEN }}
 
       - name: Checkout private SDK source
         uses: actions/checkout@v4
@@ -64,7 +69,7 @@ jobs:
           repository: Michael-Abril/varity-sdk-private
           ref: ${{ github.event.inputs.sdk_ref || 'main' }}
           path: varity-workspace/varity-sdk-private
-          token: ${{ secrets.VARITY_PRIVATE_REPO_TOKEN }}
+          token: ${{ secrets.VARITY_SDK_PRIVATE_REPO_TOKEN }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
