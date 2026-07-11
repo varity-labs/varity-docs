@@ -58,8 +58,12 @@ const id = `code-${Math.random().toString(36).slice(2, 11)}`
     document.querySelectorAll('.copy-button').forEach(button => {
       button.addEventListener('click', async () => {
         const codeId = button.getAttribute('data-code-id')
+        if (!codeId) return
+
         const codeBlock = document.getElementById(codeId)
         if (!codeBlock) return
+        const copyText = button.querySelector<HTMLElement>('.copy-text')
+        if (!copyText) return
 
         const code = codeBlock.textContent || ''
 
@@ -68,11 +72,11 @@ const id = `code-${Math.random().toString(36).slice(2, 11)}`
 
           // Visual feedback
           button.classList.add('copied')
-          button.querySelector('.copy-text').textContent = 'Copied!'
+          copyText.textContent = 'Copied!'
 
           setTimeout(() => {
             button.classList.remove('copied')
-            button.querySelector('.copy-text').textContent = 'Copy'
+            copyText.textContent = 'Copy'
           }, 2000)
         } catch (err) {
           console.error('Failed to copy:', err)
