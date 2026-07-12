@@ -1,25 +1,6 @@
-# Docs Quality Check — repo-local, UNPRIVILEGED build gate.
-#
-# SECURITY (PROPAGATION gate §3, §4 finding 6, §13): this public repository's PR
-# CI must NOT check out private source or hold a cross-repo credential. The prior
-# version of this workflow cloned varity-labs/varity-ops, varity-labs/varity-mcp,
-# and the PRIVATE Michael-Abril/varity-sdk-private into the same runner that then
-# ran PR-controlled `npm ci` / `npm run build`, and executed the ops
-# docs-accuracy propagation gate against them. GitHub's guidance treats
-# PR install/build scripts as untrusted code, so that design let a malicious docs
-# PR read the private SDK source or exfiltrate VARITY_OPS_REPO_TOKEN /
-# VARITY_SDK_PRIVATE_REPO_TOKEN.
-#
-# The universal cross-surface docs propagation evaluation (docs accuracy, OpenAPI
-# parity, command/tool references, restricted vocabulary) now runs OUTSIDE
-# PR-controlled code: the private GitHub App publishes `Propagation / decision`,
-# and the private sweep runner covers scheduled drift. This workflow is only the
-# repo-local proof that the docs site builds.
-#
-# The VARITY_OPS_REPO_TOKEN and VARITY_SDK_PRIVATE_REPO_TOKEN secrets are no
-# longer referenced by any workflow here and are staged for founder removal/
-# rotation once the App check is live (gate §11 action 6). Do not re-introduce a
-# private checkout or a cross-repo secret into this public repository's CI.
+# Repository-local, unprivileged docs build CI.
+# It uses only contents: read, holds no repository secrets, and checks out no
+# other repository.
 name: Docs Quality Check
 
 on:
