@@ -62,6 +62,8 @@ Other commands:
 npm run build      # production build to ./dist
 npm run preview    # preview the production build
 npm run lint       # astro check
+npm test           # architecture, contract, and positioning checks
+npm run check      # complete merge check
 ```
 
 Documentation content lives in `src/content/docs/`:
@@ -81,6 +83,9 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a PR. Two rules matter mo
 
 - Every documented command, flag, and code example must be accurate and tested against the current product.
 - Document only shipped capabilities. Never describe a feature that is not yet available.
+
+Repository structure, machine-readable artifact provenance, and verification
+ownership are documented in [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## Community
 

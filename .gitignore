@@ -59,7 +59,6 @@ coverage/
 # Local dev / agent scratch — not for the public docs repo
 .playwright-mcp/
 drafts/
-CLAUDE.md
 
 # Internal dev artifacts / reports / screenshots — never in the public docs repo
 /Screenshot*.png
