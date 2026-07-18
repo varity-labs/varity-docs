@@ -29,5 +29,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Verify architecture, public contracts, and positioning
+        run: npm test
+
+      - name: Check Astro project
+        run: npm run lint
+
       - name: Build docs
         run: npm run build
+
+      - name: Verify built contract copies
+        run: npm run test:built-contracts

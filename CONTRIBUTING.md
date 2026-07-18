@@ -49,10 +49,10 @@ Edit files in `src/content/docs/`. The site will hot-reload as you make changes.
 
 - Verify the page renders correctly in your browser
 - Check that all code examples work (copy-paste and test them)
-- Run the build to catch any errors:
+- Run the complete repository check:
 
 ```bash
-npm run build
+npm run check
 ```
 
 ### 6. Submit a Pull Request
