@@ -156,18 +156,20 @@ curl -X PATCH https://varity.app/api/deployments/$DEPLOYMENT_ID/env \
   -d '{ "env": { "FEATURE_FLAG": "on" } }'
 ```
 
-Redeploy, restart, or delete:
+Redeploy or delete:
 
 ```bash
 curl -X POST https://varity.app/api/deployments/$DEPLOYMENT_ID/redeploy \
   -H "Authorization: Bearer $VARITY_API_KEY"
 
-curl -X POST https://varity.app/api/deployments/$DEPLOYMENT_ID/restart \
-  -H "Authorization: Bearer $VARITY_API_KEY"
-
 curl -X DELETE https://varity.app/api/deployments/$DEPLOYMENT_ID \
   -H "Authorization: Bearer $VARITY_API_KEY"
 ```
+
+A verified restart operation is not currently available. `POST
+/api/deployments/{deployment_id}/restart` fails closed with HTTP `501` and
+`code: restart_unavailable`; Varity does not present a potentially no-op
+configuration redeploy as a restart.
 
 ## Templates, Pricing, And Credits
 
@@ -206,6 +208,8 @@ The response includes `signing_secret` once. Store it to verify webhook deliveri
 
 The signature is `v1=` plus an HMAC-SHA256 over `timestamp.body` using the webhook signing secret. Webhook endpoint URLs must be public HTTPS URLs; local and private hosts are rejected.
 
+`deployment.restart_requested` remains an accepted subscription value only for backward compatibility. Varity does not emit that event while verified restart is unavailable.
+
 Webhook handlers should be idempotent. Delivery-time DNS/IP revalidation, durable delivery queue hardening, and additional signing-secret custody hardening remain non-blocking v1 follow-ups.
 
 List webhooks and delivery status:
@@ -235,7 +239,7 @@ The OpenAPI document contains these 18 public paths:
 | `GET` | `/api/deployments/{deployment_id}/events` | Read deployment events |
 | `GET`, `PATCH` | `/api/deployments/{deployment_id}/env` | List environment variable keys or update values |
 | `POST` | `/api/deployments/{deployment_id}/redeploy` | Redeploy in place |
-| `POST` | `/api/deployments/{deployment_id}/restart` | Restart in place |
+| `POST` | `/api/deployments/{deployment_id}/restart` | Returns `501 restart_unavailable` until verified restart ships |
 | `GET` | `/api/templates` | List templates |
 | `GET` | `/api/templates/{template_id}` | Read a template |
 | `POST` | `/api/templates/{template_id}/deploy` | Deploy a template |
@@ -530,15 +534,15 @@ Set or update environment variables (config + secrets) on an app that is **alrea
 
 ### `varity_redeploy`: Redeploy an app in place
 
-Redeploy or restart an app that is **already deployed**, in place. This re-pulls the image (or rebuilds from source) and restarts the container on the **same** deployment with the same URL and same reserved hardware. Takes no body and keeps the current environment variables; use `varity_set_env` to change config at the same time.
+Reapply the saved configuration for an app that is **already deployed**. The app keeps the same URL and reserved hardware. An unchanged configuration may be a no-op, so this tool is not a verified restart for a stuck app. Use `varity_set_env` to change environment variables at the same time.
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
 | `name` | string | Yes | none | The app name or subdomain. The `<name>` in `https://varity.app/<name>/` |
 
-**Annotations:** `destructiveHint: true` (restarts live infrastructure)
+**Annotations:** `destructiveHint: true` (re-applies live deployment configuration)
 
-**Example prompt:** "Redeploy my-api" or "My app is stuck. Restart worker-bot"
+**Example prompt:** "Reapply the saved deployment configuration for my-api"
 
 ---
 

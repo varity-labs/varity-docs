@@ -284,15 +284,15 @@ Set or update environment variables (config + secrets) on an app that is **alrea
 
 ### `varity_redeploy`: Redeploy an app in place
 
-Redeploy or restart an app that is **already deployed**, in place. This re-pulls the image (or rebuilds from source) and restarts the container on the **same** deployment with the same URL and same reserved hardware. Takes no body and keeps the current environment variables; use `varity_set_env` to change config at the same time.
+Reapply the saved configuration for an app that is **already deployed**. The app keeps the same URL and reserved hardware. An unchanged configuration may be a no-op, so this tool is not a verified restart for a stuck app. Use `varity_set_env` to change environment variables at the same time.
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
 | `name` | string | Yes | none | The app name or subdomain. The `<name>` in `https://varity.app/<name>/` |
 
-**Annotations:** `destructiveHint: true` (restarts live infrastructure)
+**Annotations:** `destructiveHint: true` (re-applies live deployment configuration)
 
-**Example prompt:** "Redeploy my-api" or "My app is stuck. Restart worker-bot"
+**Example prompt:** "Reapply the saved deployment configuration for my-api"
 
 ---
 

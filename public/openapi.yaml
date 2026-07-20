@@ -208,22 +208,15 @@
     "/deployments/{deployment_id}/restart": {
       "post": {
         "operationId": "restartDeployment",
-        "summary": "Restart in place",
+        "summary": "Restart a deployment (not currently available)",
         "parameters": [
           {
             "$ref": "#/components/parameters/DeploymentId"
           }
         ],
         "responses": {
-          "202": {
-            "description": "Restart accepted",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AcceptedMutation"
-                }
-              }
-            }
+          "501": {
+            "$ref": "#/components/responses/PublicError"
           },
           "default": {
             "$ref": "#/components/responses/PublicError"
@@ -1552,6 +1545,7 @@
       },
       "WebhookEventType": {
         "type": "string",
+        "description": "deployment.restart_requested is accepted only for backward-compatible subscription storage; it is not emitted while verified restart is unavailable.",
         "enum": [
           "deployment.accepted",
           "deployment.progress",
