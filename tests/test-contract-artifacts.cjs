@@ -68,6 +68,18 @@ if (openapi) {
       errors.push(`OpenAPI reference does not resolve: ${object.$ref}`);
     }
   });
+
+  const resources = openapi.components?.schemas?.ResourceProfile?.properties;
+  const expectedResourceBounds = {
+    cpu_units: [0.25, 4],
+    memory_mb: [256, 8192],
+    storage_mb: [512, 20480],
+  };
+  for (const [field, [minimum, maximum]] of Object.entries(expectedResourceBounds)) {
+    if (resources?.[field]?.minimum !== minimum || resources?.[field]?.maximum !== maximum) {
+      errors.push(`OpenAPI ResourceProfile ${field} must declare ${minimum}..${maximum}`);
+    }
+  }
 }
 
 const mcp = parseJson('public/mcp-schema.json');

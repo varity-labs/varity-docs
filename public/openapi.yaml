@@ -963,19 +963,25 @@
             "type": [
               "number",
               "null"
-            ]
+            ],
+            "minimum": 0.25,
+            "maximum": 4
           },
           "memory_mb": {
             "type": [
               "integer",
               "null"
-            ]
+            ],
+            "minimum": 256,
+            "maximum": 8192
           },
           "storage_mb": {
             "type": [
               "integer",
               "null"
-            ]
+            ],
+            "minimum": 512,
+            "maximum": 20480
           },
           "persistent_storage_gb": {
             "type": [
