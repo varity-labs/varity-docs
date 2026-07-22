@@ -124,6 +124,11 @@ curl https://varity.app/api/deployments/$DEPLOYMENT_ID/events \
   -H "Authorization: Bearer $VARITY_API_KEY"
 ```
 
+Both responses include a `complete` flag and an `observed_at` timestamp. When
+`complete` is `false`, the returned window may be partial (for example when the
+live runtime source was momentarily unavailable) and a `warning_code` is set.
+The read is safe to retry for a complete window.
+
 List environment variable keys. Values are write-only and are not returned:
 
 ```bash

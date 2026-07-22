@@ -1147,7 +1147,8 @@
         "type": "object",
         "required": [
           "lines",
-          "count"
+          "count",
+          "complete"
         ],
         "properties": {
           "lines": {
@@ -1158,15 +1159,48 @@
           },
           "count": {
             "type": "integer"
+          },
+          "complete": {
+            "type": "boolean",
+            "description": "False when the returned window may be partial, for example when the live runtime source was momentarily unavailable. When false, warning_code is set and the request is safe to retry for a complete window."
+          },
+          "observed_at": {
+            "type": ["string", "null"],
+            "description": "ISO 8601 timestamp of the live runtime read behind this window, or null when no live read was captured."
+          },
+          "warning_code": {
+            "type": "string",
+            "description": "Present only when `complete` is false (e.g. `logs_incomplete`)."
+          },
+          "retryable": {
+            "type": "boolean",
+            "description": "Present only when `complete` is false; the read is safe to retry."
           }
         }
       },
       "EventList": {
         "type": "object",
         "required": [
-          "events"
+          "events",
+          "complete"
         ],
         "properties": {
+          "complete": {
+            "type": "boolean",
+            "description": "False when the returned events may be partial, for example when the live runtime source was momentarily unavailable. When false, warning_code is set and the request is safe to retry."
+          },
+          "observed_at": {
+            "type": ["string", "null"],
+            "description": "ISO 8601 timestamp of the live runtime read behind these events, or null when no live read was captured."
+          },
+          "warning_code": {
+            "type": "string",
+            "description": "Present only when `complete` is false (e.g. `events_incomplete`)."
+          },
+          "retryable": {
+            "type": "boolean",
+            "description": "Present only when `complete` is false; the read is safe to retry."
+          },
           "events": {
             "type": "array",
             "items": {
