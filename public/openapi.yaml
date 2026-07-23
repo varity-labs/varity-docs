@@ -303,6 +303,42 @@
         }
       }
     },
+    "/deployments/{deployment_id}/health-history": {
+      "get": {
+        "operationId": "readDeploymentHealthHistory",
+        "summary": "Read durable runtime and route health history",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeploymentId"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 500,
+              "default": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Durable health history",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthHistory"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      }
+    },
     "/deployments/{deployment_id}/env": {
       "get": {
         "operationId": "listDeploymentEnv",
@@ -1223,6 +1259,148 @@
                 },
                 "created_at": {
                   "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "HealthHistory": {
+        "type": "object",
+        "required": [
+          "summary",
+          "observations"
+        ],
+        "properties": {
+          "summary": {
+            "type": "object",
+            "required": [
+              "runtime_state",
+              "runtime_reason",
+              "route_state",
+              "route_reason",
+              "consecutive_runtime_failures",
+              "consecutive_route_failures",
+              "freshness_at",
+              "services"
+            ],
+            "properties": {
+              "runtime_state": {
+                "type": ["string", "null"],
+                "enum": ["healthy", "unhealthy", "unknown", null]
+              },
+              "runtime_reason": {
+                "type": ["string", "null"]
+              },
+              "route_state": {
+                "type": ["string", "null"],
+                "enum": ["healthy", "unhealthy", "unknown", null]
+              },
+              "route_reason": {
+                "type": ["string", "null"]
+              },
+              "consecutive_runtime_failures": {
+                "type": "integer"
+              },
+              "consecutive_route_failures": {
+                "type": "integer"
+              },
+              "freshness_at": {
+                "type": ["string", "null"],
+                "format": "date-time"
+              },
+              "services": {
+                "type": "array",
+                "description": "Latest observation's bounded per-service facts; empty when no per-service status was observable.",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "name",
+                    "state",
+                    "replicas",
+                    "updated_replicas",
+                    "ready_replicas",
+                    "available_replicas",
+                    "public_endpoint_count",
+                    "forwarded_port_count",
+                    "dedicated_ip_count",
+                    "restart_count",
+                    "restart_count_supported"
+                  ],
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "state": {
+                      "type": "string",
+                      "enum": ["healthy", "degraded"]
+                    },
+                    "replicas": {
+                      "type": "integer"
+                    },
+                    "updated_replicas": {
+                      "type": "integer"
+                    },
+                    "ready_replicas": {
+                      "type": "integer"
+                    },
+                    "available_replicas": {
+                      "type": "integer"
+                    },
+                    "public_endpoint_count": {
+                      "type": "integer"
+                    },
+                    "forwarded_port_count": {
+                      "type": "integer"
+                    },
+                    "dedicated_ip_count": {
+                      "type": "integer"
+                    },
+                    "restart_count": {
+                      "type": "null",
+                      "description": "Restart counting is not supported by the current runtime substrate."
+                    },
+                    "restart_count_supported": {
+                      "const": false
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "observations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "runtime_state",
+                "runtime_reason",
+                "route_state",
+                "route_reason",
+                "route_status",
+                "observed_at"
+              ],
+              "properties": {
+                "runtime_state": {
+                  "type": "string",
+                  "enum": ["healthy", "unhealthy", "unknown"]
+                },
+                "runtime_reason": {
+                  "type": "string"
+                },
+                "route_state": {
+                  "type": "string",
+                  "enum": ["healthy", "unhealthy", "unknown"]
+                },
+                "route_reason": {
+                  "type": "string"
+                },
+                "route_status": {
+                  "type": ["integer", "null"]
+                },
+                "observed_at": {
+                  "type": ["string", "null"],
+                  "format": "date-time"
                 }
               }
             }
