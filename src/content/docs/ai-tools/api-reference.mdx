@@ -136,9 +136,9 @@ curl "https://varity.app/api/deployments/$DEPLOYMENT_ID/health-history?limit=100
   -H "Authorization: Bearer $VARITY_API_KEY"
 ```
 
-The response contains a `summary` — the latest runtime and route health state
-with reasons, consecutive failure counts, a `freshness_at` timestamp, and
-bounded per-service facts (replica, endpoint, and port counts) — plus an
+The response contains a `summary` with the latest runtime and route health
+state and reasons, consecutive failure counts, a `freshness_at` timestamp, and
+bounded per-service facts (replica, endpoint, and port counts), plus an
 `observations` array of recent health checks, bounded by `limit` (default 100,
 maximum 500). Per-service entries report
 `restart_count_supported: false` and a `null` `restart_count`; restart counting
