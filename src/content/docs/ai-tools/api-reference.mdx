@@ -13,20 +13,20 @@ import PageMeta from '../../../components/PageMeta.astro';
   stability="beta"
 />
 
-Varity's public API is a resource API for apps, deployments, templates, pricing, credits, API keys, and webhooks. Use it for direct integrations, custom agents, launchpads, internal tools, and backend services that need to deploy or operate Varity apps without the dashboard.
+Varity's public platform API is a resource API for apps, deployments, templates, pricing, credits, API keys, webhooks, and AI Gateway Cloud attachments. The separate managed-inference API provides the model catalog, chat completions, privacy policy, usage, requests, and performance.
 
-The machine-readable source is:
+The live machine-readable sources are:
 
-- `https://docs.varity.so/openapi.yaml`
-- `https://varity.app/api/openapi.json`
+- `https://varity.app/api/openapi.json` — platform and Cloud attachment API
+- `https://varity.app/v1/openapi.json` — AI Gateway inference API
 
 <Aside type="note">
-Older thin-client compatibility routes are not the public resource contract. New direct integrations should use the `/api/*` routes below.
+Older thin-client compatibility routes are not the public resource contract. Use `/api/*` for platform resources and `/v1/*` for managed inference.
 </Aside>
 
 ## Base URL And Auth
 
-All public API calls use:
+Platform resource calls use:
 
 ```text
 https://varity.app/api
@@ -39,6 +39,8 @@ Authorization: Bearer $VARITY_API_KEY
 ```
 
 Create API keys in the Developer Portal settings page. API key plaintext is shown once. Listing and revoking keys require an authenticated Developer Portal session; plaintext keys are never returned after creation.
+
+Inference keys are separate from Cloud deploy keys. Create them in **Developer Portal → AI Gateway → API Keys**, then use `https://varity.app/v1`. See the [AI Gateway guide](/ai-tools/ai-gateway/) for text and streaming examples, privacy, prices, billing, and model identifiers.
 
 ## Deploy
 
@@ -208,7 +210,7 @@ curl -X DELETE https://varity.app/api/webhooks/$WEBHOOK_ID \
 
 ## Endpoint Summary
 
-The OpenAPI document contains these 18 public paths:
+The platform OpenAPI document contains the resource paths below. The inference paths are documented separately in [`/v1/openapi.json`](https://varity.app/v1/openapi.json).
 
 | Methods | Path | Purpose |
 |---------|------|---------|
@@ -229,6 +231,11 @@ The OpenAPI document contains these 18 public paths:
 | `DELETE` | `/api/webhooks/{webhook_id}` | Delete a webhook |
 | `GET`, `POST` | `/api/api-keys` | List or create API keys in the Developer Portal |
 | `DELETE` | `/api/api-keys/{key_id}` | Revoke an API key in the Developer Portal |
+| `GET`, `POST` | `/api/api-keys/inference` | List or create inference-only AI Gateway keys in the Developer Portal |
+| `GET` | `/api/api-keys/audit` | Read owner-scoped, secret-free key lifecycle events |
+| `GET`, `POST` | `/api/ai-gateway/attachments` | List or attach the AI Gateway to an eligible deployment |
+| `GET`, `DELETE` | `/api/ai-gateway/attachments/{attachment_id}` | Read or detach an AI Gateway attachment |
+| `POST` | `/api/ai-gateway/attachments/{attachment_id}/rotate` | Rotate a deployment-bound AI Gateway credential |
 | `GET` | `/api/openapi.json` | Read the live OpenAPI contract |
 
 <Aside type="caution">
@@ -242,5 +249,6 @@ API-key management endpoints are Developer Portal session routes in v1. API keys
 ## Next Steps
 
 - **[MCP Server Spec](/ai-tools/mcp-server-spec/)**: the tool reference for AI editors
+- **[AI Gateway](/ai-tools/ai-gateway/)**: managed inference, models, privacy, billing, and Cloud attachments
 - **[Deploy a Docker Image](/deploy/deploy-docker-image/)**: image-deploy details
 - **[Environment Variables](/deploy/env-variables/)**: runtime configuration
