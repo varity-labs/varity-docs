@@ -1549,7 +1549,7 @@ varitykit app deploy
 ```
 
 - **Best for**: Marketing sites, documentation, SPAs
-- **Cost**: One flat monthly cost per app. Your bill on day 1 equals your bill on day 1000. See the [pricing calculator](https://developer.store.varity.so/dashboard/pricing).
+- **Cost**: Free for verified accounts, up to 3 active static sites and 1 GB of pinned assets. See [Pricing and Costs](/resources/pricing/).
 - **Speed**: Global CDN distribution
 
 ### Dynamic Apps
@@ -4314,10 +4314,10 @@ Usage metered hosting charges more as more people use your app. Varity charges a
 
 | Question | Usage metered hosting | Varity |
 |----------|-----------------------|--------|
-| What drives the bill? | Requests, bandwidth, invocations, storage, add ons, and build activity | Reserved hardware profile |
-| What happens during traffic spikes? | The bill can grow with usage | The app keeps the same monthly profile |
-| How do services affect cost? | Services are often separate products or meters | Supported services are attached as part of the deployment profile |
-| What should the builder think about? | Usage limits, surprise overages, and add on pricing | The workload profile and whether it fits the app |
+| What drives the bill? | Usage meters such as requests, bandwidth, invocations, storage, and build activity | The reserved resource profile, up to a monthly maximum prorated by running time |
+| What happens during traffic spikes? | Billing follows the usage meters | An unchanged profile keeps the same monthly maximum |
+| How do services affect cost? | Services are often separate products or meters | Attached services select their own preset and bill as separate reserved deployments |
+| What should the builder think about? | Usage limits and add-on pricing | The workload profile and whether it fits the app |
 
 Use [Pricing and Costs](/resources/pricing/) for the current pricing workflow and cost calculator.
 
@@ -4682,7 +4682,7 @@ Deploy a production Next.js app with a database and a live URL. No server config
     Varity detects your framework, wires your database, and deploys from your editor or terminal.
 
 
-    One flat monthly cost per app. Your bill on day 1 equals your bill on day 1000. No DevOps overhead.
+    Up to a fixed monthly maximum per app, prorated by running time. An unchanged profile keeps the same price as traffic grows. No DevOps overhead.
 
 
 ## Two ways to deploy
@@ -4964,17 +4964,17 @@ Description: Predictable cloud hosting for Node, Python, Go, static apps, AI age
 ## Billing and Pricing on Varity
 
 URL: https://docs.varity.so/resources/billing/
-Description: How Varity billing works, with a card on file before your first deploy and a flat monthly price per app that doesn't change with traffic.
+Description: How Varity billing works: a payment method for paid products, free static hosting with a verified account, and a monthly maximum per app that doesn't grow with traffic.
 
-Varity billing is built to be predictable: a flat monthly price per app for the hardware it reserves, and a bill that doesn't move with your traffic. This page covers the practical side: adding a card, what you're charged for, and where to see your costs.
+Varity billing is built to be predictable: each paid app bills up to a fixed monthly maximum for the resources it reserves, prorated by running time, and the bill doesn't grow with your traffic. Static sites are free for verified accounts. This page covers the practical side: adding a card, what you're charged for, and where to see your costs.
 
 ## A Card on File
 
-Varity asks for a payment method **before your first deploy**, so your app can go live and keep running. You add it once in the dashboard; you're only charged for apps you actually deploy.
+Varity asks for a payment method **before your first paid deploy**, so your app can go live and keep running. You add it once in the dashboard; you're only charged for apps you actually deploy. Free static sites don't need a card — a verified account is enough.
 
 ## What You're Charged For
 
-You pay a **flat monthly price per app**, based on the hardware that app reserves. That's it.
+Each paid app bills **up to a fixed monthly maximum**, based on the resources that app reserves, prorated by the time it runs. That's it.
 
 Your bill does **not** change with:
 
@@ -4982,13 +4982,13 @@ Your bill does **not** change with:
 - Requests or invocations
 - Build minutes
 
-This is the core difference from usage-metered hosting, where the bill grows as your app gets more traffic. With Varity, your bill on day 1 is your bill on day 1000. For the full model, see [How Pricing Works](/resources/pricing/).
+This is the core difference from usage-metered hosting, where billing follows usage meters. With Varity, an unchanged profile keeps the same monthly maximum no matter how much traffic it serves. For the full model, see [How Pricing Works](/resources/pricing/).
 
-Static sites and dynamic apps are priced differently because they reserve different resources. Use the cost calculator in the dashboard (or the `varity_cost_calculator` tool in your AI editor) for a current estimate before you deploy.
+Static sites are free for verified accounts (up to 3 active sites and 1 GB of pinned assets). Dynamic apps select a Managed Cloud preset. Use the cost calculator in the dashboard (or the `varity_cost_calculator` tool in your AI editor) for a current estimate before you deploy.
 
 ## Seeing Your Costs
 
-Your dashboard shows the monthly cost for each app and your overall bill. Because the price is fixed per app, the number you see is the number you pay. There is no end-of-month surprise from a traffic spike.
+Your dashboard shows the monthly maximum for each app and your overall bill. Because pricing is tied to the reserved profile, there is no end-of-month surprise from a traffic spike.
 
 ## Deleting an App
 
@@ -5018,7 +5018,7 @@ Varity is a predictable cloud platform focused on deployment. The two core packa
 
 | Feature | Usage-metered hosting | Varity |
 |---------|-----------------------|--------|
-| Pricing | Usage-metered, grows with traffic | One flat monthly cost per app |
+| Pricing | Billed by usage meters (requests, bandwidth, invocations) | Up to a fixed monthly maximum per app, prorated by running time |
 | Backend services | Separate add-ons, separate bills | Auto-wired in the same deploy |
 | Auth | Configure separately | Configured automatically |
 | Setup | Build config and env wiring | Zero config, one command |
@@ -5086,13 +5086,13 @@ No. Your existing auth works as-is. Set any secrets your provider needs as envir
 
 ### How much does Varity cost?
 
-Varity pricing is profile-based and fixed per selected deployment profile. Usage-metered hosting bills primarily by request volume, bandwidth, invocations, and execution time.
+Static sites are free for verified accounts (up to 3 active sites, 1 GB of pinned assets). Dynamic apps select a fixed Managed Cloud preset that bills up to a monthly maximum, prorated by running time.
 
 For current numbers, use [Pricing and Costs](/resources/pricing) or run `varity_cost_calculator`.
 
-### Why does my bill stay flat on Varity?
+### Why doesn't my bill grow with traffic?
 
-Varity charges one flat monthly cost per app, based on the hardware you reserve. Your bill does not change with traffic, bandwidth, or invocations. Usage-metered platforms scale billing with each of those, so your bill grows as your app succeeds.
+Varity prices each app by the resources it reserves, up to a fixed monthly maximum prorated by running time. For an unchanged profile, traffic, bandwidth, and invocations don't change the price. Changing the profile — more resources, services, replicas, or accelerators — can.
 
 ### Is there a contract or commitment?
 
@@ -5264,36 +5264,58 @@ Not sure which hosting type your app needs? Just run `varitykit app deploy`. Var
 ## Pricing and Costs on Varity
 
 URL: https://docs.varity.so/resources/pricing/
-Description: Pricing model overview for Varity. Compare Varity's fixed reserved-hardware pricing with usage-metered cloud billing.
+Description: The Varity price reference: free static hosting, Managed Cloud presets, the VM billing model, live GPU quotes, and AI Gateway fees.
 
-Varity pricing is based on reserved hardware capacity, not usage metering. Your monthly bill does not change with request volume, bandwidth spikes, or invocation count.
+Varity pricing is based on the resources a deployment reserves, not usage metering. For an unchanged deployment profile, your bill does not grow with request volume, bandwidth, or invocation count; changing the profile (resources, services, replicas, accelerators, or app count) can change the price.
 
-## Structural Pricing Difference
+## Static Sites: Free
 
-- **Varity:** fixed monthly hardware cost per deployment profile
-- **Usage-metered hosting:** billing scales with requests, bandwidth, invocations, and execution
+Static sites are **free** for verified accounts, with a limit of **3 active static sites** and **1 GB of total pinned assets** per account. No payment method is required for free static hosting — only a verified account. Larger or dynamic apps use Managed Cloud.
 
-Varity's bill stays flat as traffic rises; usage-metered bills move with every spike.
+## Managed Cloud Presets
 
-## How to Get an Estimate
+Dynamic apps select one of four fixed presets. Each price is a **monthly maximum**: billing is prorated by running time (per minute, against a 730-hour month), so a deployment that runs part of the month bills less than its maximum.
 
-Use the live pricing endpoint backing the portal and MCP calculator:
+| Preset | vCPU | RAM | Ephemeral storage | Price |
+|--------|-----:|----:|------------------:|-------|
+| Starter | 0.5 | 1 GB | 2 GB | Up to $7/mo, prorated |
+| Growth | 1 | 2 GB | 5 GB | Up to $14/mo, prorated |
+| Scale | 2 | 4 GB | 25 GB | Up to $28/mo, prorated |
+| Pro | 4 | 8 GB | 50 GB | Up to $56/mo, prorated |
 
-```bash
-curl "https://varity.app/api/pricing?profile=web-app&has_db=true"
-```
+- Attached services (Postgres, Redis, MongoDB, MySQL, object storage) select their own preset and bill as separate reserved deployments.
+- Persistent storage is an add-on at **$0.16/GB-month**, prorated on the same period. It bills while allocated, until the volume is deleted.
+- Each replica reserves its own resources: 2 replicas of a preset bill up to 2x that preset's maximum.
 
-You can also use:
+## CPU VMs
 
-- Developer Portal: [developer.store.varity.so](https://developer.store.varity.so)
-- MCP tool: `varity_cost_calculator`
+CPU VMs bill **hourly against a hard monthly cap**: the hourly rate is derived from the VM's monthly maximum divided by 730 hours, and the month's compute charge never exceeds that cap. Every VM includes a **20 GB NVMe boot disk** and **one public IPv4**, with no separate ingress or egress charge. Additional NVMe storage is **$0.09/GB-month**, prorated hourly. Billing continues while the VM's resources remain reserved; stopping the guest OS does not by itself release them — delete the VM to stop billing. VM sizes and regions are published in the Developer Portal as they pass Varity's end-to-end release verification.
 
-For launch-critical pricing claims, always validate examples against the live `/api/pricing` response first.
+## GPU
+
+GPU pricing is a **live quote**: the exact hourly rate is computed server-side from currently available capacity and shown before you commit. Any continuous-use monthly figure is an estimate for planning, never a cap. GPU workloads are paid-only and are excluded from the launch credit.
+
+## AI Gateway
+
+The AI Gateway bills the provider's actual cost for your requests **plus a 5% Varity fee**, drawn from a prepaid balance. The minimum refill is **$20** (a $21 charge before tax, including the fee). AI Gateway balances are separate from other Varity products and cannot be spent on Cloud, VM, GPU, or static hosting.
+
+## Launch Credit
+
+New accounts with a valid payment method receive a **$5 Managed Cloud credit, valid for 14 days**. It applies to Managed Cloud CPU deployments only — not VMs, GPU, the AI Gateway, or static sites (which are already free).
+
+## How to Get an Exact Number
+
+Every price is computed by Varity's server-side pricing authority, so all surfaces show identical numbers:
+
+- Developer Portal: [developer.store.varity.so](https://developer.store.varity.so) shows the exact price before you confirm a deployment.
+- MCP tool: `varity_cost_calculator` in your AI editor.
+
+The price you confirm at deploy time is authoritative for that deployment. Cost comparisons with other platforms live on [varity.so](https://www.varity.so), not in these docs.
 
 ## Related Guides
 
+- [Billing and Pricing](/resources/billing)
 - [Deploy Your App](/deploy/deploy-your-app)
-- [Managed Credentials](/deploy/managed-credentials)
 - [FAQ](/resources/faq)
 
 ---
@@ -5761,7 +5783,7 @@ Here is what you accomplished, without writing any code yourself:
 4. **Verified deployment status**: URL, framework, and runtime are visible in status output
 
 **Total time:** 10-15 minutes
-**Total cost:** One flat monthly bill, predictable on day 1 and day 1000
+**Total cost:** Up to a fixed monthly maximum for the app's reserved profile; an unchanged profile keeps the same price as traffic grows
 **Code written:** 0 lines
 
 ## Next Steps

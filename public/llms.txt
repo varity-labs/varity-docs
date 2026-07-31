@@ -69,10 +69,10 @@ claude mcp add varity -- npx -y @varity-labs/mcp
 - [Deploy from Claude Code, Cursor, or Windsurf](https://docs.varity.so/guides/deploy-from-ai-ide/): Deploy supported apps and runnable Docker services from your AI editor with the Varity MCP server.
 - [Deploy a Next.js App on Varity](https://docs.varity.so/guides/deploy-nextjs/): Predictable cloud hosting for a Next.js app with a database, automatic service wiring, and a flat monthly bill that does not grow with traffic.
 - [Varity Documentation Home](https://docs.varity.so/): Predictable cloud hosting for Node, Python, Go, static apps, AI agents, and runnable Docker services.
-- [Billing and Pricing on Varity](https://docs.varity.so/resources/billing/): How Varity billing works, with a card on file before your first deploy and a flat monthly price per app that doesn't change with traffic.
+- [Billing and Pricing on Varity](https://docs.varity.so/resources/billing/): How Varity billing works: a payment method for paid products, free static hosting with a verified account, and a monthly maximum per app that doesn't grow with traffic.
 - [Varity Deployment FAQ Guide](https://docs.varity.so/resources/faq/): Frequently asked questions about Varity: deployment workflow, supported frameworks, and pricing model.
 - [Varity Docs Glossary Guide](https://docs.varity.so/resources/glossary/): Definitions of key Varity terms: deploy keys, managed credentials, deployment IDs, static hosting, dynamic hosting, and MCP tools.
-- [Pricing and Costs on Varity](https://docs.varity.so/resources/pricing/): Pricing model overview for Varity. Compare Varity's fixed reserved-hardware pricing with usage-metered cloud billing.
+- [Pricing and Costs on Varity](https://docs.varity.so/resources/pricing/): The Varity price reference: free static hosting, Managed Cloud presets, the VM billing model, live GPU quotes, and AI Gateway fees.
 - [Security and shared responsibility](https://docs.varity.so/resources/security/): How Varity secures your deployments, what you are responsible for, and how to report a security vulnerability.
 - [Troubleshooting Varity Deploys](https://docs.varity.so/resources/troubleshooting/): Fix common Varity issues: CLI not found, build errors, authentication failures, deployment problems, and database connection troubleshooting.
 - [Build an App Using Only AI (No Code Required)](https://docs.varity.so/tutorials/build-with-ai/): Build and deploy an app with your AI editor. Varity MCP handles setup checks, the deploy workflow, and cost estimation.
