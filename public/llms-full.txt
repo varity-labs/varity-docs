@@ -378,7 +378,7 @@ Search Varity docs for guides, API references, and tutorials.
 
 ### `varity_cost_calculator`: Estimate costs
 
-Compare Varity's flat hosting cost against usage-metered hosting as your traffic grows.
+Estimate the monthly price for your deployment profile.
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
@@ -3484,7 +3484,7 @@ varitykit migrate rollback ./my-app
 
 ## After migration
 
-- Your app runs on Varity infrastructure with database and hosting included
+- Your app runs on Varity infrastructure; an attached database runs as its own reserved Managed Cloud deployment with its own preset price
 - Environment variables are managed automatically. No manual configuration needed
 - Review any warnings from the migration output and fix manually if needed
 - Set a custom subdomain or check the cost of your new deployment
@@ -5755,22 +5755,21 @@ That's it. No complex infrastructure setup.
      Created: 2 minutes ago
    ```
 
-9. **Compare costs**
+9. **Estimate costs**
 
     Prompt:
 
-    > "How much would this cost to host for 500 users on Varity versus usage-metered hosting?"
+    > "How much will this deployment profile cost per month on Varity?"
 
-    **What happens:** The AI runs `varity_cost_calculator` to show cost breakdown.
+    **What happens:** The AI runs `varity_cost_calculator` to estimate the monthly price for your deployment profile.
 
     **Expected output:**
     ```
-    Hosting costs for 500 users:
+    Estimated monthly price:
 
     Varity:
       - Profile-based monthly cost (fixed by selected deployment profile)
-    Usage-metered hosting:
-      - Usage-based cost that grows with traffic and invocations
+      - An unchanged profile keeps the same price as traffic grows
     ```
 
 ## What Just Happened?
@@ -5821,7 +5820,7 @@ When you prompt your AI editor, here's what happens:
 | "Build for production" | `varity_build` compiles the app, optimizes the bundle |
 | "Deploy" | `varity_deploy` deploys the app and injects credentials |
 | "Show status" | `varity_deploy_status` fetches deployment info |
-| "Compare costs" | `varity_cost_calculator` compares Varity's flat cost against usage-metered hosting as traffic grows |
+| "Estimate costs" | `varity_cost_calculator` estimates the monthly price for your deployment profile |
 
 Every tool runs locally or via Varity's infrastructure. No manual configuration needed.
 
