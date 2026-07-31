@@ -189,22 +189,21 @@ That's it. No complex infrastructure setup.
      Created: 2 minutes ago
    ```
 
-9. **Compare costs**
+9. **Estimate costs**
 
     Prompt:
 
-    > "How much would this cost to host for 500 users on Varity versus usage-metered hosting?"
+    > "How much will this deployment profile cost per month on Varity?"
 
-    **What happens:** The AI runs `varity_cost_calculator` to show cost breakdown.
+    **What happens:** The AI runs `varity_cost_calculator` to estimate the monthly price for your deployment profile.
 
     **Expected output:**
     ```
-    Hosting costs for 500 users:
+    Estimated monthly price:
 
     Varity:
       - Profile-based monthly cost (fixed by selected deployment profile)
-    Usage-metered hosting:
-      - Usage-based cost that grows with traffic and invocations
+      - An unchanged profile keeps the same price as traffic grows
     ```
 
 </Steps>
@@ -257,7 +256,7 @@ When you prompt your AI editor, here's what happens:
 | "Build for production" | `varity_build` compiles the app, optimizes the bundle |
 | "Deploy" | `varity_deploy` deploys the app and injects credentials |
 | "Show status" | `varity_deploy_status` fetches deployment info |
-| "Compare costs" | `varity_cost_calculator` compares Varity's flat cost against usage-metered hosting as traffic grows |
+| "Estimate costs" | `varity_cost_calculator` estimates the monthly price for your deployment profile |
 
 Every tool runs locally or via Varity's infrastructure. No manual configuration needed.
 
