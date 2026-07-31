@@ -307,16 +307,16 @@ Result: You can build production apps in minutes instead of weeks.
 
 ## Cost Breakdown
 
-Varity charges one flat monthly cost per app, based on the hardware you reserve. Usage-metered hosting bills on usage, so the same app costs more as traffic grows and you add separate database and auth add-ons.
+Varity prices each app by the resources it reserves, up to a fixed monthly maximum prorated by running time. Usage-metered hosting bills on usage dimensions such as bandwidth and invocations, with databases and auth often sold as separate add-ons.
 
-For a small production app with a database, a typical comparison looks like:
+For a small production app with a database, the structural difference:
 
-| Provider | At launch | At traction |
-|----------|-----------|-------------|
-| **Varity** | One flat monthly cost (fixed) | Same flat cost, your bill does not change with traffic |
-| Usage-metered hosting | Higher base, plus add-ons | Grows with bandwidth, invocations, and usage |
+| Provider | Billing basis | As traffic grows |
+|----------|---------------|------------------|
+| **Varity** | Reserved resource profile, up to a monthly maximum (prorated) | An unchanged profile keeps the same monthly maximum |
+| Usage-metered hosting | Usage meters plus add-ons | Billing follows the usage meters |
 
-Overall, Varity keeps your bill flat as your app scales while usage-metered platforms ramp with traffic, and Varity handles all configuration. No DevOps engineer needed.
+Varity also handles all configuration. No DevOps engineer needed.
 
 For exact numbers, ask your AI editor to run `varity_cost_calculator`, or see [Pricing and Costs](/resources/pricing).
 
