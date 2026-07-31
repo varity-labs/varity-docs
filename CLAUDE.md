@@ -18,7 +18,9 @@ Authority rules:
 - The workspace manifest and live code own shipped capability and public
   interface reality. Documentation projects that truth; it does not create it.
 - The root positioning and pricing authorities own public language and claim
-  structure. Never hardcode live pricing numbers.
+  structure. Pricing numbers must come verbatim from the ratified
+  `PRICING-CARD-CANONICAL.md`; never invent, remember, or derive a price from
+  any other source.
 - `src/content/docs/` owns human-facing pages.
 - `public/openapi.yaml`, `public/mcp-schema.json`, `public/llms.txt`, and
   `public/llms-full.txt` are checked-in public contract projections. Update and

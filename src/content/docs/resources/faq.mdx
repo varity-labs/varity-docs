@@ -24,7 +24,7 @@ Varity is a predictable cloud platform focused on deployment. The two core packa
 
 | Feature | Usage-metered hosting | Varity |
 |---------|-----------------------|--------|
-| Pricing | Usage-metered, grows with traffic | One flat monthly cost per app |
+| Pricing | Billed by usage meters (requests, bandwidth, invocations) | Up to a fixed monthly maximum per app, prorated by running time |
 | Backend services | Separate add-ons, separate bills | Auto-wired in the same deploy |
 | Auth | Configure separately | Configured automatically |
 | Setup | Build config and env wiring | Zero config, one command |
@@ -92,13 +92,13 @@ No. Your existing auth works as-is. Set any secrets your provider needs as envir
 
 ### How much does Varity cost?
 
-Varity pricing is profile-based and fixed per selected deployment profile. Usage-metered hosting bills primarily by request volume, bandwidth, invocations, and execution time.
+Static sites are free for verified accounts (up to 3 active sites, 1 GB of pinned assets). Dynamic apps select a fixed Managed Cloud preset that bills up to a monthly maximum, prorated by running time.
 
 For current numbers, use [Pricing and Costs](/resources/pricing) or run `varity_cost_calculator`.
 
-### Why does my bill stay flat on Varity?
+### Why doesn't my bill grow with traffic?
 
-Varity charges one flat monthly cost per app, based on the hardware you reserve. Your bill does not change with traffic, bandwidth, or invocations. Usage-metered platforms scale billing with each of those, so your bill grows as your app succeeds.
+Varity prices each app by the resources it reserves, up to a fixed monthly maximum prorated by running time. For an unchanged profile, traffic, bandwidth, and invocations don't change the price. Changing the profile (more resources, services, replicas, or accelerators) can.
 
 ### Is there a contract or commitment?
 

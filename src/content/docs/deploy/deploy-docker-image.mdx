@@ -88,7 +88,7 @@ Private images are supported in all three deploy paths:
 1. Varity pulls your image and starts it on dynamic compute hosting
 2. The deployment gets a name derived from the image (override with `--name`)
 3. Image deploys run as dynamic apps, so your app is reachable at `https://<name>.varity.app/` (`https://varity.app/<name>` redirects there)
-4. Billing starts as one flat monthly cost for the reserved hardware. It does not change with traffic
+4. Billing starts at deploy: up to a fixed monthly maximum for the reserved hardware, prorated by running time. It does not grow with traffic for an unchanged profile
 
 <Aside type="tip">
 Make sure your container listens on `0.0.0.0`, not `localhost`. If the app serves on a non-default port, pass `--port`.
