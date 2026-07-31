@@ -61,7 +61,7 @@
     {
       "name": "varity_cost_calculator",
       "title": "Cost Calculator",
-      "description": "Compare a deployment's flat monthly Varity cost against usage-metered hosting (bandwidth + invocations). Varity charges a FLAT hardware-only price that doesn't spike with traffic; usage-metered hosting bills grow as the app scales. Varity's price is fixed and doesn't move as the app grows. Use whenever a developer asks about pricing, cost, hosting bills, traffic costs, or platform comparison. Pass `subdomain` for a specific live deployment's REAL cost, or `app_profile` for a pre-deploy estimate.",
+      "description": "Estimate the fixed monthly price for a deployment profile. Pricing is computed by the Varity pricing service, so this tool, the CLI, and the portal render identical numbers. Use whenever a developer asks what a Varity deployment costs. Pass `subdomain` for a specific live deployment's REAL cost, or `app_profile` for a pre-deploy estimate.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -83,7 +83,7 @@
           },
           "has_database": {
             "type": "boolean",
-            "description": "Whether the app uses a database (affects competitor base cost)"
+            "description": "Whether the app uses a database (selects the database-inclusive estimate)"
           }
         },
         "additionalProperties": false,
