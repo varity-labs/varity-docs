@@ -1,0 +1,197 @@
+---
+title: Varity AI Gateway
+description: Use Varity's OpenAI-compatible managed text-inference API, model catalog, privacy controls, billing, and Cloud attachments.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+import PageMeta from '../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="July 2026"
+  stability="beta"
+/>
+
+Varity AI Gateway provides one provider-neutral API for managed text inference. The public model catalog is visible without signing in. Chat, keys, account policy, usage, logs, billing, and Cloud attachments are authenticated and owner-scoped.
+
+The machine-readable inference contract is [`https://varity.app/v1/openapi.json`](https://varity.app/v1/openapi.json).
+
+<Aside type="caution">
+  Gateway Core is text inference. Compare, Build, deployment management through Chat, hosted tool execution, repository access, files, image or audio operations, embeddings, batch requests, and remote MCP are not part of this API.
+</Aside>
+
+## Quick start
+
+Create an inference-only key in **Developer Portal → AI Gateway → API Keys**. Review its privacy permission before creation. The plaintext secret is shown once, so store it in a server-side secret manager rather than browser code or a repository.
+
+List the current catalog without authentication:
+
+```bash
+curl https://varity.app/v1/models
+```
+
+Create a non-streaming completion:
+
+```bash
+curl https://varity.app/v1/chat/completions \
+  -H "Authorization: Bearer $VARITY_AI_GATEWAY_KEY" \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: example-nonstream-001" \
+  -d '{
+    "model": "qwen-3-6-35b-a3b",
+    "messages": [
+      { "role": "user", "content": "Explain this API in one sentence." }
+    ],
+    "max_completion_tokens": 256,
+    "stream": false
+  }'
+```
+
+Create a streaming completion:
+
+```bash
+curl -N https://varity.app/v1/chat/completions \
+  -H "Authorization: Bearer $VARITY_AI_GATEWAY_KEY" \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: example-stream-001" \
+  -d '{
+    "model": "qwen-3-6-35b-a3b",
+    "messages": [
+      { "role": "user", "content": "Write a short TypeScript example." }
+    ],
+    "max_completion_tokens": 512,
+    "stream": true
+  }'
+```
+
+Every prepaid request requires `max_completion_tokens`. Varity uses that output bound and the known input to reserve a conservative maximum charge before provider dispatch.
+
+## Capability contract
+
+| Capability | Gateway Core |
+|---|---|
+| Text chat completions | Supported |
+| Streaming text | Supported |
+| Tool-call generation and transport | Supported on eligible models |
+| Tool execution or orchestration | Not supported; client-managed |
+| Portable reasoning controls or reasoning traces | Not supported |
+| Structured output or JSON Schema | Not supported |
+| Vision, document, or file input | Not supported |
+| Image generation or editing | Not supported |
+| Embeddings | Not supported |
+| Audio | Not supported |
+| Batch requests | Not supported |
+
+Reasoning-specialized and vision-capable models can still be used for ordinary text chat when their text route is verified. Upstream capability metadata does not expand the Varity API contract.
+
+> Tool-call generation and transport supported on eligible models. Tool execution and orchestration are client-managed.
+
+Treat model-supplied tool names and arguments as untrusted input. Your application owns tool authorization, validation, execution, side-effect confirmation, and the tool-result message returned to the model.
+
+## Models, prices, and identifiers
+
+`GET /v1/models` returns every currently admitted text model from enabled processing providers. Each entry includes its Varity id, display name, text/tool/streaming capabilities, context and output limits, privacy routes, availability observation, and managed customer rates.
+
+Input, cached-input, and output prices are separate current rates per million tokens. The displayed managed rate is the preferred qualified route's current provider rate plus exactly 5%. `observed_at` states when the rate was observed and `version` identifies the immutable price snapshot. Catalog rates can change for later requests; an admitted request snapshots its own route and price evidence before provider effect.
+
+These seven curated identities are stable:
+
+- `glm-5-2`
+- `deepseek-v4-flash`
+- `glm-5-1`
+- `deepseek-v4-pro`
+- `llama-3-3-70b`
+- `qwen-3-5-35b-a3b`
+- `qwen-3-6-35b-a3b`
+
+Other `model-*` ids are provider-neutral and callable, but they do not yet have a published alias, replacement, or deprecation guarantee. Read the catalog instead of hardcoding those opaque ids into a long-lived integration.
+
+## Privacy and fallback
+
+New accounts and keys default to **Private only**.
+
+- **Private** means the current provider contract for that route supports Varity's required retention and training posture. It is not a confidential-compute or attestation claim.
+- **Anonymized** means Varity withholds direct Varity identity and raw Gateway-key data from the processing provider. The provider still processes the prompt and response under its disclosed handling terms.
+
+Using an anonymized route requires explicit account consent, an anonymized-enabled key, and intentional selection of an anonymized-only model. Existing private-only keys never broaden automatically. Cloud-attached workload keys remain private-only.
+
+Fallback never silently weakens privacy. Varity considers only routes verified for the same model, operation, requested capabilities, privacy class, availability, and pricing contract. A request with uncertain provider effect is not replayed automatically; it is marked unreconciled.
+
+### Processing-provider disclosures
+
+This technical disclosure names the processing services used by Gateway Core. It is not a confidential-compute claim.
+
+| Service | Current boundary |
+|---|---|
+| Venice AI | Enabled. Varity honors each admitted route's current `Private` or `Anonymized` classification. Provider-advertised TEE or E2EE flags are not treated as proof that Varity used confidential compute. See [Venice privacy](https://docs.venice.ai/overview/privacy). |
+| AkashML | Enabled and conservatively classified as `Anonymized`. Its policy states that normal prompts are not retained beyond the request, failed-request inputs may remain in transient error logs for up to 30 days, server/security logs may remain for up to 90 days, and prompts/outputs are not used for training. See [AkashML privacy](https://akashml.com/privacy). |
+| io.net Intelligence | Implemented but disabled. It does not process Gateway Core production requests while disabled. |
+
+Varity does not store prompts, responses, tool arguments, uploaded content, or Playground conversations server-side. Playground conversations are stored in the current browser on the current device.
+
+Varity retains owner-linked, content-free inference metadata for 30 days: request identity and attribution, model, privacy class, state, token counts, timing, fallback/error state, customer price and charge, reconciliation state, and timestamps. Financial ledger and security/audit records are separate record classes and are not deleted on the inference-metadata schedule.
+
+## Managed billing
+
+- Managed inference charges the completed route's actual provider cost plus exactly 5%.
+- A valid saved payment method and sufficient isolated AI Gateway balance are required before dispatch.
+- The minimum managed-balance refill is `$20`.
+- There is no automatic signup credit or recurring free Gateway allowance.
+- Approved refunds, incident remediation, or explicit grants can use the isolated promotional ledger. Gateway promotional value never becomes Varity Cloud credit.
+- AI Gateway inference billing and Varity Cloud deployment billing remain separate.
+
+Bring your own provider key (BYOK) is not currently available. Do not send provider credentials to the managed-inference API. Commercial GA requires a separate verified BYOK implementation with no Varity inference fee and no fallback to managed credentials.
+
+## Attach the Gateway to a Varity deployment
+
+The Developer Portal uses one Cloud attachment lifecycle for existing deployments. From **AI Gateway → API Keys → Cloud attachments**:
+
+1. Select an eligible deployment.
+2. Select one private model.
+3. Confirm **Attach Gateway**.
+4. Wait for the attachment to become `active` before using it from the workload.
+
+The deployment detail page's **Add AI Gateway** action opens this same flow with the deployment selected. Varity creates a deployment-bound workload identity, keeps the credential in protected custody, and injects only its protected reference. The secret is not returned in deployment state.
+
+API callers use the existing platform attachment endpoints with a Cloud API key and a unique `Idempotency-Key`:
+
+```bash
+curl -X POST https://varity.app/api/ai-gateway/attachments \
+  -H "Authorization: Bearer $VARITY_CLOUD_API_KEY" \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: attach-gateway-001" \
+  -d '{
+    "deployment_id": "YOUR_DEPLOYMENT_ID",
+    "allowed_models": ["qwen-3-6-35b-a3b"],
+    "privacy_floor": "private"
+  }'
+```
+
+The response contains secret-free attachment state. Reuse the same attachment record to inspect, rotate, or detach:
+
+```text
+GET    /api/ai-gateway/attachments/{attachment_id}
+POST   /api/ai-gateway/attachments/{attachment_id}/rotate
+DELETE /api/ai-gateway/attachments/{attachment_id}
+```
+
+Rotation and detachment are asynchronous and idempotent. Keep the returned attachment id and poll until the operation reaches a terminal state.
+
+## Observability
+
+Authenticated keys can read content-free request metadata, usage, and performance:
+
+```text
+GET /v1/inference/requests
+GET /v1/inference/usage
+GET /v1/inference/performance?window=24h
+```
+
+An `unreconciled` request means provider effect or final usage could not yet be confirmed. Varity retains the reservation, does not replay automatically, and resolves the request only from authoritative evidence.
+
+## Related contracts
+
+- [`/v1/openapi.json`](https://varity.app/v1/openapi.json): managed-inference OpenAPI
+- [`/api/openapi.json`](https://varity.app/api/openapi.json): platform keys and Cloud attachments
+- [Varity Public API Reference](/ai-tools/api-reference/): deployment and platform API
