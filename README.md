@@ -7,9 +7,16 @@
 
 This repository is the source for the official Varity documentation at **[docs.varity.so](https://docs.varity.so)**, built with [Astro](https://astro.build) and [Starlight](https://starlight.astro.build).
 
+Maintainers should start with [ARCHITECTURE.md](ARCHITECTURE.md). In Workspace
+V2, cross-repository product truth belongs to
+`varity-engineering:CURRENT-STATE.md`, `POSITIONING.md`, `PRICING.md`, and
+`ARCHITECTURE.md`; public API and MCP contracts originate in `varity-platform`
+and `varity-mcp`, respectively. This repository projects those owners and does
+not replace them.
+
 ## What is Varity?
 
-Varity deploys supported source repos and runnable Docker/OCI HTTP services from the CLI, the Developer Portal, or your AI coding tool. It builds your project, provisions the backend services it detects, and returns a live URL. Pricing is one fixed monthly cost per app based on reserved hardware, so the bill does not change with traffic.
+Varity deploys supported source repos and runnable Docker/OCI HTTP services from the CLI, the Developer Portal, or your AI coding tool. It builds your project, provisions the supported services it detects, and returns a live URL. One monthly price applies to the selected resources; traffic alone does not create an additional Varity usage charge for an unchanged resource profile.
 
 Varity ships as two packages:
 
@@ -52,7 +59,7 @@ Auto-wired backend services (provisioned when Varity detects them in your depend
 This is an Astro + Starlight site. Run it locally with:
 
 ```bash
-npm install
+npm ci
 npm run dev        # http://localhost:4321
 ```
 

@@ -1,26 +1,30 @@
 # CLAUDE.md - Varity Documentation
 
-Status: repository entrypoint
-Last updated: 2026-07-18
-
 This repository publishes the public documentation at `docs.varity.so`. It is
 a static Astro/Starlight surface, not a control-plane runtime.
 
 ## Read first
 
-When this checkout is inside the Varity workspace, read the workspace root
-`CLAUDE.md`, `varity.manifest.yaml`, `POSITIONING.md`, and
-`PRICING-MODEL-CANONICAL.md` before changing product claims. Then read
-`ARCHITECTURE.md` here for content and artifact provenance.
+Read `ARCHITECTURE.md` here first for content and artifact provenance. When
+this repository is checked out through Workspace V2, use these sibling owners
+before changing product claims:
+
+- `varity-engineering:CLAUDE.md` for workspace behavior;
+- `varity-engineering:CURRENT-STATE.md` for dated shipped-state evidence;
+- `varity-engineering:POSITIONING.md` for product language;
+- `varity-engineering:PRICING.md` for executable pricing ownership;
+- `varity-engineering:ARCHITECTURE.md` for cross-repository change routing.
 
 Authority rules:
 
-- The workspace manifest and live code own shipped capability and public
-  interface reality. Documentation projects that truth; it does not create it.
-- The root positioning and pricing authorities own public language and claim
-  structure. Pricing numbers must come verbatim from the ratified
-  `PRICING-CARD-CANONICAL.md`; never invent, remember, or derive a price from
-  any other source.
+- Current runtime code, live evidence, and `varity-engineering:CURRENT-STATE.md`
+  own shipped capability and public-interface reality. Documentation projects
+  that truth; it does not create it.
+- `varity-engineering:POSITIONING.md` and `varity-engineering:PRICING.md` own
+  public language and pricing-source routing. Never invent or remember prices.
+- The public platform contract originates in
+  `varity-platform:services/varity-gateway/src/services/public-api-openapi.ts`.
+  The MCP interface originates in `varity-mcp:src/server.ts` and `src/tools/`.
 - `src/content/docs/` owns human-facing pages.
 - `public/openapi.yaml`, `public/mcp-schema.json`, `public/llms.txt`, and
   `public/llms-full.txt` are checked-in public contract projections. Update and

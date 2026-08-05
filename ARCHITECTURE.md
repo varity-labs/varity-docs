@@ -1,12 +1,9 @@
 # Varity Documentation Architecture
 
-Status: current repository architecture
-Last code-grounded audit: 2026-07-18
-
 This document is the repository-level architecture layer for
-`varity-docs`. The workspace-level system map owns cross-repository runtime
-relationships. This file owns how public documentation and machine-readable
-artifacts are authored, verified, and published.
+`varity-docs`. `varity-engineering:ARCHITECTURE.md` owns cross-repository
+runtime relationships. This file owns how public documentation and
+machine-readable artifacts are authored, verified, and published.
 
 ## Context and responsibility
 
@@ -30,9 +27,9 @@ implementation.
 
 ```mermaid
 flowchart LR
-  A[Root product and positioning authorities]
-  B[Gateway public interface source]
-  C[MCP implementation source]
+  A[varity-engineering claim authorities]
+  B[varity-platform gateway contract]
+  C[varity-mcp interface]
   H[Human maintainers]
   D[Checked-in docs and contract projections]
   V[Repository-local verification]
@@ -101,9 +98,9 @@ checks should be ported or deleted.
 
 | Published surface | Checked-in owner | Narrower authority to reconcile | Required verification |
 |---|---|---|---|
-| Human pages | `src/content/docs/` | Workspace manifest, positioning, pricing, security, and current public behavior | `npm run check` plus browser review when visual/navigation behavior changes |
-| OpenAPI | `public/openapi.yaml` | Gateway-owned public platform interface and its current implementation tests | JSON/OpenAPI structure, internal references, unique operation IDs, API-reference link, build copy |
-| MCP catalog | `public/mcp-schema.json` | Canonical `@varity-labs/mcp` implementation and published package contract | JSON/schema structure, tool-count/name uniqueness, reference-page links, build copy |
+| Human pages | `src/content/docs/` | `varity-engineering:CURRENT-STATE.md`, `POSITIONING.md`, `PRICING.md`, plus verified public behavior | `npm run check` plus browser review when visual/navigation behavior changes |
+| OpenAPI | `public/openapi.yaml` | `varity-platform:services/varity-gateway/src/services/public-api-openapi.ts` and its contract tests | JSON/OpenAPI structure, internal references, unique operation IDs, API-reference link, build copy |
+| MCP catalog | `public/mcp-schema.json` | `varity-mcp:src/server.ts`, `src/tools/`, tests, and published package contract | JSON/schema structure, tool-count/name uniqueness, reference-page links, build copy |
 | LLM summary | `public/llms.txt` | Current public pages and supported product claims | Required identity/artifact links, no placeholder content, build copy |
 | LLM full context | `public/llms-full.txt` | Current public pages and supported product claims | Required identity/artifact links, nontrivial full-content size, build copy |
 | Redirects and static assets | `public/` | Current hosting behavior and brand assets | Redirect invariant, Astro build, visual review where applicable |
@@ -148,10 +145,10 @@ and requires no production credential.
 
 | Change | Inspect and update together |
 |---|---|
-| Public deployment field or route | Gateway interface, OpenAPI, API reference, affected guides, MCP/CLI/portal consumers outside this repo |
-| MCP tool name or input/output contract | MCP implementation, MCP catalog, MCP reference, LLM artifacts |
-| Supported capability | Workspace manifest and gate evidence first, then affected pages and LLM artifacts |
-| Pricing language | Root pricing/positioning authority, affected pages and LLM artifacts; never hardcode live values |
+| Public deployment field or route | `varity-platform` gateway implementation, generated OpenAPI and tests; then this OpenAPI projection, API reference, affected guides, and the named client repositories |
+| MCP tool name or input/output contract | `varity-mcp:src/server.ts`, the owning `src/tools/` module and tests; then this MCP catalog, reference, and LLM artifacts |
+| Supported capability | `varity-engineering:CURRENT-STATE.md` and current executable evidence first; then affected pages and LLM artifacts |
+| Pricing language | `varity-engineering:PRICING.md` and the executable platform owner; then affected pages and LLM artifacts |
 | Page or information architecture | Page source, `astro.config.mjs`, links, metadata, sitemap behavior, local responsive review |
 | Publishing topology or artifact provenance | This file, CI/workflows, pull-request architecture declaration, and a workspace ADR when load-bearing |
 
