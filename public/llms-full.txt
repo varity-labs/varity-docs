@@ -236,6 +236,8 @@ The OpenAPI document contains these 18 public paths:
 | `GET`, `PATCH` | `/api/deployments/{deployment_id}/env` | List environment variable keys or update values |
 | `POST` | `/api/deployments/{deployment_id}/redeploy` | Redeploy in place |
 | `POST` | `/api/deployments/{deployment_id}/restart` | Restart in place |
+| `GET`, `PUT`, `DELETE` | `/api/deployments/{deployment_id}/domain` | Read, attach, or remove a custom domain |
+| `POST` | `/api/deployments/{deployment_id}/domain/verify` | Observe DNS and verify HTTPS serving |
 | `GET` | `/api/templates` | List templates |
 | `GET` | `/api/templates/{template_id}` | Read a template |
 | `POST` | `/api/templates/{template_id}/deploy` | Deploy a template |
@@ -1796,14 +1798,12 @@ Varity filters out platform-specific environment variables from other providers 
 
 ---
 
-## App URLs and Names on Varity
+## App URLs and Custom Domains on Varity
 
 URL: https://docs.varity.so/deploy/custom-domains/
-Description: Set your Varity app name. Static apps use varity.app/{name}, and dynamic apps use {name}.varity.app.
+Description: Set your Varity app name, and attach your own domain to a deployment with a CNAME for a subdomain or an A plus TXT record for a root domain.
 
-Every Varity deployment gets a public URL based on its hosting type: **static apps** are served at `https://varity.app/{name}/`, and **dynamic apps** get their own subdomain at `https://{name}.varity.app/`. This guide covers how to set a custom app name and list the `varity.app` names registered to your account.
-
-External custom domain support is not available yet. Use your assigned `varity.app` URL for current beta deployments.
+Every Varity deployment gets a public URL based on its hosting type: **static apps** are served at `https://varity.app/{name}/`, and **dynamic apps** get their own subdomain at `https://{name}.varity.app/`. You can also attach **your own domain** to a deployment. This guide covers both.
 
 ## How Your Domain Is Assigned
 
@@ -1846,9 +1846,113 @@ https://my-app.varity.app/
 
 **Claim your name early.** Subdomain names are first-come, first-served. Once you've registered a name, it's yours as long as you have an active deployment.
 
-## View Your Registered Domains
+## Attach Your Own Domain
 
-List all domains registered to your account:
+You can point a domain you own at a deployment. Both subdomains (`app.example.com`) and root domains (`example.com`) are supported.
+
+A deployment must serve a public web endpoint to take a custom domain, and each deployment holds **one** custom hostname at a time. Remove the current hostname before attaching a different one.
+
+### From the developer portal
+
+1. Open your deployment in the dashboard and find the **Custom domain** card.
+2. Enter the hostname you want to use and attach it. Varity responds with the exact DNS records to create.
+3. Create those records at your DNS provider, then return to the card and run the verification check.
+
+### From the API
+
+Attach a hostname with `PUT /deployments/{deployment_id}/domain`:
+
+```bash
+curl -X PUT https://varity.app/api/deployments/$DEPLOYMENT_ID/domain \
+  -H "Authorization: Bearer $VARITY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"hostname": "app.example.com"}'
+```
+
+Read the current state at any time:
+
+```bash
+curl https://varity.app/api/deployments/$DEPLOYMENT_ID/domain \
+  -H "Authorization: Bearer $VARITY_API_KEY"
+```
+
+The response tells you whether the deployment supports a custom domain, and returns the record it is waiting for:
+
+```json
+{
+  "supported": true,
+  "domain": {
+    "hostname": "app.example.com",
+    "recordType": "cname",
+    "recordName": "app",
+    "expectedCname": "your-app.varity.app",
+    "state": "pending_dns",
+    "dns": { "status": "pending" },
+    "certificate": { "status": "pending" },
+    "serving": { "status": "pending" }
+  }
+}
+```
+
+## Create the DNS Records
+
+The records depend on whether you are attaching a subdomain or a root domain. Use the values returned by the API rather than copying the examples below.
+
+A subdomain routes with a single CNAME record pointing at the value in `expectedCname`:
+
+| Type  | Name (Host) | Value               |
+|-------|-------------|---------------------|
+| CNAME | `app`       | `expectedCname`     |
+
+A root domain cannot hold a CNAME, so it takes an A record pointing at `expectedA`, plus the TXT record in `challenge` that proves the zone is yours. Both are required:
+
+| Type | Name (Host)      | Value              |
+|------|------------------|--------------------|
+| A    | `@`              | `expectedA`        |
+| TXT  | `challenge.name` | `challenge.value`  |
+
+**Enter the Host field relative to your zone.** Registrars append the zone automatically, so the Host for `app.example.com` inside the zone `example.com` is `app`, not `app.example.com`. Varity returns the correct value in `recordName`, using `@` for a root domain.
+
+Wildcard hostnames, IP addresses, and reserved or private-suffix hosts cannot be attached.
+
+## Verify the Domain
+
+After the records are live, ask Varity to observe DNS and confirm the domain serves over HTTPS:
+
+```bash
+curl -X POST https://varity.app/api/deployments/$DEPLOYMENT_ID/domain/verify \
+  -H "Authorization: Bearer $VARITY_API_KEY"
+```
+
+The domain moves through these states:
+
+| `state`               | Meaning                                                        |
+|-----------------------|----------------------------------------------------------------|
+| `pending_dns`         | Waiting for your DNS records to resolve to the expected values |
+| `certificate_pending` | DNS is verified; the certificate is being issued               |
+| `active`              | The domain is serving your app over HTTPS                      |
+| `error`               | A check failed; see `errorCode`                                |
+
+The `dns`, `certificate`, and `serving` blocks each carry their own `status` and `checkedAt`, so you can see which stage is outstanding. When DNS resolves to something other than the expected value, `dns.status` is `mismatch` and the `observedCnames`, `observedA`, and `observedTxt` fields show what Varity actually saw — usually the fastest way to spot a typo or a record left in place from a previous host.
+
+Two error codes are reported: `dns_lookup_failed` when the records cannot be resolved, and `https_verification_failed` when the hostname does not yet serve over HTTPS.
+
+DNS changes take time to propagate. If verification fails immediately after you create the records, wait for your provider's TTL to expire and run it again.
+
+## Remove a Domain
+
+Detach the hostname to free it for another deployment:
+
+```bash
+curl -X DELETE https://varity.app/api/deployments/$DEPLOYMENT_ID/domain \
+  -H "Authorization: Bearer $VARITY_API_KEY"
+```
+
+Your app stays reachable at its `varity.app` URL.
+
+## View Your Registered Names
+
+List the `varity.app` names registered to your account:
 
 ```bash
 varitykit domains list
@@ -1866,7 +1970,7 @@ Your Domains (2)
 └─────────────┴──────────────────────────────────┴──────────────────┘
 ```
 
-You must be logged in to list your domains. Run `varitykit login` first if you see a "Not logged in" message.
+You must be logged in to list your names. Run `varitykit login` first if you see a "Not logged in" message.
 
 ## Redeploy Under the Same Name
 
@@ -1880,18 +1984,17 @@ varitykit app deploy --name my-app
 varitykit app deploy --name my-app
 ```
 
+An attached custom domain survives a redeploy. You do not need to re-create the DNS records.
+
 ## SSL / HTTPS
 
-All `varity.app` subdomains are served over HTTPS automatically. No certificate setup is required. SSL is provisioned and renewed by Varity.
-
-## External Domains
-
-External custom domains are on the roadmap, but they are not part of the current beta. Do not configure DNS records for a custom domain until the dashboard exposes that workflow.
+All `varity.app` subdomains are served over HTTPS automatically, and certificates for attached custom domains are issued and renewed by Varity once DNS is verified. No certificate setup is required in either case.
 
 ## Related
 
 - [Deploy Your App](/deploy/deploy-your-app): full deployment guide
 - [CLI Reference: deploy](/cli/commands/deploy): all `app deploy` flags
+- [API Reference](/ai-tools/api-reference): the full public platform API
 
 ---
 
@@ -3512,7 +3615,7 @@ This restores all files from `.vercel-migration-backup/`.
 
 - [Deploy your app](/deploy/deploy-your-app): understand what happens during deploy
 - [Environment variables](/deploy/env-variables): how credentials work
-- [Custom domains](/deploy/custom-domains): set a custom subdomain for your app
+- [Custom domains](/deploy/custom-domains): attach your own domain to a deployment
 
 ---
 
@@ -3560,7 +3663,6 @@ If you try one of those as a source project, you get a clear unsupported-stack e
 
 These aren't available in the current beta. Don't plan around them yet:
 
-- Custom domains (your app lives at its `varity.app` URL for now)
 - Rollback as a one-click feature; recover by [redeploying a known-good version](/deploy/rollback/)
 - Cron jobs and scheduled tasks
 - Preview deployments
@@ -3655,7 +3757,7 @@ For the exact framework matrix, use [Supported Frameworks](/deploy/supported-fra
 | Input | You provide source, a GitHub repo, dashboard settings, MCP request, or Docker image | [Deploy Your App](/deploy/deploy-your-app/) |
 | Build | Varity builds supported source projects or pulls a runnable image | [Supported Frameworks](/deploy/supported-frameworks/) |
 | Configure | Varity applies hosting, variables, services, and URL defaults | [Deployment Defaults](/deploy/intelligent-orchestration/) |
-| Launch | Your app becomes available on its Varity URL | [App URLs and Names](/deploy/custom-domains/) |
+| Launch | Your app becomes available on its Varity URL | [App URLs and Custom Domains](/deploy/custom-domains/) |
 | Operate | You use logs, status, environment updates, redeploy, and support | [Troubleshooting Deploys](/deploy/deployment-troubleshooting/) |
 
 ## Deploy Lifecycle
@@ -3733,7 +3835,7 @@ Varity chooses the default based on the app type. You can force the mode with `-
 
 Varity is in guided beta. Use it freely for demos, side projects, AI agent apps, and apps that tolerate beta limits. Bring your own external database for business critical data until managed database durability, backups, and restore are shipped.
 
-Varity currently supports Node, Python, Go, static projects, and Docker or OCI HTTP service images. External custom domains, cron jobs, preview deployments, one click rollback, and dedicated GPUs for user containers are not shipped yet.
+Varity currently supports Node, Python, Go, static projects, and Docker or OCI HTTP service images. Cron jobs, preview deployments, one click rollback, and dedicated GPUs for user containers are not shipped yet.
 
 ## Next Steps
 
@@ -3959,7 +4061,7 @@ Source deployments support Node, Python, Go, and static projects. Docker image d
 
 **Supported services:** Postgres with vector extension support, Redis, MongoDB, MySQL, object storage, and model runtime services when detected from your app.
 
-**Not shipped yet:** external custom domains, cron jobs, preview deployments, one click rollback, managed database backups and restore, and dedicated GPUs for user containers.
+**Not shipped yet:** cron jobs, preview deployments, one click rollback, managed database backups and restore, and dedicated GPUs for user containers.
 
 ## Where to Go Next
 
@@ -4349,7 +4451,7 @@ Use [Pricing and Costs](/resources/pricing/) for the current pricing workflow an
 
 Varity is in guided beta. Bring your own external managed database for business critical data until managed database durability, backups, and restore are shipped.
 
-Varity may not be the right fit yet if you need external custom domains today, cron jobs, preview deployments, one click rollback, dedicated GPUs for your own containers, or a source build for Rust, Ruby, Elixir, Java, Deno, PHP, or .NET.
+Varity may not be the right fit yet if you need cron jobs, preview deployments, one click rollback, dedicated GPUs for your own containers, or a source build for Rust, Ruby, Elixir, Java, Deno, PHP, or .NET.
 
 Those unsupported source stacks can still deploy when packaged as runnable Docker or OCI HTTP service images.
 

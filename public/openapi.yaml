@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Varity Public Platform API",
-    "version": "2026-07-10",
+    "version": "2026-07-25",
     "description": "Gateway-owned resource API for deploying and operating Varity apps."
   },
   "servers": [
@@ -16,6 +16,360 @@
     }
   ],
   "paths": {
+    "/deployment-profiles": {
+      "get": {
+        "operationId": "getDeploymentProfiles",
+        "summary": "Get normalized deployment profiles",
+        "description": "Returns customer-facing profiles, prices, and aggregate availability without exposing supplier identity or native inventory.",
+        "parameters": [
+          {
+            "name": "workload",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "gpu",
+                "cpu"
+              ]
+            }
+          },
+          {
+            "name": "execution_class",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "container",
+                "virtual_machine",
+                "bare_metal",
+                "cpu_virtual_machine"
+              ]
+            }
+          },
+          {
+            "name": "contract_version",
+            "in": "query",
+            "required": false,
+            "description": "Request the resource-, location-, runtime-, and access-complete GPU container catalog. Omit during a rolling v1 compatibility window.",
+            "schema": {
+              "const": "gpu-container-profiles-v2"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Normalized GPU deployment profile catalog",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/GpuContainerProfileCatalogV1"
+                    },
+                    {
+                      "$ref": "#/components/schemas/GpuContainerProfileCatalog"
+                    },
+                    {
+                      "$ref": "#/components/schemas/MachineProfileCatalog"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      }
+    },
+    "/pricing/accelerator-quote": {
+      "post": {
+        "operationId": "issueAcceleratorQuote",
+        "summary": "Issue an exact hourly accelerator quote for a GPU workload",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/PrepareGpuContainerQuoteRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/CreateApplicationDeploymentRequest"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Exact quote",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AcceleratorQuote"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      }
+    },
+    "/pricing/machine-quote": {
+      "post": {
+        "operationId": "issueMachineQuote",
+        "summary": "Issue an exact quote for a self-managed machine",
+        "description": "Resolves the selected Varity profile and OS image against current normalized inventory and its exact customer price.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MachineQuoteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Exact owner-bound machine quote",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MachineQuote"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      }
+    },
+    "/machines": {
+      "get": {
+        "operationId": "listMachines",
+        "summary": "List owner-scoped self-managed machines",
+        "responses": {
+          "200": {
+            "description": "Normalized owner machine inventory",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "machines"
+                  ],
+                  "properties": {
+                    "machines": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Machine"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createMachine",
+        "summary": "Create a self-managed machine",
+        "description": "Accepts a Varity profile, normalized OS image, and SSH public key. Supplier identity and native infrastructure identifiers are never public.",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9._:-]+$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMachineRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Machine operation accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MachineAcceptance"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      }
+    },
+    "/machines/{machine_id}/actions": {
+      "post": {
+        "operationId": "runMachineAction",
+        "summary": "Run a bounded synchronous action on one machine",
+        "description": "Restarts or soft-reboots the machine in place. Not a durable operation: the machine keeps its identity, access, and billing.",
+        "parameters": [
+          {
+            "name": "machine_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MachineActionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Observed machine state after the action was applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MachineActionResult"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      }
+    },
+    "/machines/{machine_id}": {
+      "get": {
+        "operationId": "getMachine",
+        "summary": "Get one owner-scoped self-managed machine",
+        "parameters": [
+          {
+            "name": "machine_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Normalized machine lifecycle, access, and billing truth",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Machine"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteMachine",
+        "summary": "Delete one owner-scoped self-managed machine",
+        "description": "Acceptance is not closure proof. Allocation, SSH access, and billing closure reconcile independently.",
+        "parameters": [
+          {
+            "name": "machine_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9._:-]+$"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Machine deletion accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MachineAcceptance"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      }
+    },
+    "/deployment-capabilities": {
+      "get": {
+        "operationId": "getDeploymentCapabilities",
+        "summary": "Get the provider-neutral deployment catalog",
+        "description": "Returns user-visible workload and execution choices with their current availability. Live inventory and implementation-specific identifiers are not part of this contract.",
+        "responses": {
+          "200": {
+            "description": "Deployment capability catalog",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeploymentCapabilities"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      }
+    },
     "/deployments": {
       "get": {
         "operationId": "listDeployments",
@@ -173,6 +527,171 @@
               }
             }
           },
+          "202": {
+            "description": "Deletion accepted (durable path): route removal, compute close, and billing stop reconcile as distinct durable facts.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "status",
+                    "deleted",
+                    "run_id",
+                    "status_url"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "app_name": {
+                      "type": "string"
+                    },
+                    "subdomain": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "deleting",
+                        "deleted"
+                      ]
+                    },
+                    "deleted": {
+                      "type": "boolean"
+                    },
+                    "run_id": {
+                      "type": "string"
+                    },
+                    "status_url": {
+                      "type": "string"
+                    },
+                    "replayed": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      }
+    },
+    "/deployments/{deployment_id}/domain": {
+      "get": {
+        "operationId": "getDeploymentDomain",
+        "summary": "Read custom-domain state",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeploymentId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Custom-domain state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomDomainEnvelope"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      },
+      "put": {
+        "operationId": "attachDeploymentDomain",
+        "summary": "Attach one hostname (subdomain CNAME or apex A + TXT)",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeploymentId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "hostname"
+                ],
+                "properties": {
+                  "hostname": {
+                    "type": "string",
+                    "examples": [
+                      "app.example.com",
+                      "example.com"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Custom domain attached",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomDomainEnvelope"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "removeDeploymentDomain",
+        "summary": "Remove the custom hostname",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeploymentId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Custom domain removed"
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      }
+    },
+    "/deployments/{deployment_id}/domain/verify": {
+      "post": {
+        "operationId": "verifyDeploymentDomain",
+        "summary": "Observe DNS and verify HTTPS serving",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeploymentId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Updated custom-domain state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomDomainEnvelope"
+                }
+              }
+            }
+          },
           "default": {
             "$ref": "#/components/responses/PublicError"
           }
@@ -208,7 +727,8 @@
     "/deployments/{deployment_id}/restart": {
       "post": {
         "operationId": "restartDeployment",
-        "summary": "Restart in place",
+        "summary": "Restart a deployment as a verified replacement",
+        "description": "Provisions a fresh verified replacement from the saved deployment configuration: the current version keeps serving until the replacement passes health and routing checks, then traffic switches atomically. Deployments that cannot be reconstructed from saved configuration answer 409; where the platform cannot restart at all it answers 501.",
         "parameters": [
           {
             "$ref": "#/components/parameters/DeploymentId"
@@ -220,10 +740,32 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AcceptedMutation"
+                  "type": "object",
+                  "required": [
+                    "status",
+                    "run_id",
+                    "status_url"
+                  ],
+                  "properties": {
+                    "status": {
+                      "const": "restarting"
+                    },
+                    "run_id": {
+                      "type": "string"
+                    },
+                    "status_url": {
+                      "type": "string"
+                    }
+                  }
                 }
               }
             }
+          },
+          "409": {
+            "$ref": "#/components/responses/PublicError"
+          },
+          "501": {
+            "$ref": "#/components/responses/PublicError"
           },
           "default": {
             "$ref": "#/components/responses/PublicError"
@@ -497,6 +1039,7 @@
       "get": {
         "operationId": "estimatePricing",
         "summary": "Estimate fixed monthly cost",
+        "description": "Managed Cloud pricing is a fixed preset menu (starter, growth, scale, pro). Static sites are free.",
         "parameters": [
           {
             "name": "profile",
@@ -512,9 +1055,26 @@
             }
           },
           {
+            "name": "preset",
+            "in": "query",
+            "required": false,
+            "description": "Managed Cloud preset id (starter, growth, scale, pro).",
+            "schema": {
+              "type": "string",
+              "examples": [
+                "starter",
+                "growth",
+                "scale",
+                "pro"
+              ]
+            }
+          },
+          {
             "name": "cpu",
             "in": "query",
             "required": false,
+            "deprecated": true,
+            "description": "Deprecated: mapped to the smallest satisfying Managed Cloud preset. Use `preset` instead.",
             "schema": {
               "type": "number",
               "minimum": 0.25
@@ -524,6 +1084,8 @@
             "name": "memory_gb",
             "in": "query",
             "required": false,
+            "deprecated": true,
+            "description": "Deprecated: mapped to the smallest satisfying Managed Cloud preset. Use `preset` instead.",
             "schema": {
               "type": "number",
               "minimum": 0.25
@@ -533,6 +1095,8 @@
             "name": "ephemeral_gb",
             "in": "query",
             "required": false,
+            "deprecated": true,
+            "description": "Deprecated: mapped to the smallest satisfying Managed Cloud preset. Use `preset` instead.",
             "schema": {
               "type": "number",
               "minimum": 1
@@ -542,6 +1106,7 @@
             "name": "persistent_gb",
             "in": "query",
             "required": false,
+            "description": "Persistent NVMe add-on in GB, billed per GB-month on top of the preset monthly maximum.",
             "schema": {
               "type": "number",
               "minimum": 0
@@ -551,6 +1116,8 @@
             "name": "has_db",
             "in": "query",
             "required": false,
+            "deprecated": true,
+            "description": "Deprecated: accepted but ignored.",
             "schema": {
               "type": "boolean"
             }
@@ -706,8 +1273,8 @@
           }
         ],
         "operationId": "listApiKeys",
-        "summary": "List API keys in the Developer Portal",
-        "description": "Requires an authenticated Developer Portal session. Plaintext API keys are never returned.",
+        "summary": "List Cloud API keys in the Developer Portal",
+        "description": "Returns deploy-capable Cloud keys, including legacy shared keys for compatibility. Inference-only keys and plaintext are excluded.",
         "responses": {
           "200": {
             "description": "API key metadata",
@@ -731,8 +1298,8 @@
           }
         ],
         "operationId": "createApiKey",
-        "summary": "Create an API key in the Developer Portal",
-        "description": "Requires an authenticated Developer Portal session and active deploy eligibility. The plaintext key is shown once.",
+        "summary": "Create a Cloud API key in the Developer Portal",
+        "description": "Creates a deploy-only key and requires an authenticated Developer Portal session with active deploy eligibility. The plaintext key is shown once.",
         "responses": {
           "200": {
             "description": "New API key",
@@ -782,6 +1349,288 @@
                       "type": "boolean"
                     }
                   }
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      }
+    },
+    "/api-keys/inference": {
+      "get": {
+        "security": [
+          {
+            "PortalSession": []
+          }
+        ],
+        "operationId": "listInferenceApiKeys",
+        "summary": "List AI Gateway keys in the Developer Portal",
+        "description": "Returns only owner-scoped inference-only keys. Cloud deploy keys and legacy shared keys are excluded.",
+        "responses": {
+          "200": {
+            "description": "AI Gateway key metadata",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiKeyList"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "PortalSession": []
+          }
+        ],
+        "operationId": "createInferenceApiKey",
+        "summary": "Create a scoped AI Gateway key in the Developer Portal",
+        "description": "Creates an inference-only key for the authenticated owner. The plaintext key is shown once; owner and authority fields are assigned server-side.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateInferenceApiKey"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "New scoped inference key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IssuedInferenceApiKey"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      }
+    },
+    "/api-keys/audit": {
+      "get": {
+        "security": [
+          {
+            "PortalSession": []
+          }
+        ],
+        "operationId": "listApiKeyAuditEvents",
+        "summary": "List owner-scoped API key lifecycle events",
+        "description": "Returns secret-free issuance, rotation, and revocation evidence for the authenticated owner.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 500,
+              "default": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "API key lifecycle events",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiKeyAuditList"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      }
+    },
+    "/ai-gateway/attachments": {
+      "get": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "PortalSession": []
+          }
+        ],
+        "operationId": "listAiGatewayAttachments",
+        "summary": "List Varity Cloud AI Gateway attachments",
+        "description": "Returns owner-scoped, secret-free attachment state. Provider identities, credential values, vault references, and internal deployment-operation identifiers are never returned.",
+        "responses": {
+          "200": {
+            "description": "AI Gateway attachment list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiGatewayAttachmentList"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "PortalSession": []
+          }
+        ],
+        "operationId": "attachAiGatewayToDeployment",
+        "summary": "Attach the Varity AI Gateway to a Cloud deployment",
+        "description": "Creates a deployment-bound inference workload credential, seals it in Varity custody, and injects only its opaque protected-input reference into the verified replacement deployment.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/RequiredIdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAiGatewayAttachment"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Attachment accepted or converging",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiGatewayAttachmentResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      }
+    },
+    "/ai-gateway/attachments/{attachment_id}": {
+      "get": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "PortalSession": []
+          }
+        ],
+        "operationId": "getAiGatewayAttachment",
+        "summary": "Get one Varity Cloud AI Gateway attachment",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/AttachmentId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AI Gateway attachment",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiGatewayAttachmentResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "PortalSession": []
+          }
+        ],
+        "operationId": "detachAiGatewayFromDeployment",
+        "summary": "Detach the Varity AI Gateway from a Cloud deployment",
+        "description": "Replaces the deployment without the workload secret reference, then revokes the credential and confirms protected-input removal.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/AttachmentId"
+          },
+          {
+            "$ref": "#/components/parameters/RequiredIdempotencyKey"
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Detach accepted or converging",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiGatewayAttachmentResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      }
+    },
+    "/ai-gateway/attachments/{attachment_id}/rotate": {
+      "post": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "PortalSession": []
+          }
+        ],
+        "operationId": "rotateAiGatewayAttachment",
+        "summary": "Rotate a Cloud deployment AI Gateway credential",
+        "description": "Preserves the attachment identity while replacing the protected workload credential and revoking the old credential after the replacement is proven.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/AttachmentId"
+          },
+          {
+            "$ref": "#/components/parameters/RequiredIdempotencyKey"
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Rotation accepted or converging",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiGatewayAttachmentResponse"
                 }
               }
             }
@@ -843,6 +1692,15 @@
           "type": "string"
         }
       },
+      "AttachmentId": {
+        "name": "attachment_id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "pattern": "^vai_[A-Za-z0-9_-]{20,64}$"
+        }
+      },
       "IdempotencyKey": {
         "name": "Idempotency-Key",
         "in": "header",
@@ -850,6 +1708,17 @@
         "schema": {
           "type": "string",
           "maxLength": 160
+        }
+      },
+      "RequiredIdempotencyKey": {
+        "name": "Idempotency-Key",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160,
+          "pattern": "^[A-Za-z0-9._:-]+$"
         }
       }
     },
@@ -866,6 +1735,1422 @@
       }
     },
     "schemas": {
+      "CreateGpuContainerRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "execution_class",
+          "profile_id",
+          "ssh_public_key",
+          "accelerator_quote_token"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$"
+          },
+          "execution_class": {
+            "const": "container"
+          },
+          "profile_id": {
+            "type": "string",
+            "pattern": "^gpo-[0-9a-f]{24}$"
+          },
+          "ssh_public_key": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 10000,
+            "writeOnly": true,
+            "description": "OpenSSH public key. Private key material is forbidden."
+          },
+          "accelerator_quote_token": {
+            "type": "string",
+            "minLength": 16,
+            "maxLength": 8192,
+            "writeOnly": true
+          }
+        }
+      },
+      "PrepareGpuContainerQuoteRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "execution_class",
+          "profile_id"
+        ],
+        "properties": {
+          "execution_class": {
+            "const": "container"
+          },
+          "profile_id": {
+            "type": "string",
+            "pattern": "^gpo-[0-9a-f]{24}$"
+          }
+        }
+      },
+      "GpuContainerProfileCatalogV1": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "schema_version",
+          "workload",
+          "execution_class",
+          "profiles"
+        ],
+        "properties": {
+          "schema_version": {
+            "const": "gpu-container-profiles-v1"
+          },
+          "workload": {
+            "const": "gpu"
+          },
+          "execution_class": {
+            "const": "container"
+          },
+          "profiles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GpuContainerProfileV1"
+            }
+          }
+        }
+      },
+      "GpuContainerProfileV1": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "Rolling-release compatibility profile. Request v2 before presenting this profile as deployable.",
+        "required": [
+          "id",
+          "label",
+          "execution_class",
+          "accelerator",
+          "hardware",
+          "customer_price",
+          "availability"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/GpuContainerProfile/properties/id"
+          },
+          "label": {
+            "$ref": "#/components/schemas/GpuContainerProfile/properties/label"
+          },
+          "execution_class": {
+            "const": "container"
+          },
+          "accelerator": {
+            "$ref": "#/components/schemas/AcceleratorProfileSelection"
+          },
+          "hardware": {
+            "$ref": "#/components/schemas/GpuContainerProfile/properties/hardware"
+          },
+          "customer_price": {
+            "$ref": "#/components/schemas/GpuContainerProfile/properties/customer_price"
+          },
+          "availability": {
+            "$ref": "#/components/schemas/GpuProfileAvailability"
+          }
+        }
+      },
+      "GpuContainerProfileCatalog": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "schema_version",
+          "workload",
+          "execution_class",
+          "profiles"
+        ],
+        "properties": {
+          "schema_version": {
+            "const": "gpu-container-profiles-v2"
+          },
+          "workload": {
+            "const": "gpu"
+          },
+          "execution_class": {
+            "const": "container"
+          },
+          "profiles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GpuContainerProfile"
+            }
+          }
+        }
+      },
+      "GpuContainerProfile": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "label",
+          "execution_class",
+          "accelerator",
+          "hardware",
+          "resources",
+          "locations",
+          "runtime",
+          "access",
+          "customer_price",
+          "availability"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^gpo-[0-9a-f]{24}$"
+          },
+          "label": {
+            "type": "string"
+          },
+          "execution_class": {
+            "const": "container"
+          },
+          "accelerator": {
+            "$ref": "#/components/schemas/AcceleratorProfileSelection"
+          },
+          "hardware": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "vendor",
+              "model",
+              "vram_mb",
+              "interface",
+              "count"
+            ],
+            "properties": {
+              "vendor": {
+                "const": "NVIDIA"
+              },
+              "model": {
+                "type": "string"
+              },
+              "vram_mb": {
+                "type": "integer"
+              },
+              "interface": {
+                "type": "string",
+                "enum": [
+                  "pcie",
+                  "sxm"
+                ]
+              },
+              "count": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 24
+              }
+            }
+          },
+          "resources": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "cpu_units",
+              "memory_mb",
+              "storage_mb"
+            ],
+            "properties": {
+              "cpu_units": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "memory_mb": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "storage_mb": {
+                "type": "integer",
+                "minimum": 1
+              }
+            }
+          },
+          "locations": {
+            "type": "array",
+            "maxItems": 256,
+            "uniqueItems": true,
+            "description": "Current location availability for this exact offer. Final placement is reported after activation.",
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$"
+            }
+          },
+          "runtime": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "label",
+              "provider_default"
+            ],
+            "properties": {
+              "label": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "ports": {
+                "type": "array",
+                "maxItems": 64,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "pattern": "^[1-9][0-9]{0,4}/(?:tcp|udp)$"
+                }
+              },
+              "startup_command": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "minLength": 1,
+                "maxLength": 4096
+              },
+              "provider_default": {
+                "const": true
+              }
+            }
+          },
+          "access": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "mode",
+              "requires_public_key"
+            ],
+            "properties": {
+              "mode": {
+                "const": "ssh"
+              },
+              "requires_public_key": {
+                "const": true
+              }
+            }
+          },
+          "customer_price": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "hourly_usd",
+              "currency",
+              "billing_period",
+              "price_basis",
+              "pricing_policy_version"
+            ],
+            "properties": {
+              "hourly_usd": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "currency": {
+                "const": "USD"
+              },
+              "billing_period": {
+                "const": "hour"
+              },
+              "price_basis": {
+                "const": "exact",
+                "description": "The exact current customer price for this offer; a signed quote is required before create."
+              },
+              "pricing_policy_version": {
+                "type": "string"
+              }
+            }
+          },
+          "availability": {
+            "$ref": "#/components/schemas/GpuProfileAvailability"
+          }
+        }
+      },
+      "GpuProfileAvailability": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "status",
+          "matching_capacity_count",
+          "aggregate_available_units",
+          "source_age_seconds"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "available",
+              "no_capacity",
+              "temporarily_unavailable"
+            ]
+          },
+          "matching_capacity_count": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "aggregate_available_units": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "source_age_seconds": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 86400
+          }
+        }
+      },
+      "AcceleratorRequest": {
+        "$ref": "#/components/schemas/AcceleratorProfileSelection"
+      },
+      "AcceleratorProfileSelection": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "profile_id",
+          "count",
+          "alternatives"
+        ],
+        "description": "Required Public API selection. The opaque live offer and its normalized card hardware are revalidated before quote issuance and durable acceptance.",
+        "properties": {
+          "profile_id": {
+            "type": "string",
+            "pattern": "^gpo-[0-9a-f]{24}$"
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 24
+          },
+          "alternatives": {
+            "$ref": "#/components/schemas/AcceleratorRequirement/properties/alternatives"
+          }
+        }
+      },
+      "AcceleratorRequirement": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "count",
+          "alternatives"
+        ],
+        "description": "Normalized hardware facts embedded in one selected live card.",
+        "properties": {
+          "count": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 24
+          },
+          "alternatives": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 8,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "vendor",
+                "model",
+                "vram_mb"
+              ],
+              "properties": {
+                "vendor": {
+                  "type": "string",
+                  "enum": [
+                    "nvidia"
+                  ]
+                },
+                "model": {
+                  "type": "string",
+                  "pattern": "^[a-z0-9][a-z0-9-]{0,63}$"
+                },
+                "vram_mb": {
+                  "type": "integer",
+                  "minimum": 1024,
+                  "maximum": 262144,
+                  "multipleOf": 1024
+                },
+                "interface": {
+                  "type": "string",
+                  "enum": [
+                    "pcie",
+                    "sxm"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "AcceleratorQuote": {
+        "type": "object",
+        "required": [
+          "quote_token",
+          "quote_reference",
+          "resource_fingerprint",
+          "hourly_usd",
+          "authorization_usd",
+          "valid_until"
+        ],
+        "properties": {
+          "quote_token": {
+            "type": "string",
+            "description": "Signed client-carried bearer. Do not inspect or log it; pass it unchanged as accelerator_quote_token on create."
+          },
+          "quote_reference": {
+            "type": "string"
+          },
+          "resource_fingerprint": {
+            "type": "string"
+          },
+          "hourly_usd": {
+            "type": "number"
+          },
+          "authorization_usd": {
+            "type": "number"
+          },
+          "currency": {
+            "const": "USD"
+          },
+          "billing_period": {
+            "const": "hour"
+          },
+          "valid_until": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "pricing_policy_version": {
+            "type": "string"
+          },
+          "availability": {
+            "type": [
+              "object",
+              "null"
+            ]
+          }
+        }
+      },
+      "MachineQuoteRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "profile_id",
+          "execution_class",
+          "os_image"
+        ],
+        "properties": {
+          "profile_id": {
+            "type": "string",
+            "pattern": "^mp-[0-9a-f]{24}$"
+          },
+          "execution_class": {
+            "type": "string",
+            "enum": [
+              "virtual_machine",
+              "bare_metal",
+              "cpu_virtual_machine"
+            ]
+          },
+          "os_image": {
+            "type": "string",
+            "pattern": "^os-[a-z0-9](?:[a-z0-9-]{0,42}[a-z0-9])?-[0-9a-f]{12}$"
+          },
+          "additional_storage_gb": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 32768,
+            "description": "Additional NVMe storage beyond the included boot disk. Only valid when execution_class is cpu_virtual_machine; omitting it means none."
+          }
+        }
+      },
+      "MachineQuote": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "quote_token",
+          "quote_reference",
+          "resource_fingerprint",
+          "hourly_usd",
+          "authorization_usd",
+          "currency",
+          "billing_period",
+          "valid_until",
+          "pricing_policy_version"
+        ],
+        "properties": {
+          "quote_token": {
+            "type": "string",
+            "writeOnly": true
+          },
+          "quote_reference": {
+            "type": "string"
+          },
+          "resource_fingerprint": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "additional_storage_gb": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 32768,
+            "description": "Echoed additional NVMe storage priced into hourly_usd. Present exactly when the quote request carried additional_storage_gb."
+          },
+          "hourly_usd": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "authorization_usd": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "currency": {
+            "const": "USD"
+          },
+          "billing_period": {
+            "const": "hour"
+          },
+          "valid_until": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "pricing_policy_version": {
+            "type": "string"
+          }
+        }
+      },
+      "MachineProfileCatalog": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "execution_class",
+          "profiles"
+        ],
+        "properties": {
+          "execution_class": {
+            "type": "string",
+            "enum": [
+              "virtual_machine",
+              "bare_metal",
+              "cpu_virtual_machine"
+            ]
+          },
+          "profiles": {
+            "type": "array",
+            "maxItems": 1024,
+            "items": {
+              "$ref": "#/components/schemas/MachineProfile"
+            }
+          }
+        }
+      },
+      "MachineProfile": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "schema_version",
+          "profile_id",
+          "execution_class",
+          "hardware",
+          "region",
+          "availability",
+          "customer_price",
+          "os_images"
+        ],
+        "properties": {
+          "schema_version": {
+            "const": "public-machine-profile-v1"
+          },
+          "profile_id": {
+            "type": "string",
+            "pattern": "^mp-[0-9a-f]{24}$"
+          },
+          "execution_class": {
+            "type": "string",
+            "enum": [
+              "virtual_machine",
+              "bare_metal",
+              "cpu_virtual_machine"
+            ]
+          },
+          "display_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256,
+            "description": "Varity plan name. Present exactly when execution_class is cpu_virtual_machine."
+          },
+          "cpu_class": {
+            "type": "string",
+            "enum": [
+              "dedicated",
+              "shared"
+            ],
+            "description": "Present exactly when execution_class is cpu_virtual_machine."
+          },
+          "monthly_cap_microusd": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000000000000000,
+            "description": "Hard monthly price cap for hourly billing. Present exactly when execution_class is cpu_virtual_machine."
+          },
+          "hardware": {
+            "$ref": "#/components/schemas/MachineHardware"
+          },
+          "region": {
+            "type": "string",
+            "maxLength": 64,
+            "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+){0,7}$"
+          },
+          "availability": {
+            "type": "string",
+            "enum": [
+              "available",
+              "temporarily_unavailable"
+            ]
+          },
+          "customer_price": {
+            "$ref": "#/components/schemas/MachineHourlyPrice"
+          },
+          "os_images": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 64,
+            "items": {
+              "$ref": "#/components/schemas/MachineOsImage"
+            }
+          }
+        }
+      },
+      "MachineHardware": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "cpu_units",
+          "memory_mb",
+          "storage_mb"
+        ],
+        "properties": {
+          "cpu_units": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 256
+          },
+          "memory_mb": {
+            "type": "integer",
+            "minimum": 1024,
+            "maximum": 2097152
+          },
+          "storage_mb": {
+            "type": "integer",
+            "minimum": 10240,
+            "maximum": 33554432
+          },
+          "accelerator": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MachineAccelerator"
+              }
+            ],
+            "description": "Present exactly when execution_class is virtual_machine or bare_metal; absent for cpu_virtual_machine."
+          }
+        }
+      },
+      "MachineAccelerator": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "count",
+          "alternatives"
+        ],
+        "properties": {
+          "count": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 24
+          },
+          "alternatives": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "vendor",
+                "model",
+                "vram_mb"
+              ],
+              "properties": {
+                "vendor": {
+                  "const": "nvidia"
+                },
+                "model": {
+                  "type": "string",
+                  "pattern": "^[a-z0-9][a-z0-9-]{0,63}$"
+                },
+                "vram_mb": {
+                  "type": "integer",
+                  "minimum": 1024,
+                  "maximum": 262144,
+                  "multipleOf": 1024
+                },
+                "interface": {
+                  "type": "string",
+                  "enum": [
+                    "pcie",
+                    "sxm"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "MachineHourlyPrice": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "amount_microusd",
+          "currency",
+          "billing_period"
+        ],
+        "properties": {
+          "amount_microusd": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000000000000000
+          },
+          "currency": {
+            "const": "USD"
+          },
+          "billing_period": {
+            "const": "hour"
+          }
+        }
+      },
+      "MachineOsImage": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "label"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^os-[a-z0-9](?:[a-z0-9-]{0,42}[a-z0-9])?-[0-9a-f]{12}$"
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          }
+        }
+      },
+      "CreateMachineRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "profile_id",
+          "execution_class",
+          "os_image",
+          "ssh_public_key",
+          "accelerator_quote_token"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$"
+          },
+          "profile_id": {
+            "type": "string",
+            "pattern": "^mp-[0-9a-f]{24}$"
+          },
+          "execution_class": {
+            "type": "string",
+            "enum": [
+              "virtual_machine",
+              "bare_metal",
+              "cpu_virtual_machine"
+            ]
+          },
+          "os_image": {
+            "type": "string",
+            "pattern": "^os-[a-z0-9](?:[a-z0-9-]{0,42}[a-z0-9])?-[0-9a-f]{12}$"
+          },
+          "additional_storage_gb": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 32768,
+            "description": "Additional NVMe storage beyond the included boot disk. Only valid when execution_class is cpu_virtual_machine; omitting it means none."
+          },
+          "ssh_public_key": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 10000,
+            "writeOnly": true
+          },
+          "accelerator_quote_token": {
+            "type": "string",
+            "minLength": 16,
+            "maxLength": 4096,
+            "writeOnly": true
+          }
+        }
+      },
+      "MachineAcceptance": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "replayed",
+          "machine_id",
+          "operation"
+        ],
+        "properties": {
+          "replayed": {
+            "type": "boolean"
+          },
+          "machine_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "additional_storage_gb": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 32768,
+            "description": "Echoed additional NVMe storage. Present exactly when the create request carried additional_storage_gb."
+          },
+          "operation": {
+            "$ref": "#/components/schemas/MachineLifecycle"
+          }
+        }
+      },
+      "MachineLifecycle": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "operation_id",
+          "operation",
+          "status",
+          "stage",
+          "accepted_at",
+          "execution_deadline_at",
+          "outcome",
+          "cleanup_state",
+          "support_reference"
+        ],
+        "properties": {
+          "operation_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "operation": {
+            "type": "string",
+            "enum": [
+              "create_machine",
+              "delete_deployment"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "accepted",
+              "running",
+              "succeeded",
+              "failed"
+            ]
+          },
+          "stage": {
+            "type": "string",
+            "enum": [
+              "accepted",
+              "admission",
+              "allocation",
+              "health",
+              "access",
+              "route",
+              "cleanup",
+              "terminal"
+            ]
+          },
+          "accepted_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "execution_deadline_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "outcome": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/MachineOutcome"
+              }
+            ]
+          },
+          "cleanup_state": {
+            "type": "string",
+            "enum": [
+              "not_required",
+              "required",
+              "running",
+              "retrying",
+              "complete"
+            ]
+          },
+          "support_reference": {
+            "type": "string"
+          }
+        }
+      },
+      "MachineOutcome": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "classification",
+          "stage",
+          "code",
+          "action_code",
+          "diagnostic_code",
+          "terminal_at"
+        ],
+        "properties": {
+          "classification": {
+            "type": "string"
+          },
+          "stage": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "action_code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "diagnostic_code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "terminal_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Machine": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "machine_id",
+          "name",
+          "profile_id",
+          "execution_class",
+          "os_image",
+          "hardware",
+          "region",
+          "lifecycle",
+          "access",
+          "billing"
+        ],
+        "properties": {
+          "machine_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "profile_id": {
+            "type": "string",
+            "pattern": "^mp-[0-9a-f]{24}$"
+          },
+          "execution_class": {
+            "type": "string",
+            "enum": [
+              "virtual_machine",
+              "bare_metal",
+              "cpu_virtual_machine"
+            ]
+          },
+          "cpu_class": {
+            "type": "string",
+            "enum": [
+              "dedicated",
+              "shared"
+            ],
+            "description": "Only cpu_virtual_machine machines may carry a CPU family."
+          },
+          "os_image": {
+            "type": "string",
+            "pattern": "^os-[a-z0-9](?:[a-z0-9-]{0,42}[a-z0-9])?-[0-9a-f]{12}$"
+          },
+          "hardware": {
+            "$ref": "#/components/schemas/MachineHardware"
+          },
+          "region": {
+            "type": "string"
+          },
+          "lifecycle": {
+            "$ref": "#/components/schemas/MachineLifecycle"
+          },
+          "access": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/MachineSshAccess"
+              }
+            ]
+          },
+          "billing": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/MachineBilling"
+              }
+            ]
+          }
+        }
+      },
+      "MachineSshAccess": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "protocol",
+          "host",
+          "port",
+          "username"
+        ],
+        "properties": {
+          "protocol": {
+            "const": "ssh"
+          },
+          "host": {
+            "type": "string"
+          },
+          "port": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 65535
+          },
+          "username": {
+            "type": "string",
+            "pattern": "^[a-z_][a-z0-9_-]{0,31}$"
+          }
+        }
+      },
+      "MachineBilling": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "state",
+          "customer_price",
+          "observed_at"
+        ],
+        "properties": {
+          "state": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "active",
+              "stopped"
+            ]
+          },
+          "customer_price": {
+            "$ref": "#/components/schemas/MachineHourlyPrice"
+          },
+          "monthly_cap_microusd": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000000000000000,
+            "description": "Hard monthly price cap for hourly billing. Present exactly when the machine execution_class is cpu_virtual_machine."
+          },
+          "month_to_date": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/MachineMonthToDate"
+              }
+            ],
+            "description": "Month-to-date billed usage. May appear only when the machine execution_class is cpu_virtual_machine; null while the first billed hour is pending."
+          },
+          "observed_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "MachineMonthToDate": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "compute_microusd",
+          "storage_microusd",
+          "month_started_at"
+        ],
+        "properties": {
+          "compute_microusd": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000000000,
+            "description": "Month-to-date compute charge, capped by monthly_cap_microusd."
+          },
+          "storage_microusd": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000000000,
+            "description": "Month-to-date additional-storage charge; not capped."
+          },
+          "month_started_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "MachineActionRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "action"
+        ],
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "restart",
+              "soft_reboot"
+            ]
+          }
+        }
+      },
+      "MachineActionResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "machine_id",
+          "action",
+          "machine_state",
+          "observed_at"
+        ],
+        "properties": {
+          "machine_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "restart",
+              "soft_reboot"
+            ]
+          },
+          "machine_state": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]{0,63}$"
+          },
+          "observed_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "DeploymentCapabilities": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "schema_version",
+          "auto_detect",
+          "workloads"
+        ],
+        "properties": {
+          "schema_version": {
+            "const": "deployment-capabilities-v1"
+          },
+          "auto_detect": {
+            "$ref": "#/components/schemas/AutoDetectCapability"
+          },
+          "workloads": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DeploymentWorkloadCapability"
+            }
+          }
+        }
+      },
+      "AutoDetectCapability": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "availability",
+          "source_types",
+          "recommendation_targets"
+        ],
+        "properties": {
+          "availability": {
+            "const": "available"
+          },
+          "source_types": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "repository"
+              ]
+            }
+          },
+          "recommendation_targets": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "static_site",
+                "web_service"
+              ]
+            }
+          }
+        }
+      },
+      "DeploymentWorkloadCapability": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "fulfillment",
+          "options"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "enum": [
+              "static_site",
+              "web_service",
+              "gpu",
+              "virtual_machine"
+            ]
+          },
+          "fulfillment": {
+            "type": "string",
+            "enum": [
+              "static",
+              "dynamic_compute"
+            ]
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DeploymentExecutionOption"
+            }
+          }
+        }
+      },
+      "DeploymentExecutionOption": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "execution_class",
+          "management",
+          "access_modes",
+          "billing_cadence",
+          "source_types",
+          "required_inputs",
+          "availability"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "enum": [
+              "automatic",
+              "static",
+              "container",
+              "virtual_machine",
+              "bare_metal",
+              "cpu_virtual_machine"
+            ]
+          },
+          "execution_class": {
+            "type": "string",
+            "enum": [
+              "automatic",
+              "static",
+              "container",
+              "virtual_machine",
+              "bare_metal",
+              "cpu_virtual_machine"
+            ]
+          },
+          "management": {
+            "type": "string",
+            "enum": [
+              "managed",
+              "self_managed"
+            ]
+          },
+          "access_modes": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "enum": [
+                "public_http",
+                "forwarded_ports",
+                "ssh"
+              ]
+            }
+          },
+          "billing_cadence": {
+            "type": "string",
+            "enum": [
+              "fixed_monthly",
+              "hourly"
+            ]
+          },
+          "source_types": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "repository",
+                "image",
+                "template",
+                "os_image"
+              ]
+            }
+          },
+          "required_inputs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "availability": {
+            "type": "string",
+            "enum": [
+              "available",
+              "temporarily_unavailable"
+            ]
+          }
+        }
+      },
       "PublicError": {
         "type": "object",
         "required": [
@@ -918,13 +3203,18 @@
             "type": "string"
           },
           "subdomain": {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "status": {
             "type": "string",
             "enum": [
               "deploying",
               "live",
+              "failed",
+              "deleting",
               "deleted",
               "unknown"
             ]
@@ -937,7 +3227,10 @@
             ]
           },
           "public_url": {
-            "type": "string",
+            "type": [
+              "string",
+              "null"
+            ],
             "format": "uri"
           },
           "created_at": {
@@ -967,8 +3260,196 @@
           "resource_profile": {
             "$ref": "#/components/schemas/ResourceProfile"
           },
+          "access": {
+            "$ref": "#/components/schemas/DeploymentAccess"
+          },
           "billing": {
             "$ref": "#/components/schemas/DeploymentBilling"
+          },
+          "operation_deployment_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Durable deployment-operation identity (dashed UUID) when the app was deployed through the durable path; delete by this id for independently reconciled route/compute/billing teardown."
+          }
+        }
+      },
+      "CustomDomain": {
+        "type": "object",
+        "required": [
+          "hostname",
+          "state",
+          "dns",
+          "certificate",
+          "serving",
+          "createdAt",
+          "updatedAt"
+        ],
+        "properties": {
+          "hostname": {
+            "type": "string"
+          },
+          "recordType": {
+            "type": "string",
+            "enum": [
+              "cname",
+              "a"
+            ],
+            "description": "Absent means cname."
+          },
+          "recordName": {
+            "type": "string",
+            "description": "Registrar Host field relative to the zone: the bare label for a subdomain, @ for an apex."
+          },
+          "expectedCname": {
+            "type": "string",
+            "description": "Subdomain claims only."
+          },
+          "expectedA": {
+            "type": "string",
+            "description": "Apex claims only: the A record target."
+          },
+          "challenge": {
+            "type": "object",
+            "required": [
+              "name",
+              "value"
+            ],
+            "description": "Apex claims only: the mandatory TXT ownership proof.",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "value": {
+                "type": "string"
+              }
+            }
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "pending_dns",
+              "certificate_pending",
+              "active",
+              "error"
+            ]
+          },
+          "dns": {
+            "type": "object",
+            "required": [
+              "status"
+            ],
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "pending",
+                  "mismatch",
+                  "verified",
+                  "error"
+                ]
+              },
+              "observedCnames": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "observedA": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "observedTxt": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "checkedAt": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          },
+          "certificate": {
+            "type": "object",
+            "required": [
+              "status"
+            ],
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "pending",
+                  "active",
+                  "error"
+                ]
+              },
+              "checkedAt": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          },
+          "serving": {
+            "type": "object",
+            "required": [
+              "status"
+            ],
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "pending",
+                  "active",
+                  "error"
+                ]
+              },
+              "checkedAt": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "errorCode": {
+            "type": "string",
+            "enum": [
+              "dns_lookup_failed",
+              "https_verification_failed"
+            ]
+          }
+        }
+      },
+      "CustomDomainEnvelope": {
+        "type": "object",
+        "required": [
+          "supported",
+          "domain"
+        ],
+        "properties": {
+          "supported": {
+            "type": "boolean"
+          },
+          "domain": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CustomDomain"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         }
       },
@@ -1030,6 +3511,38 @@
             "items": {
               "type": "string"
             }
+          },
+          "accelerator": {
+            "$ref": "#/components/schemas/AcceleratorRequirement"
+          }
+        }
+      },
+      "DeploymentAccess": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "additionalProperties": false,
+        "required": [
+          "protocol",
+          "host",
+          "port",
+          "username"
+        ],
+        "properties": {
+          "protocol": {
+            "const": "ssh"
+          },
+          "host": {
+            "type": "string"
+          },
+          "port": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 65535
+          },
+          "username": {
+            "type": "string"
           }
         }
       },
@@ -1047,6 +3560,29 @@
           },
           "accrued_this_month_usd": {
             "type": "number"
+          },
+          "billing_model": {
+            "type": "string",
+            "enum": [
+              "fixed_monthly",
+              "hourly_resource_reservation"
+            ]
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "active",
+              "stopped"
+            ]
+          },
+          "hourly_cost_usd": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "hourlyUsd": {
+            "type": "number",
+            "exclusiveMinimum": 0
           },
           "currency": {
             "type": "string"
@@ -1074,7 +3610,6 @@
           "app_name",
           "status",
           "runtime",
-          "public_url",
           "run_id",
           "status_url"
         ],
@@ -1086,7 +3621,10 @@
             "type": "string"
           },
           "subdomain": {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "status": {
             "const": "deploying"
@@ -1100,13 +3638,20 @@
           },
           "public_url": {
             "type": "string",
-            "format": "uri"
+            "format": "uri",
+            "description": "Absent on the durable path: the URL is only projected after the canonical route is proven."
           },
           "run_id": {
             "type": "string"
           },
           "status_url": {
             "type": "string"
+          },
+          "deployment_id": {
+            "type": "string"
+          },
+          "replayed": {
+            "type": "boolean"
           }
         }
       },
@@ -1124,7 +3669,10 @@
             "type": "string"
           },
           "subdomain": {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "status": {
             "type": "string"
@@ -1153,6 +3701,7 @@
             "type": "string",
             "enum": [
               "queued",
+              "accepted",
               "running",
               "succeeded",
               "failed"
@@ -1176,6 +3725,76 @@
               "string",
               "null"
             ]
+          },
+          "public_status": {
+            "type": "string",
+            "enum": [
+              "deploying",
+              "live",
+              "failed",
+              "deleting",
+              "deleted"
+            ]
+          },
+          "id": {
+            "type": "string",
+            "description": "Durable deployment id on durable-path runs."
+          },
+          "deployment_id": {
+            "type": "string"
+          },
+          "operation": {
+            "type": "string",
+            "enum": [
+              "create_public_image",
+              "create_gpu_container",
+              "delete_deployment"
+            ]
+          },
+          "active_release_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "cleanup_state": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "support_id": {
+            "type": "string"
+          },
+          "error_message": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Deterministic failure sentence (closed vocabulary keyed by the sealed outcome code)."
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "public_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "access": {
+            "$ref": "#/components/schemas/DeploymentAccess"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
           }
         }
       },
@@ -1184,7 +3803,8 @@
         "required": [
           "lines",
           "count",
-          "complete"
+          "complete",
+          "observed_at"
         ],
         "properties": {
           "lines": {
@@ -1198,19 +3818,23 @@
           },
           "complete": {
             "type": "boolean",
-            "description": "False when the returned window may be partial, for example when the live runtime source was momentarily unavailable. When false, warning_code is set and the request is safe to retry for a complete window."
+            "description": "False when one of the bounded runtime-observation sources was unavailable."
           },
           "observed_at": {
-            "type": ["string", "null"],
-            "description": "ISO 8601 timestamp of the live runtime read behind this window, or null when no live read was captured."
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
           },
           "warning_code": {
             "type": "string",
-            "description": "Present only when `complete` is false (e.g. `logs_incomplete`)."
+            "enum": [
+              "logs_incomplete"
+            ]
           },
           "retryable": {
-            "type": "boolean",
-            "description": "Present only when `complete` is false; the read is safe to retry."
+            "type": "boolean"
           }
         }
       },
@@ -1218,25 +3842,10 @@
         "type": "object",
         "required": [
           "events",
-          "complete"
+          "complete",
+          "observed_at"
         ],
         "properties": {
-          "complete": {
-            "type": "boolean",
-            "description": "False when the returned events may be partial, for example when the live runtime source was momentarily unavailable. When false, warning_code is set and the request is safe to retry."
-          },
-          "observed_at": {
-            "type": ["string", "null"],
-            "description": "ISO 8601 timestamp of the live runtime read behind these events, or null when no live read was captured."
-          },
-          "warning_code": {
-            "type": "string",
-            "description": "Present only when `complete` is false (e.g. `events_incomplete`)."
-          },
-          "retryable": {
-            "type": "boolean",
-            "description": "Present only when `complete` is false; the read is safe to retry."
-          },
           "events": {
             "type": "array",
             "items": {
@@ -1262,6 +3871,26 @@
                 }
               }
             }
+          },
+          "complete": {
+            "type": "boolean",
+            "description": "False when the bounded runtime-observation source was unavailable."
+          },
+          "observed_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "warning_code": {
+            "type": "string",
+            "enum": [
+              "events_incomplete"
+            ]
+          },
+          "retryable": {
+            "type": "boolean"
           }
         }
       },
@@ -1286,18 +3915,40 @@
             ],
             "properties": {
               "runtime_state": {
-                "type": ["string", "null"],
-                "enum": ["healthy", "unhealthy", "unknown", null]
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "healthy",
+                  "unhealthy",
+                  "unknown",
+                  null
+                ]
               },
               "runtime_reason": {
-                "type": ["string", "null"]
+                "type": [
+                  "string",
+                  "null"
+                ]
               },
               "route_state": {
-                "type": ["string", "null"],
-                "enum": ["healthy", "unhealthy", "unknown", null]
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "healthy",
+                  "unhealthy",
+                  "unknown",
+                  null
+                ]
               },
               "route_reason": {
-                "type": ["string", "null"]
+                "type": [
+                  "string",
+                  "null"
+                ]
               },
               "consecutive_runtime_failures": {
                 "type": "integer"
@@ -1306,7 +3957,10 @@
                 "type": "integer"
               },
               "freshness_at": {
-                "type": ["string", "null"],
+                "type": [
+                  "string",
+                  "null"
+                ],
                 "format": "date-time"
               },
               "services": {
@@ -1333,7 +3987,10 @@
                     },
                     "state": {
                       "type": "string",
-                      "enum": ["healthy", "degraded"]
+                      "enum": [
+                        "healthy",
+                        "degraded"
+                      ]
                     },
                     "replicas": {
                       "type": "integer"
@@ -1383,23 +4040,37 @@
               "properties": {
                 "runtime_state": {
                   "type": "string",
-                  "enum": ["healthy", "unhealthy", "unknown"]
+                  "enum": [
+                    "healthy",
+                    "unhealthy",
+                    "unknown"
+                  ]
                 },
                 "runtime_reason": {
                   "type": "string"
                 },
                 "route_state": {
                   "type": "string",
-                  "enum": ["healthy", "unhealthy", "unknown"]
+                  "enum": [
+                    "healthy",
+                    "unhealthy",
+                    "unknown"
+                  ]
                 },
                 "route_reason": {
                   "type": "string"
                 },
                 "route_status": {
-                  "type": ["integer", "null"]
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
                 },
                 "observed_at": {
-                  "type": ["string", "null"],
+                  "type": [
+                    "string",
+                    "null"
+                  ],
                   "format": "date-time"
                 }
               }
@@ -1467,7 +4138,22 @@
         }
       },
       "CreateDeploymentRequest": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/CreateApplicationDeploymentRequest"
+          },
+          {
+            "$ref": "#/components/schemas/CreateGpuContainerRequest"
+          }
+        ]
+      },
+      "CreateApplicationDeploymentRequest": {
         "type": "object",
+        "not": {
+          "required": [
+            "execution_class"
+          ]
+        },
         "properties": {
           "name": {
             "type": "string"
@@ -1535,6 +4221,136 @@
           },
           "resource_profile": {
             "$ref": "#/components/schemas/ResourceProfile"
+          },
+          "ingress": {
+            "$ref": "#/components/schemas/IngressPolicy"
+          },
+          "volumes": {
+            "type": "array",
+            "maxItems": 4,
+            "items": {
+              "$ref": "#/components/schemas/VolumeSpec"
+            }
+          },
+          "dedicated_ip": {
+            "type": "boolean",
+            "default": false
+          },
+          "tee": {
+            "type": "string",
+            "enum": [
+              "cpu",
+              "cpu-gpu"
+            ]
+          },
+          "reclamation_min_window_seconds": {
+            "type": "integer",
+            "minimum": 60,
+            "maximum": 2592000
+          },
+          "accelerator": {
+            "$ref": "#/components/schemas/AcceleratorRequest"
+          },
+          "accelerator_quote_token": {
+            "type": "string",
+            "description": "The quote_token from POST /pricing/accelerator-quote. Required with accelerator; deploy-api rejects an accelerator without its exact quote and vice versa."
+          }
+        }
+      },
+      "IngressPolicy": {
+        "type": "object",
+        "description": "Optional HTTP ingress policy; defaults preserve historical behavior.",
+        "properties": {
+          "max_body_bytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1073741824,
+            "default": 104857600
+          },
+          "read_timeout_ms": {
+            "type": "integer",
+            "minimum": 1000,
+            "maximum": 600000,
+            "default": 60000
+          },
+          "send_timeout_ms": {
+            "type": "integer",
+            "minimum": 1000,
+            "maximum": 600000,
+            "default": 60000
+          },
+          "retry_tries": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10,
+            "default": 3
+          },
+          "retry_timeout_ms": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 600000,
+            "default": 60000
+          },
+          "retry_cases": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 10,
+            "items": {
+              "type": "string",
+              "enum": [
+                "error",
+                "timeout",
+                "403",
+                "404",
+                "429",
+                "500",
+                "502",
+                "503",
+                "504",
+                "off"
+              ]
+            },
+            "default": [
+              "error",
+              "timeout"
+            ]
+          }
+        }
+      },
+      "VolumeSpec": {
+        "type": "object",
+        "required": [
+          "name",
+          "size_gb",
+          "mount"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]{0,31}$"
+          },
+          "size_gb": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "storage_class": {
+            "type": "string",
+            "enum": [
+              "beta1",
+              "beta2",
+              "beta3",
+              "ram"
+            ],
+            "default": "beta3"
+          },
+          "mount": {
+            "type": "string",
+            "maxLength": 256
+          },
+          "read_only": {
+            "type": "boolean",
+            "default": false
           }
         }
       },
@@ -1666,6 +4482,13 @@
           },
           "mode": {
             "type": "string"
+          },
+          "preset_id": {
+            "type": "string",
+            "description": "Managed Cloud preset backing this estimate (absent for static)."
+          },
+          "pricing_policy_version": {
+            "type": "string"
           }
         }
       },
@@ -1713,31 +4536,129 @@
         "type": "object",
         "required": [
           "id",
+          "name",
           "tier",
+          "principal_type",
+          "services",
+          "allowed_models",
+          "privacy_floor",
+          "rotation_generation",
           "active"
         ],
         "properties": {
           "id": {
+            "type": "string",
+            "pattern": "^vki_[A-Za-z0-9_-]{20,64}$"
+          },
+          "name": {
             "type": "string"
           },
           "tier": {
             "type": "string"
           },
-          "created_at": {
+          "principal_type": {
+            "type": "string",
+            "enum": [
+              "human",
+              "workload"
+            ]
+          },
+          "services": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "deploy",
+                "inference"
+              ]
+            }
+          },
+          "project_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "application_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "deployment_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "environment": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "allowed_models": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "privacy_floor": {
+            "type": "string",
+            "enum": [
+              "private",
+              "anonymized"
+            ]
+          },
+          "upstream_budget_usd": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "requests_per_minute": {
             "type": [
               "integer",
+              "null"
+            ]
+          },
+          "concurrency_limit": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "expires_at": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "attachment_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "rotation_generation": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "created_at": {
+            "type": [
+              "number",
               "null"
             ]
           },
           "last_used_at": {
             "type": [
-              "integer",
+              "number",
               "null"
             ]
           },
           "revoked_at": {
             "type": [
-              "integer",
+              "number",
               "null"
             ]
           },
@@ -1762,8 +4683,382 @@
           }
         }
       },
+      "CreateInferenceApiKey": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "allowed_models",
+          "privacy_floor"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "project_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "application_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "environment": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "allowed_models": {
+            "type": "array",
+            "minItems": 0,
+            "maxItems": 64,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9.-]{0,95}$"
+            },
+            "description": "Empty means every current and future admitted model for this human key."
+          },
+          "privacy_floor": {
+            "type": "string",
+            "enum": [
+              "private",
+              "anonymized"
+            ]
+          },
+          "upstream_budget_usd": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 10000
+          },
+          "requests_per_minute": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10000
+          },
+          "concurrency_limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000
+          },
+          "expires_at": {
+            "type": "number"
+          }
+        }
+      },
+      "IssuedInferenceApiKey": {
+        "type": "object",
+        "required": [
+          "api_key",
+          "key"
+        ],
+        "properties": {
+          "api_key": {
+            "type": "string",
+            "writeOnly": true
+          },
+          "key": {
+            "$ref": "#/components/schemas/ApiKey"
+          }
+        }
+      },
+      "CreateAiGatewayAttachment": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "deployment_id",
+          "allowed_models",
+          "privacy_floor"
+        ],
+        "properties": {
+          "deployment_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "project_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "allowed_models": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 64,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9.-]{0,95}$"
+            }
+          },
+          "privacy_floor": {
+            "type": "string",
+            "enum": [
+              "private",
+              "anonymized"
+            ]
+          },
+          "upstream_budget_usd": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 10000
+          },
+          "requests_per_minute": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10000
+          },
+          "concurrency_limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000
+          },
+          "expires_at": {
+            "type": "number"
+          }
+        }
+      },
+      "AiGatewayAttachment": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "deployment_id",
+          "project_id",
+          "application_id",
+          "environment",
+          "allowed_models",
+          "privacy_floor",
+          "upstream_budget_usd",
+          "requests_per_minute",
+          "concurrency_limit",
+          "expires_at",
+          "public_base_url",
+          "status",
+          "key_id",
+          "rotation_generation",
+          "last_error_code",
+          "created_at",
+          "updated_at",
+          "detached_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^vai_[A-Za-z0-9_-]{20,64}$"
+          },
+          "deployment_id": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "application_id": {
+            "type": "string"
+          },
+          "environment": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "allowed_models": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "privacy_floor": {
+            "type": "string",
+            "enum": [
+              "private",
+              "anonymized"
+            ]
+          },
+          "upstream_budget_usd": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "requests_per_minute": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "concurrency_limit": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "expires_at": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "public_base_url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "attaching",
+              "active",
+              "rotating",
+              "detaching",
+              "detached",
+              "failed"
+            ]
+          },
+          "key_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^vki_[A-Za-z0-9_-]{20,64}$"
+          },
+          "rotation_generation": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "last_error_code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "created_at": {
+            "type": "number"
+          },
+          "updated_at": {
+            "type": "number"
+          },
+          "detached_at": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        }
+      },
+      "AiGatewayAttachmentResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "attachment"
+        ],
+        "properties": {
+          "attachment": {
+            "$ref": "#/components/schemas/AiGatewayAttachment"
+          }
+        }
+      },
+      "AiGatewayAttachmentList": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "attachments"
+        ],
+        "properties": {
+          "attachments": {
+            "type": "array",
+            "maxItems": 500,
+            "items": {
+              "$ref": "#/components/schemas/AiGatewayAttachment"
+            }
+          }
+        }
+      },
+      "ApiKeyAuditEvent": {
+        "type": "object",
+        "required": [
+          "id",
+          "type",
+          "key_id",
+          "principal_type",
+          "occurred_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^vka_[A-Za-z0-9_-]{20,64}$"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "issued",
+              "rotated",
+              "revoked"
+            ]
+          },
+          "key_id": {
+            "type": "string",
+            "pattern": "^vki_[A-Za-z0-9_-]{20,64}$"
+          },
+          "principal_type": {
+            "type": "string",
+            "enum": [
+              "human",
+              "workload"
+            ]
+          },
+          "project_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "application_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "deployment_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "attachment_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "occurred_at": {
+            "type": "number"
+          }
+        }
+      },
+      "ApiKeyAuditList": {
+        "type": "object",
+        "required": [
+          "events"
+        ],
+        "properties": {
+          "events": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ApiKeyAuditEvent"
+            }
+          }
+        }
+      },
       "WebhookEventType": {
         "type": "string",
+        "description": "deployment.restart_requested is accepted only for backward-compatible subscription storage; it is not emitted while verified restart is unavailable.",
         "enum": [
           "deployment.accepted",
           "deployment.progress",

@@ -240,6 +240,8 @@ The OpenAPI document contains these 18 public paths:
 | `GET`, `PATCH` | `/api/deployments/{deployment_id}/env` | List environment variable keys or update values |
 | `POST` | `/api/deployments/{deployment_id}/redeploy` | Redeploy in place |
 | `POST` | `/api/deployments/{deployment_id}/restart` | Restart in place |
+| `GET`, `PUT`, `DELETE` | `/api/deployments/{deployment_id}/domain` | Read, attach, or remove a custom domain |
+| `POST` | `/api/deployments/{deployment_id}/domain/verify` | Observe DNS and verify HTTPS serving |
 | `GET` | `/api/templates` | List templates |
 | `GET` | `/api/templates/{template_id}` | Read a template |
 | `POST` | `/api/templates/{template_id}/deploy` | Deploy a template |
