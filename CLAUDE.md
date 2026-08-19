@@ -1,7 +1,7 @@
 # CLAUDE.md - Varity Documentation
 
 Status: repository entrypoint
-Last updated: 2026-08-09
+Last updated: 2026-08-19
 
 This repository publishes the public documentation at `docs.varity.so`. It is
 a static Astro/Starlight surface, not a control-plane runtime.
@@ -40,15 +40,15 @@ Authority rules:
 
 ## Verification
 
-Run the repository's complete local check before merge:
+Install dependencies with `npm install` when needed, then run the repository's
+complete local check before merge:
 
 ```bash
-npm ci
 npm run check
 ```
 
 For visual or navigation changes, also inspect the local site at
-`http://localhost:4321` and verify the affected pages on desktop and mobile.
+`http://localhost:4321` at 1440x900, 768x900, and 390x844.
 
 Every pull request must complete the `Architecture impact` block in the pull
 request template. Update `ARCHITECTURE.md` only when ownership, an interface,

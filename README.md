@@ -9,9 +9,14 @@ This repository is the source for the official Varity documentation at **[docs.v
 
 ## What is Varity?
 
-Varity deploys supported source repos and runnable Docker/OCI HTTP services from the CLI, the Developer Portal, or your AI coding tool. It builds your project, provisions the backend services it detects, and returns a live URL. Pricing is one fixed monthly cost per app based on reserved hardware, so the bill does not change with traffic.
+Varity is The Orchestration Cloud. It aggregates independent compute capacity
+and orchestrates it as one cloud. You can deploy supported source repos and
+runnable Docker/OCI HTTP services from the Developer Portal, CLI, MCP server,
+or Public API. Pricing depends on the workload and current quote; see the
+[pricing guide](https://docs.varity.so/resources/pricing/) for the supported
+models.
 
-Varity ships as two packages:
+The command-line and AI-tool integrations are distributed as:
 
 - **`varitykit`** (PyPI): the deploy CLI
 - **`@varity-labs/mcp`** (npm): the MCP server for AI coding tools (Claude Code, Cursor, Windsurf)
