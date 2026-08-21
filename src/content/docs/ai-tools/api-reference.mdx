@@ -26,11 +26,21 @@ Older thin-client compatibility routes are not the public resource contract. New
 
 ## Base URL And Auth
 
-All public API calls use:
+Varity exposes two public base URLs:
+
+**Platform APIs** (apps, deployments, templates, pricing, credits, API keys, webhooks — everything on this page):
 
 ```text
 https://varity.app/api
 ```
+
+**AI Gateway** (OpenAI-compatible inference — chat completions and model listing):
+
+```text
+https://varity.app/v1
+```
+
+Point any OpenAI-compatible client at `https://varity.app/v1` for inference; the `/api` routes below are the platform resource contract.
 
 For non-browser callers, send your Varity API key as a bearer credential:
 

@@ -48,10 +48,18 @@ Older thin-client compatibility routes are not the public resource contract. New
 
 ## Base URL And Auth
 
-All public API calls use:
+Varity exposes two public base URLs. Platform APIs (apps, deployments,
+templates, pricing, credits, API keys, webhooks) use:
 
 ```text
 https://varity.app/api
+```
+
+The AI Gateway (OpenAI-compatible inference — chat completions and model
+listing) uses:
+
+```text
+https://varity.app/v1
 ```
 
 For non-browser callers, send your Varity API key as a bearer credential:
@@ -380,18 +388,17 @@ Search Varity docs for guides, API references, and tutorials.
 
 ### `varity_cost_calculator`: Estimate costs
 
-Estimate the monthly price for your deployment profile.
+Estimate the fixed monthly price for a deployment profile. Pricing is computed by the Varity pricing service, so this tool, the CLI, and the portal render identical numbers.
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `users` | number | Yes | none | Estimated monthly active users |
-| `storage_gb` | number | No | 10 | Storage needed in GB |
-| `has_database` | boolean | No | true | Whether the app uses a database |
-| `has_auth` | boolean | No | true | Whether the app uses authentication |
+| `app_profile` | string | No | `web-app` | Pre-deploy estimate preset: `static-site`, `web-app`, `web-app-db`, `ai-agent-cpu`, or `ai-agent-gpu` |
+| `subdomain` | string | No | none | A live deployment's subdomain — returns that deployment's real cost (overrides `app_profile`) |
+| `has_database` | boolean | No | none | Whether the app uses a database (selects the database-inclusive estimate) |
 
 **Annotations:** `readOnlyHint: true`
 
-**Example prompt:** "How much would it cost to host a SaaS app with 500 users on Varity?"
+**Example prompt:** "How much would it cost to host a web app with a database on Varity?"
 
 ---
 
@@ -649,7 +656,7 @@ Here is the practical build-and-deploy flow using the MCP tools:
 
 1. **"Check if my environment is ready"** → `varity_doctor`
 2. **"Install dependencies"** → `varity_install_deps`
-3. **"What will this cost for 200 users?"** → `varity_cost_calculator`
+3. **"What will this cost per month?"** → `varity_cost_calculator`
 4. **"Start the dev server"** → `varity_dev_server` → `varity_open_browser`
 5. **"Build for production"** → `varity_build`
 6. **"Deploy this"** → `varity_deploy`
@@ -711,7 +718,7 @@ https://mcp.varity.so
 
 **ChatGPT:** Settings → Connectors → Create → MCP server URL: `https://mcp.varity.so`
 
-The first time you connect, you'll authenticate via the Varity login page.
+Hosted OAuth login is in progress: hosted OAuth and per-user deployment authorization are not yet certified end to end. Until that verification passes, do not use the hosted endpoint for owner-scoped operations (deploys, env changes, deletes) — connect via the stdio package (`npx -y @varity-labs/mcp`) instead.
 
 ### Self-Hosted HTTP
 
@@ -3622,11 +3629,19 @@ This restores all files from `.vercel-migration-backup/`.
 ## Supported App Deployment Frameworks
 
 URL: https://docs.varity.so/deploy/what-you-can-deploy/
-Description: Supported app deployment frameworks on Varity, including Node, Python, Go, static projects, Docker image services, and current beta limits.
+Description: The three Varity deployment categories — Applications (repos, Docker images, static sites), CPU VMs, and GPU workloads — plus current beta limits.
 
 Varity is a newly launched platform in active beta. This page is the honest snapshot of what works today, what is beta, and what is not ready yet, so nothing surprises you after you deploy.
 
 ## What Deploys Today
+
+Varity serves three deployment categories:
+
+1. **Applications** — deploy from a Git repository, a prebuilt Docker image, or a static build.
+2. **CPU VMs** — dedicated virtual machines; you pick the exact machine from the marketplace.
+3. **GPU workloads** — GPU containers, GPU VMs, and GPU bare metal; you pick the exact GPU offer from the marketplace.
+
+### Applications
 
 <CardGrid>
 
@@ -3653,6 +3668,14 @@ See [Supported Frameworks](/deploy/supported-frameworks/) for the full detection
 - Static sites → `https://varity.app/<your-app>/`
 - Dynamic apps → `https://<your-app>.varity.app/`
 
+### CPU VMs
+
+Rent a dedicated CPU virtual machine when you need full control of the box rather than a managed app runtime. The VM marketplace shows the exact machines on offer — you choose the machine, region, and price before you deploy.
+
+### GPU workloads
+
+GPU compute comes in three forms: **GPU containers**, **GPU VMs**, and **GPU bare metal**. The GPU marketplace shows the exact cards on offer — you choose the card, region, and price before you deploy.
+
 ## Not Auto-Built From Source Yet
 
 Varity does not build these languages from source yet: **Rust, Ruby / Rails, Elixir / Phoenix, Java / Spring, Deno, PHP / Laravel, .NET.**
@@ -3667,7 +3690,6 @@ These aren't available in the current beta. Don't plan around them yet:
 - Cron jobs and scheduled tasks
 - Preview deployments
 - Multi-region and edge runtime
-- Dedicated GPUs for your own containers
 - A fully managed database product (see the durability note below)
 
 ## Beta Expectations
@@ -3676,7 +3698,7 @@ Varity is in guided beta. For demos, side projects, and apps that tolerate beta,
 
 - **Databases are real but beta.** Auto-wired databases work and data survives container restarts within a deployment, but this is not yet a managed database product with automated backups, high availability, or point-in-time recovery. See [Databases & Data](/deploy/databases/).
 - **Private repos:** the safest path for a private or unsupported app today is a prebuilt Docker image.
-- **Heavy or unusual workloads** (browser automation, large file/video processing, long-running jobs, GPU work) may need a hand. Reach out via [Getting Help](/getting-started/getting-help/).
+- **Heavy or unusual workloads** (browser automation, large file/video processing, long-running jobs) may need a hand. Reach out via [Getting Help](/getting-started/getting-help/).
 
 ## Start Deploying
 
@@ -3835,7 +3857,7 @@ Varity chooses the default based on the app type. You can force the mode with `-
 
 Varity is in guided beta. Use it freely for demos, side projects, AI agent apps, and apps that tolerate beta limits. Bring your own external database for business critical data until managed database durability, backups, and restore are shipped.
 
-Varity currently supports Node, Python, Go, static projects, and Docker or OCI HTTP service images. Cron jobs, preview deployments, one click rollback, and dedicated GPUs for user containers are not shipped yet.
+Varity serves three deployment categories: applications (Node, Python, Go, static projects, and Docker or OCI HTTP service images), CPU VMs, and GPU workloads (containers, VMs, and bare metal). Cron jobs, preview deployments, and one click rollback are not shipped yet.
 
 ## Next Steps
 
@@ -4061,7 +4083,7 @@ Source deployments support Node, Python, Go, and static projects. Docker image d
 
 **Supported services:** Postgres with vector extension support, Redis, MongoDB, MySQL, object storage, and model runtime services when detected from your app.
 
-**Not shipped yet:** cron jobs, preview deployments, one click rollback, managed database backups and restore, and dedicated GPUs for user containers.
+**Not shipped yet:** cron jobs, preview deployments, one click rollback, and managed database backups and restore.
 
 ## Where to Go Next
 
@@ -4451,7 +4473,7 @@ Use [Pricing and Costs](/resources/pricing/) for the current pricing workflow an
 
 Varity is in guided beta. Bring your own external managed database for business critical data until managed database durability, backups, and restore are shipped.
 
-Varity may not be the right fit yet if you need cron jobs, preview deployments, one click rollback, dedicated GPUs for your own containers, or a source build for Rust, Ruby, Elixir, Java, Deno, PHP, or .NET.
+Varity may not be the right fit yet if you need cron jobs, preview deployments, one click rollback, or a source build for Rust, Ruby, Elixir, Java, Deno, PHP, or .NET.
 
 Those unsupported source stacks can still deploy when packaged as runnable Docker or OCI HTTP service images.
 

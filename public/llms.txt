@@ -56,7 +56,7 @@ claude mcp add varity -- npx -y @varity-labs/mcp
 - [Recover a Previous Version](https://docs.varity.so/deploy/rollback/): Recover after a bad Varity deploy by redeploying a known-good version under the same app name.
 - [Supported Frameworks on Varity](https://docs.varity.so/deploy/supported-frameworks/): Which frameworks Varity supports today, what gets auto-detected, and how to request support for languages not yet available.
 - [Migrate from Vercel to Varity](https://docs.varity.so/deploy/vercel-migration/): Move your existing Vercel app to Varity in under 3 minutes. The CLI and MCP tools handle code transforms, dependency cleanup, and deployment automatically.
-- [Supported App Deployment Frameworks](https://docs.varity.so/deploy/what-you-can-deploy/): Supported app deployment frameworks on Varity, including Node, Python, Go, static projects, Docker image services, and current beta limits.
+- [Supported App Deployment Frameworks](https://docs.varity.so/deploy/what-you-can-deploy/): The three Varity deployment categories — Applications (repos, Docker images, static sites), CPU VMs, and GPU workloads — plus current beta limits.
 - [Getting Help with Varity](https://docs.varity.so/getting-started/getting-help/): Find Varity support through documentation, Discord, GitHub issues, and setup checks when deploys need attention.
 - [How Varity Deployments Work](https://docs.varity.so/getting-started/how-varity-works/): The Varity deploy lifecycle from project input to live URL, status, logs, and redeploys.
 - [Getting Started with Varity](https://docs.varity.so/getting-started/): Get started with Varity. Deploy supported source apps, AI agents, and runnable Docker services.
