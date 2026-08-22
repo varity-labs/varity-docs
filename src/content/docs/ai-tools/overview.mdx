@@ -18,7 +18,7 @@ Varity is built to be driven from your AI coding tool. Add the MCP server once, 
 ## Available Tools
 
 <CardGrid>
-  <Card title="MCP Server" icon="rocket">
+  <Card title="MCP Server">
     Model Context Protocol server for Cursor, Claude Code, VS Code, and Windsurf. Deploy, search docs, and manage apps from your AI editor.
 
     [View Spec →](/ai-tools/mcp-server-spec)
@@ -67,14 +67,14 @@ AI assistants can reference our documentation in machine-readable formats:
 | `llms.txt` | `https://docs.varity.so/llms.txt` | Summary: what Varity is, key APIs, common patterns |
 | `llms-full.txt` | `https://docs.varity.so/llms-full.txt` | Detailed: full documentation content for deep context |
 
-Point any AI tool at one of these URLs for instant Varity context. Use `llms.txt` for quick context in chat-based LLMs (ChatGPT, Gemini), and `llms-full.txt` when the AI needs comprehensive documentation.
+Point any AI tool at one of these URLs for instant Varity context. Use `llms.txt` for quick context in chat-based LLMs (ChatGPT, Gemini), and `llms-full.txt` when the AI needs the full text.
 
 ## AI-Friendly Patterns
 
 When you point an AI tool at Varity's LLM-optimized docs, it learns to use developer-friendly language:
 
 - "Deploy your application" (not platform-specific hosting terms)
-- "Sign in" (the user just sees a normal login screen)
+- "Sign in" (the user sees a normal login screen)
 - "Your backend is configured automatically" (no infrastructure jargon)
 
 It also learns the real deploy flow: detect the framework, choose the hosting mode, auto-wire any databases or caches your app needs, and return a live URL, all without changing your code.

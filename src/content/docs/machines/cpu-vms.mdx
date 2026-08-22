@@ -1,0 +1,215 @@
+---
+title: CPU Virtual Machines
+description: All 13 Varity CPU VM sizes with exact vCPU, memory, disk, hourly price, and monthly cap, plus the OS images, the create flow, and how billing stops.
+---
+
+import { Aside, Steps, LinkCard } from '@astrojs/starlight/components';
+import PageMeta from '../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="August 2026"
+  stability="beta"
+/>
+
+A CPU VM is a machine you rent for yourself. You pick a profile, pick an OS image, send an SSH public key, and get a box you administer. Varity does not build your code, wire services, or give it a `varity.app` URL. That is [Applications](/deploy/what-you-can-deploy/).
+
+The catalog holds **26 profiles: 13 sizes in 2 regions.** Specs and price are identical in both regions. Every profile was `available` when this page was written.
+
+Values below were read from `GET /api/deployment-profiles?workload=virtual_machine&execution_class=cpu_virtual_machine` on 22 August 2026.
+
+## Dedicated CPU
+
+These profiles report `cpu_class: "dedicated"`.
+
+| Profile | vCPU | Memory | Disk | Hourly | Monthly cap |
+| --- | --- | --- | --- | --- | --- |
+| Performance S | 2 | 4 GB | 20 GB | $0.038356 | $28.00 |
+| Performance M | 4 | 8 GB | 20 GB | $0.067123 | $49.00 |
+| Performance L | 8 | 16 GB | 20 GB | $0.121918 | $89.00 |
+| Performance L-Memory | 8 | 32 GB | 20 GB | $0.205479 | $150.00 |
+| Performance XL | 16 | 32 GB | 20 GB | $0.232877 | $170.00 |
+| Performance 24 | 24 | 48 GB | 20 GB | $0.343836 | $251.00 |
+| Performance 32 | 32 | 64 GB | 20 GB | $0.453425 | $331.00 |
+| Performance 64 | 64 | 128 GB | 20 GB | $0.89726 | $655.00 |
+
+## Shared CPU
+
+These profiles report `cpu_class: "shared"`. Cheaper per vCPU.
+
+| Profile | vCPU | Memory | Disk | Hourly | Monthly cap |
+| --- | --- | --- | --- | --- | --- |
+| Shared S | 2 | 2 GB | 20 GB | $0.019178 | $14.00 |
+| Shared M | 3 | 4 GB | 20 GB | $0.026027 | $19.00 |
+| Shared L | 4 | 8 GB | 20 GB | $0.038356 | $28.00 |
+| Shared XL | 8 | 16 GB | 20 GB | $0.067123 | $49.00 |
+| Shared 2XL | 16 | 32 GB | 20 GB | $0.121918 | $89.00 |
+
+Three shared sizes cost exactly the same as a dedicated size with half the hardware:
+
+| Same hourly price | Shared | Dedicated |
+| --- | --- | --- |
+| $0.038356 | Shared L (4 vCPU / 8 GB) | Performance S (2 vCPU / 4 GB) |
+| $0.067123 | Shared XL (8 vCPU / 16 GB) | Performance M (4 vCPU / 8 GB) |
+| $0.121918 | Shared 2XL (16 vCPU / 32 GB) | Performance L (8 vCPU / 16 GB) |
+
+So pay for Performance when you need the cores to be yours, not when you need more of them.
+
+## Regions
+
+Two regions, and they are interchangeable on paper:
+
+| Region | Country |
+| --- | --- |
+| `de-frankfurt` | Germany |
+| `pl-poz` | Poland |
+
+All 13 sizes exist in both, at identical specs and identical prices. Each region has its own `profile_id`. The region is a property of the profile, not a create-time argument.
+
+## Disk
+
+**Every CPU VM profile has a 20 GB disk.** All 26 report `storage_mb: 20480`. There is no larger boot disk to choose and no size that comes with more.
+
+For more, pass `additional_storage_gb` when you request a quote and again when you create the machine. It is an integer from 0 to 32768 GB, valid **only** when `execution_class` is `cpu_virtual_machine`. Additional storage is priced into the quote's `hourly_usd`, and it bills **outside** the monthly cap.
+
+## OS Images
+
+All 26 profiles offer the same five images. Pass the `id`, not the label.
+
+| `id` | Label |
+| --- | --- |
+| `os-ubuntu-24-04-lts-x64-70031bd79dea` | Ubuntu 24.04 (LTS) x64 |
+| `os-ubuntu-22-04-lts-x64-8eff1404d444` | Ubuntu 22.04 (LTS) x64 |
+| `os-debian-12-x64-6bf00e145a61` | Debian 12 x64 |
+| `os-fedora-41-x64-f29cddf55723` | Fedora 41 x64 |
+| `os-centos-stream-10-x64-4cc111f9cdc5` | CentOS Stream 10 x64 |
+
+An image a profile does not list is rejected at create time. Read `os_images` from the profile you picked rather than hardcoding these IDs.
+
+## How the Price Is Derived
+
+The hourly rate is the monthly cap divided by 730, rounded to whole microdollars. It is not an independent number.
+
+Performance XL, verbatim from the catalog:
+
+```
+monthly_cap_microusd  170000000
+170000000 / 730     = 232876.71…
+customer_price.amount_microusd = 232877
+```
+
+That holds for all 13 sizes. So the monthly cap is exactly 730 hours of runtime, and a machine that runs every hour of a 744-hour month pays the cap, not 744 × the hourly rate. Divide `amount_microusd` by 1,000,000 for dollars.
+
+The cap covers **compute only**. Additional NVMe storage is billed on top of it.
+
+## Create a Machine
+
+<Steps>
+
+1. **Pick a profile and an image**
+
+   Read the catalog and keep the `profile_id` (format `mp-` plus 24 hex characters) and one `os_images[].id`.
+
+   ```bash
+   curl "https://varity.app/api/deployment-profiles?workload=virtual_machine&execution_class=cpu_virtual_machine" \
+     -H "Authorization: Bearer $VARITY_API_KEY"
+   ```
+
+2. **Get a quote**
+
+   ```bash
+   curl -X POST https://varity.app/api/pricing/machine-quote \
+     -H "Authorization: Bearer $VARITY_API_KEY" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "profile_id": "mp-0628f148846594bc2dd04c9c",
+       "execution_class": "cpu_virtual_machine",
+       "os_image": "os-ubuntu-24-04-lts-x64-70031bd79dea"
+     }'
+   ```
+
+   The response carries `quote_token`, `quote_reference`, `resource_fingerprint`, `hourly_usd`, `authorization_usd`, `valid_until`, and `pricing_policy_version`. The quote expires. Read `valid_until` and request a new one rather than retrying an old token.
+
+3. **Create the machine**
+
+   ```bash
+   curl -X POST https://varity.app/api/machines \
+     -H "Authorization: Bearer $VARITY_API_KEY" \
+     -H "Idempotency-Key: my-vm-create-001" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "name": "my-worker",
+       "profile_id": "mp-0628f148846594bc2dd04c9c",
+       "execution_class": "cpu_virtual_machine",
+       "os_image": "os-ubuntu-24-04-lts-x64-70031bd79dea",
+       "ssh_public_key": "ssh-ed25519 AAAA...",
+       "accelerator_quote_token": "<quote_token from step 2>"
+     }'
+   ```
+
+   The quote's `quote_token` is sent as **`accelerator_quote_token`**. The field name is the same for CPU VMs as for GPU machines. `name` is lowercase letters, digits, and hyphens, up to 63 characters. `Idempotency-Key` is required (8 to 128 characters).
+
+   The response is `202` with `machine_id`, `replayed`, and an `operation` block.
+
+4. **Poll until access appears**
+
+   ```bash
+   curl https://varity.app/api/machines/$MACHINE_ID \
+     -H "Authorization: Bearer $VARITY_API_KEY"
+   ```
+
+   `access` is `null` until the machine is ready, then becomes `protocol: "ssh"` with `host`, `port`, and `username`. `lifecycle.status` moves through `accepted`, `running`, and `succeeded` or `failed`.
+
+</Steps>
+
+<Aside type="caution" title="Send the public key only">
+`ssh_public_key` takes a public key. Requests carrying private key material are rejected.
+</Aside>
+
+## Connect
+
+```bash
+ssh -p <port> <username>@<host>
+```
+
+Take all three values from the machine's `access` block. There is no default username or port to assume.
+
+## Billing
+
+The machine's `billing` block reports:
+
+- `state` is `pending`, `active`, or `stopped`.
+- `customer_price` is the hourly rate, in microdollars.
+- `monthly_cap_microusd` is present **only** for `cpu_virtual_machine`.
+- `month_to_date` holds `compute_microusd` (capped), `storage_microusd` (not capped), and `month_started_at`. It is `null` until the first billed hour completes, so a new machine legitimately shows nothing.
+
+## Restart
+
+```bash
+curl -X POST https://varity.app/api/machines/$MACHINE_ID/actions \
+  -H "Authorization: Bearer $VARITY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"action": "restart"}'
+```
+
+`action` is `restart` or `soft_reboot`. Both act in place: same machine, same SSH access, same billing. Rebooting does not pause charges.
+
+## Delete
+
+<Aside type="danger" title="Shutting down the guest OS does not stop billing">
+`shutdown` or `poweroff` inside the VM stops your software, not your reservation. Deleting the machine is the only way to stop CPU VM charges.
+</Aside>
+
+```bash
+curl -X DELETE https://varity.app/api/machines/$MACHINE_ID \
+  -H "Authorization: Bearer $VARITY_API_KEY"
+```
+
+Deletion is asynchronous, and acceptance is not proof of closure. Read the machine back and check `lifecycle.cleanup_state`. It reaches `complete` when release has actually finished. Deleting destroys the disk; there is no suspend state that keeps data while stopping charges.
+
+## Related
+
+<LinkCard title="Machine Catalogs" href="/machines/" description="All four catalogs, with counts and price ranges." />
+<LinkCard title="GPU Machines" href="/machines/gpu/" description="GPU containers, GPU VMs, and GPU bare metal." />
+<LinkCard title="API Reference" href="/ai-tools/api-reference/" description="Authentication and the full endpoint surface." />

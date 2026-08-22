@@ -1,0 +1,134 @@
+---
+title: Rate Limits
+description: Varity public API rate-limit budgets, the response headers clients can program against, and how to retry correctly.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+import PageMeta from '../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="August 2026"
+  stability="beta"
+/>
+
+The Varity platform API (`https://varity.app/api`) enforces rate limits per account. When a budget is exhausted the request fails with `429` and the `rate_limited` error code.
+
+## Budgets Are Per Account And Per Class
+
+Limits are keyed to the **authenticated account**, not to the API key, the route, or the client IP. Two keys owned by the same account draw from the same budgets, and so does a Developer Portal session for that account.
+
+Requests are grouped into classes, and each class has its own budget. A budget is shared across **every route in that class**. Exhausting the read budget on `/api/deployments` also blocks `/api/credits`.
+
+| Class | Budget | Window | Covers |
+|-------|--------|--------|--------|
+| Read | 300 requests | 1 minute | Listing and reading deployments, machines, templates, credits, profiles, capabilities, keys, attachments |
+| Quote | 120 requests | 1 minute | `/api/pricing/estimate`, `/api/pricing/accelerator-quote`, `/api/pricing/machine-quote` |
+| Logs | 120 requests | 1 minute | `/api/deployments/{id}/logs` and `/api/deployments/{id}/events` |
+| Stop | 120 requests | 1 minute | Deleting deployments and machines, revoking API keys |
+| Deploy create | 10 requests | 1 hour | `POST /api/deployments`, `POST /api/templates/{id}/deploy`, `POST /api/machines` |
+| Mutation | 30 requests | 1 hour | Redeploy, restart, env updates, webhooks, key creation, AI Gateway attachments |
+
+Two of these deserve explanation.
+
+**Quotes are cheap on purpose.** A price quote allocates nothing and changes nothing, so it draws from a generous per-minute budget rather than the hourly mutation budget. Comparing prices across profiles will not exhaust your ability to manage running resources.
+
+**Stopping is never throttled into unavailability.** Delete and credential revocation are safety controls. A resource you cannot turn off keeps billing, and a leaked key you cannot revoke stays live. These get their own generous per-minute budget and never draw from the hourly create budget.
+
+<Aside type="caution">
+The deploy-create budget is **10 per hour**. It is the tightest limit on the platform. If you are provisioning in bulk, pace your creates and treat `429` on a create as expected backpressure, not an error condition.
+</Aside>
+
+## Response Headers
+
+Limited routes return standard `RateLimit-*` headers. Program against these rather than hardcoding the numbers above. The headers are authoritative for your account at that moment.
+
+| Header | Meaning |
+|--------|---------|
+| `RateLimit-Limit` | Requests allowed in the current window for this class. |
+| `RateLimit-Remaining` | Requests left in the current window. |
+| `RateLimit-Reset` | Seconds until the window resets. |
+| `Retry-After` | On a `429` only: seconds to wait before retrying. |
+
+Legacy `X-RateLimit-*` headers are **not** emitted. Do not depend on them.
+
+<Aside type="note">
+Rate limiting runs **after** authentication. An unauthenticated request is rejected with `401` before it reaches a limiter, so `401` responses carry no `RateLimit-*` headers. You will only see these headers on requests that authenticated successfully.
+</Aside>
+
+Every response, limited or not, carries an `x-request-id` header. Send your own `X-Request-Id` and it is echoed back as `correlation_id` in any error body. See [API Errors](/api/errors/).
+
+## The 429 Response
+
+```json
+{
+  "code": "rate_limited",
+  "message": "Too many deployment requests.",
+  "action": "This budget is shared across your whole account for this class of request. Wait for the window in the retry-after header.",
+  "retryable": true,
+  "docs_url": "https://docs.varity.so/api/errors#rate_limited",
+  "correlation_id": "..."
+}
+```
+
+The `message` names the class that was exhausted: `Too many API requests.`, `Too many deployment requests.`, `Too many pricing requests.`, `Too many stop requests.`, `Too many mutation requests.`, or `Too many log requests.`
+
+`rate_limited` is always `retryable: true`. Retrying a *different* route in the same class will not help; the budget is shared. Wait out the window.
+
+## Retrying Correctly
+
+Honor `Retry-After`. It is the server's own statement of when the window opens, and it can be much longer than a naive backoff would guess. Hourly-window classes can return waits of many minutes.
+
+```python
+import time, random, requests
+
+def call(method, url, **kw):
+    for attempt in range(6):
+        r = requests.request(method, url, **kw)
+        if r.status_code != 429:
+            return r
+
+        # The server knows when the window opens. Trust it.
+        wait = float(r.headers.get("Retry-After", 2 ** attempt))
+        time.sleep(wait + random.uniform(0, 1))  # jitter to avoid a thundering herd
+
+    raise RuntimeError("rate limit not cleared")
+```
+
+Two rules that matter in practice:
+
+1. **Add jitter.** Fleets that all read `Retry-After: 60` and wake together re-exhaust the budget instantly.
+2. **Pace proactively.** When `RateLimit-Remaining` approaches zero, slow down before you get a `429` rather than after.
+
+## Retries And Duplicate Resources
+
+Retrying a create after a `429` is safe only if it is idempotent. Send an `Idempotency-Key` on every create so a retry cannot produce a second deployment or machine:
+
+```bash
+curl -X POST https://varity.app/api/deployments \
+  -H "Authorization: Bearer $VARITY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: deploy-my-app-001" \
+  -d '{ "name": "my-app", "repository": { "url": "https://github.com/me/my-app" } }'
+```
+
+Keys match `[A-Za-z0-9._:-]` and are at most 160 characters. Records are retained for 24 hours. Replaying the same key with the same body returns the original result; reusing it with a *different* body returns `409 idempotency_key_reused`. See [API Errors](/api/errors/#not-found-and-conflict).
+
+## Other Limits
+
+Some limits are enforced by the resource contract rather than by a request budget:
+
+- **Health history**: `GET /api/deployments/{id}/health-history` accepts `limit` with a default of 100 and a maximum of 500 observations.
+- **Idempotency keys**: 160 characters maximum, 24-hour retention.
+
+<Aside type="note">
+Account-level quotas on concurrent deployments and spend are governed by your billing state, not by these request budgets. A request that is refused for billing reasons returns `402 billing_or_credit_required`, not `429`.
+</Aside>
+
+The AI Gateway (`https://varity.app/v1`) is a separate surface with its own independent rate-limit, concurrency, and budget admission controls. Limits documented here do not apply to it. See the [AI Gateway](/ai-gateway/) docs.
+
+## Next Steps
+
+- **[API Errors](/api/errors/)**: the error envelope and every verified error code
+- **[Public API Reference](/ai-tools/api-reference/)**: endpoints and examples

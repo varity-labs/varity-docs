@@ -16,7 +16,7 @@ import PageMeta from '../../../components/PageMeta.astro';
 Three ways to get started. Pick the one that fits where you are today.
 
 <CardGrid>
-  <Card title="Migrate an existing app" icon="rocket">
+  <Card title="Migrate an existing app">
     You already have an app on Vercel. The migration tool moves it and deploys it.
   </Card>
   <Card title="Deploy your current repo" icon="puzzle">
@@ -39,6 +39,7 @@ If you already have a Next.js, React, Vue, Node.js, Python, Astro, Qwik, or Vite
 
    ```bash
    pipx install varitykit
+   varitykit login
    ```
 
 2. **Migrate and deploy**
@@ -47,7 +48,7 @@ If you already have a Next.js, React, Vue, Node.js, Python, Astro, Qwik, or Vite
    varitykit migrate --url https://github.com/username/my-app
    ```
 
-   This clones your repository, removes any platform-specific code, and deploys your app to Varity. Your app is live at `https://varity.app/my-app/` when done.
+   This clones your repository, removes any platform-specific code, and deploys your app to Varity. `migrate` always deploys with `--hosting dynamic`, so your app is live at `https://my-app.varity.app/` when done. (Static-only projects deployed with `varitykit app deploy` live at `https://varity.app/<name>/` instead.)
 
 3. **Preview before deploying** (optional)
 
@@ -59,7 +60,7 @@ If you already have a Next.js, React, Vue, Node.js, Python, Astro, Qwik, or Vite
 
 </Steps>
 
-<Aside type="tip" title="Coming from Vercel?">
+<Aside type="tip" icon="approve-check" title="Coming from Vercel?">
 The migration tool automatically removes `vercel.json`, `@vercel/*` packages, and Vercel-specific environment variable names. Everything is backed up to `.vercel-migration-backup/` so you can roll back.
 </Aside>
 
@@ -76,7 +77,7 @@ cd my-app
 varitykit app deploy
 ```
 
-Varity auto-detects the framework and hosting mode, then returns a live URL at `https://varity.app/<app-name>/`.
+Varity auto-detects the framework and hosting mode, then returns a live URL. Static sites live at `https://varity.app/<app-name>/`; dynamic apps live at `https://<app-name>.varity.app/`.
 
 ---
 
@@ -130,7 +131,7 @@ If you are using Claude Code or Cursor, the Varity MCP server lets your AI tool 
 
 </Steps>
 
-<Aside type="tip" title="First deploy?">
+<Aside type="tip" icon="approve-check" title="First deploy?">
 The MCP server will prompt you to log in the first time. Use your email or Google account. No account setup is needed beforehand.
 </Aside>
 

@@ -1,0 +1,312 @@
+---
+title: GPU Machines
+description: Every card model, real hourly price, host spec, and region across the three Varity GPU execution classes (containers, VMs, and bare metal).
+---
+
+import { Aside, Steps, LinkCard } from '@astrojs/starlight/components';
+import PageMeta from '../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="August 2026"
+  stability="beta"
+/>
+
+GPU on Varity is **three separate catalogs**, not one. They rent different things and use different endpoints. Containers also return a different profile schema.
+
+| Execution class | Profiles | You get | Created via | SSH |
+| --- | --- | --- | --- | --- |
+| `container` | 9 | One container on one GPU | `POST /api/deployments` | No |
+| `virtual_machine` | 186 | A VM with 1, 2, 4, or 8 GPUs | `POST /api/machines` | Yes |
+| `bare_metal` | 4 | A physical 8-GPU host | `POST /api/machines` | Yes |
+
+All values on this page were read from `GET /api/deployment-profiles?workload=gpu` on 22 August 2026. Every profile in all three catalogs was `available`.
+
+<Aside type="caution" title="GPU prices track available supply">
+Unlike applications and CPU VMs, GPU rates are not a fixed price list. Varity places GPU workloads on independent capacity, so which cards exist, in which regions, at which hourly rate, follows what is actually on offer at the moment you ask. The tables below are a dated snapshot, not a rate card.
+
+Read `GET /api/deployment-profiles?workload=gpu&execution_class=<class>` for the current catalog, and take the hourly figure from the quote you are about to spend against. The quote carries `valid_until` and a `resource_fingerprint`; if either the deadline passes or the configuration changes, request a fresh one.
+</Aside>
+
+<Aside type="caution" title="No monthly cap on GPU">
+The monthly cap that CPU VMs carry does not exist on GPU. `monthly_cap_microusd` is absent from every GPU profile. Any monthly figure you compute from an hourly rate is your own estimate, not a ceiling Varity enforces. A forgotten 8× H100 VM at $59.562/hour accrues about $1,429 a day.
+</Aside>
+
+## GPU Containers
+
+Nine offers, four card models. Pick one, deploy a container image onto it. There is no host to administer, no OS image to choose, and no region in the profile.
+
+| Offer | GPU model | VRAM | Interface | GPUs | Hourly |
+| --- | --- | --- | --- | --- | --- |
+| RTX 4090 24 GB | `rtx4090` | 24 GB | pcie | 1 | $1.431 |
+| A100 80 GB | `a100` | 80 GB | sxm | 1 | $2.9835 |
+| A100 80 GB | `a100` | 80 GB | sxm | 1 | $3.024 |
+| A100 80 GB | `a100` | 80 GB | sxm | 1 | $3.1185 |
+| A100 80 GB | `a100` | 80 GB | sxm | 1 | $3.294 |
+| H100 80 GB | `h100` | 80 GB | sxm | 1 | $3.6585 |
+| H200 141 GB | `h200` | 141 GB | sxm | 1 | $4.6305 |
+| H200 141 GB | `h200` | 141 GB | sxm | 1 | $4.806 |
+| H200 141 GB | `h200` | 141 GB | sxm | 1 | $5.13 |
+
+Repeated labels are separate offers with their own `id` and their own price. There are four distinct A100 offers and three distinct H200 offers. Take the cheapest one that is `available`.
+
+Container profiles differ from machine profiles field by field:
+
+- Identifier is `id` with a `gpo-` prefix, not `profile_id` with `mp-`.
+- Name is `label`, not `display_name`.
+- Price is `customer_price.hourly_usd`, a decimal in dollars, not `amount_microusd`.
+- `hardware` describes the card (`vendor`, `model`, `vram_mb`, `interface`, `count`), not a host. There are no `cpu_units`, `memory_mb`, or `storage_mb`.
+- There is no `region` and no `os_images`.
+- `availability` is an object (`status`, `matching_capacity_count`, `aggregate_available_units`, `source_age_seconds`), not a string.
+- `schema_version` is `gpu-container-profiles-v1`.
+
+Every container offer carries `price_basis: "exact"` and `pricing_policy_version: "gpu-hourly-v2-2026-07-28"`.
+
+### Deploy a GPU Container
+
+Quote it, then deploy it as an application with the GPU attached.
+
+<Steps>
+
+1. **Read the container catalog**
+
+   ```bash
+   curl "https://varity.app/api/deployment-profiles?workload=gpu&execution_class=container" \
+     -H "Authorization: Bearer $VARITY_API_KEY"
+   ```
+
+2. **Quote the offer**
+
+   ```bash
+   curl -X POST https://varity.app/api/pricing/accelerator-quote \
+     -H "Authorization: Bearer $VARITY_API_KEY" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "execution_class": "container",
+       "profile_id": "gpo-8057971715b95861f8775a0f"
+     }'
+   ```
+
+   Returns `quote_token`, `hourly_usd`, `authorization_usd`, and `valid_until`. Pass the token through unchanged; do not inspect or log it.
+
+3. **Create the deployment**
+
+   ```bash
+   curl -X POST https://varity.app/api/deployments \
+     -H "Authorization: Bearer $VARITY_API_KEY" \
+     -H "Idempotency-Key: gpu-container-001" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "name": "my-inference",
+       "image": { "ref": "ghcr.io/acme/infer:1.0", "port": 8000 },
+       "accelerator": {
+         "profile_id": "gpo-8057971715b95861f8775a0f",
+         "count": 1,
+         "alternatives": [
+           { "vendor": "nvidia", "model": "h100", "vram_mb": 81920, "interface": "sxm" }
+         ]
+       },
+       "accelerator_quote_token": "<quote_token from step 2>"
+     }'
+   ```
+
+   Copy `alternatives` straight out of the profile. `accelerator` and `accelerator_quote_token` must be sent together. Either one alone is rejected. `count` is 1 to 24 and `alternatives` holds 1 to 8 entries. Static-hosting deployments cannot carry an accelerator at all.
+
+</Steps>
+
+## GPU VMs
+
+186 profiles across **55 named configurations, 21 card models, and 53 regions**. Same card in a different region or on a different host is a different profile at a different price, so the spread within one name is wide. L40S 48 GB ranges from $1.431 to $5.805.
+
+Prices below come from `customer_price.amount_microusd ÷ 1,000,000`. Memory and disk are converted from `memory_mb` and `storage_mb`. "Offers" is how many profiles carry that name.
+
+### Single GPU
+
+| Profile | GPU model | VRAM | Interface | Offers | Hourly | Cheapest offer: vCPU / RAM / disk / region |
+| --- | --- | --- | --- | --- | --- | --- |
+| A30 24 GB | `a30` | 24 GB | pcie | 1 | $0.513 | 16 / 45 GB / 238 GB / `us-central-1` |
+| RTXA6000 48 GB | `rtxa6000` | 48 GB | pcie | 5 | $0.7965 to $3.78 | 6 / 22 GB / 238 GB / `us-central-2` |
+| RTX 4090 24 GB | `rtx4090` | 24 GB | pcie | 2 | $1.134 to $1.1745 | 12 / 65 GB / 792 GB / `osl1` |
+| RTX6000ADA 48 GB | `rtx6000ada` | 48 GB | pcie | 7 | $1.161 to $3.078 | 12 / 67 GB / 326 GB / `us-central-2` |
+| RTX5090 32 GB | `rtx5090` | 32 GB | pcie | 1 | $1.269 | 12 / 112 GB / 838 GB / `oslo-norway-3` |
+| L40 48 GB | `l40` | 48 GB | pcie | 5 | $1.3905 to $1.9575 | 14 / 67 GB / 582 GB / `us-central-3` |
+| L40S 48 GB | `l40s` | 48 GB | pcie | 13 | $1.431 to $5.805 | 12 / 67 GB / 582 GB / `us-central-2` |
+| RTX4000ADA 20 GB | `rtx4000ada` | 20 GB | pcie | 1 | $1.5525 | 8 / 30 GB / 466 GB / `toronto-canada-1` |
+| A4000 16 GB | `a4000` | 16 GB | pcie | 1 | $1.566 | 8 / 42 GB / 233 GB / `newyork-usa-1` |
+| L4 24 GB | `l4` | 24 GB | pcie | 2 | $1.863 | 8 / 45 GB / 466 GB / `warsaw-poland-1` |
+| A100 80 GB | `a100` | 80 GB | pcie / sxm | 16 | $2.133 to $6.426 | 28 / 112 GB / 792 GB / `canada-1` |
+| A10 24 GB | `a10` | 24 GB | pcie | 2 | $2.5245 | 30 / 186 GB / 1.3 TB / `sanjose-usa-2` |
+| A5000 24 GB | `a5000` | 24 GB | pcie | 1 | $2.781 | 8 / 42 GB / 233 GB / `newyork-usa-1` |
+| RTXPRO6000 96 GB | `rtxpro6000` | 96 GB | pcie | 6 | $3.5505 to $4.293 | 16 / 134 GB / 675 GB / `us-central-9` |
+| A40 48 GB | `a40` | 48 GB | pcie | 4 | $3.645 | 24 / 112 GB / 1.3 TB / `bangalore-india-1` |
+| GH200 96 GB | `gh200` | 96 GB | pcie | 1 | $4.4955 | 64 / 402 GB / 3.7 TB / `dulles-usa-3` |
+| V100 32 GB | `v100` | 32 GB | pcie | 1 | $4.59 | 8 / 28 GB / 233 GB / `newyork-usa-1` |
+| H100 80 GB | `h100` | 80 GB | pcie / sxm | 11 | $6.4665 to $11.745 | 24 / 224 GB / 931 GB / `paris-france-1` |
+| H200 141 GB | `h200` | 141 GB | sxm | 5 | $8.7615 to $8.7885 | 24 / 224 GB / 671 GB / `atlanta-usa-1` |
+| B200 192 GB | `b200` | 192 GB | sxm | 1 | $13.905 | 20 / 209 GB / 477 GB / `me-west-1` |
+
+A100 and H100 appear on both PCIe and SXM hosts. The interface is a property of the individual offer, so read `alternatives[0].interface` on the profile you actually pick.
+
+### Multi GPU
+
+| Profile | GPUs | VRAM each | Interface | Offers | Hourly | Cheapest offer: vCPU / RAM / region |
+| --- | --- | --- | --- | --- | --- | --- |
+| 2x RTXA6000 48 GB | 2 | 48 GB | pcie | 3 | $1.6065 to $7.56 | 14 / 45 GB / `us-central-2` |
+| 2x A16 16 GB | 2 | 16 GB | pcie | 2 | $1.998 | 12 / 119 GB / `singapore-singapore-1` |
+| 2x RTX 4090 24 GB | 2 | 24 GB | pcie | 1 | $2.2815 | 24 / 130 GB / `osl1` |
+| 2x RTX6000ADA 48 GB | 2 | 48 GB | pcie | 4 | $2.322 to $3.807 | 26 / 134 GB / `us-central-3` |
+| 2x L40 48 GB | 2 | 48 GB | pcie | 5 | $2.781 to $3.915 | 26 / 134 GB / `us-central-3` |
+| 2x L40S 48 GB | 2 | 48 GB | pcie | 8 | $2.8485 to $11.4885 | 24 / 134 GB / `us-central-2` |
+| 2x A4000 16 GB | 2 | 16 GB | pcie | 1 | $3.132 | 16 / 84 GB / `newyork-usa-1` |
+| 2x L4 24 GB | 2 | 24 GB | pcie | 2 | $3.726 | 16 / 89 GB / `warsaw-poland-1` |
+| 2x A100 80 GB | 2 | 80 GB | pcie / sxm | 6 | $4.239 to $6.8715 | 60 / 224 GB / `canada-1` |
+| 2x A5000 24 GB | 2 | 24 GB | pcie | 1 | $5.562 | 16 / 84 GB / `newyork-usa-1` |
+| 2x RTXPRO6000 96 GB | 2 | 96 GB | pcie | 4 | $7.0875 to $8.586 | 30 / 268 GB / `us-east-1` |
+| 2x V100 32 GB | 2 | 32 GB | pcie | 1 | $9.18 | 16 / 56 GB / `newyork-usa-1` |
+| 2x H100 80 GB | 2 | 80 GB | pcie / sxm | 5 | $11.826 to $16.4295 | 80 / 317 GB / `finland-2` |
+| 4x RTXA6000 48 GB | 4 | 48 GB | pcie | 2 | $3.213 to $15.1335 | 30 / 89 GB / `us-central-2` |
+| 4x A16 16 GB | 4 | 16 GB | pcie | 1 | $4.023 | 24 / 238 GB / `bangalore-india-1` |
+| 4x RTX6000ADA 48 GB | 4 | 48 GB | pcie | 2 | $4.6305 to $7.6005 | 52 / 268 GB / `us-central-2` |
+| 4x RTX 4090 24 GB | 4 | 24 GB | pcie | 1 | $4.698 | 60 / 328 GB / `oslo-norway-3` |
+| 4x L40 48 GB | 4 | 48 GB | pcie | 5 | $5.562 to $11.6775 | 50 / 268 GB / `us-central-3` |
+| 4x L40S 48 GB | 4 | 48 GB | pcie | 6 | $5.697 to $22.842 | 46 / 268 GB / `us-central-2` |
+| 4x A4000 16 GB | 4 | 16 GB | pcie | 1 | $6.2775 | 32 / 168 GB / `newyork-usa-1` |
+| 4x L4 24 GB | 4 | 24 GB | pcie | 1 | $7.452 | 32 / 179 GB / `warsaw-poland-1` |
+| 4x A100 80 GB | 4 | 80 GB | pcie | 2 | $8.478 to $10.584 | 124 / 447 GB / `canada-1` |
+| 4x A5000 24 GB | 4 | 24 GB | pcie | 1 | $11.1375 | 32 / 168 GB / `newyork-usa-1` |
+| 4x RTXPRO6000 96 GB | 4 | 96 GB | pcie | 5 | $13.716 to $17.172 | 120 / 335 GB / `finland-1` |
+| 4x V100 32 GB | 4 | 32 GB | pcie | 1 | $18.3465 | 32 / 112 GB / `newyork-usa-1` |
+| 4x H100 80 GB | 4 | 80 GB | sxm | 2 | $23.409 to $23.652 | 176 / 633 GB / `finland-3` |
+| 4x H200 141 GB | 4 | 141 GB | sxm | 2 | $28.755 to $28.998 | 176 / 633 GB / `finland-3` |
+| 8x RTX 4090 24 GB | 8 | 24 GB | pcie | 1 | $6.2775 | 88 / 212 GB / `casper-usa-2` |
+| 8x RTX5090 32 GB | 8 | 32 GB | pcie | 1 | $10.9755 | 120 / 212 GB / `casper-usa-2` |
+| 8x L40 48 GB | 8 | 48 GB | pcie | 3 | $12.555 to $15.687 | 252 / 432 GB / `canada-1` |
+| 8x L4 24 GB | 8 | 24 GB | pcie | 1 | $14.904 | 64 / 358 GB / `warsaw-poland-1` |
+| 8x A100 80 GB | 8 | 80 GB | pcie / sxm | 12 | $17.577 to $47.0475 | 252 / 1.7 TB / `canada-1` |
+| 8x RTXPRO6000 96 GB | 8 | 96 GB | pcie | 1 | $28.3635 | 120 / 1.4 TB / `us-central-9` |
+| 8x H100 80 GB | 8 | 80 GB | sxm | 3 | $40.149 to $59.562 | 192 / 1.6 TB / `canada-1` |
+| 8x H200 141 GB | 8 | 141 GB | sxm | 3 | $50.1795 to $57.51 | 208 / 1.7 TB / `tokyo-japan-5` |
+
+Total VRAM and price move independently. 192 GB of VRAM costs $3.213/hour as 4x RTXA6000 48 GB in `us-central-2`, or $6.2775/hour as 8x RTX 4090 24 GB in `casper-usa-2`. Multiply `accelerator.count` by `vram_mb` before comparing prices.
+
+### GPU VM Regions
+
+53 regions:
+
+`amsterdam-netherlands-2`, `atlanta-usa-1`, `austin-usa-1`, `bangalore-india-1`, `beltsville-usa-1`, `calgary-canada-1`, `canada-1`, `casper-usa-2`, `chicago-usa-2`, `chicago-usa-3`, `culpeper-usa-1`, `dallas-usa-3`, `desmoines-usa-1`, `dulles-usa-1`, `dulles-usa-3`, `eu-north-1`, `eu-west-1`, `finland-1`, `finland-2`, `finland-3`, `frankfurt-germany-7`, `houston-usa-1`, `houston-usa-2`, `jerusalem-israel-1`, `kansascity-usa-1`, `kansascity-usa-6`, `london-uk-1`, `me-west-1`, `mon1`, `montreal-canada-2`, `mumbai-india-1`, `newyork-usa-1`, `newyork-usa-2`, `osl1`, `oslo-norway-3`, `paris-france-1`, `paris-france-5`, `phoenix-usa-2`, `saltlakecity-usa-1`, `sanjose-usa-2`, `singapore-singapore-1`, `sydney-australia-1`, `tokyo-japan-1`, `tokyo-japan-5`, `toronto-canada-1`, `us-1`, `us-central-1`, `us-central-2`, `us-central-3`, `us-central-9`, `us-east-1`, `us-southeast-1`, `warsaw-poland-1`
+
+Region is a property of the profile, not a create-time argument. Filter the catalog by `region` to pick where a machine runs.
+
+### GPU VM OS Images
+
+Image choice is per profile and varies a lot: **80 of 186 profiles offer exactly one image**, and the largest offer 18. Across the catalog there are 49 distinct labels.
+
+149 of 186 profiles include at least one image whose label names a CUDA version, for example `Ubuntu 24.04 + CUDA 12.8 Open + Docker`, `ubuntu22.04_cuda12.2_shade_os`, or `Ubuntu Server 22.04 LTS R570 CUDA 12.8`. The remaining 37 do not, and some catalog images are plain OS builds (`Debian 12 Plain`, `AlmaLinux 9 Plain`, `ubuntu20.04`).
+
+Do not assume a driver or CUDA toolchain is present. Read `os_images` on the specific profile and pick the label you need.
+
+## GPU Bare Metal
+
+Four profiles. One configuration, in four regions, at one price. No hypervisor.
+
+| Region | Profile | GPUs | VRAM each | vCPU | RAM | Disk | Hourly |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `ams` | 8x RTXPRO6000 96 GB | 8 | 96 GB | 192 | 1.4 TB | 1.2 TB | $53.4735 |
+| `chicago-usa-4` | 8x RTXPRO6000 96 GB | 8 | 96 GB | 192 | 1.4 TB | 1.2 TB | $53.4735 |
+| `syd2` | 8x RTXPRO6000 96 GB | 8 | 96 GB | 192 | 1.4 TB | 1.2 TB | $53.4735 |
+| `tyo4` | 8x RTXPRO6000 96 GB | 8 | 96 GB | 192 | 1.4 TB | 1.2 TB | $53.4735 |
+
+All four offer exactly one OS image: `ubuntu24.04_cuda12.4_shade_os`. There is nothing to choose.
+
+The GPU VM catalog also carries an `8x RTXPRO6000 96 GB` at $28.3635/hour in `us-central-9`. Bare metal costs more because you get the physical host, not a VM on it.
+
+## Create a GPU VM or Bare-Metal Machine
+
+Identical to the [CPU VM flow](/machines/cpu-vms/#create-a-machine), with `execution_class` set to `virtual_machine` or `bare_metal`.
+
+<Steps>
+
+1. **Quote it**
+
+   ```bash
+   curl -X POST https://varity.app/api/pricing/machine-quote \
+     -H "Authorization: Bearer $VARITY_API_KEY" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "profile_id": "mp-0157cd6e4cf82ff83291d645",
+       "execution_class": "virtual_machine",
+       "os_image": "os-ubuntu24-04-a2801be96ab2"
+     }'
+   ```
+
+   `additional_storage_gb` is **not** accepted here. It is valid only for `cpu_virtual_machine`. What the profile lists as `storage_mb` is what you get.
+
+2. **Create it before `valid_until`**
+
+   ```bash
+   curl -X POST https://varity.app/api/machines \
+     -H "Authorization: Bearer $VARITY_API_KEY" \
+     -H "Idempotency-Key: gpu-vm-create-001" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "name": "trainer-01",
+       "profile_id": "mp-0157cd6e4cf82ff83291d645",
+       "execution_class": "virtual_machine",
+       "os_image": "os-ubuntu24-04-a2801be96ab2",
+       "ssh_public_key": "ssh-ed25519 AAAA...",
+       "accelerator_quote_token": "<quote_token from step 1>"
+     }'
+   ```
+
+   The quote carries `valid_until` and a `resource_fingerprint` that binds it to that exact configuration. If either the deadline or the configuration changes, request a fresh quote rather than reusing the token.
+
+3. **Poll for access**
+
+   ```bash
+   curl https://varity.app/api/machines/$MACHINE_ID \
+     -H "Authorization: Bearer $VARITY_API_KEY"
+   ```
+
+   `access` is `null` until ready, then carries `protocol: "ssh"`, `host`, `port`, and `username`.
+
+</Steps>
+
+```bash
+ssh -p <port> <username>@<host>
+```
+
+## Billing
+
+- Every GPU profile quotes `billing_period: "hour"` in USD. The binding rate is the `hourly_usd` in the quote you accepted, not the catalog list price.
+- There is no `monthly_cap_microusd` on any GPU profile.
+- `month_to_date` reporting on the machine record is a CPU VM field. A GPU machine does not report its own running total there. Reconcile GPU spend through billing.
+- Extra storage cannot be attached to a GPU machine.
+
+## Restart and Delete
+
+```bash
+curl -X POST https://varity.app/api/machines/$MACHINE_ID/actions \
+  -H "Authorization: Bearer $VARITY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"action": "restart"}'
+```
+
+`restart` and `soft_reboot` act in place. The machine keeps its identity, its access, and its billing.
+
+<Aside type="danger" title="Deleting is the only way to stop GPU billing">
+Shutting the guest OS down from inside stops your workload, not your reservation. The GPUs stay allocated and keep billing, with no cap to stop them.
+</Aside>
+
+```bash
+curl -X DELETE https://varity.app/api/machines/$MACHINE_ID \
+  -H "Authorization: Bearer $VARITY_API_KEY"
+```
+
+Deletion is asynchronous and acceptance is not proof of closure. Read the machine back and check `lifecycle.cleanup_state` for `complete`. Deletion destroys the disk. Copy anything you need off the machine first.
+
+## Related
+
+<LinkCard title="Machine Catalogs" href="/machines/" description="All four catalogs, with counts and price ranges." />
+<LinkCard title="CPU Virtual Machines" href="/machines/cpu-vms/" description="All 13 CPU VM sizes, prices, and the monthly cap." />
+<LinkCard title="API Reference" href="/ai-tools/api-reference/" description="Authentication and the full endpoint surface." />

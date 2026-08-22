@@ -16,7 +16,7 @@ import PageMeta from '../../../components/PageMeta.astro';
 If a deployment breaks your app, the way to recover today is to **redeploy a known-good version of your app**. This guide covers the recovery flow and what to watch out for.
 
 <Aside type="note">
-**One-click rollback is on the roadmap, not yet available.** There is no shipped "restore the previous live deployment" button. To recover, redeploy a working version as described below.
+**Rollback ships in the CLI: `varitykit app rollback <deployment_id> --confirm` redeploys from the stored deployment config.** There is no shipped "restore the previous live deployment" button. To recover, redeploy a working version as described below.
 </Aside>
 
 ## Recover by Redeploying a Known-Good Version
@@ -71,7 +71,7 @@ Check overall status:
 varitykit app status
 ```
 
-<Aside type="tip">
+<Aside type="tip" icon="approve-check">
 You can also use `varity_deploy_status` from the [MCP server](/ai-tools/mcp-server-spec) to list deployments directly from your AI editor.
 </Aside>
 

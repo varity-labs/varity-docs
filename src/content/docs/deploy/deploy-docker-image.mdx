@@ -62,7 +62,7 @@ Public and private Docker/OCI images are supported when the image starts a runna
   </TabItem>
   <TabItem label="MCP (AI coding tools)">
 
-  If you have the [Varity MCP server](/ai-tools/mcp-server-spec) installed in Claude Code, Cursor, or another AI coding tool, the `varity_deploy` tool accepts an `image` parameter (plus optional `port` and `image_credentials` for private registries). Just ask:
+  If you have the [Varity MCP server](/ai-tools/mcp-server-spec) installed in Claude Code, Cursor, or another AI coding tool, the `varity_deploy` tool accepts an `image` parameter (plus optional `port` and `image_credentials` for private registries). Ask:
 
   > "Deploy the Docker image ghcr.io/acme/my-api:1.4.2 on Varity"
 
@@ -90,7 +90,7 @@ Private images are supported in all three deploy paths:
 3. Image deploys run as dynamic apps, so your app is reachable at `https://<name>.varity.app/` (`https://varity.app/<name>` redirects there)
 4. Billing starts at deploy: up to a fixed monthly maximum for the reserved hardware, prorated by running time. It does not grow with traffic for an unchanged profile
 
-<Aside type="tip">
+<Aside type="tip" icon="approve-check">
 Make sure your container listens on `0.0.0.0`, not `localhost`. If the app serves on a non-default port, pass `--port`.
 </Aside>
 

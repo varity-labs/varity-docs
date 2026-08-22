@@ -3,6 +3,14 @@ import { Icon } from '@astrojs/starlight/components';
 
 const entryPaths = [
   {
+    title: 'AI inference',
+    href: '/ai-gateway/',
+    icon: 'open-book',
+    summary: 'OpenAI-compatible endpoint, 42 models. Swap one base_url and your existing client works.',
+    action: 'Call a model',
+    command: 'curl https://varity.app/v1/models',
+  },
+  {
     title: 'AI editor',
     href: '/ai-tools/mcp-server-spec/',
     icon: 'laptop',
@@ -16,12 +24,12 @@ const entryPaths = [
     icon: 'seti:shell',
     summary: 'Install varitykit and deploy from a supported project folder.',
     action: 'Deploy with CLI',
-    command: 'pipx install varitykit\nvaritykit app deploy',
+    command: 'pipx install varitykit\nvaritykit login\nvaritykit app deploy',
   },
   {
     title: 'Dashboard',
     href: '/deploy/deploy-from-dashboard/',
-    icon: 'rocket',
+    icon: 'laptop',
     summary: 'Deploy from the Developer Portal when you want a visual flow.',
     action: 'Open dashboard guide',
     command: 'developer.store.varity.so',
@@ -29,7 +37,7 @@ const entryPaths = [
   {
     title: 'Docker image',
     href: '/deploy/deploy-docker-image/',
-    icon: 'seti:docker',
+    icon: 'cloud-download',
     summary: 'Deploy a public or private Docker or OCI HTTP service image.',
     action: 'Deploy an image',
     command: 'varitykit app deploy --image <ref>',
@@ -39,7 +47,7 @@ const entryPaths = [
 const platformGroups = [
   {
     title: 'Start',
-    icon: 'rocket',
+    icon: 'approve-check',
     description: 'Install Varity, connect your tool, and ship the first app.',
     links: [
       ['Install', '/getting-started/installation/'],
@@ -103,6 +111,8 @@ const commonTasks = [
   ['Deploy a Next.js app', '/guides/deploy-nextjs/'],
   ['Deploy a Python app', '/getting-started/quickstart-python/'],
   ['Migration guide', '/deploy/vercel-migration/'],
+  ['Call an LLM', '/ai-gateway/'],
+  ['Rent a CPU VM or GPU', '/machines/'],
   ['Set environment variables', '/deploy/env-variables/'],
   ['Estimate costs', '/resources/pricing/'],
   ['Get help', '/getting-started/getting-help/'],
@@ -418,7 +428,9 @@ const trustLinks = [
 
   .primary-action {
     background: var(--color-brand);
-    color: #031312;
+    /* Was #031312 on var(--color-brand). Light mode redefines that token to
+       #0f766e, giving 3.47:1 and failing AA. White on #0f766e is 5.47:1. */
+    color: #ffffff;
   }
 
   .secondary-action {

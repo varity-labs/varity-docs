@@ -1,0 +1,247 @@
+---
+title: API Errors
+description: The Varity public API error envelope, the verified error codes, and which failures are safe to retry.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+import PageMeta from '../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="August 2026"
+  stability="beta"
+/>
+
+Every error from the Varity platform API (`https://varity.app/api`) returns the same JSON envelope. Program against `code` and `retryable`; show `message` and `action` to humans.
+
+## The Error Envelope
+
+```json
+{
+  "code": "authentication_required",
+  "message": "A Bearer API key is required.",
+  "action": "Send Authorization: Bearer <VARITY_API_KEY>.",
+  "retryable": false,
+  "docs_url": "https://docs.varity.so/api/errors#authentication_required",
+  "correlation_id": "3e0dbab4-bb81-4e95-a9b6-baefeff0e52e"
+}
+```
+
+| Field | Type | Always present | Meaning |
+|-------|------|----------------|---------|
+| <span id="code"></span>`code` | string | yes | Stable machine-readable identifier. Branch on this, never on `message`. |
+| <span id="message"></span>`message` | string | yes | Human-readable statement of what went wrong. |
+| <span id="action"></span>`action` | string | yes | What the caller should actually do next. |
+| <span id="retryable"></span>`retryable` | boolean | yes | Whether retrying the same request can succeed. |
+| <span id="docs_url"></span>`docs_url` | string (uri) | yes | Deep link to this page, anchored at the code. |
+| <span id="field"></span>`field` | string | no | The offending request field, on validation failures. |
+| <span id="correlation_id"></span>`correlation_id` | string | no | Request correlation identifier. See below. |
+
+<Aside type="caution">
+`message` and `action` are written for people and may be reworded at any time. Only `code`, `retryable`, and the HTTP status are contract. Treat an unrecognized `code` as its HTTP status class.
+</Aside>
+
+## Caller Fault, Platform Fault, Provider Fault
+
+The single most useful thing about a Varity error is *whose problem it is*. The HTTP status tells you the class; `retryable` tells you whether to try again.
+
+**Caller fault: `4xx`, `retryable: false`.** Your request is wrong. Retrying the identical request produces the identical error. Fix the request, the credential, or the account state. This covers bad input (`400`, `422`), authentication (`401`), scope (`403`), missing resources (`404`), and conflicts (`409`).
+
+**Platform fault: `5xx`, `retryable: true`.** A Varity component could not answer. The request may still be valid. Retry with exponential backoff and jitter.
+
+**Provider fault: `5xx` and `409`, `retryable: true`.** A downstream compute or inference supplier was unavailable or out of capacity. Varity does not expose supplier identity in the public contract; you see it as an unavailable-or-capacity code. Retry with backoff, and for capacity errors consider a different profile.
+
+The reliable rule: **retry when and only when `retryable` is `true`.** Do not infer retryability from the status code alone. `409 gpu_capacity_unavailable` is retryable while `409 idempotency_key_reused` is not.
+
+## Error Codes
+
+Every code below is emitted by the live gateway. Statuses and `retryable` values are as implemented.
+
+### Authentication And Authorization
+
+| Code | HTTP | Retryable | Cause |
+|------|------|-----------|-------|
+| <span id="authentication_required"></span>`authentication_required` | 401 | no | No `Authorization: Bearer` header was sent. |
+| <span id="invalid_api_key"></span>`invalid_api_key` | 401 | no | The API key is invalid or revoked. |
+| <span id="api_key_owner_unbound"></span>`api_key_owner_unbound` | 401 | no | The key is not bound to an owner account. |
+| <span id="per_user_api_key_required"></span>`per_user_api_key_required` | 401 | no | The route requires a per-user API key. |
+| <span id="credential_scope_violation"></span>`credential_scope_violation` | 403 | no | The credential is valid but not scoped to this product or resource. |
+| <span id="portal_session_required"></span>`portal_session_required` | 403 | no | The route requires a Developer Portal session, not an API key. |
+| <span id="api_key_auth_unavailable"></span>`api_key_auth_unavailable` | 503 | yes | The key authentication service could not be reached. |
+| <span id="api_key_verification_unavailable"></span>`api_key_verification_unavailable` | 502/503 | yes | Key verification is temporarily unavailable. |
+
+<Aside type="note">
+API keys cannot manage other API keys. The `/api/api-keys*` routes are Developer Portal session routes; an API key on them returns `portal_session_required`.
+</Aside>
+
+### Request Validation
+
+| Code | HTTP | Retryable | Cause |
+|------|------|-----------|-------|
+| <span id="invalid_env"></span>`invalid_env` | 400 | no | Malformed environment-variable update payload. |
+| <span id="invalid_idempotency_key"></span>`invalid_idempotency_key` | 400 | no | The key is not `[A-Za-z0-9._:-]{8,128}`. |
+| <span id="invalid_run_id"></span>`invalid_run_id` | 400 | no | Malformed run identifier. |
+| <span id="invalid_webhook_url"></span>`invalid_webhook_url` | 400 | no | The webhook URL is not a public HTTPS URL. |
+| <span id="invalid_webhook_id"></span>`invalid_webhook_id` | 400 | no | Malformed webhook identifier. |
+| <span id="invalid_api_key_id"></span>`invalid_api_key_id` | 400 | no | Malformed API key identifier. |
+| <span id="invalid_inference_key_request"></span>`invalid_inference_key_request` | 400 | no | Malformed AI Gateway key request. |
+| <span id="invalid_ai_attachment_request"></span>`invalid_ai_attachment_request` | 400 | no | Malformed AI Gateway attachment request. |
+| <span id="preset_unavailable"></span>`preset_unavailable` | 400 | no | The requested resource preset cannot be served. |
+| <span id="accelerator_profile_invalid"></span>`accelerator_profile_invalid` | 422 | no | The accelerator profile selection is not valid. |
+| <span id="invalid_accelerator_quote_request"></span>`invalid_accelerator_quote_request` | 422 | no | The GPU quote request failed validation. |
+| <span id="machine_request_invalid"></span>`machine_request_invalid` | 422 | no | The machine create request failed validation. |
+| <span id="machine_quote_request_invalid"></span>`machine_quote_request_invalid` | 422 | no | The machine quote request failed validation. |
+| <span id="deployment_profile_scope_invalid"></span>`deployment_profile_scope_invalid` | 422 | no | `workload` and `execution_class` do not form a valid scope. |
+| <span id="deployment_profile_contract_invalid"></span>`deployment_profile_contract_invalid` | 422 | no | The requested profile contract version is not valid. |
+| <span id="unsupported_deployment_request"></span>`unsupported_deployment_request` | 400/422 | no | The deployment request shape is not supported. |
+
+Validation errors may carry a `field` naming the offending property.
+
+### Not Found And Conflict
+
+| Code | HTTP | Retryable | Cause |
+|------|------|-----------|-------|
+| <span id="not_found"></span>`not_found` | 404 | no | The resource does not exist or is not owned by you. |
+| <span id="deployment_not_found"></span>`deployment_not_found` | 404 | no | No such deployment for this owner. |
+| <span id="deployment_run_not_found"></span>`deployment_run_not_found` | 404 | no | No such deployment run. |
+| <span id="template_not_found"></span>`template_not_found` | 404 | no | No such template. |
+| <span id="webhook_not_found"></span>`webhook_not_found` | 404 | no | No such webhook. |
+| <span id="idempotency_key_reused"></span>`idempotency_key_reused` | 409 | no | The key was reused with a different request body. |
+| <span id="legacy_deployment_retired"></span>`legacy_deployment_retired` | 409 | no | The deployment predates the current runtime contract. |
+| <span id="legacy_run_retired"></span>`legacy_run_retired` | 410 | no | The run record is retired and permanently gone. |
+| <span id="restart_unavailable"></span>`restart_unavailable` | 409/501/503 | varies | Restart is not possible for this deployment. `503` is retryable; `409` and `501` are not. |
+| <span id="template_not_certified"></span>`template_not_certified` | 409/503 | varies | The template is not certified, or certification could not be checked. `503` is retryable; `409` is not. |
+
+<Aside type="caution">
+`idempotency_key_reused` is a `409` that is **not** retryable. It means you sent a key you already used with a *different* body. Change the key or send the original body. Replaying the identical body with the same key returns the original result, not this error.
+</Aside>
+
+### Capacity And Billing
+
+| Code | HTTP | Retryable | Cause |
+|------|------|-----------|-------|
+| <span id="billing_or_credit_required"></span>`billing_or_credit_required` | 402 | no | No payment method and no active starter credit. |
+| <span id="gpu_capacity_unavailable"></span>`gpu_capacity_unavailable` | 409 | yes | No accelerator capacity right now for the requested profile. |
+
+`gpu_capacity_unavailable` is the one common `409` you should retry. Capacity is a moving target; back off and retry, or quote a different profile.
+
+### Upstream And Platform Unavailability
+
+All of these are `retryable: true`. They mean a Varity subsystem or a downstream provider did not answer, not that your request was wrong.
+
+| Code | HTTP | Cause |
+|------|------|-------|
+| <span id="deploy_service_unavailable"></span>`deploy_service_unavailable` | 502/503 | The deploy service could not be reached. |
+| <span id="deploy_status_unavailable"></span>`deploy_status_unavailable` | 502 | Run status could not be read. |
+| <span id="deployment_read_unavailable"></span>`deployment_read_unavailable` | 502 | The deployment record could not be read. |
+| <span id="logs_unavailable"></span>`logs_unavailable` | 502/503 | The log source could not be reached. |
+| <span id="credit_state_unavailable"></span>`credit_state_unavailable` | 503 | Credit state could not be read. |
+| <span id="billing_summary_unavailable"></span>`billing_summary_unavailable` | 503 | The billing summary could not be read. |
+| <span id="webhook_state_unavailable"></span>`webhook_state_unavailable` | 503 | Webhook state could not be read. |
+| <span id="custom_domain_unavailable"></span>`custom_domain_unavailable` | 503 | Custom-domain state could not be read. |
+| <span id="gpu_quote_unavailable"></span>`gpu_quote_unavailable` | 503 | A GPU quote could not be issued. |
+| <span id="idempotency_unavailable"></span>`idempotency_unavailable` | 503 | The idempotency store could not be reached. |
+| <span id="api_key_management_unavailable"></span>`api_key_management_unavailable` | 502/503 | Key management could not be reached. |
+| <span id="ai_attachment_unavailable"></span>`ai_attachment_unavailable` | 502 | AI Gateway attachment state could not be read. |
+| <span id="env_update_failed"></span>`env_update_failed` | 5xx (varies) | The environment update did not apply. |
+| <span id="redeploy_failed"></span>`redeploy_failed` | 5xx (varies) | The redeploy did not start. |
+| <span id="deployment_delete_failed"></span>`deployment_delete_failed` | 5xx (varies) | The delete did not complete. |
+
+### Rate Limiting
+
+| Code | HTTP | Retryable | Cause |
+|------|------|-----------|-------|
+| <span id="rate_limited"></span>`rate_limited` | 429 | yes | An account rate-limit budget is exhausted. |
+
+Read the `Retry-After` header and wait. See [Rate Limits](/api/limits/) for the budgets and headers.
+
+## Responses That Do Not Use The Standard Envelope
+
+A few routes predate the envelope and answer with their own shape. They still carry a `code`, but not `retryable` or `docs_url`. Parse defensively: read `code` from the top level, and fall back to `error.code` and `detail.code`.
+
+`GET /api/deployments/{id}/health-history` on failure returns `503` with the code nested under `error`:
+
+```json
+{ "error": { "code": "history_unavailable", "message": "Runtime history is temporarily unavailable.", "retryable": true } }
+```
+
+An unrepresentable deploy request returns `422` with the code nested under `detail`:
+
+```json
+{ "detail": { "stage": "acceptance", "code": "unsupported_deployment_request", "message": "This deploy request cannot be represented by the durable operation engine." } }
+```
+
+An unknown pricing profile or preset returns `400` and fails closed by returning the valid menu, using `error` in place of `message`:
+
+```json
+{ "code": "profile_unknown", "error": "Unknown pricing profile \"bogus\"", "profiles": ["web-app"], "presets": ["starter"] }
+```
+
+The `preset_unknown` code follows the same shape. All of these are caller-fault except `history_unavailable`, which is retryable.
+
+These codes are real and you will see them, but they are not in the table above because they do not use the envelope:
+
+| code | HTTP | shape | retryable |
+|---|---|---|---|
+| <span id="profile_unknown"></span>`profile_unknown` | 400 | top-level `code` + `error`, plus the valid `profiles` and `presets` menu | no |
+| <span id="preset_unknown"></span>`preset_unknown` | 400 | top-level `code` + `error`, plus the valid `presets` menu | no |
+| <span id="history_unavailable"></span>`history_unavailable` | 503 | nested under `error` | yes |
+| <span id="unsupported_deployment_request"></span>`unsupported_deployment_request` | 422 | nested under `detail` | no |
+
+## Partial Reads Are Not Errors
+
+Log, event, and health reads return `200` with a `complete` flag rather than failing when the live source is briefly unavailable. When `complete` is `false` the window may be partial and a `warning_code` is set (`logs_incomplete`, `events_incomplete`). This is a successful response describing an incomplete window. Retry the read for a complete one; do not treat it as a failure.
+
+## Correlation IDs
+
+Every error carries a `correlation_id` when one is available. It is the single most useful thing you can give support.
+
+**Supply your own.** Send an `X-Request-Id` header and the platform echoes that exact value back as `correlation_id`:
+
+```bash
+curl https://varity.app/api/credits \
+  -H "Authorization: Bearer $VARITY_API_KEY" \
+  -H "X-Request-Id: my-service-20260822-0001"
+```
+
+```json
+{ "code": "authentication_required", "correlation_id": "my-service-20260822-0001" }
+```
+
+If you do not send one, the platform assigns a UUID. Log `correlation_id` on every non-2xx response alongside your own request context. When you open a support request, include it. With it, a failure is traceable end to end; without it, it usually is not.
+
+## Handling Errors In Code
+
+```python
+import time, random, requests
+
+def call(method, url, **kw):
+    for attempt in range(5):
+        r = requests.request(method, url, **kw)
+        if r.status_code < 400:
+            return r.json()
+
+        err = r.json()
+        if not err.get("retryable"):
+            raise RuntimeError(
+                f"{err['code']}: {err['message']} "
+                f"({err['action']}) correlation_id={err.get('correlation_id')}"
+            )
+
+        # Honor the server's window when it gives one.
+        wait = float(r.headers.get("Retry-After", 2 ** attempt))
+        time.sleep(wait + random.uniform(0, 0.5))
+
+    raise RuntimeError("retries exhausted")
+```
+
+<Aside type="note">
+The envelope covers routes in the published contract. A request to a path that is not a Varity API route is handled by the edge router and can return an HTML `404` rather than this JSON envelope. Always check `Content-Type` before parsing an error body.
+</Aside>
+
+## Next Steps
+
+- **[Rate Limits](/api/limits/)**: budgets, headers, and retry guidance
+- **[Public API Reference](/ai-tools/api-reference/)**: endpoints and examples
+- **[AI Gateway](/ai-gateway/)**: the OpenAI-compatible inference surface, which has its own error shape

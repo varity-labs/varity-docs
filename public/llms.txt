@@ -1,6 +1,6 @@
 # Varity Docs
 
-> Varity is predictable cloud hosting for supported Node, Python, Go, static, AI agent, and runnable Docker/OCI HTTP service deployments.
+> Varity runs supported Node, Python, Go, static, AI agent, and runnable Docker/OCI HTTP service deployments, rents CPU virtual machines and GPU machines by the hour, and serves an OpenAI-compatible inference API at https://varity.app/v1.
 
 Use these docs as the public Varity documentation context. Current MCP install command:
 
@@ -77,3 +77,11 @@ claude mcp add varity -- npx -y @varity-labs/mcp
 - [Troubleshooting Varity Deploys](https://docs.varity.so/resources/troubleshooting/): Fix common Varity issues: CLI not found, build errors, authentication failures, deployment problems, and database connection troubleshooting.
 - [Build an App Using Only AI (No Code Required)](https://docs.varity.so/tutorials/build-with-ai/): Build and deploy an app with your AI editor. Varity MCP handles setup checks, the deploy workflow, and cost estimation.
 - [Deploy an AI Agent or LLM App](https://docs.varity.so/tutorials/deploy-ai-agent/): Step-by-step guide to deploying a Python or Node.js AI agent on Varity. Auto-detected compute and optional local model server included.
+- [Varity AI Gateway](https://docs.varity.so/ai-gateway/): OpenAI-compatible inference API at https://varity.app/v1. Point any OpenAI client at it and change nothing else.
+- [AI Gateway Models](https://docs.varity.so/ai-gateway/models/): The live model catalog with context windows, max completion tokens, tool-call and streaming support, and per-million-token prices.
+- [AI Gateway OpenAI Compatibility](https://docs.varity.so/ai-gateway/compatibility/): Which OpenAI endpoints are supported, which return 404, per-model capability differences, and the data-handling contract.
+- [Machine Catalogs](https://docs.varity.so/machines/): The four machine catalogs: CPU virtual machines, GPU containers, GPU virtual machines, and GPU bare metal.
+- [CPU Virtual Machines](https://docs.varity.so/machines/cpu-vms/): All CPU VM sizes with vCPU, memory, disk, hourly price, monthly cap, OS images, and how billing stops.
+- [GPU Machines](https://docs.varity.so/machines/gpu/): GPU card models, host specs, regions and hourly rates across containers, virtual machines, and bare metal. Rates track available supply.
+- [API Errors](https://docs.varity.so/api/errors/): The error envelope, the full error code reference with per-code anchors, fault attribution, and correlation IDs.
+- [API Rate Limits](https://docs.varity.so/api/limits/): Per-account rate limit classes, response headers, the 429 response, and how to retry correctly.

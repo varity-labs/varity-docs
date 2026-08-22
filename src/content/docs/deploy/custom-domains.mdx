@@ -54,7 +54,7 @@ https://my-app.varity.app/
 - Must be unique across all Varity apps (first to register a name owns it)
 - Cannot start or end with a hyphen
 
-<Aside type="tip">
+<Aside type="tip" icon="approve-check">
 **Claim your name early.** Subdomain names are first-come, first-served. Once you've registered a name, it's yours as long as you have an active deployment.
 </Aside>
 
@@ -164,11 +164,11 @@ The domain moves through these states:
 | `active`              | The domain is serving your app over HTTPS                      |
 | `error`               | A check failed; see `errorCode`                                |
 
-The `dns`, `certificate`, and `serving` blocks each carry their own `status` and `checkedAt`, so you can see which stage is outstanding. When DNS resolves to something other than the expected value, `dns.status` is `mismatch` and the `observedCnames`, `observedA`, and `observedTxt` fields show what Varity actually saw — usually the fastest way to spot a typo or a record left in place from a previous host.
+The `dns`, `certificate`, and `serving` blocks each carry their own `status` and `checkedAt`, so you can see which stage is outstanding. When DNS resolves to something other than the expected value, `dns.status` is `mismatch` and the `observedCnames`, `observedA`, and `observedTxt` fields show what Varity actually saw. That is usually the fastest way to spot a typo or a record left in place from a previous host.
 
 Two error codes are reported: `dns_lookup_failed` when the records cannot be resolved, and `https_verification_failed` when the hostname does not yet serve over HTTPS.
 
-<Aside type="tip">
+<Aside type="tip" icon="approve-check">
 DNS changes take time to propagate. If verification fails immediately after you create the records, wait for your provider's TTL to expire and run it again.
 </Aside>
 
@@ -203,7 +203,7 @@ Your Domains (2)
 └─────────────┴──────────────────────────────────┴──────────────────┘
 ```
 
-<Aside type="tip">
+<Aside type="tip" icon="approve-check">
 You must be logged in to list your names. Run `varitykit login` first if you see a "Not logged in" message.
 </Aside>
 

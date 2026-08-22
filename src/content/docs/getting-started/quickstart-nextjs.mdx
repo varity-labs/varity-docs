@@ -29,6 +29,7 @@ Deploy an existing Next.js app to Varity in one command. Varity detects your fra
 
    ```bash
    pipx install varitykit
+   varitykit login
    ```
 
 2. **Open your project**
@@ -78,7 +79,7 @@ You do not import an SDK or change your code. When Varity deploys a Next.js proj
 
 For the full list of detected frameworks and auto-wired services, see [Supported Frameworks](/deploy/supported-frameworks) and [Auto-wired Services](/deploy/auto-wired-services).
 
-<Aside type="tip">
+<Aside type="tip" icon="approve-check">
 You do not need to wire up connection details for auto-wired services. Varity injects them into your app's environment at runtime. Set any other secrets your app needs (such as third-party or auth-provider API keys) as environment variables.
 </Aside>
 

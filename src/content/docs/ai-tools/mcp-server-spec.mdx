@@ -15,7 +15,7 @@ import PageMeta from '../../../components/PageMeta.astro';
 
 The Varity MCP server (`@varity-labs/mcp`) gives AI editors a full set of tools for the full build and deploy workflow. It runs locally via stdio. Install the current npm package.
 
-<Aside type="tip">
+<Aside type="tip" icon="approve-check">
 The MCP server works with **any editor that supports MCP**: Cursor, Claude Code, VS Code (Copilot), Windsurf, and more. Setup takes under a minute.
 </Aside>
 
@@ -137,7 +137,7 @@ Estimate the fixed monthly price for a deployment profile. Pricing is computed b
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
 | `app_profile` | string | No | `web-app` | Pre-deploy estimate preset: `static-site`, `web-app`, `web-app-db`, `ai-agent-cpu`, or `ai-agent-gpu` |
-| `subdomain` | string | No | none | A live deployment's subdomain — returns that deployment's real cost (overrides `app_profile`) |
+| `subdomain` | string | No | none | A live deployment's subdomain. Returns that deployment's real cost (overrides `app_profile`) |
 | `has_database` | boolean | No | none | Whether the app uses a database (selects the database-inclusive estimate) |
 
 **Annotations:** `readOnlyHint: true`
@@ -462,7 +462,7 @@ https://mcp.varity.so
 
 **ChatGPT:** Settings → Connectors → Create → MCP server URL: `https://mcp.varity.so`
 
-Hosted OAuth login is in progress: hosted OAuth and per-user deployment authorization are not yet certified end to end. Until that verification passes, do not use the hosted endpoint for owner-scoped operations (deploys, env changes, deletes) — connect via the stdio package (`npx -y @varity-labs/mcp`) instead.
+Hosted OAuth login is in progress: hosted OAuth and per-user deployment authorization are not yet certified end to end. Until that verification passes, do not use the hosted endpoint for owner-scoped operations (deploys, env changes, deletes). Connect via the stdio package (`npx -y @varity-labs/mcp`) instead.
 
 ### Self-Hosted HTTP
 
