@@ -1,3 +1,4 @@
+import { rehypeTableScroll } from './src/plugins/rehype-table-scroll.mjs';
 // @ts-check
 import { defineConfig } from "astro/config";
 import starlight from "@astrojs/starlight";
@@ -5,6 +6,7 @@ import sitemap from "@astrojs/sitemap";
 
 // https://astro.build/config
 export default defineConfig({
+  markdown: { rehypePlugins: [rehypeTableScroll] },
   site: "https://docs.varity.so",
   output: "static",
   image: {
@@ -87,6 +89,14 @@ export default defineConfig({
             rel: "preconnect",
             href: "https://fonts.gstatic.com",
             crossorigin: "anonymous",
+          },
+        },
+        // Discovered by the preload scanner in the HTML, not after CSS parse.
+        {
+          tag: "link",
+          attrs: {
+            rel: "stylesheet",
+            href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap",
           },
         },
         // Performance: Browser's preload scanner handles critical resource discovery
@@ -252,6 +262,35 @@ export default defineConfig({
           ],
         },
 
+        // ===== AI GATEWAY =====
+        {
+          label: "AI Gateway",
+          items: [
+            { label: "AI Gateway Overview", slug: "ai-gateway" },
+            { label: "Models", slug: "ai-gateway/models" },
+            { label: "OpenAI Compatibility", slug: "ai-gateway/compatibility" },
+          ],
+        },
+
+        // ===== API CONTRACT =====
+        {
+          label: "API Contract",
+          items: [
+            { label: "Errors", slug: "api/errors" },
+            { label: "Rate Limits", slug: "api/limits" },
+          ],
+        },
+
+        // ===== MACHINES =====
+        {
+          label: "Machines (VMs & GPU)",
+          items: [
+            { label: "Deployment Categories", slug: "machines" },
+            { label: "CPU Virtual Machines", slug: "machines/cpu-vms" },
+            { label: "GPU Machines", slug: "machines/gpu" },
+          ],
+        },
+
         // ===== DEPLOYMENT =====
         {
           label: "Deployment",
@@ -281,7 +320,7 @@ export default defineConfig({
               slug: "deploy/env-variables",
             },
             {
-              label: "App URLs and Names",
+              label: "App URLs and Custom Domains",
               slug: "deploy/custom-domains",
             },
             {

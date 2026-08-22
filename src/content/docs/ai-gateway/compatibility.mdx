@@ -1,0 +1,210 @@
+---
+title: AI Gateway OpenAI Compatibility
+description: Exactly which parts of the OpenAI API surface the Varity AI Gateway implements, and which parts it does not.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+import PageMeta from '../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="August 2026"
+  stability="beta"
+/>
+
+"OpenAI-compatible" is a claim about a surface, not a promise about all of it.
+This page states the boundary. An exclusion you discover at runtime instead of
+reading it here is a documentation bug. If you hit one, report it.
+
+Everything below was checked against the live gateway at `https://varity.app/v1`.
+
+## Endpoints
+
+| Endpoint | Status |
+|----------|--------|
+| `POST /v1/chat/completions` | **Supported.** Requires a bearer API key. |
+| `GET /v1/models` | **Supported.** Public, no key required. |
+| `GET /v1/models/{id}` | **Not implemented.** Returns `404`. Fetch the list and filter client-side. |
+| `POST /v1/completions` (legacy text completions) | **Not implemented.** Returns `404`. |
+| `POST /v1/responses` | **Not implemented.** Returns `404`. |
+| `POST /v1/embeddings` | **Not implemented.** Returns `404`. |
+| `/v1/assistants` | **Not implemented.** Returns `404`. |
+| `/v1/files` | **Not implemented.** Returns `404`. |
+| `/v1/vector_stores` | **Not implemented.** Returns `404`. |
+| `POST /v1/images/generations` | **Not implemented.** Returns `404`. |
+| `POST /v1/audio/speech` | **Not implemented.** Returns `404`. |
+| `POST /v1/audio/transcriptions` | **Not implemented.** Returns `404`. |
+| `POST /v1/moderations` | **Not implemented.** Returns `404`. |
+| `/v1/batches` | **Not implemented.** Returns `404`. |
+| `/v1/fine_tuning/jobs` | **Not implemented.** Returns `404`. |
+
+Beyond the OpenAI surface, the gateway serves its own endpoints. These have no
+OpenAI equivalent, so a client written against the OpenAI spec will not find
+them, but they are public and stable.
+
+| Endpoint | Status |
+|----------|--------|
+| `GET /v1/openapi.json` | **Supported.** Public, no key required. The machine-readable contract for this surface, including the data-handling block below. |
+| `GET /v1/inference/requests` | **Supported.** Requires a bearer API key. Per-request metadata. |
+| `GET /v1/inference/usage` | **Supported.** Requires a bearer API key. |
+| `GET /v1/inference/policy` | **Supported.** Requires a bearer API key. |
+| `GET /v1/inference/performance` | **Supported.** Requires a bearer API key. Accepts `window` of `1h`, `24h`, `7d`, or `30d`. |
+
+For the OpenAI-compatible surface, the gateway is a **chat-completions gateway**. Text generation is the product;
+embeddings, files, assistants, batch, fine-tuning, images, audio, and moderation
+are not part of it. Unimplemented routes return an HTML `404` page, not a JSON
+error envelope. A client that assumes every failure parses as JSON throws a
+parse error rather than surfacing a clean status. Branch on the HTTP status
+code, not on the body.
+
+A non-`/v1` health probe is also available:
+
+| Endpoint | Status |
+|----------|--------|
+| `GET /health` | **Supported.** Public. Returns `{"status":"healthy","service":"varity-gateway","version":"1.13.49"}`. |
+
+<Aside type="caution">
+Any OpenAI SDK helper that touches an unimplemented route will fail, including
+`client.embeddings.create(...)`, the Assistants and Responses APIs, and file
+upload helpers. Only the `chat.completions` and `models` namespaces work.
+</Aside>
+
+## Per-Model Capabilities
+
+Compatibility is not uniform across models. Each catalog entry carries a
+`capabilities` object, and you must read it. The same request that works
+against one model can be unsupported on another.
+
+| Capability | Models supporting it |
+|------------|----------------------|
+| `chat_completions` | 42 of 42 |
+| `streaming` | 42 of 42 |
+| `tool_calls` | **11 of 42** |
+| `streaming_tool_calls` | **7 of 42** |
+
+### Tool calling is the exception, not the default
+
+Only 11 of the 42 models accept `tools` / `tool_choice`. If your agent framework
+assumes function calling works everywhere, as most do, it will break on the other
+31. These are the models reporting `tool_calls: true`:
+
+| Model ID | Name | Tool calls while streaming |
+|----------|------|----------------------------|
+| `model-01e5cfb9cd019cee62a62b13` | Gemma 4 Uncensored | Yes |
+| `model-afb55f3c0379fce9fb050497` | Google Gemma 3 27B Instruct | No |
+| `model-1bcd5b1a9fc32ffb985afc6b` | Grok 4.20 | Yes |
+| `model-4e27cf37044481968f24c858` | Grok 4.3 | Yes |
+| `model-7ac496866ed390aa843e23ea` | Grok 4.5 | Yes |
+| `model-0bf4d9df75eb028b048a51ed` | Grok Build 0.1 | Yes |
+| `model-c09137265edddbdec9dfda8b` | Llama 3.2 3B | No |
+| `llama-3-3-70b` | Llama 3.3 70B | No |
+| `model-ca8c32ffa3e6ec1adee98495` | Mistral Small 3.2 24B Instruct | No |
+| `model-38c8e473186cf182a89ee7ff` | Role Play Uncensored | Yes |
+| `model-665e90a28adb3a74b27bb064` | Uncensored 1.2 | Yes |
+
+Four of those eleven support tool calls only in non-streaming mode
+(`tool_calls: true`, `streaming_tool_calls: false`): `llama-3-3-70b`,
+`model-afb55f3c0379fce9fb050497`, `model-c09137265edddbdec9dfda8b`, and
+`model-ca8c32ffa3e6ec1adee98495`. Combining `stream: true` with `tools` on those
+is outside the supported surface. Drop `stream` or pick a model from the seven
+that report `streaming_tool_calls: true`.
+
+Resolve this at runtime rather than hardcoding:
+
+```python
+models = {m["id"]: m for m in client.models.list().model_dump()["data"]}
+
+def supports_tools(model_id, streaming=False):
+    caps = models[model_id]["capabilities"]
+    return caps["streaming_tool_calls"] if streaming else caps["tool_calls"]
+```
+
+<Aside type="note">
+The OpenAI Python SDK exposes only the fields it knows about on typed objects.
+Varity's extra fields (`capabilities`, `context_window`, `customer_pricing`)
+arrive as extra JSON, so read the raw dict (or call `/v1/models` directly with an
+HTTP client) rather than expecting SDK attributes for them.
+</Aside>
+
+## Model Identifiers
+
+Varity model ids are **not** OpenAI model ids. There is no `gpt-4o`, no
+`gpt-3.5-turbo`, and no aliasing layer that maps OpenAI names onto Varity
+models. A request naming an OpenAI model id is a request for a model that does
+not exist here.
+
+Most ids are opaque, in the form `model-<hex>`; a handful are readable, such as
+`glm-5-1`, `glm-5-2`, `llama-3-3-70b`, and `qwen-3-5-35b-a3b`. Always take ids
+from [the catalog](/ai-gateway/models/).
+
+## Limits That Differ From OpenAI
+
+- **`max_completion_tokens` is per-model and often small.** Values in the catalog run from 4,096 up to 131,072, independent of the context window (which runs from 128,000 to 2,000,000). A 2M-token context does not mean a long reply is allowed.
+- **No cached-input discount.** Every model returns `cached_input` equal to `input`. Prompt caching does not currently reduce price.
+- **Rate limits are advertised in response headers.** `GET /v1/models` returns `ratelimit-limit: 120` with `ratelimit-policy: 120;w=60`. Read `ratelimit-remaining` and `ratelimit-reset` at runtime instead of assuming a fixed budget.
+
+## Errors
+
+The error envelope matches OpenAI's shape and adds two fields:
+
+```json
+{
+  "error": {
+    "message": "The API key is invalid or revoked.",
+    "type": "authentication_error",
+    "code": "invalid_api_key",
+    "param": null,
+    "retryable": false,
+    "request_id": "626e1d39-9b9b-46d6-8781-1dc280dfe85c"
+  }
+}
+```
+
+- `retryable` is a boolean OpenAI does not send. Use it instead of guessing from the status code whether to retry.
+- `request_id` is also returned as the `x-request-id` response header on every response, successful or not.
+
+Observed authentication codes:
+
+| Condition | Status | `code` |
+|-----------|--------|--------|
+| No `Authorization` header | `401` | `authentication_required` |
+| Invalid or revoked key | `401` | `invalid_api_key` |
+
+Authentication is evaluated **before** request-body validation, so an
+unauthenticated request with an invalid `model` returns the authentication
+error, not a model error. Do not use the error type to infer that your payload
+was accepted.
+
+## Privacy And Data Retention
+
+The gateway publishes its data-handling contract as an `x-varity-data-handling`
+block at the root of `GET /v1/openapi.json`. It is machine-readable, so you can
+assert against it in CI rather than taking a page's word for it.
+
+| Field | Value |
+|-------|-------|
+| `inference_metadata_retention_days` | `30` |
+| `stored_content` | `[]` |
+| `content_never_stored` | `prompts`, `responses`, `tool_arguments`, `uploaded_content`, `playground_conversations` |
+| `financial_and_security_records` | `separate_retention_classes` |
+
+Prompt and response bodies are never written to the inference records. What is
+retained for 30 days is request metadata: model and provider identifiers, token
+counts, latency, fallback count, error code, and timestamps. Read it back with
+`GET /v1/inference/requests`.
+
+This is the property usually searched for as zero data retention, or ZDR.
+
+## Privacy Routing
+
+Every model in the catalog reports `privacy: "private"` with
+`privacy_routes: ["private"]`. This field has no OpenAI equivalent; it is
+Varity-specific catalog metadata describing how the model is routed. There is
+currently no non-private route to choose between.
+
+## Next Steps
+
+- **[AI Gateway Overview](/ai-gateway/)**: base URL, auth, quickstart, streaming
+- **[Models](/ai-gateway/models/)**: the full catalog with limits and prices
+- **[Public API Reference](/ai-tools/api-reference/)**: the `/api` platform contract

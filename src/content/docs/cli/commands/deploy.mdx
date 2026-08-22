@@ -63,8 +63,8 @@ varitykit app deploy --hosting dynamic
 - Persistent storage
 - Up to a fixed monthly maximum per app, prorated by running time. An unchanged profile does not cost more as traffic grows
 
-<Aside type="tip">
-Dynamic hosting is powered by cloud compute. Use `--hosting dynamic` for server-side frameworks (Next.js API routes, Express, etc.). Static hosting remains the default.
+<Aside type="tip" icon="approve-check">
+Dynamic hosting is powered by cloud compute. `--hosting` defaults to `auto`, which detects the framework and picks static or dynamic for you. Pass `--hosting dynamic` to force it for server-side frameworks (Next.js API routes, Express, and similar).
 </Aside>
 
 ## Options
@@ -167,7 +167,7 @@ varitykit app info deploy-1737492000
 Remove a deployment:
 
 ```bash
-varitykit app delete deploy-1737492000 --yes
+varitykit app delete my-app --yes
 ```
 
 ## Troubleshooting

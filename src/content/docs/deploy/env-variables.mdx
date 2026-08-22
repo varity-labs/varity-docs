@@ -16,13 +16,13 @@ import PageMeta from '../../../components/PageMeta.astro';
 
 Varity manages most credentials automatically. You only need to set environment variables for services you manage yourself, like your own API keys for OpenAI, Stripe, SendGrid, and similar third-party services.
 
-<Aside type="tip">
+<Aside type="tip" icon="approve-check">
 **No credential setup required.** Storage and service credentials are provided automatically by Varity. See [Managed Credentials](/deploy/managed-credentials) for details.
 </Aside>
 
 ## Custom Environment Variables
 
-If your app uses third-party APIs (OpenAI, Stripe, SendGrid, Resend, or any other service), you need to inject those API keys into your deployment. Varity reads them from a `.env` file during `varitykit app deploy` and passes them through to your running app.
+If your app uses third-party APIs (OpenAI, Stripe, SendGrid, Resend, or any other service), you need to inject those API keys into your deployment. Varity reads them during `varitykit app deploy` and passes them through to your running app. It looks for three filenames in precedence order: `.env.varity`, then `.env.local`, then `.env`. It uses the first one it finds.
 
 ### Step 1: Create a `.env.varity` file
 
@@ -37,7 +37,7 @@ SENDGRID_API_KEY=SG....
 MY_CUSTOM_VAR=some-value
 ```
 
-<Aside type="tip">
+<Aside type="tip" icon="approve-check">
 `.env.varity` is the recommended file for Varity-specific production secrets. It takes precedence over `.env.local` and `.env`. Add it to your `.gitignore`.
 </Aside>
 
@@ -102,7 +102,7 @@ These variables are only needed for specific use cases:
 | `VARITY_API_URL` | Custom API endpoint | `https://varity.app` |
 | `VARITY_API_KEY` | API authentication | Auto-provided |
 
-<Aside type="tip">
+<Aside type="tip" icon="approve-check">
 Deployment credentials for hosting (both static and dynamic) are managed automatically by Varity. No manual credential setup is needed.
 </Aside>
 
@@ -174,7 +174,7 @@ This checks:
 
 ### Variables not loading
 
-1. Check file name is exactly `.env` or `.env.local`
+1. Check the file name is one of `.env.varity`, `.env.local`, or `.env`. Those three are read, in that order, and only the first one found is used
 2. Restart your development server after changes
 3. Verify no syntax errors in the file
 4. Check framework-specific prefixes (`NEXT_PUBLIC_`, `VITE_`, etc.)

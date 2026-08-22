@@ -15,8 +15,12 @@ import PageMeta from '../../../components/PageMeta.astro';
 
 Varity automatically detects AI agent apps and configures the right hosting for them. You write the code, run one command, and your agent is live.
 
-<Aside type="tip">
+<Aside type="tip" icon="approve-check">
 If your agent uses a local language model (via the `ollama` package), Varity detects it and auto-provisions a model server alongside your app. No extra setup required.
+</Aside>
+
+<Aside type="tip" icon="approve-check" title="This uses Varity's own AI Gateway">
+The examples below point at `https://varity.app/v1`, Varity's OpenAI-compatible endpoint, so the model call and the deployment are billed to the same account and use the same key. Any OpenAI-compatible client works by changing `base_url`. See [AI Gateway](/ai-gateway/) for the model catalog, or keep your own provider's key if you prefer.
 </Aside>
 
 ## One-Click Agent Templates
@@ -78,7 +82,10 @@ This example builds a simple agent endpoint that accepts a prompt and returns a 
    import os
 
    app = FastAPI()
-   client = openai.OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+   client = openai.OpenAI(
+       base_url="https://varity.app/v1",
+       api_key=os.environ["VARITY_API_KEY"],
+   )
 
    class PromptRequest(BaseModel):
        prompt: str
@@ -86,7 +93,7 @@ This example builds a simple agent endpoint that accepts a prompt and returns a 
    @app.post("/run")
    async def run_agent(request: PromptRequest):
        response = client.chat.completions.create(
-           model="gpt-4o-mini",
+           model="llama-3-3-70b",
            messages=[{"role": "user", "content": request.prompt}]
        )
        return {"result": response.choices[0].message.content}
@@ -109,7 +116,7 @@ This example builds a simple agent endpoint that accepts a prompt and returns a 
    Create a `.env` file in your project root:
 
    ```bash title=".env"
-   OPENAI_API_KEY=sk-...
+   VARITY_API_KEY=<your Varity API key>
    ```
 
    Varity reads this file at deploy time and injects the variable into your app's runtime environment.
@@ -156,12 +163,15 @@ This example builds an Express API that wraps the OpenAI API.
    const app = express();
    app.use(express.json());
 
-   const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+   const client = new OpenAI({
+     baseURL: 'https://varity.app/v1',
+     apiKey: process.env.VARITY_API_KEY,
+   });
 
    app.post('/run', async (req, res) => {
      const { prompt } = req.body;
      const response = await client.chat.completions.create({
-       model: 'gpt-4o-mini',
+       model: 'llama-3-3-70b',
        messages: [{ role: 'user', content: prompt }]
      });
      res.json({ result: response.choices[0].message.content });
@@ -194,7 +204,7 @@ This example builds an Express API that wraps the OpenAI API.
 3. **Add your API key**
 
    ```bash title=".env"
-   OPENAI_API_KEY=sk-...
+   VARITY_API_KEY=<your Varity API key>
    ```
 
 4. **Deploy**

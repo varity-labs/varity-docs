@@ -1,0 +1,155 @@
+---
+title: AI Gateway Models
+description: Ids, context windows, completion limits, tool-calling and streaming support, and per-token pricing in the live Varity AI Gateway model catalog.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+import PageMeta from '../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="August 2026"
+  stability="beta"
+/>
+
+The catalog is served live. This page is a snapshot of it; the endpoint is the
+source of truth:
+
+```bash
+curl https://varity.app/v1/models
+```
+
+`GET /v1/models` is public and needs no API key. It returns an OpenAI-shaped
+`{ "object": "list", "data": [...] }` response. Varity adds fields OpenAI does
+not return: `display_name`, `capabilities`, `context_window`,
+`max_completion_tokens`, `privacy`, `privacy_routes`, `availability`, and
+`customer_pricing`.
+
+<Aside type="tip" icon="approve-check">
+Do not hardcode this table. Resolve models at runtime from `/v1/models` and read
+`capabilities` per model. The catalog changes without a docs release.
+</Aside>
+
+## Catalog
+
+**42 models** were listed at the time of writing, all reporting
+`availability.status: "available"` and `chat_completions: true`.
+
+Pass the `id` column verbatim as the `model` field of a chat-completions
+request. Note that most ids are opaque `model-<hash>` strings rather than
+vendor-style names; the `display_name` is a label, not an identifier.
+
+Prices are USD per million tokens, taken from each model's `customer_pricing`
+object.
+
+| Model ID | Name | Context window | Max completion tokens | Tool calls | Streaming | Input / 1M | Output / 1M |
+|----------|------|----------------|-----------------------|------------|-----------|------------|-------------|
+| `model-23ceb717e8b9fbdf4170804c` | DeepSeek V3.2 | 160,000 | 32,768 | No | Yes | $0.3465 | $0.504 |
+| `model-01e5cfb9cd019cee62a62b13` | Gemma 4 Uncensored | 256,000 | 8,192 | Yes | Yes | $0.170625 | $0.525 |
+| `model-e7a95bbb411e58c5b94bd949` | GLM 4.6 | 198,000 | 16,384 | No | Yes | $0.4515 | $1.8375 |
+| `model-84999d7f31100ae1be7e4ee9` | GLM 4.7 | 198,000 | 16,384 | No | Yes | $0.5775 | $2.7825 |
+| `model-4d0399841ad2104adac8673f` | GLM 4.7 Flash | 128,000 | 16,384 | No | Yes | $0.063 | $0.42 |
+| `model-8f0e33a63784a2569979827d` | GLM 4.7 Flash Heretic | 200,000 | 24,000 | No | Yes | $0.0735 | $0.42 |
+| `model-975fe730d6699badb8f13ca0` | GLM 5 | 198,000 | 32,000 | No | Yes | $1.05 | $3.36 |
+| `glm-5-1` | GLM 5.1 | 200,000 | 80,000 | No | Yes | $1.617 | $5.082 |
+| `glm-5-2` | GLM 5.2 | 1,000,000 | 131,072 | No | Yes | $1.47 | $4.62 |
+| `model-afb55f3c0379fce9fb050497` | Google Gemma 3 27B Instruct | 198,000 | 16,384 | Yes | Yes | $0.126 | $0.21 |
+| `model-592b84ed19d414fc58b3c1b8` | Google Gemma 4 26B A4B Instruct | 256,000 | 8,192 | No | Yes | $0.1365 | $0.42 |
+| `model-da12ebb256e118bd1b7f4c86` | Google Gemma 4 31B Instruct | 256,000 | 8,192 | No | Yes | $0.126 | $0.378 |
+| `model-1bcd5b1a9fc32ffb985afc6b` | Grok 4.20 | 2,000,000 | 128,000 | Yes | Yes | $1.491 | $2.9715 |
+| `model-13cb7872bbc7954e8ae400d8` | Grok 4.20 Multi-Agent | 2,000,000 | 128,000 | No | Yes | $1.491 | $2.9715 |
+| `model-4e27cf37044481968f24c858` | Grok 4.3 | 1,000,000 | 32,000 | Yes | Yes | $1.491 | $2.9715 |
+| `model-7ac496866ed390aa843e23ea` | Grok 4.5 | 500,000 | 32,000 | Yes | Yes | $2.3835 | $7.14 |
+| `model-0bf4d9df75eb028b048a51ed` | Grok Build 0.1 | 256,000 | 65,536 | Yes | Yes | $1.05 | $2.1 |
+| `model-b5bcc7a2b398465798a0759a` | Hermes 3 Llama 3.1 405b | 128,000 | 16,384 | No | Yes | $1.155 | $3.15 |
+| `model-35fec70a1356b5981dba26d9` | Inkling | 524,288 | 65,536 | No | Yes | $1.3125 | $5.315625 |
+| `model-547bc7d442bda226b1ac0d52` | Kimi K2.5 | 256,000 | 65,536 | No | Yes | $0.588 | $3.675 |
+| `model-932fa0c5bc52d3ea2e193584` | Kimi K2.6 | 256,000 | 65,536 | No | Yes | $0.7875 | $3.675 |
+| `model-28805f587470f2b9e31381f8` | Kimi K2.7 Code | 256,000 | 65,536 | No | Yes | $0.7875 | $3.675 |
+| `model-93e21d329a7b4dd9514d9c9f` | Kimi K3 | 1,000,000 | 131,072 | No | Yes | $3.9375 | $19.6875 |
+| `model-c09137265edddbdec9dfda8b` | Llama 3.2 3B | 128,000 | 4,096 | Yes | Yes | $0.1575 | $0.63 |
+| `llama-3-3-70b` | Llama 3.3 70B | 128,000 | 4,096 | Yes | Yes | $0.735 | $2.94 |
+| `model-36acfa144b41de8ac1c27944` | MiniMax M2.5 | 198,000 | 32,768 | No | Yes | $0.2835 | $0.9975 |
+| `model-c783b8f80c60041a340bdb07` | MiniMax M2.7 | 198,000 | 32,768 | No | Yes | $0.39375 | $1.575 |
+| `model-ca8c32ffa3e6ec1adee98495` | Mistral Small 3.2 24B Instruct | 256,000 | 16,384 | Yes | Yes | $0.0984375 | $0.2625 |
+| `model-305938ab9ebc39e1beb95ac4` | Mistral Small 4 | 256,000 | 65,536 | No | Yes | $0.196875 | $0.7875 |
+| `model-adeed85bab462c43614e8e1c` | NVIDIA Nemotron 3 Nano 30B | 128,000 | 16,384 | No | Yes | $0.07875 | $0.315 |
+| `model-2207a53b5a3f856264ce7753` | NVIDIA Nemotron 3 Ultra | 256,000 | 32,768 | No | Yes | $0.65625 | $3.28125 |
+| `model-94ab4b38ef8b46c8cdf5ffa0` | OpenAI GPT OSS 120B | 128,000 | 16,384 | No | Yes | $0.0735 | $0.315 |
+| `model-ab4d70a40590dc6ed07d5187` | Qwen 3 235B A22B Instruct 2507 | 128,000 | 16,384 | No | Yes | $0.1575 | $0.7875 |
+| `model-366edcdf75d467e68639879b` | Qwen 3 235B A22B Thinking 2507 | 128,000 | 16,384 | No | Yes | $0.4725 | $3.675 |
+| `model-bbb8171a9ad936cd006e9640` | Qwen 3 Coder 480B Turbo | 256,000 | 65,536 | No | Yes | $0.3675 | $1.575 |
+| `model-2f3b522ed43cc37cb7cac581` | Qwen 3 Next 80b | 256,000 | 16,384 | No | Yes | $0.3675 | $1.995 |
+| `qwen-3-5-35b-a3b` | Qwen 3.5 35B A3B | 256,000 | 16,384 | No | Yes | $0.328125 | $1.3125 |
+| `model-e838b0fde95335963c1bc9d4` | Qwen 3.5 9B | 256,000 | 32,768 | No | Yes | $0.105 | $0.1575 |
+| `model-f660e96789aa9606296abe39` | Qwen 3.6 27B | 256,000 | 65,536 | No | Yes | $0.34125 | $3.4125 |
+| `model-be42cfa83562024c857a01fb` | Qwen3 VL 235B | 128,000 | 16,384 | No | Yes | $0.2205 | $1.995 |
+| `model-38c8e473186cf182a89ee7ff` | Role Play Uncensored | 128,000 | 4,096 | Yes | Yes | $0.525 | $2.1 |
+| `model-665e90a28adb3a74b27bb064` | Uncensored 1.2 | 128,000 | 8,192 | Yes | Yes | $0.21 | $0.945 |
+
+## Reading The Catalog Fields
+
+Each entry in `data` carries these Varity fields:
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `id` | string | Pass this as `model` in a request |
+| `display_name` | string | Human label only, never an identifier |
+| `capabilities.chat_completions` | boolean | `true` on all 42 models |
+| `capabilities.tool_calls` | boolean | `true` on 11 of 42 models |
+| `capabilities.streaming` | boolean | `true` on all 42 models |
+| `capabilities.streaming_tool_calls` | boolean | `true` on 7 of 42 models |
+| `context_window` | integer | Total tokens, input plus output |
+| `max_completion_tokens` | integer | Ceiling on generated tokens |
+| `privacy` | string | `"private"` on every model in the catalog |
+| `privacy_routes` | array | `["private"]` on every model in the catalog |
+| `availability.status` | string | `"available"` on every model, with an `observed_at` timestamp |
+| `customer_pricing` | object | See below |
+| `refreshed_at` | string | When the gateway last refreshed the entry |
+
+### Pricing
+
+Every model returns `customer_pricing.status: "configured"` with concrete
+numbers:
+
+```json
+"customer_pricing": {
+  "status": "configured",
+  "version": "2026-07-28.v3.d74e3f5155b10314",
+  "currency": "usd",
+  "unit": "per_million_tokens",
+  "input": 1.47,
+  "output": 4.62,
+  "cached_input": 1.47
+}
+```
+
+`cached_input` equals `input` on all 42 models. Cached input tokens are not
+discounted today. Always read `unit` and `currency` rather than assuming; the
+`version` string identifies the price set the numbers came from.
+
+Across the catalog, input prices run from $0.063 to $3.9375 per million tokens
+and output prices from $0.1575 to $19.6875 per million tokens.
+
+### Context Windows
+
+Context windows range from 128,000 to 2,000,000 tokens. `max_completion_tokens`
+is a separate, much smaller ceiling on any single response, and it goes as low as
+4,096 on some models. A large context window does not imply a large answer.
+
+## Picking A Model
+
+- **Need tool calling?** Only 11 models support it, and only 7 support tool calls while streaming. See [Compatibility](/ai-gateway/compatibility/) for the exact lists.
+- **Need a very large context?** `model-13cb7872bbc7954e8ae400d8` (Grok 4.20 Multi-Agent) and `model-1bcd5b1a9fc32ffb985afc6b` (Grok 4.20) both report 2,000,000 tokens.
+- **Cost sensitive?** `model-4d0399841ad2104adac8673f` (GLM 4.7 Flash) is the cheapest input price in the catalog at $0.063 per million input tokens.
+
+<Aside type="caution">
+There is no per-model retrieval route. `GET /v1/models/{id}` returns `404`; fetch
+the list and filter it client-side.
+</Aside>
+
+## Next Steps
+
+- **[AI Gateway Overview](/ai-gateway/)**: base URL, auth, and the quickstart snippets
+- **[Compatibility](/ai-gateway/compatibility/)**: supported and unsupported OpenAI surface

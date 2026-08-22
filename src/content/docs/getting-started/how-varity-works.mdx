@@ -24,7 +24,7 @@ For the exact framework matrix, use [Supported Frameworks](/deploy/supported-fra
 | Input | You provide source, a GitHub repo, dashboard settings, MCP request, or Docker image | [Deploy Your App](/deploy/deploy-your-app/) |
 | Build | Varity builds supported source projects or pulls a runnable image | [Supported Frameworks](/deploy/supported-frameworks/) |
 | Configure | Varity applies hosting, variables, services, and URL defaults | [Deployment Defaults](/deploy/intelligent-orchestration/) |
-| Launch | Your app becomes available on its Varity URL | [App URLs and Names](/deploy/custom-domains/) |
+| Launch | Your app becomes available on its Varity URL | [App URLs and Custom Domains](/deploy/custom-domains/) |
 | Operate | You use logs, status, environment updates, redeploy, and support | [Troubleshooting Deploys](/deploy/deployment-troubleshooting/) |
 
 ## Deploy Lifecycle
@@ -107,7 +107,7 @@ Varity chooses the default based on the app type. You can force the mode with `-
 Varity is in guided beta. Use it freely for demos, side projects, AI agent apps, and apps that tolerate beta limits. Bring your own external database for business critical data until managed database durability, backups, and restore are shipped.
 </Aside>
 
-Varity currently supports Node, Python, Go, static projects, and Docker or OCI HTTP service images. External custom domains, cron jobs, preview deployments, one click rollback, and dedicated GPUs for user containers are not shipped yet.
+Varity serves three deployment categories: applications (Node, Python, Go, static projects, and Docker or OCI HTTP service images), [CPU VMs](/machines/cpu-vms/), and [GPU workloads](/machines/gpu/) (containers, VMs, and bare metal). Varity also runs an [OpenAI-compatible AI Gateway](/ai-gateway/) you can call without deploying anything. Cron jobs, preview deployments, and one click rollback are not shipped yet.
 
 ## Next Steps
 

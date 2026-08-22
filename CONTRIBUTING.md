@@ -73,10 +73,9 @@ Then open a pull request on GitHub with a clear description of your changes.
 Every documentation page should include:
 
 1. **Frontmatter** - Metadata at the top of the file
-2. **Title** - Clear H1 heading
-3. **Introduction** - Brief overview of what the page covers
-4. **Main Content** - The actual documentation
-5. **Next Steps** - Links to related pages (when appropriate)
+2. **Introduction** - Brief overview of what the page covers
+3. **Main Content** - The actual documentation
+4. **Next Steps** - Links to related pages (when appropriate)
 
 ### Frontmatter Format
 
@@ -95,7 +94,7 @@ description: "Brief description under 160 characters for SEO."
 
 ### Headings
 
-- Use **H1** (`#`) for the page title only (one per page)
+- Use the frontmatter `title` as the page title; do not add a Markdown H1
 - Use **H2** (`##`) for major sections
 - Use **H3** (`###`) for subsections
 - Use sentence case: "Getting started" not "Getting Started"

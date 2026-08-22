@@ -13,7 +13,9 @@
    SECTION 1: FONTS
    System fonts for performance + trust
    ======================================== */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+/* Fonts are loaded via a <link> in astro.config.mjs head.
+   As an @import here they were only discovered after this stylesheet parsed,
+   which serialised HTML -> css -> fonts.googleapis -> gstatic (1,980 ms blocking). */
 
 /* ========================================
    SECTION 2: DESIGN TOKENS
@@ -170,7 +172,7 @@
   --sl-color-gray-1: var(--gray-50);
   --sl-color-gray-2: var(--gray-200);
   --sl-color-gray-3: var(--gray-400);
-  --sl-color-gray-4: var(--gray-500);
+  --sl-color-gray-4: var(--gray-400);
   --sl-color-gray-5: var(--gray-700);
   --sl-color-gray-6: var(--gray-800);
   --sl-color-gray-7: var(--gray-900);
@@ -189,14 +191,16 @@
 
   /* ----- LAYOUT ----- */
   --header-height: 64px;
-  --sl-content-width: 48rem;  /* 768px - optimal reading width */
+  --sl-content-width: 56rem;  /* 896px: reference tables run 7-8 columns and wrapped every cell at 48rem */
   --sl-sidebar-width: 19rem;  /* 304px - even wider for better readability */
   --sl-content-pad-x: 1.5rem;
 
   --text-primary: var(--gray-50);
   --text-secondary: var(--gray-400);
-  --text-tertiary: var(--gray-500);
-  --text-muted: var(--gray-600);
+  /* gray-500 (#71717a) is 3.97:1 and gray-600 (#52525b) is 2.48:1 on the dark
+     background; both fail WCAG AA for text. gray-400 (#a1a1aa) is 7.48:1. */
+  --text-tertiary: var(--gray-400);
+  --text-muted: var(--gray-400);
 }
 
 /* ========================================
@@ -204,6 +208,12 @@
    Optional light theme support
    ======================================== */
 [data-theme="light"] {
+  /* Links use var(--color-brand) directly, so it must be overridden here.
+     #14b8a6 on white is 2.49:1 and #0d9488 is 3.74:1; both fail WCAG AA.
+     #0f766e is 5.47:1. */
+  --color-brand: #0f766e;
+  --color-brand-light: #0d9488;
+
   /* ----- STARLIGHT COLORS: BACKGROUND ----- */
   --sl-color-bg: #ffffff;
   --sl-color-bg-nav: rgba(255, 255, 255, 0.9);
@@ -212,10 +222,10 @@
 
   /* ----- STARLIGHT COLORS: TEXT ----- */
   --sl-color-text: #111827;
-  --sl-color-text-accent: var(--varity-brand-600);
+  --sl-color-text-accent: #0f766e;
 
   /* ----- STARLIGHT COLORS: ACCENT ----- */
-  --sl-color-accent: var(--varity-brand-600);
+  --sl-color-accent: #0f766e;
   --sl-color-accent-low: rgba(13, 148, 136, 0.1);
   --sl-color-accent-high: var(--varity-brand-600);
 
@@ -551,7 +561,7 @@ i {
 /* ----- LAYOUT CSS CUSTOM PROPERTIES ----- */
 :root {
   /* TOC width - wider to prevent heading wrapping */
-  --sl-toc-width: 14rem;  /* 224px - Supabase standard */
+  --sl-toc-width: 11.5rem; /* 14rem exceeded the gutter Starlight allocates below 1440px, clipping every TOC row by ~33px */  /* 224px - Supabase standard */
   /* Homepage content max width */
   --varity-homepage-max: 96rem;
 }
@@ -862,10 +872,28 @@ html[data-has-sidebar] .sl-markdown-content :is(pre, table, .expressive-code, .c
 /* Desktop (72rem+): Full 3-column layout */
 /* Handled by default Starlight + overrides above */
 
-/* Laptop (50-72rem): Hide TOC, 2-column layout */
+/* Laptop (50-72rem): drop the desktop TOC rail, 2-column layout.
+   Starlight renders BOTH the desktop TOC and <mobile-starlight-toc> inside
+   .right-sidebar-container, so hiding the container removed in-page navigation
+   at every width below 72rem. Pages here run to 20,000px. Hide the desktop
+   panel only and let the mobile TOC render. */
 @media (max-width: 72rem) {
-  .right-sidebar-container {
+  .right-sidebar-container .right-sidebar-panel:not(:has(mobile-starlight-toc)) {
     display: none;
+  }
+
+  /* The mobile TOC inside is position:fixed, so the container must not claim
+     layout width. width:100% here squeezed the content column and pushed code
+     blocks past the viewport at 1024px. */
+  .right-sidebar-container {
+    position: static;
+    width: auto;
+    padding: 0;
+    border: 0;
+  }
+
+  .right-sidebar-container mobile-starlight-toc {
+    display: block;
   }
 
   /* Expand content to fill space */
@@ -1179,11 +1207,14 @@ article.card .body {
   border: 1px solid var(--border-secondary);
   border-radius: var(--radius-md);
   color: var(--text-tertiary);
-  opacity: 0.6;
+  /* Was 0.6, which left the button opaque over the end of long code lines.
+     Expressive Code's default is hidden until hover; the hover rule restores it. */
+  opacity: 0;
   transition: all var(--transition-fast);
 }
 
-.expressive-code:hover .copy button {
+.expressive-code:hover .copy button,
+.expressive-code .copy button:focus-visible {
   opacity: 1;
 }
 
@@ -1273,12 +1304,13 @@ th, td {
 }
 
 th {
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--surface-raised, rgba(255, 255, 255, 0.03));
   font-weight: var(--font-semibold);
   font-size: var(--text-sm);
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-wide);
-  color: var(--text-tertiary);
+  /* uppercase + wide tracking inflated headers: "Cheapest offer: vCPU / RAM /
+     disk / region" wrapped to 6 lines at 390px and 3 lines at 1280px. */
+  letter-spacing: normal;
+  color: var(--text-secondary);
 }
 
 td {
@@ -1299,17 +1331,17 @@ tr:hover td {
    Styled unordered and ordered lists
    ======================================== */
 
-.sl-markdown-content ul {
+.sl-markdown-content ul:not([role="tablist"]) {
   list-style: none;
   padding-left: var(--space-6);
 }
 
-.sl-markdown-content ul li {
+.sl-markdown-content ul:not([role="tablist"]) li {
   position: relative;
   margin-bottom: var(--space-2);
 }
 
-.sl-markdown-content ul li::before {
+.sl-markdown-content ul:not([role="tablist"]) li::before {
   content: '';
   position: absolute;
   left: calc(-1 * var(--space-4));
@@ -1627,3 +1659,64 @@ site-search kbd {
 .sl-markdown-content {
   animation: fadeInUp 0.2s ease-out;
 }
+
+/* Markdown tables must scroll inside their own box. Without this the table
+   widens the document and the whole page scrolls sideways on mobile: at 390px
+   /ai-gateway/models/ reached 1014px and 20 pages overflowed. */
+/* Tables are wrapped in .table-scroll by src/plugins/rehype-table-scroll.mjs.
+   Scrolling lives on the wrapper so the table keeps its `display: table`
+   semantics and screen readers still announce rows and columns. */
+.sl-markdown-content .table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.sl-markdown-content .table-scroll:focus-visible {
+  outline: 2px solid var(--sl-color-text-accent);
+  outline-offset: 2px;
+}
+
+.sl-markdown-content .table-scroll > table {
+  width: max-content;
+  min-width: 100%;
+  margin: var(--space-6) 0;
+}
+
+/* Card grids must collapse to one column rather than forcing a min-width. */
+@media (max-width: 480px) {
+  .sl-markdown-content .card-grid { grid-template-columns: 1fr; }
+  .sl-markdown-content .card-grid > article.card { min-width: 0; }
+}
+
+/* ---- Mobile corrections ---- */
+@media (max-width: 50rem) {
+  /* Hover never fires on touch, so the copy button must stay visible.
+     Pad the code instead so the button does not sit on the last characters. */
+  .expressive-code .copy button { opacity: 1; }
+  .expressive-code pre > code { padding-inline-end: 3rem; }
+
+  /* Steps indented content 90px, leaving code blocks 268px wide at 390px. */
+  .sl-steps > li { padding-left: var(--space-6); margin-left: var(--space-2); }
+
+  /* Landing-page support text was 11.5px to 13.4px. */
+  .eyebrow, .section-kicker, dt { font-size: 0.8125rem; }
+  small { font-size: 0.875rem; }
+
+  /* Inline code sat at 11.375px, under the 12px legibility floor. */
+  .sl-markdown-content :is(p, li, td, th, a) > code { font-size: 0.8125rem; }
+
+  /* Tap targets: Google's guideline is 48px. */
+  .sidebar-content a { min-height: 48px; display: flex; align-items: center; }
+
+  /* Starlight tab buttons were 28px tall with no gap between them. */
+  .sl-markdown-content [role="tablist"] a,
+  .sl-markdown-content [role="tablist"] button {
+    min-height: 48px;
+    display: inline-flex;
+    align-items: center;
+  }
+}
+
+/* Light mode needs a real table-header fill; the dark rgba value is white on white. */
+[data-theme="light"] th { background: var(--gray-50, #fafafa); }

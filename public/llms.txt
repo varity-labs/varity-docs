@@ -1,6 +1,6 @@
 # Varity Docs
 
-> Varity is predictable cloud hosting for supported Node, Python, Go, static, AI agent, and runnable Docker/OCI HTTP service deployments.
+> Varity runs supported Node, Python, Go, static, AI agent, and runnable Docker/OCI HTTP service deployments, rents CPU virtual machines and GPU machines by the hour, and serves an OpenAI-compatible inference API at https://varity.app/v1.
 
 Use these docs as the public Varity documentation context. Current MCP install command:
 
@@ -43,7 +43,7 @@ claude mcp add varity -- npx -y @varity-labs/mcp
 - [Command Line App Deploy with Varity CLI](https://docs.varity.so/cli/): Use the Varity CLI for command line app deploys, setup checks, and terminal workflows with varitykit.
 - [VarityKit CLI Overview Guide](https://docs.varity.so/cli/overview/): VarityKit CLI overview: deploy apps, run diagnostics, and manage domains. A familiar Python-based deploy CLI.
 - [Auto Wired Services on Varity](https://docs.varity.so/deploy/auto-wired-services/): Varity reads your dependencies and automatically provisions the databases and services your app needs. No configuration required.
-- [App URLs and Names on Varity](https://docs.varity.so/deploy/custom-domains/): Set your Varity app name. Static apps use varity.app/{name}, and dynamic apps use {name}.varity.app.
+- [App URLs and Custom Domains on Varity](https://docs.varity.so/deploy/custom-domains/): Set your Varity app name, and attach your own domain to a deployment with a CNAME for a subdomain or an A plus TXT record for a root domain.
 - [Deploy Apps with Postgres, Redis, MongoDB, and MySQL](https://docs.varity.so/deploy/databases/): Deploy an app with Postgres, Redis, MongoDB, or MySQL on Varity, including injected connection details and beta durability boundaries.
 - [Deploy a Docker Image on Varity](https://docs.varity.so/deploy/deploy-docker-image/): Deploy public or private runnable Docker images to Varity from the CLI, the Developer Portal, or your AI coding tool. No repo and no build step required.
 - [Deploy from the Dashboard](https://docs.varity.so/deploy/deploy-from-dashboard/): Deploy a GitHub repo, a Docker image, or a ready-made template from the Varity developer dashboard without using the command line.
@@ -56,7 +56,7 @@ claude mcp add varity -- npx -y @varity-labs/mcp
 - [Recover a Previous Version](https://docs.varity.so/deploy/rollback/): Recover after a bad Varity deploy by redeploying a known-good version under the same app name.
 - [Supported Frameworks on Varity](https://docs.varity.so/deploy/supported-frameworks/): Which frameworks Varity supports today, what gets auto-detected, and how to request support for languages not yet available.
 - [Migrate from Vercel to Varity](https://docs.varity.so/deploy/vercel-migration/): Move your existing Vercel app to Varity in under 3 minutes. The CLI and MCP tools handle code transforms, dependency cleanup, and deployment automatically.
-- [Supported App Deployment Frameworks](https://docs.varity.so/deploy/what-you-can-deploy/): Supported app deployment frameworks on Varity, including Node, Python, Go, static projects, Docker image services, and current beta limits.
+- [Supported App Deployment Frameworks](https://docs.varity.so/deploy/what-you-can-deploy/): The three Varity deployment categories — Applications (repos, Docker images, static sites), CPU VMs, and GPU workloads — plus current beta limits.
 - [Getting Help with Varity](https://docs.varity.so/getting-started/getting-help/): Find Varity support through documentation, Discord, GitHub issues, and setup checks when deploys need attention.
 - [How Varity Deployments Work](https://docs.varity.so/getting-started/how-varity-works/): The Varity deploy lifecycle from project input to live URL, status, logs, and redeploys.
 - [Getting Started with Varity](https://docs.varity.so/getting-started/): Get started with Varity. Deploy supported source apps, AI agents, and runnable Docker services.
@@ -77,3 +77,11 @@ claude mcp add varity -- npx -y @varity-labs/mcp
 - [Troubleshooting Varity Deploys](https://docs.varity.so/resources/troubleshooting/): Fix common Varity issues: CLI not found, build errors, authentication failures, deployment problems, and database connection troubleshooting.
 - [Build an App Using Only AI (No Code Required)](https://docs.varity.so/tutorials/build-with-ai/): Build and deploy an app with your AI editor. Varity MCP handles setup checks, the deploy workflow, and cost estimation.
 - [Deploy an AI Agent or LLM App](https://docs.varity.so/tutorials/deploy-ai-agent/): Step-by-step guide to deploying a Python or Node.js AI agent on Varity. Auto-detected compute and optional local model server included.
+- [Varity AI Gateway](https://docs.varity.so/ai-gateway/): OpenAI-compatible inference API at https://varity.app/v1. Point any OpenAI client at it and change nothing else.
+- [AI Gateway Models](https://docs.varity.so/ai-gateway/models/): The live model catalog with context windows, max completion tokens, tool-call and streaming support, and per-million-token prices.
+- [AI Gateway OpenAI Compatibility](https://docs.varity.so/ai-gateway/compatibility/): Which OpenAI endpoints are supported, which return 404, per-model capability differences, and the data-handling contract.
+- [Machine Catalogs](https://docs.varity.so/machines/): The four machine catalogs: CPU virtual machines, GPU containers, GPU virtual machines, and GPU bare metal.
+- [CPU Virtual Machines](https://docs.varity.so/machines/cpu-vms/): All CPU VM sizes with vCPU, memory, disk, hourly price, monthly cap, OS images, and how billing stops.
+- [GPU Machines](https://docs.varity.so/machines/gpu/): GPU card models, host specs, regions and hourly rates across containers, virtual machines, and bare metal. Rates track available supply.
+- [API Errors](https://docs.varity.so/api/errors/): The error envelope, the full error code reference with per-code anchors, fault attribution, and correlation IDs.
+- [API Rate Limits](https://docs.varity.so/api/limits/): Per-account rate limit classes, response headers, the 429 response, and how to retry correctly.

@@ -9,11 +9,11 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="July 2026"
+  lastUpdated="August 2026"
   stability="beta"
 />
 
-Varity's public API is a resource API for apps, deployments, templates, pricing, credits, API keys, and webhooks. Use it for direct integrations, custom agents, launchpads, internal tools, and backend services that need to deploy or operate Varity apps without the dashboard.
+Varity's public API is a resource API for deployments, self-managed machines, templates, pricing and quotes, credits, API keys, AI Gateway attachments, and webhooks. Use it for direct integrations, custom agents, launchpads, internal tools, and backend services that need to deploy or operate Varity apps without the dashboard.
 
 The machine-readable source is:
 
@@ -26,11 +26,26 @@ Older thin-client compatibility routes are not the public resource contract. New
 
 ## Base URL And Auth
 
-All public API calls use:
+Varity exposes two public base URLs:
+
+**Platform APIs** cover apps, deployments, templates, pricing, credits, API keys, and webhooks. That is everything on this page:
 
 ```text
 https://varity.app/api
 ```
+
+**AI Gateway** covers OpenAI-compatible inference. Chat completions and model listing:
+
+```text
+https://varity.app/v1
+```
+
+These are two different products with two different contracts:
+
+- **`/api/*` is the platform surface.** Resource CRUD for deployments, machines, templates, pricing, credits, keys, and webhooks. Everything on this page. Errors use the [Varity error envelope](/api/errors/).
+- **`/v1/*` is the OpenAI-compatible inference surface.** Chat completions and model listing. Point any OpenAI client at it by setting the base URL. It has its own error shape and its own rate limits, documented in the [AI Gateway](/ai-gateway/) docs. Nothing on this page applies to it.
+
+A single Varity API key does not automatically work on both surfaces: keys are scoped per product, and using one out of scope returns `403 credential_scope_violation`. Create AI Gateway keys in the Developer Portal, or via `POST /api/api-keys/inference`.
 
 For non-browser callers, send your Varity API key as a bearer credential:
 
@@ -38,11 +53,22 @@ For non-browser callers, send your Varity API key as a bearer credential:
 Authorization: Bearer $VARITY_API_KEY
 ```
 
-Create API keys in the Developer Portal settings page. API key plaintext is shown once. Listing and revoking keys require an authenticated Developer Portal session; plaintext keys are never returned after creation.
+Create API keys in the [Developer Portal settings page](https://developer.store.varity.so/dashboard/settings). API key plaintext is shown once. Listing and revoking keys require an authenticated Developer Portal session; plaintext keys are never returned after creation.
 
 ## Deploy
 
-`POST /api/deployments` creates a deployment from one source: repository, image, or template. Use `Idempotency-Key` on create requests so normal retries and replays cannot create duplicate deployments. Do not fire concurrent create requests with the same idempotency key; atomic concurrent idempotency is a backend hardening follow-up for v1.
+`POST /api/deployments` creates a deployment from one source: repository, image, or template. It returns `202 Accepted`. Creation is asynchronous.
+
+Always send an `Idempotency-Key` on creates so a retry cannot produce a duplicate deployment:
+
+- Format: `[A-Za-z0-9._:-]`, 8 to 128 characters. Anything else returns `400 invalid_idempotency_key`.
+- Retention: 24 hours.
+- Replaying the same key with the **same** body returns the original result, flagged `replayed: true`.
+- Reusing the same key with a **different** body returns `409 idempotency_key_reused`.
+
+The header is optional on `POST /api/deployments`, `POST /api/templates/{id}/deploy`, `POST /api/machines`, and `DELETE /api/machines/{id}`, and **required** on every `/api/ai-gateway/attachments` mutation.
+
+Do not fire concurrent create requests with the same idempotency key; atomic concurrent idempotency is a backend hardening follow-up for v1.
 
 <Tabs>
   <TabItem label="Repository">
@@ -91,7 +117,9 @@ Create API keys in the Developer Portal settings page. API key plaintext is show
   </TabItem>
 </Tabs>
 
-The response includes a Varity deployment id, public URL, run id, and `status_url`. Poll the run until it reaches `succeeded` or `failed`:
+The `202` response includes `id`, `app_name`, `status: "deploying"`, `runtime`, `run_id`, and `status_url`. `public_url` is **not** guaranteed on acceptance. On the durable path the URL is only projected once the canonical route is proven, so read it from the deployment once the run succeeds rather than from the create response.
+
+Poll the run until it reaches `succeeded` or `failed`:
 
 ```bash
 curl "https://varity.app/api/deployments/runs/$RUN_ID?app=my-app" \
@@ -210,6 +238,14 @@ The response includes `signing_secret` once. Store it to verify webhook deliveri
 
 The signature is `v1=` plus an HMAC-SHA256 over `timestamp.body` using the webhook signing secret. Webhook endpoint URLs must be public HTTPS URLs; local and private hosts are rejected.
 
+Subscribable event types:
+
+`deployment.accepted`, `deployment.progress`, `deployment.live`, `deployment.failed`, `deployment.unhealthy`, `deployment.env_updated`, `deployment.redeploy_requested`, `deployment.redeploy_completed`, `deployment.restart_requested`, `deployment.deleted`, `credit.updated`.
+
+<Aside type="note">
+`deployment.restart_requested` is accepted for backward-compatible subscription storage only. It is not emitted while verified restart is unavailable.
+</Aside>
+
 Webhook handlers should be idempotent. Delivery-time DNS/IP revalidation, durable delivery queue hardening, and additional signing-secret custody hardening remain non-blocking v1 follow-ups.
 
 List webhooks and delivery status:
@@ -226,9 +262,119 @@ curl -X DELETE https://varity.app/api/webhooks/$WEBHOOK_ID \
   -H "Authorization: Bearer $VARITY_API_KEY"
 ```
 
+## Machines
+
+Self-managed machines are a separate resource from deployments: you get a machine you administer, not a managed app. Quote first, then create.
+
+```bash
+curl -X POST https://varity.app/api/pricing/machine-quote \
+  -H "Authorization: Bearer $VARITY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ ... }'
+
+curl -X POST https://varity.app/api/machines \
+  -H "Authorization: Bearer $VARITY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: machine-001" \
+  -d '{ ... }'
+```
+
+Create and delete return `202`. List, read, and run bounded synchronous actions:
+
+```bash
+curl https://varity.app/api/machines \
+  -H "Authorization: Bearer $VARITY_API_KEY"
+
+curl https://varity.app/api/machines/$MACHINE_ID \
+  -H "Authorization: Bearer $VARITY_API_KEY"
+
+curl -X POST https://varity.app/api/machines/$MACHINE_ID/actions \
+  -H "Authorization: Bearer $VARITY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ ... }'
+```
+
+Request and response schemas are in the OpenAPI document; read it rather than hand-copying field lists.
+
+## Profiles, Capabilities, And Quotes
+
+Before deploying, discover what is actually available instead of assuming a catalog.
+
+`GET /api/deployment-capabilities` returns the provider-neutral catalog of workloads and execution options.
+
+`GET /api/deployment-profiles` returns normalized profiles, prices, and aggregate availability for a scope. Both `workload` and `execution_class` are required:
+
+```bash
+curl "https://varity.app/api/deployment-profiles?workload=gpu&execution_class=container" \
+  -H "Authorization: Bearer $VARITY_API_KEY"
+```
+
+`workload` is one of `gpu`, `virtual_machine`, `cpu`. `execution_class` is one of `container`, `virtual_machine`, `bare_metal`, `cpu_virtual_machine`. An invalid combination returns `422 deployment_profile_scope_invalid`.
+
+For the resource-, location-, runtime-, and access-complete GPU container catalog, pass `contract_version=gpu-container-profiles-v2`. Omit it during the rolling v1 compatibility window.
+
+Profiles carry availability, not a price commitment. For an exact hourly figure, take a quote:
+
+```bash
+curl -X POST https://varity.app/api/pricing/accelerator-quote \
+  -H "Authorization: Bearer $VARITY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ ... }'
+```
+
+Quotes draw from a generous per-minute budget, not the hourly mutation budget. Comparing prices will not exhaust your ability to manage running resources.
+
+## AI Gateway Attachments
+
+Attaching the Varity AI Gateway to a Cloud deployment injects a scoped inference credential into that deployment, so your app can call `/v1` without you managing a key by hand.
+
+```bash
+curl -X POST https://varity.app/api/ai-gateway/attachments \
+  -H "Authorization: Bearer $VARITY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: attach-my-app-001" \
+  -d '{ ... }'
+```
+
+`Idempotency-Key` is **required** on attach, detach, and rotate. All three return `202`. Attachment ids match `vai_[A-Za-z0-9_-]{20,64}`.
+
+```bash
+curl https://varity.app/api/ai-gateway/attachments \
+  -H "Authorization: Bearer $VARITY_API_KEY"
+
+curl -X POST https://varity.app/api/ai-gateway/attachments/$ATTACHMENT_ID/rotate \
+  -H "Authorization: Bearer $VARITY_API_KEY" \
+  -H "Idempotency-Key: rotate-my-app-001"
+```
+
+These routes accept either an API key or a Developer Portal session.
+
+## Errors And Rate Limits
+
+Every platform-API error returns the same envelope:
+
+```json
+{
+  "code": "authentication_required",
+  "message": "A Bearer API key is required.",
+  "action": "Send Authorization: Bearer <VARITY_API_KEY>.",
+  "retryable": false,
+  "docs_url": "https://docs.varity.so/api/errors#authentication_required",
+  "correlation_id": "3e0dbab4-bb81-4e95-a9b6-baefeff0e52e"
+}
+```
+
+Branch on `code` and `retryable`, never on `message`. Send an `X-Request-Id` header and it comes back as `correlation_id`; include it in support requests.
+
+Rate limits are enforced per account and per class of request. Reads get 300 per minute, deployment creates get 10 per hour. Exhausting one returns `429 rate_limited` with a `Retry-After` header. Honor it.
+
+See **[API Errors](/api/errors/)** and **[Rate Limits](/api/limits/)** for the full reference.
+
 ## Endpoint Summary
 
-The OpenAPI document contains these 18 public paths:
+The live OpenAPI document at `https://varity.app/api/openapi.json` defines **33 paths and 45 operations**. This is the full list; the document itself is authoritative.
+
+### Deployments
 
 | Methods | Path | Purpose |
 |---------|------|---------|
@@ -237,19 +383,64 @@ The OpenAPI document contains these 18 public paths:
 | `GET`, `DELETE` | `/api/deployments/{deployment_id}` | Read or delete a deployment |
 | `GET` | `/api/deployments/{deployment_id}/logs` | Read deployment logs |
 | `GET` | `/api/deployments/{deployment_id}/events` | Read deployment events |
+| `GET` | `/api/deployments/{deployment_id}/health-history` | Read durable runtime and route health history |
 | `GET`, `PATCH` | `/api/deployments/{deployment_id}/env` | List environment variable keys or update values |
 | `POST` | `/api/deployments/{deployment_id}/redeploy` | Redeploy in place |
-| `POST` | `/api/deployments/{deployment_id}/restart` | Restart in place |
+| `POST` | `/api/deployments/{deployment_id}/restart` | Restart as a verified replacement |
+| `GET`, `PUT`, `DELETE` | `/api/deployments/{deployment_id}/domain` | Read, attach, or remove a custom domain |
+| `POST` | `/api/deployments/{deployment_id}/domain/verify` | Observe DNS and verify HTTPS serving |
+
+### Machines
+
+| Methods | Path | Purpose |
+|---------|------|---------|
+| `GET`, `POST` | `/api/machines` | List or create self-managed machines |
+| `GET`, `DELETE` | `/api/machines/{machine_id}` | Read or delete one machine |
+| `POST` | `/api/machines/{machine_id}/actions` | Run a bounded synchronous action |
+
+### Catalog And Pricing
+
+| Methods | Path | Purpose |
+|---------|------|---------|
+| `GET` | `/api/deployment-capabilities` | Provider-neutral deployment catalog |
+| `GET` | `/api/deployment-profiles` | Normalized profiles, prices, and availability |
+| `GET` | `/api/pricing/estimate` | Estimate fixed monthly cost |
+| `POST` | `/api/pricing/accelerator-quote` | Exact hourly GPU quote |
+| `POST` | `/api/pricing/machine-quote` | Exact machine quote |
+| `GET` | `/api/credits` | Read credit and deploy eligibility |
+
+### Templates
+
+| Methods | Path | Purpose |
+|---------|------|---------|
 | `GET` | `/api/templates` | List templates |
 | `GET` | `/api/templates/{template_id}` | Read a template |
 | `POST` | `/api/templates/{template_id}/deploy` | Deploy a template |
-| `GET` | `/api/pricing/estimate` | Estimate fixed monthly cost |
-| `GET` | `/api/credits` | Read credit and deploy eligibility |
+
+### Webhooks
+
+| Methods | Path | Purpose |
+|---------|------|---------|
 | `GET`, `POST` | `/api/webhooks` | List or create webhooks |
 | `DELETE` | `/api/webhooks/{webhook_id}` | Delete a webhook |
-| `GET`, `POST` | `/api/api-keys` | List or create API keys in the Developer Portal |
-| `DELETE` | `/api/api-keys/{key_id}` | Revoke an API key in the Developer Portal |
-| `GET` | `/api/openapi.json` | Read the live OpenAPI contract |
+
+### AI Gateway Attachments
+
+| Methods | Path | Purpose |
+|---------|------|---------|
+| `GET`, `POST` | `/api/ai-gateway/attachments` | List or create attachments |
+| `GET`, `DELETE` | `/api/ai-gateway/attachments/{attachment_id}` | Read or detach one attachment |
+| `POST` | `/api/ai-gateway/attachments/{attachment_id}/rotate` | Rotate the deployment credential |
+
+### Keys And Contract
+
+| Methods | Path | Purpose | Auth |
+|---------|------|---------|------|
+| `GET`, `POST` | `/api/api-keys` | List or create Cloud API keys | Portal session |
+| `DELETE` | `/api/api-keys/{key_id}` | Revoke an API key | Portal session |
+| `GET`, `POST` | `/api/api-keys/inference` | List or create scoped AI Gateway keys | Portal session |
+| `GET` | `/api/api-keys/audit` | List key lifecycle events | Portal session |
+| `GET` | `/api/openapi.json` | Read the live OpenAPI contract | None |
 
 <Aside type="caution">
 Public API responses use Varity product resources only. Internal implementation details are not part of this contract.
@@ -261,6 +452,9 @@ API-key management endpoints are Developer Portal session routes in v1. API keys
 
 ## Next Steps
 
+- **[API Errors](/api/errors/)**: the error envelope and every error code
+- **[Rate Limits](/api/limits/)**: budgets, headers, and retry guidance
+- **[AI Gateway](/ai-gateway/)**: the OpenAI-compatible `/v1` inference surface
 - **[MCP Server Spec](/ai-tools/mcp-server-spec/)**: the tool reference for AI editors
 - **[Deploy a Docker Image](/deploy/deploy-docker-image/)**: image-deploy details
 - **[Environment Variables](/deploy/env-variables/)**: runtime configuration

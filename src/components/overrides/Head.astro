@@ -102,6 +102,24 @@ function findSection(sidebar: unknown): string | null {
   return null;
 }
 
+function findSectionHref(entries: any, label: string): string | null {
+  if (!Array.isArray(entries)) return null;
+  for (const entry of entries) {
+    if (entry?.label === label) {
+      if (entry.href) return entry.href;
+      const first = Array.isArray(entry.entries)
+        ? entry.entries.find((e: any) => e?.href)
+        : null;
+      return first?.href ?? null;
+    }
+    if (Array.isArray(entry?.entries)) {
+      const found = findSectionHref(entry.entries, label);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
 const sectionLabel = findSection(route?.sidebar);
 
 const breadcrumbItems: BreadcrumbItem[] = [
@@ -113,11 +131,17 @@ const breadcrumbItems: BreadcrumbItem[] = [
   },
 ];
 let pos = 2;
-if (sectionLabel) {
+// Google requires `item` on every ListItem except the last. Emitting the section
+// crumb without one made the whole breadcrumb FAIL on all 54 non-home pages.
+// A two-level breadcrumb that validates beats a three-level one that errors, so
+// the crumb is only emitted when the section resolves to a real URL.
+const sectionHref = sectionLabel ? findSectionHref(route?.sidebar, sectionLabel) : null;
+if (sectionLabel && sectionHref) {
   breadcrumbItems.push({
     "@type": "ListItem",
     position: pos++,
     name: sectionLabel,
+    item: new URL(sectionHref, SITE).href,
   });
 }
 // Don't duplicate the Home crumb for the homepage itself.

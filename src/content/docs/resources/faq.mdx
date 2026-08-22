@@ -26,13 +26,13 @@ Varity is a predictable cloud platform focused on deployment. The two core packa
 |---------|-----------------------|--------|
 | Pricing | Billed by usage meters (requests, bandwidth, invocations) | Up to a fixed monthly maximum per app, prorated by running time |
 | Backend services | Separate add-ons, separate bills | Auto-wired in the same deploy |
-| Auth | Configure separately | Configured automatically |
+| Auth | Configure separately | Configure separately. Varity does not manage end-user identity |
 | Setup | Build config and env wiring | Zero config, one command |
 
 ### Is my data secure?
 
 Yes. Varity uses:
-- Encryption for sensitive data in transit and at rest
+- Encryption in transit (TLS 1.2+). Platform-managed encryption at rest is in active development. See [Security](/resources/security/)
 - Automatic SSL on every deployment
 
 ### What frameworks are supported?

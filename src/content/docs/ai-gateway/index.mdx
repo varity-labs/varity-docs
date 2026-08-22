@@ -1,0 +1,277 @@
+---
+title: Varity AI Gateway
+description: OpenAI-compatible inference on Varity. Point any OpenAI client at https://varity.app/v1 and change nothing else.
+---
+
+import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+import PageMeta from '../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="August 2026"
+  stability="beta"
+/>
+
+The Varity AI Gateway is an OpenAI-compatible inference API. It speaks the same
+chat-completions wire format as the OpenAI API, so every OpenAI SDK, framework
+adapter, and agent runtime already knows how to talk to it. The integration is a
+one-line base-URL swap.
+
+```text
+https://varity.app/v1
+```
+
+## Fastest Path
+
+Set two variables and send a request. This is the whole integration.
+
+<Tabs>
+  <TabItem label="curl">
+
+    ```bash
+    curl https://varity.app/v1/chat/completions \
+      -H "Authorization: Bearer $VARITY_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "model": "glm-5-2",
+        "messages": [
+          { "role": "user", "content": "Say hello in one sentence." }
+        ]
+      }'
+    ```
+
+  </TabItem>
+  <TabItem label="Python">
+
+    ```python
+    # pip install openai
+    import os
+    from openai import OpenAI
+
+    client = OpenAI(
+        base_url="https://varity.app/v1",
+        api_key=os.environ["VARITY_API_KEY"],
+    )
+
+    response = client.chat.completions.create(
+        model="glm-5-2",
+        messages=[{"role": "user", "content": "Say hello in one sentence."}],
+    )
+
+    print(response.choices[0].message.content)
+    ```
+
+  </TabItem>
+  <TabItem label="Node">
+
+    ```javascript
+    // npm install openai
+    import OpenAI from "openai";
+
+    const client = new OpenAI({
+      baseURL: "https://varity.app/v1",
+      apiKey: process.env.VARITY_API_KEY,
+    });
+
+    const response = await client.chat.completions.create({
+      model: "glm-5-2",
+      messages: [{ role: "user", content: "Say hello in one sentence." }],
+    });
+
+    console.log(response.choices[0].message.content);
+    ```
+
+  </TabItem>
+</Tabs>
+
+`base_url` / `baseURL` is the only line that differs from an OpenAI setup. Model
+ids come from the Varity catalog, not OpenAI's. See
+[Models](/ai-gateway/models/) for the full list.
+
+## Confirm The Gateway Before You Have A Key
+
+`GET /v1/models` is public. Run it right now, with no credential, and you get a
+`200` plus the live catalog:
+
+```bash
+curl https://varity.app/v1/models
+```
+
+```json
+{
+  "object": "list",
+  "data": [
+    {
+      "id": "glm-5-2",
+      "display_name": "GLM 5.2",
+      "object": "model",
+      "owned_by": "varity",
+      "capabilities": {
+        "chat_completions": true,
+        "tool_calls": false,
+        "streaming": true,
+        "streaming_tool_calls": false
+      },
+      "context_window": 1000000,
+      "max_completion_tokens": 131072,
+      "privacy": "private",
+      "privacy_routes": ["private"],
+      "availability": { "status": "available" },
+      "customer_pricing": {
+        "status": "configured",
+        "currency": "usd",
+        "unit": "per_million_tokens",
+        "input": 1.47,
+        "output": 4.62,
+        "cached_input": 1.47
+      }
+    }
+  ]
+}
+```
+
+The gateway also exposes an unauthenticated health probe:
+
+```bash
+curl https://varity.app/health
+```
+
+```json
+{ "status": "healthy", "service": "varity-gateway", "version": "1.13.49" }
+```
+
+## Authentication
+
+Inference requests require a Varity API key sent as a bearer credential:
+
+```text
+Authorization: Bearer $VARITY_API_KEY
+```
+
+Create keys in the [Developer Portal settings page](https://developer.store.varity.so/dashboard/settings). Key plaintext is shown once
+at creation and is never returned again. The same key format is used across the
+Varity [public API](/ai-tools/api-reference/).
+
+Auth is enforced on `/v1/chat/completions`. A request with no `Authorization`
+header returns `401`:
+
+```json
+{
+  "error": {
+    "message": "A Bearer API key is required.",
+    "type": "authentication_error",
+    "code": "authentication_required",
+    "param": null,
+    "retryable": false,
+    "request_id": "516c24ef-ba5a-4e3d-8f32-0a609ae5d298"
+  }
+}
+```
+
+A malformed or revoked key returns `401` with `code: "invalid_api_key"` and the
+message `The API key is invalid or revoked.`
+
+<Aside type="note">
+Authentication is checked before the request body is validated. An unauthenticated
+request naming a nonexistent model still returns the authentication error, not a
+model error.
+</Aside>
+
+## Streaming
+
+Set `stream: true` for server-sent events, exactly as with OpenAI. Every model in
+the catalog reports `"streaming": true`.
+
+<Tabs>
+  <TabItem label="curl">
+
+    ```bash
+    curl https://varity.app/v1/chat/completions \
+      -H "Authorization: Bearer $VARITY_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "model": "glm-5-2",
+        "stream": true,
+        "messages": [
+          { "role": "user", "content": "Count to five." }
+        ]
+      }'
+    ```
+
+  </TabItem>
+  <TabItem label="Python">
+
+    ```python
+    stream = client.chat.completions.create(
+        model="glm-5-2",
+        messages=[{"role": "user", "content": "Count to five."}],
+        stream=True,
+    )
+
+    for chunk in stream:
+        delta = chunk.choices[0].delta.content
+        if delta:
+            print(delta, end="")
+    ```
+
+  </TabItem>
+  <TabItem label="Node">
+
+    ```javascript
+    const stream = await client.chat.completions.create({
+      model: "glm-5-2",
+      messages: [{ role: "user", content: "Count to five." }],
+      stream: true,
+    });
+
+    for await (const chunk of stream) {
+      process.stdout.write(chunk.choices[0]?.delta?.content ?? "");
+    }
+    ```
+
+  </TabItem>
+</Tabs>
+
+Streaming *tool calls* are a narrower capability than streaming text, and are
+only supported on some models. Check `capabilities.streaming_tool_calls` before
+you combine `stream: true` with `tools`. See
+[Compatibility](/ai-gateway/compatibility/).
+
+## Errors
+
+Errors use the OpenAI error envelope, with two Varity additions: `retryable` and
+`request_id`.
+
+| Field | Meaning |
+|-------|---------|
+| `error.message` | Human-readable description |
+| `error.type` | Error class, for example `authentication_error` |
+| `error.code` | Stable machine code, for example `invalid_api_key` |
+| `error.param` | Offending request field, or `null` |
+| `error.retryable` | Whether retrying the same request can succeed |
+| `error.request_id` | Correlation id, also returned as the `x-request-id` response header |
+
+Quote `request_id` in any support request. It is present on both the response
+body and the `x-request-id` header on every response, including successful ones.
+
+## Rate Limits
+
+`GET /v1/models` returns standard rate-limit headers:
+
+```text
+ratelimit-limit: 120
+ratelimit-policy: 120;w=60
+ratelimit-remaining: 119
+ratelimit-reset: 60
+```
+
+That is 120 requests per 60-second window on the catalog endpoint. Read the
+`ratelimit-remaining` and `ratelimit-reset` headers rather than hardcoding a
+budget; the policy is served live and can change.
+
+## Next Steps
+
+- **[Models](/ai-gateway/models/)**: the full live catalog with context windows, limits, and prices
+- **[Compatibility](/ai-gateway/compatibility/)**: exactly what the OpenAI surface includes and excludes
+- **[Public API Reference](/ai-tools/api-reference/)**: the `/api` platform contract for deploys and operations

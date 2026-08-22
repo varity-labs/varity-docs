@@ -17,7 +17,7 @@ import PageMeta from '../../../components/PageMeta.astro';
 Deploy your application to Varity from the Dashboard, CLI, or MCP server.
 
 :::note[Beta Environment]
-Varity is currently in beta. Your deployments work exactly as in production, but with test data.
+Varity is currently in beta. Deployments run on production infrastructure with real data, and every account is isolated. There are no automated backups, no high availability, and no point-in-time recovery yet. Keep your own backups for anything you cannot afford to lose.
 :::
 
 From the Dashboard, choose a GitHub repository, add environment variables, review the fixed monthly price for the reserved hardware, and deploy.
@@ -42,6 +42,7 @@ The rest of this page covers the first path: deploying your own project.
 
    ```bash
    pipx install varitykit
+   varitykit login
    ```
 
 2. **Build your project**
@@ -99,7 +100,7 @@ Choose the right hosting for your application type:
     varitykit app deploy
     ```
   </Card>
-  <Card title="Dynamic Apps" icon="rocket">
+  <Card title="Dynamic Apps">
     **Best for**: Full-stack apps, APIs, real-time applications, databases
 
     **Features**:
@@ -190,7 +191,7 @@ varitykit app deploy --name my-app
 See [App URLs & Subdomains](/deploy/custom-domains) for naming rules and the current status of bring-your-own domains.
 
 :::note[Bring your own domain]
-Pointing `myapp.com` at a Varity deployment via DNS is under development. See [App URLs & Subdomains](/deploy/custom-domains) for status.
+Pointing `myapp.com` at a Varity deployment via DNS is supported. See [App URLs & Subdomains](/deploy/custom-domains/) for the full flow.
 :::
 
 ## Troubleshooting
