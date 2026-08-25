@@ -61,6 +61,3 @@ artifact provenance, security posture, or publishing topology changes.
   into architecture files.
 - Do not restore the retired cross-repository PROPAGATION workflow. Repository
   CI is intentionally unprivileged and checks only this checkout.
-- Do not treat the legacy live-crawl harness in `tests/test-docs.cjs` as a merge
-  gate. It is network-dependent and contains historical checks; the deterministic
-  merge gate is `npm run check`.

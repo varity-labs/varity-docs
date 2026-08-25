@@ -92,11 +92,6 @@ its source and deterministic verification are checked in with it.
 - **Seam:** process exit status in local development and GitHub Actions.
 - **Test surface:** the same commands maintainers and CI run.
 
-The older `tests/test-docs.cjs` live crawler is outside this interface. It is
-network-dependent, refers to retired product surfaces, and is retained only as
-historical diagnostic material until a separate cleanup change proves which
-checks should be ported or deleted.
-
 ## Content and artifact provenance
 
 | Published surface | Checked-in owner | Narrower authority to reconcile | Required verification |
