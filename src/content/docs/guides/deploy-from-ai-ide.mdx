@@ -3,7 +3,7 @@ title: Deploy from Claude Code, Cursor, or Windsurf
 description: Deploy supported apps and runnable Docker services from your AI editor with the Varity MCP server.
 ---
 
-import { Steps, Tabs, TabItem, Aside, Card, CardGrid } from '@astrojs/starlight/components';
+import { Steps, Tabs, TabItem, Aside } from '@astrojs/starlight/components';
 import PageMeta from '../../../components/PageMeta.astro';
 
 <PageMeta
@@ -242,7 +242,7 @@ Here is a complete session from idea to live app, using only your AI editor:
    Build and deploy this to Varity
    ```
 
-   The AI calls `varity_build` and `varity_deploy`. Your app is live in about 60 seconds.
+   The AI calls `varity_build` and `varity_deploy`, then reports the live URL when the deploy finishes.
 
 6. **Share the link**
 
@@ -277,6 +277,8 @@ https://mcp.varity.so
 **ChatGPT:** Settings > Connectors > Create > MCP server URL: `https://mcp.varity.so`
 
 The first connection asks you to authenticate via the Varity login page.
+
+Hosted OAuth and per-user deployment authorization are not certified end to end yet. Until that verification passes, use the stdio package (`npx -y @varity-labs/mcp`) for deploys, environment changes, and deletes.
 
 ## Troubleshooting
 

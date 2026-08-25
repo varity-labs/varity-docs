@@ -3,7 +3,7 @@ title: Deploy a Docker Image on Varity
 description: Deploy public or private runnable Docker images to Varity from the CLI, the Developer Portal, or your AI coding tool. No repo and no build step required.
 ---
 
-import { Tabs, TabItem, Steps, Aside } from '@astrojs/starlight/components';
+import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';
 import PageMeta from '../../../components/PageMeta.astro';
 
 <PageMeta
@@ -15,7 +15,7 @@ import PageMeta from '../../../components/PageMeta.astro';
 
 If your app is already packaged as a Docker image, you can deploy it to Varity directly. No repository, no build step. Varity pulls the image and runs it.
 
-This is also the path for languages Varity does not auto-detect yet (Rust, Ruby, Java, and others): package your app as a runnable HTTP service image and deploy it like any other container.
+This is also the path for languages Varity does not build from source yet (Rust, Ruby / Rails, Elixir / Phoenix, Java / Spring, Deno, PHP / Laravel, and C# / .NET): package your app as a runnable HTTP service image and deploy it like any other container.
 
 ```bash
 varitykit app deploy --image nginx:latest

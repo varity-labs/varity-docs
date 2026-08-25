@@ -3,7 +3,7 @@ title: Quick Start with Varity Docs
 description: Get started with Varity in minutes. Migrate an existing app, deploy from your repo, or deploy with AI tools.
 ---
 
-import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid, Card } from '@astrojs/starlight/components';
+import { Steps, Tabs, TabItem, Aside, CardGrid, Card } from '@astrojs/starlight/components';
 import PageMeta from '../../../components/PageMeta.astro';
 
 <PageMeta
@@ -123,10 +123,14 @@ If you are using Claude Code or Cursor, the Varity MCP server lets your AI tool 
 
 3. **Your app is live**
 
-   Once the deploy finishes, your app is available at:
+   Once the deploy finishes, your app is available at the URL for its hosting type:
 
    ```
+   # Static app
    https://varity.app/your-app-name/
+
+   # Dynamic app
+   https://your-app-name.varity.app/
    ```
 
 </Steps>
@@ -161,12 +165,20 @@ varitykit app status
 | Framework | Type | Status |
 |-----------|------|--------|
 | Next.js | Full-stack | Supported |
-| React (Vite) | Static | Supported |
+| React (Vite or CRA) | Static | Supported |
 | Vue | Static | Supported |
+| Astro | Static | Supported |
+| Qwik | Static | Supported |
+| Vite SPA | Static | Supported |
+| Plain static HTML | Static | Supported |
 | Express / Fastify / Nest / Koa / Hono | Server | Supported |
 | FastAPI | Server | Supported |
 | Django | Server | Supported |
 | Flask | Server | Supported |
+| Go modules | Server | Supported |
+| Runnable Docker / OCI HTTP images | Server | Supported |
+
+For the full detection matrix, see [Supported Frameworks](/deploy/supported-frameworks/).
 
 ---
 
