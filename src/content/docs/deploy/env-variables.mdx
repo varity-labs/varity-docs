@@ -78,6 +78,10 @@ Keys that are **not** forwarded (Varity sets these automatically):
 
 Platform migration keys (`VERCEL_*`, `AWS_*`, `RAILWAY_*`, `RENDER_*`, `NETLIFY_*`, `FLY_*`) are also filtered so they don't leak into dynamic deployments.
 
+### AI Gateway variables
+
+If you attach the [Varity AI Gateway](/ai-gateway/) to a deployment, Varity injects `VARITY_AI_API_KEY` and `VARITY_AI_BASE_URL` into its runtime environment for you. You do not create or set them yourself. See [Authentication from an app deployed on Varity](/ai-gateway/#from-an-app-deployed-on-varity).
+
 <Aside type="note">
 **Special characters in values** (quotes, dollar signs, colons) are automatically escaped. You do not need to quote values in `.env.varity`.
 </Aside>

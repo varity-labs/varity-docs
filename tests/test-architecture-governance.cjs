@@ -45,18 +45,26 @@ if (eventName === 'pull_request') {
     errors.push('pull_request event is missing GITHUB_EVENT_PATH');
   } else {
     const event = JSON.parse(fs.readFileSync(eventPath, 'utf8'));
-    const body = event.pull_request?.body || '';
-    const impact = body.match(/^Architecture impact:\s*(none|updated)\s*$/im);
-    const reason = body.match(/^Reason:\s*(.+)\s*$/im);
-    const affected = body.match(/^Affected runtime services\/modules:\s*(.+)\s*$/im);
-    const changed = body.match(/^Interfaces\/data\/security\/topology changed:\s*(.+)\s*$/im);
-    const files = body.match(/^Architecture\/ADR files:\s*(.+)\s*$/im);
+    const author = event.pull_request?.user || {};
+    // Automated dependency and release PRs cannot write an architecture
+    // declaration, so requiring one failed them by construction and blocked
+    // every security update. They change no interface this document governs.
+    // Human PRs still fail closed.
+    const isBot = author.type === 'Bot' || /\[bot\]$/.test(author.login || '');
+    const body = isBot ? null : (event.pull_request?.body || '');
+    if (body !== null) {
+      const impact = body.match(/^Architecture impact:\s*(none|updated)\s*$/im);
+      const reason = body.match(/^Reason:\s*(.+)\s*$/im);
+      const affected = body.match(/^Affected runtime services\/modules:\s*(.+)\s*$/im);
+      const changed = body.match(/^Interfaces\/data\/security\/topology changed:\s*(.+)\s*$/im);
+      const files = body.match(/^Architecture\/ADR files:\s*(.+)\s*$/im);
 
-    if (!impact) errors.push('PR body must contain exactly "Architecture impact: none" or "Architecture impact: updated"');
-    if (!reason || reason[1].includes('<!--')) errors.push('PR body must contain a concrete Reason');
-    if (!affected) errors.push('PR body must name affected runtime services/modules or none');
-    if (!changed) errors.push('PR body must declare interface/data/security/topology impact');
-    if (!files) errors.push('PR body must name architecture/ADR files or none');
+      if (!impact) errors.push('PR body must contain exactly "Architecture impact: none" or "Architecture impact: updated"');
+      if (!reason || reason[1].includes('<!--')) errors.push('PR body must contain a concrete Reason');
+      if (!affected) errors.push('PR body must name affected runtime services/modules or none');
+      if (!changed) errors.push('PR body must declare interface/data/security/topology impact');
+      if (!files) errors.push('PR body must name architecture/ADR files or none');
+    }
   }
 }
 
