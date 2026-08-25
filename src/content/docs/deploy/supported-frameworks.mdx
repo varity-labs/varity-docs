@@ -3,7 +3,7 @@ title: Supported Frameworks on Varity
 description: Which frameworks Varity supports today, what gets auto-detected, and how to request support for languages not yet available.
 ---
 
-import { Tabs, TabItem, Aside, Card, CardGrid } from '@astrojs/starlight/components';
+import { Aside, Card, CardGrid } from '@astrojs/starlight/components';
 import PageMeta from '../../../components/PageMeta.astro';
 
 <PageMeta
@@ -207,7 +207,7 @@ The following languages and frameworks are not auto-detected in the current beta
 | PHP / Laravel | Not supported | [Deploy as a Docker image](/deploy/deploy-docker-image) |
 | C# / .NET | Not supported | [Deploy as a Docker image](/deploy/deploy-docker-image) |
 
-Varity also does not yet offer cron jobs, multi-region deployments, an edge runtime, or preview deploys.
+Varity also does not yet offer cron jobs, multi-region app hosting, an edge runtime, or preview deploys. CPU VMs and GPU machines are a separate product where you do pick the region.
 
 If your framework is in this list, `varitykit app deploy` will return an error like:
 

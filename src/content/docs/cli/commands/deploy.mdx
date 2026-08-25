@@ -3,7 +3,7 @@ title: varitykit app deploy command
 description: "Deploy static sites and dynamic apps with varitykit app deploy. Supports static and dynamic hosting with automatic framework detection."
 ---
 
-import { Tabs, TabItem, Steps, Aside } from '@astrojs/starlight/components';
+import { Steps, Aside } from '@astrojs/starlight/components';
 import Accordion from '../../../../components/Accordion.astro';
 import PageMeta from '../../../../components/PageMeta.astro';
 
@@ -105,14 +105,8 @@ Dynamic hosting is powered by cloud compute. `--hosting` defaults to `auto`, whi
 3. **View your live app**
 
    ```
-   ✓ Build complete
-   ✓ Deployed successfully
-   ✓ Registered on Varity
-
-   Your app is live at:
-   https://varity.app/your-app/
-
-   Deployment ID: deploy-1737492000
+   Deploying via Varity…
+   ✓ Live: https://varity.app/your-app/
    ```
 
 </Steps>
@@ -131,7 +125,11 @@ The CLI automatically detects your framework:
 | React (Vite) | `vite.config.*` | `npm run build` |
 | React (CRA) | `react-scripts` | `npm run build` |
 | Vue | `vue.config.*` | `npm run build` |
+| Astro | `astro.config.*` | `npm run build` |
+| Qwik | `qwik.config.*` | `npm run build` |
 | Custom | `package.json` | `npm run build` |
+
+Node servers (Express, Fastify, NestJS, Koa, Hono), Python apps (FastAPI, Django, Flask), Go modules, plain static HTML, and prebuilt Docker or OCI HTTP images deploy the same way. See [Supported Frameworks](/deploy/supported-frameworks/) for the full matrix.
 
 ## Environment Variables
 
@@ -148,18 +146,19 @@ varitykit app list
 Output:
 
 ```
-ID                  | Status  | URL
---------------------|---------|---------------------------
-deploy-1737492000   | live    | https://varity.app/your-app/
-deploy-1737491000   | archived| https://varity.app/your-app/ (archived)
+Your Deployments (2 of 2)
+
+Name      Type     URL                          Deployed
+my-app    dynamic  https://my-app.varity.app    2026-06-02 14:31
+my-site   static   https://varity.app/my-site   2026-05-28 09:02
 ```
 
 ## View Deployment Details
 
-Get detailed information about a specific deployment:
+Get detailed information about a deployment by app name:
 
 ```bash
-varitykit app info deploy-1737492000
+varitykit app info my-app
 ```
 
 ## Delete a Deployment
@@ -193,18 +192,11 @@ varitykit app delete my-app --yes
 
 2. Check your internet connection and try again
 
-<Accordion title="Advanced: Deployment Manifest">
+<Accordion title="Advanced: where deployment state lives">
 
-After deployment, a manifest file is created:
-
-```json title=".varity/deploy-1737492000.json"
-{
-  "deployment_id": "deploy-1737492000",
-  "timestamp": "2026-01-28T12:00:00Z",
-  "hosting": "static",
-  "url": "https://varity.app/your-app/"
-}
-```
+Varity owns your deployment state. The CLI does not write a local manifest for
+a deploy, so `varitykit app list`, `app info`, and `app status` all read from
+Varity and return the same answer on any machine.
 
 </Accordion>
 

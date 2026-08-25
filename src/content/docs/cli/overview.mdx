@@ -25,7 +25,7 @@ VarityKit is a Python-based CLI that helps you deploy and manage applications. I
     Move an existing Vercel app to Varity in one step: analyze, transform, and deploy.
   </Card>
   <Card title="Manage Deployments" icon="list-format">
-    List deployments, view status and logs, and redeploy a known-good version when needed.
+    List deployments, check status, and redeploy a known-good version when needed.
   </Card>
   <Card title="Validate Setup" icon="approve-check">
     Run diagnostics to ensure your development environment is ready.
@@ -56,8 +56,9 @@ VarityKit is a Python-based CLI that helps you deploy and manage applications. I
 |---------|-------------|
 | [`varitykit app deploy`](/cli/commands/deploy) | Deploy your application |
 | `varitykit app list` | List all deployments |
-| `varitykit app info` | Show deployment details |
-| `varitykit app delete --yes` | Delete a deployment |
+| `varitykit app info <app-name>` | Show deployment details |
+| `varitykit app status` | Show your most recent deployment |
+| `varitykit app delete <app-name> --yes` | Delete a deployment |
 
 ### Domains
 
@@ -145,7 +146,7 @@ varitykit app deploy --hosting dynamic
 
 - **Best for**: APIs, databases, server-side rendering, AI agents, LLMs
 - **Cost**: Up to a fixed monthly maximum per app, prorated by running time, based on the resources you reserve. See [Pricing and Costs](/resources/pricing/).
-- **Features**: Containers, scaling, persistence
+- **Features**: Containers, auto-wired services, persistent volumes
 
 Varity auto-detects when your app needs dynamic hosting (Express, Fastify, Next.js SSR, FastAPI, Django, Flask, etc.) and selects it automatically. Use `--hosting dynamic` only to force the mode explicitly.
 
@@ -159,6 +160,9 @@ Varity currently auto-detects and deploys the following frameworks:
 | React (Vite) | Supported | Supported |
 | React (CRA) | Supported | Supported |
 | Vue 3+ | Supported | Supported |
+| Astro | Supported | Supported |
+| Qwik | Supported | Supported |
+| Vite SPA | Supported | Not applicable |
 | Express, Fastify, Nest, Koa, Hono | Not applicable | Supported |
 | FastAPI, Django, Flask | Not applicable | Supported |
 | Go modules | Not applicable | Supported |

@@ -113,14 +113,15 @@ curl -X POST https://varity.app/api/deployments \
   -d '{ "name": "my-app", "repository": { "url": "https://github.com/me/my-app" } }'
 ```
 
-Keys match `[A-Za-z0-9._:-]` and are at most 160 characters. Records are retained for 24 hours. Replaying the same key with the same body returns the original result; reusing it with a *different* body returns `409 idempotency_key_reused`. See [API Errors](/api/errors/#not-found-and-conflict).
+Keys match `[A-Za-z0-9._:-]` and are at most 160 characters on deployment and template creates. The machine routes take 8 to 128 characters and require the header. Records are retained for 24 hours. Replaying the same key with the same body returns the original result; reusing it with a *different* body returns `409 idempotency_key_reused`. See [API Errors](/api/errors/#not-found-and-conflict).
 
 ## Other Limits
 
 Some limits are enforced by the resource contract rather than by a request budget:
 
 - **Health history**: `GET /api/deployments/{id}/health-history` accepts `limit` with a default of 100 and a maximum of 500 observations.
-- **Idempotency keys**: 160 characters maximum, 24-hour retention.
+- **Idempotency keys**: 160 characters maximum on deployment and template creates, 8 to 128 characters on the machine routes, 24-hour retention.
+- **Deployment logs**: `GET /api/deployments/{id}/logs` accepts `limit` with a default of 200 and a maximum of 1000 lines.
 
 <Aside type="note">
 Account-level quotas on concurrent deployments and spend are governed by your billing state, not by these request budgets. A request that is refused for billing reasons returns `402 billing_or_credit_required`, not `429`.
