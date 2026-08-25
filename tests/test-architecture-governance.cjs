@@ -2,6 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { execFileSync } = require('child_process');
 
 const root = path.resolve(__dirname, '..');
 const required = {
@@ -21,6 +22,27 @@ const required = {
 };
 
 const errors = [];
+const dependencyManifests = new Set(['package.json', 'package-lock.json']);
+
+function dependabotChangedOnlyDependencyManifests(event) {
+  const author = event.pull_request?.user || {};
+  if (author.login !== 'dependabot[bot]' || author.type !== 'Bot') return false;
+
+  const baseSha = event.pull_request?.base?.sha;
+  const headSha = event.pull_request?.head?.sha;
+  if (!baseSha || !headSha) return false;
+
+  try {
+    const changedFiles = execFileSync(
+      'git',
+      ['diff', '--name-only', `${baseSha}...${headSha}`],
+      { cwd: root, encoding: 'utf8' },
+    ).trim().split('\n').filter(Boolean);
+    return changedFiles.length > 0 && changedFiles.every((file) => dependencyManifests.has(file));
+  } catch {
+    return false;
+  }
+}
 
 for (const [relativePath, markers] of Object.entries(required)) {
   const absolutePath = path.join(root, relativePath);
@@ -45,13 +67,12 @@ if (eventName === 'pull_request') {
     errors.push('pull_request event is missing GITHUB_EVENT_PATH');
   } else {
     const event = JSON.parse(fs.readFileSync(eventPath, 'utf8'));
-    const author = event.pull_request?.user || {};
-    // Automated dependency and release PRs cannot write an architecture
-    // declaration, so requiring one failed them by construction and blocked
-    // every security update. They change no interface this document governs.
-    // Human PRs still fail closed.
-    const isBot = author.type === 'Bot' || /\[bot\]$/.test(author.login || '');
-    const body = isBot ? null : (event.pull_request?.body || '');
+    // Dependabot cannot write this repository's declaration. Exempt it only
+    // when the complete diff is confined to dependency manifests. Missing
+    // refs, another bot, or any governed file keeps the gate fail-closed.
+    const body = dependabotChangedOnlyDependencyManifests(event)
+      ? null
+      : (event.pull_request?.body || '');
     if (body !== null) {
       const impact = body.match(/^Architecture impact:\s*(none|updated)\s*$/im);
       const reason = body.match(/^Reason:\s*(.+)\s*$/im);
