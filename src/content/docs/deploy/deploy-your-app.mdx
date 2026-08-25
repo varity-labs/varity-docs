@@ -15,11 +15,11 @@ import PageMeta from '../../../components/PageMeta.astro';
 
 Deploy your application to Varity from the Dashboard, CLI, or MCP server.
 
-:::note[Guided beta]
-Varity is in guided beta. Deployments run on production infrastructure with real data, and every account is isolated. There are no automated backups, no high availability, and no point-in-time recovery yet. Keep your own backups for anything you cannot afford to lose.
+:::note[Beta Environment]
+Varity is currently in beta. Deployments run on production infrastructure with real data, and every account is isolated. There are no automated backups, no high availability, and no point-in-time recovery yet. Keep your own backups for anything you cannot afford to lose.
 :::
 
-From the Dashboard, choose a GitHub repository, add environment variables, review the monthly maximum for the reserved hardware, and deploy.
+From the Dashboard, choose a GitHub repository, add environment variables, review the fixed monthly price for the reserved hardware, and deploy.
 
 ## Three Ways In
 
@@ -61,8 +61,10 @@ The rest of this page covers the first path: deploying your own project.
    Varity will output your live URL:
 
    ```
-   Deploying via Varity…
-   ✓ Live: https://your-app.varity.app
+   ✓ Deployed successfully!
+   ✓ URL: https://your-app.varity.app
+   ✓ Build time: 1m 23s
+   ✓ Status: Live
    ```
 
 </Steps>
@@ -89,9 +91,9 @@ Choose the right hosting for your application type:
 
     **Features**:
     - Global CDN distribution
-    - Permanent deployment URLs
+    - Instant cache invalidation
     - Automatic SSL certificates
-    - Free for verified accounts, up to 3 active static sites and 1 GB of pinned assets
+    - Fixed profile pricing
 
     ```bash
     varitykit app deploy
@@ -149,14 +151,11 @@ varitykit app list
 
 Output:
 ```
-Your Deployments (2 of 2)
-
-Name      Type     URL                          Deployed
-my-app    dynamic  https://my-app.varity.app    2026-06-02 14:31
-my-site   static   https://varity.app/my-site   2026-05-28 09:02
+ID                  Status    URL                                Deployed
+deploy-1737491000   live      https://your-app.varity.app       2 hours ago
+deploy-1737484800   archived  https://your-app-v2.varity.app    1 day ago
+deploy-1737398400   archived  https://your-app-v1.varity.app    2 days ago
 ```
-
-The list is read from Varity, so the same deployments appear from any machine.
 
 ### Recover a Known-Good Version
 
@@ -164,10 +163,10 @@ To recover after a bad deploy, redeploy a known-good version of your app. Check 
 
 ### View Deployment Details
 
-Check the details of a specific deployment by app name:
+Check the details of a specific deployment:
 
 ```bash
-varitykit app info my-app
+varitykit app info deploy-1737491000
 ```
 
 ### Check Deployment Status

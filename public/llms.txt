@@ -33,18 +33,14 @@ claude mcp add varity -- npx -y @varity-labs/mcp
 
 ## Pages
 
-- [AI Gateway OpenAI Compatibility](https://docs.varity.so/ai-gateway/compatibility/): Exactly which parts of the OpenAI API surface the Varity AI Gateway implements, and which parts it does not.
-- [Varity AI Gateway](https://docs.varity.so/ai-gateway/): OpenAI-compatible inference on Varity. Point any OpenAI client at https://varity.app/v1 and change nothing else.
-- [AI Gateway Models](https://docs.varity.so/ai-gateway/models/): Ids, context windows, completion limits, tool-calling and streaming support, and per-token pricing in the live Varity AI Gateway model catalog.
-- [Varity Public API Reference](https://docs.varity.so/ai-tools/api-reference/): Varity public API for deploying, operating, and integrating apps programmatically.
+- [Varity Public API Reference](https://docs.varity.so/ai-tools/api-reference/): Public resource API for deploying and operating apps, templates, pricing, credits, API keys, and webhooks programmatically.
 - [Varity MCP Server Reference](https://docs.varity.so/ai-tools/mcp-server-spec/): Install and configure the Varity MCP server for AI editors. A full set of tools for building, deploying, and managing apps via Cursor or Claude Code.
 - [AI Tools for Varity Deploys](https://docs.varity.so/ai-tools/overview/): Accelerate Varity development with AI tools. Copy-paste prompts, Cursor rules, MCP server integration, and LLM-optimized documentation.
 - [AI Prompts for Varity Deploys](https://docs.varity.so/ai-tools/prompts/): Ready-to-paste prompts for deploying to Varity from Claude Code, Cursor, Windsurf, or ChatGPT. No commands to memorize.
-- [API Errors](https://docs.varity.so/api/errors/): The Varity public API error envelope, the verified error codes, and which failures are safe to retry.
-- [Rate Limits](https://docs.varity.so/api/limits/): Varity public API rate-limit budgets, the response headers clients can program against, and how to retry correctly.
 - [varitykit login and auth command](https://docs.varity.so/cli/commands/auth/): Log in to Varity from the CLI with varitykit login. Uses deploy keys from the developer portal for app deployment and domain management.
 - [varitykit app deploy command](https://docs.varity.so/cli/commands/deploy/): Deploy static sites and dynamic apps with varitykit app deploy. Supports static and dynamic hosting with automatic framework detection.
 - [varitykit doctor command](https://docs.varity.so/cli/commands/doctor/): Run varitykit doctor to validate your development environment. Checks required tools (Node.js, npm, git), system resources, project config, and network.
+- [Command Line App Deploy with Varity CLI](https://docs.varity.so/cli/): Use the Varity CLI for command line app deploys, setup checks, and terminal workflows with varitykit.
 - [VarityKit CLI Overview Guide](https://docs.varity.so/cli/overview/): VarityKit CLI overview: deploy apps, run diagnostics, and manage domains. A familiar Python-based deploy CLI.
 - [Auto Wired Services on Varity](https://docs.varity.so/deploy/auto-wired-services/): Varity reads your dependencies and automatically provisions the databases and services your app needs. No configuration required.
 - [App URLs and Custom Domains on Varity](https://docs.varity.so/deploy/custom-domains/): Set your Varity app name, and attach your own domain to a deployment with a CNAME for a subdomain or an A plus TXT record for a root domain.
@@ -54,14 +50,16 @@ claude mcp add varity -- npx -y @varity-labs/mcp
 - [Deploy an App Without DevOps on Varity](https://docs.varity.so/deploy/deploy-your-app/): Deploy an app without DevOps from the Dashboard or CLI. Choose a repo, set environment variables, review the fixed monthly price, and publish.
 - [Debugging Failed Deployments](https://docs.varity.so/deploy/deployment-troubleshooting/): Diagnose failed Varity deployments with logs, common error patterns, and redeploy recovery steps.
 - [Environment Variables on Varity](https://docs.varity.so/deploy/env-variables/): Configure environment variables for Varity deployments. Inject custom API keys via .env.varity. Most Varity credentials are managed automatically.
+- [Deploy Apps on Varity Cloud](https://docs.varity.so/deploy/): Deploy supported source projects, AI agent apps, and prebuilt Docker services on Varity with clear setup paths.
 - [Deployment Defaults on Varity](https://docs.varity.so/deploy/intelligent-orchestration/): How Varity chooses public deployment settings for supported source apps and runnable Docker services.
 - [Managed Credentials on Varity](https://docs.varity.so/deploy/managed-credentials/): Varity auto-provides database, storage, and service credentials at every stage. No third-party accounts, no API key setup, no .env configuration.
 - [Recover a Previous Version](https://docs.varity.so/deploy/rollback/): Recover after a bad Varity deploy by redeploying a known-good version under the same app name.
 - [Supported Frameworks on Varity](https://docs.varity.so/deploy/supported-frameworks/): Which frameworks Varity supports today, what gets auto-detected, and how to request support for languages not yet available.
-- [Migrate from Vercel to Varity](https://docs.varity.so/deploy/vercel-migration/): Move your existing Vercel app to Varity in one command. The CLI and MCP tools handle code transforms, dependency cleanup, and deployment automatically.
-- [Supported App Deployment Frameworks](https://docs.varity.so/deploy/what-you-can-deploy/): The three Varity deployment categories, Applications (repos, Docker images, static sites), CPU VMs, and GPU workloads, plus current beta limits.
+- [Migrate from Vercel to Varity](https://docs.varity.so/deploy/vercel-migration/): Move your existing Vercel app to Varity in under 3 minutes. The CLI and MCP tools handle code transforms, dependency cleanup, and deployment automatically.
+- [Supported App Deployment Frameworks](https://docs.varity.so/deploy/what-you-can-deploy/): The three Varity deployment categories — Applications (repos, Docker images, static sites), CPU VMs, and GPU workloads — plus current beta limits.
 - [Getting Help with Varity](https://docs.varity.so/getting-started/getting-help/): Find Varity support through documentation, Discord, GitHub issues, and setup checks when deploys need attention.
 - [How Varity Deployments Work](https://docs.varity.so/getting-started/how-varity-works/): The Varity deploy lifecycle from project input to live URL, status, logs, and redeploys.
+- [Getting Started with Varity](https://docs.varity.so/getting-started/): Get started with Varity. Deploy supported source apps, AI agents, and runnable Docker services.
 - [Install Varity Tools and CLI](https://docs.varity.so/getting-started/installation/): Install the Varity MCP server and varitykit CLI for the current public MVP deploy flow.
 - [What Is Predictable Cloud Hosting?](https://docs.varity.so/getting-started/introduction/): What predictable cloud hosting means in Varity: supported source apps, Docker services, AI agents, fixed monthly pricing, and deploy paths.
 - [Next.js Quick Start on Varity](https://docs.varity.so/getting-started/quickstart-nextjs/): Deploy a Next.js app to Varity. Varity detects your framework and wires hosting and databases automatically.
@@ -71,9 +69,6 @@ claude mcp add varity -- npx -y @varity-labs/mcp
 - [Deploy from Claude Code, Cursor, or Windsurf](https://docs.varity.so/guides/deploy-from-ai-ide/): Deploy supported apps and runnable Docker services from your AI editor with the Varity MCP server.
 - [Deploy a Next.js App on Varity](https://docs.varity.so/guides/deploy-nextjs/): Predictable cloud hosting for a Next.js app with a database, automatic service wiring, and a monthly maximum that does not grow with traffic.
 - [Varity Documentation Home](https://docs.varity.so/): Predictable cloud hosting for Node, Python, Go, static apps, AI agents, and runnable Docker services.
-- [CPU Virtual Machines](https://docs.varity.so/machines/cpu-vms/): All 13 Varity CPU VM sizes with exact vCPU, memory, disk, hourly price, and monthly cap, plus the OS images, the create flow, and how billing stops.
-- [GPU Machines](https://docs.varity.so/machines/gpu/): Every card model, real hourly price, host spec, and region across the three Varity GPU execution classes (containers, VMs, and bare metal).
-- [Machine Catalogs](https://docs.varity.so/machines/): Live profile counts, regions, and hourly price ranges for the four Varity machine catalogs (CPU VMs, GPU containers, GPU VMs, and GPU bare metal).
 - [Billing and Pricing on Varity](https://docs.varity.so/resources/billing/): How Varity billing works: a payment method for paid products, free static hosting with a verified account, and a monthly maximum per app that doesn't grow with traffic.
 - [Varity Deployment FAQ Guide](https://docs.varity.so/resources/faq/): Frequently asked questions about Varity: deployment workflow, supported frameworks, and pricing model.
 - [Varity Docs Glossary Guide](https://docs.varity.so/resources/glossary/): Definitions of key Varity terms: deploy keys, managed credentials, deployment IDs, static hosting, dynamic hosting, and MCP tools.
@@ -82,3 +77,11 @@ claude mcp add varity -- npx -y @varity-labs/mcp
 - [Troubleshooting Varity Deploys](https://docs.varity.so/resources/troubleshooting/): Fix common Varity issues: CLI not found, build errors, authentication failures, deployment problems, and database connection troubleshooting.
 - [Build an App Using Only AI (No Code Required)](https://docs.varity.so/tutorials/build-with-ai/): Build and deploy an app with your AI editor. Varity MCP handles setup checks, the deploy workflow, and cost estimation.
 - [Deploy an AI Agent or LLM App](https://docs.varity.so/tutorials/deploy-ai-agent/): Step-by-step guide to deploying a Python or Node.js AI agent on Varity. Auto-detected compute and optional local model server included.
+- [Varity AI Gateway](https://docs.varity.so/ai-gateway/): OpenAI-compatible inference API at https://varity.app/v1. Point any OpenAI client at it and change nothing else.
+- [AI Gateway Models](https://docs.varity.so/ai-gateway/models/): The live model catalog with context windows, max completion tokens, tool-call and streaming support, and per-million-token prices.
+- [AI Gateway OpenAI Compatibility](https://docs.varity.so/ai-gateway/compatibility/): Which OpenAI endpoints are supported, which return 404, per-model capability differences, and the data-handling contract.
+- [Machine Catalogs](https://docs.varity.so/machines/): The four machine catalogs: CPU virtual machines, GPU containers, GPU virtual machines, and GPU bare metal.
+- [CPU Virtual Machines](https://docs.varity.so/machines/cpu-vms/): All CPU VM sizes with vCPU, memory, disk, hourly price, monthly cap, OS images, and how billing stops.
+- [GPU Machines](https://docs.varity.so/machines/gpu/): GPU card models, host specs, regions and hourly rates across containers, virtual machines, and bare metal. Rates track available supply.
+- [API Errors](https://docs.varity.so/api/errors/): The error envelope, the full error code reference with per-code anchors, fault attribution, and correlation IDs.
+- [API Rate Limits](https://docs.varity.so/api/limits/): Per-account rate limit classes, response headers, the 429 response, and how to retry correctly.

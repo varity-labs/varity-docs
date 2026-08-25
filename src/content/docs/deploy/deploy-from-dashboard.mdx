@@ -21,7 +21,7 @@ This is the path most people use. If you prefer the terminal, see [Deploy Your A
 
 - A Varity account. Sign in at [developer.store.varity.so](https://developer.store.varity.so).
 - A payment method on file for paid products. Varity asks for a card before your first paid deploy so your app can go live and stay live; you are billed up to a fixed monthly maximum for the hardware your app reserves, prorated by running time, not for traffic. Free static sites need a verified account only. See [Billing](/resources/billing/).
-- Your app's source: a public GitHub repo, a connected GitHub account, or a Docker image reference.
+- Your app's source: a public GitHub repo, a connected GitHub account, or a public Docker image.
 
 ## Deploy in a Few Steps
 
@@ -35,7 +35,7 @@ This is the path most people use. If you prefer the terminal, see [Deploy Your A
 
    Pick one of:
    - **GitHub repo:** paste a repository URL, or connect your GitHub account and browse your repos.
-   - **Docker image:** provide an image reference (for example `nginx:latest` or `ghcr.io/acme/api:1.4`). A private image also needs registry credentials; see [Deploy a Docker Image](/deploy/deploy-docker-image/). This is the path for any language Varity doesn't build from source yet.
+   - **Docker image:** provide a public image reference (for example `nginx:latest` or `ghcr.io/acme/api:1.4`). This is also the path for any language Varity doesn't build from source yet.
    - **Template:** pick a ready-made app from the gallery and deploy it as-is.
 
 3. **Name and configure**
@@ -82,7 +82,7 @@ Everything after deploy lives in the dashboard:
 - Framework detection and build (no config files)
 - Auto-provisioned databases and services your code needs. See [Auto-wired Services](/deploy/auto-wired-services/)
 - SSL certificates and routing
-- A predictable bill: up to a fixed monthly maximum per app, prorated by running time. See [How Pricing Works](/resources/pricing/)
+- A flat, predictable monthly bill. See [How Pricing Works](/resources/pricing/)
 
 ## Next Steps
 

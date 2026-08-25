@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Varity Public Platform API",
-    "version": "2026-08-15",
+    "version": "2026-07-25",
     "description": "Gateway-owned resource API for deploying and operating Varity apps."
   },
   "servers": [
@@ -30,7 +30,6 @@
               "type": "string",
               "enum": [
                 "gpu",
-                "virtual_machine",
                 "cpu"
               ]
             }
@@ -175,26 +174,8 @@
                     "machines": {
                       "type": "array",
                       "items": {
-                        "oneOf": [
-                          {
-                            "$ref": "#/components/schemas/Machine"
-                          },
-                          {
-                            "$ref": "#/components/schemas/DegradedMachine"
-                          }
-                        ]
+                        "$ref": "#/components/schemas/Machine"
                       }
-                    },
-                    "inventory_status": {
-                      "type": "string",
-                      "enum": [
-                        "complete",
-                        "partial"
-                      ]
-                    },
-                    "dropped_count": {
-                      "type": "integer",
-                      "minimum": 0
                     }
                   }
                 }
@@ -500,20 +481,6 @@
                   "properties": {
                     "deployment": {
                       "$ref": "#/components/schemas/Deployment"
-                    },
-                    "inventory_status": {
-                      "type": "string",
-                      "enum": [
-                        "complete",
-                        "partial"
-                      ]
-                    },
-                    "inventory_warning": {
-                      "type": "string",
-                      "enum": [
-                        "durable_inventory_unavailable",
-                        "durable_inventory_degraded"
-                      ]
                     }
                   }
                 }
@@ -1143,27 +1110,6 @@
             "schema": {
               "type": "number",
               "minimum": 0
-            }
-          },
-          {
-            "name": "services",
-            "in": "query",
-            "required": false,
-            "description": "Attached services. Each service reserves and bills its own Managed Cloud preset.",
-            "schema": {
-              "type": "array",
-              "uniqueItems": true,
-              "items": {
-                "type": "string",
-                "enum": [
-                  "postgres",
-                  "mysql",
-                  "redis",
-                  "mongodb",
-                  "minio",
-                  "ollama"
-                ]
-              }
             }
           },
           {
@@ -2435,14 +2381,7 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 256,
-            "description": "Varity plan name. Required for cpu_virtual_machine and optional for accelerated machine profiles."
-          },
-          "label": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 256,
-            "deprecated": true,
-            "description": "Transitional accelerated-machine display name. New producers use display_name."
+            "description": "Varity plan name. Present exactly when execution_class is cpu_virtual_machine."
           },
           "cpu_class": {
             "type": "string",
@@ -2886,47 +2825,6 @@
                 "$ref": "#/components/schemas/MachineBilling"
               }
             ]
-          },
-          "allowed_actions": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "enum": [
-                "restart",
-                "soft_reboot"
-              ]
-            },
-            "description": "Day-2 actions this machine's durable state currently permits. Absent when none apply."
-          },
-          "degradation_reason": {
-            "type": "string",
-            "enum": [
-              "billing_projection_incomplete",
-              "access_projection_invalid"
-            ],
-            "description": "Present when this machine's billing or access projection is incomplete. Every other field is still authoritative; treat only the named projection as untrustworthy. The list route collapses such a row to DegradedMachine, but a single-machine read returns the full row so nothing observed is withheld."
-          }
-        }
-      },
-      "DegradedMachine": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "machine_id",
-          "degradation_reason"
-        ],
-        "properties": {
-          "machine_id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "degradation_reason": {
-            "type": "string",
-            "enum": [
-              "billing_projection_incomplete",
-              "access_projection_invalid"
-            ],
-            "description": "Bounded reason the complete lifecycle projection is unavailable for this row."
           }
         }
       },
@@ -3295,8 +3193,7 @@
           "subdomain",
           "status",
           "runtime",
-          "public_url",
-          "region"
+          "public_url"
         ],
         "properties": {
           "id": {
@@ -3322,13 +3219,6 @@
               "unknown"
             ]
           },
-          "region": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "description": "Recorded provider-neutral placement region; null when no placement was observed."
-          },
           "runtime": {
             "type": "string",
             "enum": [
@@ -3342,19 +3232,6 @@
               "null"
             ],
             "format": "uri"
-          },
-          "run_id": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "description": "Latest durable run behind this deployment; poll /deployments/runs/{run_id} for classified failure detail. Null when no durable run is linked."
-          },
-          "status_url": {
-            "type": [
-              "string",
-              "null"
-            ]
           },
           "created_at": {
             "type": "string"
@@ -3715,8 +3592,7 @@
       "DeploymentList": {
         "type": "object",
         "required": [
-          "deployments",
-          "inventory_status"
+          "deployments"
         ],
         "properties": {
           "deployments": {
@@ -3724,20 +3600,6 @@
             "items": {
               "$ref": "#/components/schemas/Deployment"
             }
-          },
-          "inventory_status": {
-            "type": "string",
-            "enum": [
-              "complete",
-              "partial"
-            ]
-          },
-          "inventory_warning": {
-            "type": "string",
-            "enum": [
-              "durable_inventory_unavailable",
-              "durable_inventory_degraded"
-            ]
           }
         }
       },
@@ -3885,7 +3747,6 @@
             "type": "string",
             "enum": [
               "create_public_image",
-              "create_static_release",
               "create_gpu_container",
               "delete_deployment"
             ]
@@ -4293,151 +4154,9 @@
             "execution_class"
           ]
         },
-        "allOf": [
-          {
-            "if": {
-              "properties": {
-                "hosting": {
-                  "const": "static"
-                }
-              },
-              "required": [
-                "hosting"
-              ]
-            },
-            "then": {
-              "required": [
-                "repository"
-              ],
-              "not": {
-                "anyOf": [
-                  {
-                    "required": [
-                      "image"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "template_id"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "port"
-                    ]
-                  },
-                  {
-                    "properties": {
-                      "command": {
-                        "minItems": 1
-                      }
-                    },
-                    "required": [
-                      "command"
-                    ]
-                  },
-                  {
-                    "properties": {
-                      "args": {
-                        "minItems": 1
-                      }
-                    },
-                    "required": [
-                      "args"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "health_path"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "resource_profile"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "ingress"
-                    ]
-                  },
-                  {
-                    "properties": {
-                      "volumes": {
-                        "minItems": 1
-                      }
-                    },
-                    "required": [
-                      "volumes"
-                    ]
-                  },
-                  {
-                    "properties": {
-                      "dedicated_ip": {
-                        "const": true
-                      }
-                    },
-                    "required": [
-                      "dedicated_ip"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "tee"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "reclamation_min_window_seconds"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "accelerator"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "accelerator_quote_token"
-                    ]
-                  }
-                ]
-              },
-              "properties": {
-                "repository": {
-                  "required": [
-                    "url"
-                  ],
-                  "not": {
-                    "anyOf": [
-                      {
-                        "required": [
-                          "dockerfile_path"
-                        ]
-                      },
-                      {
-                        "required": [
-                          "docker_context_path"
-                        ]
-                      }
-                    ]
-                  }
-                }
-              }
-            }
-          }
-        ],
         "properties": {
           "name": {
             "type": "string"
-          },
-          "hosting": {
-            "type": "string",
-            "enum": [
-              "static",
-              "dynamic"
-            ],
-            "description": "Optional override for repository sources. When omitted, Varity automatically classifies the repository as a static site or web service. Static releases require repository and do not accept image, template_id, or runtime compute fields."
           },
           "repository": {
             "type": "object",
@@ -4637,7 +4356,6 @@
       },
       "TemplateDeployRequest": {
         "type": "object",
-        "description": "A certified template deploys the certified spec. Name it and set its environment; the runtime, image, resources, attached services and volumes come from the template. A body that also sets a source, workload or billable add-on (image, repo_url, command, args, services, volumes, accelerator, profile_id, \u2026) is rejected 400 naming the conflicting fields \u2014 deploy an image or repository instead to choose your own runtime.",
         "properties": {
           "name": {
             "type": "string"
@@ -4650,8 +4368,7 @@
             "additionalProperties": {
               "type": "string"
             },
-            "writeOnly": true,
-            "description": "Merged OVER the template's own defaults per key: keys you send win, keys you omit keep the certified default."
+            "writeOnly": true
           }
         }
       },

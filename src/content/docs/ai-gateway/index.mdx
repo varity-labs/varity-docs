@@ -178,56 +178,6 @@ request naming a nonexistent model still returns the authentication error, not a
 model error.
 </Aside>
 
-### From an app deployed on Varity
-
-If your app runs on Varity, you do not have to create a key by hand or paste one
-into your environment file. Attach the AI Gateway to the deployment and Varity
-injects a deployment-bound credential into its runtime environment as two
-variables:
-
-| Variable | Value |
-|---|---|
-| `VARITY_AI_API_KEY` | An inference key bound to that one deployment. Created, sealed, and rotated by Varity; never shown in the dashboard or returned by the API. |
-| `VARITY_AI_BASE_URL` | The gateway base URL to call, currently `https://varity.app/v1`. |
-
-Read them like any other environment variable, and prefer `VARITY_AI_BASE_URL`
-over hardcoding the URL:
-
-```javascript
-import OpenAI from "openai";
-
-const client = new OpenAI({
-  baseURL: process.env.VARITY_AI_BASE_URL,
-  apiKey: process.env.VARITY_AI_API_KEY,
-});
-```
-
-```python
-import os
-from openai import OpenAI
-
-client = OpenAI(
-    base_url=os.environ["VARITY_AI_BASE_URL"],
-    api_key=os.environ["VARITY_AI_API_KEY"],
-)
-```
-
-Detaching the gateway redeploys the app without these variables and revokes the
-credential, so the old key stops authenticating. Rotating replaces the credential
-while keeping the same attachment, and the old key is revoked only after the
-replacement is proven.
-
-Manage attachments with `GET`, `POST`, and `DELETE /api/ai-gateway/attachments`,
-and `POST /api/ai-gateway/attachments/{attachment_id}/rotate`. Every mutation on
-these routes requires an `Idempotency-Key` header. See the
-[API reference](/ai-tools/api-reference/).
-
-<Aside type="caution">
-`VARITY_AI_API_KEY` is a live spending credential. Do not log it, return it in a
-response, or copy it into client-side code: a browser bundle would expose it to
-every visitor.
-</Aside>
-
 ## Streaming
 
 Set `stream: true` for server-sent events, exactly as with OpenAI. Every model in

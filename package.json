@@ -20,7 +20,7 @@
     "astro": "astro",
     "lint": "astro check",
     "test": "npm run test:architecture && npm run test:contracts && npm run test:positioning",
-    "test:architecture": "node tests/test-architecture-governance.cjs",
+    "test:architecture": "node tests/test-architecture-governance.cjs && node tests/test-architecture-governance-policy.cjs",
     "test:contracts": "node tests/test-contract-artifacts.cjs",
     "test:built-contracts": "VERIFY_DIST=1 node tests/test-contract-artifacts.cjs",
     "test:positioning": "node tests/test-positioning-static.cjs",

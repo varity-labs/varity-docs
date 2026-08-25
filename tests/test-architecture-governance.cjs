@@ -3,6 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
+const { dependabotChangedOnlyDependencyManifests } = require('./architecture-governance-policy.cjs');
 
 const root = path.resolve(__dirname, '..');
 const required = {
@@ -22,25 +23,20 @@ const required = {
 };
 
 const errors = [];
-const dependencyManifests = new Set(['package.json', 'package-lock.json']);
 
-function dependabotChangedOnlyDependencyManifests(event) {
-  const author = event.pull_request?.user || {};
-  if (author.login !== 'dependabot[bot]' || author.type !== 'Bot') return false;
-
+function changedFilesBetweenPullRequestRefs(event) {
   const baseSha = event.pull_request?.base?.sha;
   const headSha = event.pull_request?.head?.sha;
-  if (!baseSha || !headSha) return false;
+  if (!baseSha || !headSha) return null;
 
   try {
-    const changedFiles = execFileSync(
+    return execFileSync(
       'git',
       ['diff', '--name-only', `${baseSha}...${headSha}`],
       { cwd: root, encoding: 'utf8' },
     ).trim().split('\n').filter(Boolean);
-    return changedFiles.length > 0 && changedFiles.every((file) => dependencyManifests.has(file));
   } catch {
-    return false;
+    return null;
   }
 }
 
@@ -70,7 +66,8 @@ if (eventName === 'pull_request') {
     // Dependabot cannot write this repository's declaration. Exempt it only
     // when the complete diff is confined to dependency manifests. Missing
     // refs, another bot, or any governed file keeps the gate fail-closed.
-    const body = dependabotChangedOnlyDependencyManifests(event)
+    const changedFiles = changedFilesBetweenPullRequestRefs(event);
+    const body = dependabotChangedOnlyDependencyManifests(event, changedFiles)
       ? null
       : (event.pull_request?.body || '');
     if (body !== null) {

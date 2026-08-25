@@ -20,12 +20,6 @@ The machine-readable source is:
 - `https://docs.varity.so/openapi.yaml`
 - `https://varity.app/api/openapi.json`
 
-Both URLs serve the same OpenAPI 3.1 document encoded as JSON. The docs
-mirror keeps the historical `.yaml` path for compatibility; JSON is valid
-YAML, so either extension parses, but point strict JSON tooling at it
-directly rather than expecting YAML syntax. `varity.app` is authoritative;
-the docs copy is a mirror.
-
 <Aside type="note">
 Older thin-client compatibility routes are not the public resource contract. New direct integrations should use the `/api/*` routes below.
 </Aside>
@@ -67,12 +61,12 @@ Create API keys in the [Developer Portal settings page](https://developer.store.
 
 Always send an `Idempotency-Key` on creates so a retry cannot produce a duplicate deployment:
 
-- Format: `[A-Za-z0-9._:-]`, up to 160 characters on deployment and template creates. `POST /api/machines` and `DELETE /api/machines/{machine_id}` take 8 to 128 characters. Anything else returns `400 invalid_idempotency_key`.
+- Format: `[A-Za-z0-9._:-]`, 8 to 128 characters. Anything else returns `400 invalid_idempotency_key`.
 - Retention: 24 hours.
 - Replaying the same key with the **same** body returns the original result, flagged `replayed: true`.
 - Reusing the same key with a **different** body returns `409 idempotency_key_reused`.
 
-The header is optional on `POST /api/deployments` and `POST /api/templates/{id}/deploy`, and **required** on `POST /api/machines`, `DELETE /api/machines/{machine_id}`, and every `/api/ai-gateway/attachments` mutation.
+The header is optional on `POST /api/deployments`, `POST /api/templates/{id}/deploy`, `POST /api/machines`, and `DELETE /api/machines/{id}`, and **required** on every `/api/ai-gateway/attachments` mutation.
 
 Do not fire concurrent create requests with the same idempotency key; atomic concurrent idempotency is a backend hardening follow-up for v1.
 

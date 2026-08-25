@@ -87,7 +87,7 @@ Every successful deploy returns the information you need to keep moving:
 - The public app URL
 - Deployment status
 - Logs and troubleshooting context
-- The monthly maximum for that workload, prorated by running time
+- The fixed monthly price for that workload
 - Commands or MCP tools for redeploying and updating environment variables
 
 Use [CLI Reference](/cli/overview/) and [MCP Server](/ai-tools/mcp-server-spec/) for the exact command and tool names.
@@ -107,7 +107,7 @@ Varity chooses the default based on the app type. You can force the mode with `-
 Varity is in guided beta. Use it freely for demos, side projects, AI agent apps, and apps that tolerate beta limits. Bring your own external database for business critical data until managed database durability, backups, and restore are shipped.
 </Aside>
 
-Varity serves three deployment categories: applications (Node, Python, Go, static projects, and Docker or OCI HTTP service images), [CPU VMs](/machines/cpu-vms/), and [GPU workloads](/machines/gpu/) (containers, VMs, and bare metal). Varity also runs an [OpenAI-compatible AI Gateway](/ai-gateway/) you can call without deploying anything. Cron jobs, preview deployments, and rollback to a previous deployment are not shipped yet.
+Varity serves three deployment categories: applications (Node, Python, Go, static projects, and Docker or OCI HTTP service images), [CPU VMs](/machines/cpu-vms/), and [GPU workloads](/machines/gpu/) (containers, VMs, and bare metal). Varity also runs an [OpenAI-compatible AI Gateway](/ai-gateway/) you can call without deploying anything. Cron jobs, preview deployments, and one click rollback are not shipped yet.
 
 ## Next Steps
 

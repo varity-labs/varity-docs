@@ -17,11 +17,7 @@ export default defineConfig({
     sitemap({
       filter: (page) =>
         ![
-          // Server-side 301 redirect routes (src/pages/**): not indexable pages.
           "https://docs.varity.so/build/deploy/",
-          "https://docs.varity.so/cli/",
-          "https://docs.varity.so/deploy/",
-          "https://docs.varity.so/getting-started/",
           "https://docs.varity.so/introduction/",
         ].includes(page),
     }),

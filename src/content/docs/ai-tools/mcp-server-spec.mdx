@@ -105,7 +105,7 @@ Verify that your development environment is ready to build and deploy Varity app
 
 ### `varity_login`: Authenticate with Varity
 
-Log in to Varity to enable deployments. If a `deploy_key` is provided, it is saved to local config; otherwise the tool opens the developer portal where you copy your deploy key. A deploy key is required before deploying apps. Paid products also need a payment method on file; free static sites need only a verified account.
+Log in to Varity to enable deployments. If a `deploy_key` is provided, it is saved to local config; otherwise the tool opens the developer portal where you add a payment method and copy your deploy key. Required before deploying apps.
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
@@ -217,7 +217,7 @@ Create a new GitHub repository and push your project to it. Useful for getting y
 
 ### `varity_deploy`: Deploy to production
 
-Deploy the current project to production. Detects the framework, selects static vs dynamic hosting, auto-configures any backend services your code needs, and returns a live URL: `https://varity.app/<name>/` for static apps, `https://<name>.varity.app/` for dynamic apps. Deploy from source (a project path or a GitHub repo) or from a prebuilt Docker/OCI image.
+Deploy the current project to production. Detects the framework, selects static vs dynamic hosting, auto-configures any backend services your code needs, and returns a live URL at `https://varity.app/<name>/`. Deploy from source (a project path or a GitHub repo) or from a prebuilt Docker/OCI image.
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|

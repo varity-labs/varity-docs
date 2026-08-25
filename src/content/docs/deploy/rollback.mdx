@@ -16,7 +16,7 @@ import PageMeta from '../../../components/PageMeta.astro';
 If a deployment breaks your app, the way to recover today is to **redeploy a known-good version of your app**. This guide covers the recovery flow and what to watch out for.
 
 <Aside type="note">
-**Rollback to a previous deployment is not available yet.** The CLI still carries a `varitykit app rollback` command, but it reads a local deployment history that the current deploy path never writes, so it cannot restore an app deployed with the current CLI. There is no rollback endpoint in the platform API and no restore button in the dashboard. To recover, redeploy a working version as described below.
+**Rollback ships in the CLI: `varitykit app rollback <deployment_id> --confirm` redeploys from the stored deployment config.** There is no shipped "restore the previous live deployment" button. To recover, redeploy a working version as described below.
 </Aside>
 
 ## Recover by Redeploying a Known-Good Version
@@ -59,10 +59,10 @@ List your deployments to confirm what's live and which app names you own:
 varitykit app list
 ```
 
-Inspect a specific deployment's details by app name:
+Inspect a specific deployment's details:
 
 ```bash
-varitykit app info my-app
+varitykit app info deploy-1737491000
 ```
 
 Check overall status:

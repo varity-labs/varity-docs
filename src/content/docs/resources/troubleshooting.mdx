@@ -206,13 +206,13 @@ Common failures and fixes:
 
 ### Deployment history not showing
 
-Varity owns your deployment history, so `varitykit app list` returns the same
-deployments from any machine. An empty list usually means you are logged in to
-a different account, so check with:
+Deployments are stored locally. Check:
 
 ```bash
-varitykit auth status
+ls ~/.varitykit/deployments/
 ```
+
+If empty, no deployments have been made from this machine.
 
 ## Getting More Help
 

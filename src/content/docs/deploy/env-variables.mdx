@@ -73,14 +73,10 @@ Keys that are **not** forwarded (Varity sets these automatically):
 |-----|--------|
 | `NODE_ENV`, `PORT`, `NODE_OPTIONS` | Runtime defaults |
 | `DATABASE_URL`, `REDIS_URL`, `MONGODB_URI`, `MYSQL_URL`, `OLLAMA_URL` | Varity service wiring |
-| `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | Auto-wired database config |
+| `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | Managed database config |
 | `APP_NAME` | Deployment metadata |
 
 Platform migration keys (`VERCEL_*`, `AWS_*`, `RAILWAY_*`, `RENDER_*`, `NETLIFY_*`, `FLY_*`) are also filtered so they don't leak into dynamic deployments.
-
-### AI Gateway variables
-
-If you attach the [Varity AI Gateway](/ai-gateway/) to a deployment, Varity injects `VARITY_AI_API_KEY` and `VARITY_AI_BASE_URL` into its runtime environment for you. You do not create or set them yourself. See [Authentication from an app deployed on Varity](/ai-gateway/#from-an-app-deployed-on-varity).
 
 <Aside type="note">
 **Special characters in values** (quotes, dollar signs, colons) are automatically escaped. You do not need to quote values in `.env.varity`.

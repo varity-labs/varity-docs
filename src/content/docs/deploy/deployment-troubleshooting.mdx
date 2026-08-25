@@ -30,11 +30,10 @@ varitykit app deploy --dry-run   # preview without deploying
 
 ### From a past deployment
 
-`varitykit app info my-app` shows a deployment's name, type, URL, and timestamps. The CLI has no log command, so read past logs from the dashboard, from the MCP server, or from the API:
+If the deployment already ran, retrieve its logs by ID:
 
 ```bash
-curl https://varity.app/api/deployments/$DEPLOYMENT_ID/logs \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+varitykit app info deploy-1737492000
 ```
 
 ### From the MCP server
@@ -49,11 +48,11 @@ This calls `varity_deploy_logs`:
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `deployment_id` | string | Yes | The deployment ID, from the dashboard or from `GET /api/deployments` |
+| `deployment_id` | string | Yes | The deployment ID from `varitykit app list` |
 | `limit` | number | No | Max log lines (default 100) |
 
 <Aside type="tip" icon="approve-check">
-Don't know the deployment ID? Call `varity_deploy_status` from your AI editor, or read `GET /api/deployments`. `varitykit app list` shows app names rather than deployment IDs.
+Don't know the deployment ID? Run `varitykit app list` or call `varity_deploy_status` from your AI editor to see all deployments.
 </Aside>
 
 ---
@@ -154,8 +153,7 @@ Compute was reserved but the container exited immediately after launch.
 **Get more detail from logs:**
 
 ```bash
-curl https://varity.app/api/deployments/$DEPLOYMENT_ID/logs \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+varitykit app info deploy-1737492000
 ```
 
 Or via MCP: `varity_deploy_logs` with `limit: 200` for more context.
@@ -193,7 +191,7 @@ This error is rare and typically means an internal configuration was generated i
 varitykit doctor
 ```
 
-If `doctor` passes, re-deploy. If the error recurs, report it to [support@varity.so](mailto:support@varity.so) with the full output of `varitykit app info <app-name>`.
+If `doctor` passes, re-deploy. If the error recurs, report it to [support@varity.so](mailto:support@varity.so) with the full output of `varitykit app info <deployment-id>`.
 
 ---
 
@@ -266,7 +264,7 @@ This checks:
 If you're still stuck after reading logs and running diagnostics:
 
 1. **Discord**: [#support channel](https://discord.gg/7vWsdwa2Bg) (fastest response)
-2. **GitHub**: [varity-labs](https://github.com/varity-labs). Include the output of `varitykit app info <app-name>`
+2. **GitHub**: [varity-labs](https://github.com/varity-labs). Include the output of `varitykit app info <deployment-id>`
 3. **Email**: [support@varity.so](mailto:support@varity.so)
 
 When reporting an issue, include:
