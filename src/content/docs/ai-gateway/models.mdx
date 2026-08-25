@@ -142,7 +142,7 @@ is a separate, much smaller ceiling on any single response, and it goes as low a
 
 - **Need tool calling?** Only 11 models support it, and only 7 support tool calls while streaming. See [Compatibility](/ai-gateway/compatibility/) for the exact lists.
 - **Need a very large context?** `model-13cb7872bbc7954e8ae400d8` (Grok 4.20 Multi-Agent) and `model-1bcd5b1a9fc32ffb985afc6b` (Grok 4.20) both report 2,000,000 tokens.
-- **Cost sensitive?** `model-4d0399841ad2104adac8673f` (GLM 4.7 Flash) is the cheapest input price in the catalog at $0.063 per million input tokens.
+- **Cost sensitive?** Sort the live catalog by `pricing.input` and choose the lowest-priced model that meets your capability and context requirements.
 
 <Aside type="caution">
 There is no per-model retrieval route. `GET /v1/models/{id}` returns `404`; fetch

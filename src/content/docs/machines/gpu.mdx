@@ -49,7 +49,7 @@ Nine offers, four card models. Pick one, deploy a container image onto it. There
 | H200 141 GB | `h200` | 141 GB | sxm | 1 | $4.806 |
 | H200 141 GB | `h200` | 141 GB | sxm | 1 | $5.13 |
 
-Repeated labels are separate offers with their own `id` and their own price. There are four distinct A100 offers and three distinct H200 offers. Take the cheapest one that is `available`.
+Repeated labels are separate offers with their own `id` and their own price. There are four distinct A100 offers and three distinct H200 offers. Take the lowest-priced one that is `available`.
 
 Container profiles differ from machine profiles field by field:
 
@@ -123,7 +123,7 @@ Prices below come from `customer_price.amount_microusd ÷ 1,000,000`. Memory and
 
 ### Single GPU
 
-| Profile | GPU model | VRAM | Interface | Offers | Hourly | Cheapest offer: vCPU / RAM / disk / region |
+| Profile | GPU model | VRAM | Interface | Offers | Hourly | Lowest-priced offer: vCPU / RAM / disk / region |
 | --- | --- | --- | --- | --- | --- | --- |
 | A30 24 GB | `a30` | 24 GB | pcie | 1 | $0.513 | 16 / 45 GB / 238 GB / `us-central-1` |
 | RTXA6000 48 GB | `rtxa6000` | 48 GB | pcie | 5 | $0.7965 to $3.78 | 6 / 22 GB / 238 GB / `us-central-2` |
@@ -150,7 +150,7 @@ A100 and H100 appear on both PCIe and SXM hosts. The interface is a property of 
 
 ### Multi GPU
 
-| Profile | GPUs | VRAM each | Interface | Offers | Hourly | Cheapest offer: vCPU / RAM / region |
+| Profile | GPUs | VRAM each | Interface | Offers | Hourly | Lowest-priced offer: vCPU / RAM / region |
 | --- | --- | --- | --- | --- | --- | --- |
 | 2x RTXA6000 48 GB | 2 | 48 GB | pcie | 3 | $1.6065 to $7.56 | 14 / 45 GB / `us-central-2` |
 | 2x A16 16 GB | 2 | 16 GB | pcie | 2 | $1.998 | 12 / 119 GB / `singapore-singapore-1` |
