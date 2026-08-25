@@ -32,7 +32,7 @@ Requests are grouped into classes, and each class has its own budget. A budget i
 
 Two of these deserve explanation.
 
-**Quotes are cheap on purpose.** A price quote allocates nothing and changes nothing, so it draws from a generous per-minute budget rather than the hourly mutation budget. Comparing prices across profiles will not exhaust your ability to manage running resources.
+**Quotes are read-only on purpose.** A price quote allocates nothing and changes nothing, so it draws from a generous per-minute budget rather than the hourly mutation budget. Comparing prices across profiles will not exhaust your ability to manage running resources.
 
 **Stopping is never throttled into unavailability.** Delete and credential revocation are safety controls. A resource you cannot turn off keeps billing, and a leaked key you cannot revoke stays live. These get their own generous per-minute budget and never draw from the hourly create budget.
 

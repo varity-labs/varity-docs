@@ -2,6 +2,8 @@
 
 const fs = require('fs');
 const path = require('path');
+const { execFileSync } = require('child_process');
+const { dependabotChangedOnlyDependencyManifests } = require('./architecture-governance-policy.cjs');
 
 const root = path.resolve(__dirname, '..');
 const required = {
@@ -21,6 +23,22 @@ const required = {
 };
 
 const errors = [];
+
+function changedFilesBetweenPullRequestRefs(event) {
+  const baseSha = event.pull_request?.base?.sha;
+  const headSha = event.pull_request?.head?.sha;
+  if (!baseSha || !headSha) return null;
+
+  try {
+    return execFileSync(
+      'git',
+      ['diff', '--name-only', `${baseSha}...${headSha}`],
+      { cwd: root, encoding: 'utf8' },
+    ).trim().split('\n').filter(Boolean);
+  } catch {
+    return null;
+  }
+}
 
 for (const [relativePath, markers] of Object.entries(required)) {
   const absolutePath = path.join(root, relativePath);
@@ -45,18 +63,26 @@ if (eventName === 'pull_request') {
     errors.push('pull_request event is missing GITHUB_EVENT_PATH');
   } else {
     const event = JSON.parse(fs.readFileSync(eventPath, 'utf8'));
-    const body = event.pull_request?.body || '';
-    const impact = body.match(/^Architecture impact:\s*(none|updated)\s*$/im);
-    const reason = body.match(/^Reason:\s*(.+)\s*$/im);
-    const affected = body.match(/^Affected runtime services\/modules:\s*(.+)\s*$/im);
-    const changed = body.match(/^Interfaces\/data\/security\/topology changed:\s*(.+)\s*$/im);
-    const files = body.match(/^Architecture\/ADR files:\s*(.+)\s*$/im);
+    // Dependabot cannot write this repository's declaration. Exempt it only
+    // when the complete diff is confined to dependency manifests. Missing
+    // refs, another bot, or any governed file keeps the gate fail-closed.
+    const changedFiles = changedFilesBetweenPullRequestRefs(event);
+    const body = dependabotChangedOnlyDependencyManifests(event, changedFiles)
+      ? null
+      : (event.pull_request?.body || '');
+    if (body !== null) {
+      const impact = body.match(/^Architecture impact:\s*(none|updated)\s*$/im);
+      const reason = body.match(/^Reason:\s*(.+)\s*$/im);
+      const affected = body.match(/^Affected runtime services\/modules:\s*(.+)\s*$/im);
+      const changed = body.match(/^Interfaces\/data\/security\/topology changed:\s*(.+)\s*$/im);
+      const files = body.match(/^Architecture\/ADR files:\s*(.+)\s*$/im);
 
-    if (!impact) errors.push('PR body must contain exactly "Architecture impact: none" or "Architecture impact: updated"');
-    if (!reason || reason[1].includes('<!--')) errors.push('PR body must contain a concrete Reason');
-    if (!affected) errors.push('PR body must name affected runtime services/modules or none');
-    if (!changed) errors.push('PR body must declare interface/data/security/topology impact');
-    if (!files) errors.push('PR body must name architecture/ADR files or none');
+      if (!impact) errors.push('PR body must contain exactly "Architecture impact: none" or "Architecture impact: updated"');
+      if (!reason || reason[1].includes('<!--')) errors.push('PR body must contain a concrete Reason');
+      if (!affected) errors.push('PR body must name affected runtime services/modules or none');
+      if (!changed) errors.push('PR body must declare interface/data/security/topology impact');
+      if (!files) errors.push('PR body must name architecture/ADR files or none');
+    }
   }
 }
 
