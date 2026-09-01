@@ -97,6 +97,25 @@ network-dependent, refers to retired product surfaces, and is retained only as
 historical diagnostic material until a separate cleanup change proves which
 checks should be ported or deleted.
 
+### Acquisition analytics module
+
+- **Interface:** one sanitized native pageview plus the closed search-results,
+  CTA, and Portal-handoff events documented in `ANALYTICS.md`.
+- **Implementation:** `src/lib/docs-analytics.mjs`,
+  `src/components/DocsAnalytics.astro`, and the global Head override.
+- **Seam:** the Umami browser tracker after exact-host, Do Not Track, route,
+  UTM, event, and property validation.
+- **Test surface:** `tests/test-docs-analytics.cjs`, built HTML inspection, and
+  localhost browser verification.
+
+Umami owns Docs acquisition and browser behavior only. The module cannot write
+accepted deployment, runtime-health, paying, or retained-deployment truth. Its
+public website ID identifies the dedicated `docs.varity.so` website; no runtime
+credential is present in this repository. Automatic pageviews are disabled so
+the module can strip raw URL query, hash, and referrer fields before the single
+manual pageview is sent. `ANALYTICS.md` owns the full privacy and report
+taxonomy contract.
+
 ## Content and artifact provenance
 
 | Published surface | Checked-in owner | Narrower authority to reconcile | Required verification |
@@ -159,6 +178,10 @@ and requires no production credential.
 
 - The static site holds no runtime secret and repository CI has no private
   checkout token.
+- The analytics tracker is exact-host fenced, respects Do Not Track, and fails
+  closed on unknown routes, events, properties, Portal links, and UTM values.
+  It never reads search input text or sends raw URL query, hash, or referrer
+  fields.
 - All content in this public repository must be safe for public disclosure.
 - Examples use environment-variable names and non-secret sample values only.
 - Public interface documentation must stay provider-neutral and must not expose
