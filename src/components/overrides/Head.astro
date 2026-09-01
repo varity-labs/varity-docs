@@ -6,6 +6,7 @@
 // Reads page data from Astro.locals.starlightRoute (Starlight 0.37 API), the
 // same source the default Head.astro consumes.
 import Default from "@astrojs/starlight/components/Head.astro";
+import DocsAnalytics from "../DocsAnalytics.astro";
 
 const SITE = "https://docs.varity.so";
 const OG_IMAGE = `${SITE}/og-image.png`;
@@ -168,3 +169,4 @@ const jsonLd = {
 
 <Default />
 <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+<DocsAnalytics />

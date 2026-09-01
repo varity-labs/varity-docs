@@ -1,0 +1,28 @@
+---
+import { DOCS_ANALYTICS } from '../lib/docs-analytics.mjs';
+---
+
+<script is:inline>
+  window.docsAnalyticsBeforeSend = function (type, payload) {
+    return window.__docsAnalyticsBeforeSend?.(type, payload) || false;
+  };
+</script>
+<script>
+  import { installDocsAnalytics, sanitizeOutboundPayload } from '../lib/docs-analytics.mjs';
+
+  Object.assign(window, { __docsAnalyticsBeforeSend: sanitizeOutboundPayload });
+  installDocsAnalytics(window, document);
+</script>
+<script
+  is:inline
+  id="docs-umami"
+  src="https://cloud.umami.is/script.js"
+  data-website-id={DOCS_ANALYTICS.websiteId}
+  data-domains={DOCS_ANALYTICS.hostname}
+  data-auto-pageview="false"
+  data-exclude-search="true"
+  data-exclude-hash="true"
+  data-do-not-track="true"
+  data-before-send="docsAnalyticsBeforeSend"
+  defer
+></script>
