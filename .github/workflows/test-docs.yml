@@ -40,3 +40,6 @@ jobs:
 
       - name: Verify built contract copies
         run: npm run test:built-contracts
+
+      - name: Verify published AI Gateway claims against the live product
+        run: npm run test:live-ai-gateway

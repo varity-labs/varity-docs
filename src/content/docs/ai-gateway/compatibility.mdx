@@ -62,7 +62,7 @@ A non-`/v1` health probe is also available:
 
 | Endpoint | Status |
 |----------|--------|
-| `GET /health` | **Supported.** Public. Returns `{"status":"healthy","service":"varity-gateway","version":"1.13.49"}`. |
+| `GET /health` | **Supported.** Public. Returns `{"status":"healthy","service":"varity-gateway","version":"1.14.12"}`. |
 
 <Aside type="caution">
 Any OpenAI SDK helper that touches an unimplemented route will fail, including
@@ -78,16 +78,17 @@ against one model can be unsupported on another.
 
 | Capability | Models supporting it |
 |------------|----------------------|
-| `chat_completions` | 42 of 42 |
-| `streaming` | 42 of 42 |
-| `tool_calls` | **11 of 42** |
-| `streaming_tool_calls` | **7 of 42** |
+| `chat_completions` | 82 of 82 |
+| `streaming` | 80 of 82 |
+| `tool_calls` | **30 of 82** |
+| `streaming_tool_calls` | **25 of 82** |
 
 ### Tool calling is the exception, not the default
 
-Only 11 of the 42 models accept `tools` / `tool_choice`. If your agent framework
+Only 30 of the 82 models accept `tools` / `tool_choice`. If your agent framework
 assumes function calling works everywhere, as most do, it will break on the other
-31. These are the models reporting `tool_calls: true`:
+52. The private models reporting `tool_calls: true` are listed below; query the
+catalog for the complete current set, including anonymized models.
 
 | Model ID | Name | Tool calls while streaming |
 |----------|------|----------------------------|
@@ -103,12 +104,12 @@ assumes function calling works everywhere, as most do, it will break on the othe
 | `model-38c8e473186cf182a89ee7ff` | Role Play Uncensored | Yes |
 | `model-665e90a28adb3a74b27bb064` | Uncensored 1.2 | Yes |
 
-Four of those eleven support tool calls only in non-streaming mode
+Four of those private models support tool calls only in non-streaming mode
 (`tool_calls: true`, `streaming_tool_calls: false`): `llama-3-3-70b`,
 `model-afb55f3c0379fce9fb050497`, `model-c09137265edddbdec9dfda8b`, and
 `model-ca8c32ffa3e6ec1adee98495`. Combining `stream: true` with `tools` on those
-is outside the supported surface. Drop `stream` or pick a model from the seven
-that report `streaming_tool_calls: true`.
+is outside the supported surface. Drop `stream` or select a model whose live
+catalog entry reports `streaming_tool_calls: true`.
 
 Resolve this at runtime rather than hardcoding:
 

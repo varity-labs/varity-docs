@@ -33,7 +33,7 @@ Do not hardcode this table. Resolve models at runtime from `/v1/models` and read
 
 ## Catalog
 
-**42 models** were listed at the time of writing, all reporting
+**82 models** were listed at the time of writing, all reporting
 `availability.status: "available"` and `chat_completions: true`.
 
 Pass the `id` column verbatim as the `model` field of a chat-completions
@@ -96,14 +96,14 @@ Each entry in `data` carries these Varity fields:
 |-------|------|-------|
 | `id` | string | Pass this as `model` in a request |
 | `display_name` | string | Human label only, never an identifier |
-| `capabilities.chat_completions` | boolean | `true` on all 42 models |
-| `capabilities.tool_calls` | boolean | `true` on 11 of 42 models |
-| `capabilities.streaming` | boolean | `true` on all 42 models |
-| `capabilities.streaming_tool_calls` | boolean | `true` on 7 of 42 models |
+| `capabilities.chat_completions` | boolean | `true` on all 82 models |
+| `capabilities.tool_calls` | boolean | `true` on 30 of 82 models |
+| `capabilities.streaming` | boolean | `true` on 80 of 82 models |
+| `capabilities.streaming_tool_calls` | boolean | `true` on 25 of 82 models |
 | `context_window` | integer | Total tokens, input plus output |
 | `max_completion_tokens` | integer | Ceiling on generated tokens |
-| `privacy` | string | `"private"` on every model in the catalog |
-| `privacy_routes` | array | `["private"]` on every model in the catalog |
+| `privacy` | string | `"private"` on 42 models and `"anonymized"` on 40 models |
+| `privacy_routes` | array | Read the available route classes from each model |
 | `availability.status` | string | `"available"` on every model, with an `observed_at` timestamp |
 | `customer_pricing` | object | See below |
 | `refreshed_at` | string | When the gateway last refreshed the entry |
@@ -125,7 +125,7 @@ numbers:
 }
 ```
 
-`cached_input` equals `input` on all 42 models. Cached input tokens are not
+`cached_input` equals `input` on all 82 models. Cached input tokens are not
 discounted today. Always read `unit` and `currency` rather than assuming; the
 `version` string identifies the price set the numbers came from.
 
@@ -140,7 +140,7 @@ is a separate, much smaller ceiling on any single response, and it goes as low a
 
 ## Picking A Model
 
-- **Need tool calling?** Only 11 models support it, and only 7 support tool calls while streaming. See [Compatibility](/ai-gateway/compatibility/) for the exact lists.
+- **Need tool calling?** 30 models support it, and 25 support tool calls while streaming. See [Compatibility](/ai-gateway/compatibility/) for runtime capability checks.
 - **Need a very large context?** `model-13cb7872bbc7954e8ae400d8` (Grok 4.20 Multi-Agent) and `model-1bcd5b1a9fc32ffb985afc6b` (Grok 4.20) both report 2,000,000 tokens.
 - **Cost sensitive?** `model-4d0399841ad2104adac8673f` (GLM 4.7 Flash) is the cheapest input price in the catalog at $0.063 per million input tokens.
 

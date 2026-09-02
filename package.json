@@ -26,6 +26,7 @@
     "test:built-analytics": "VERIFY_DIST=1 node tests/test-docs-analytics.cjs",
     "test:positioning": "node tests/test-positioning-static.cjs",
     "test:analytics": "node tests/test-docs-analytics.cjs",
+    "test:live-ai-gateway": "node tests/test-live-ai-gateway-claims.cjs",
     "check": "npm test && npm run lint && npm run build && npm run test:built-contracts && npm run test:built-analytics"
   },
   "dependencies": {
