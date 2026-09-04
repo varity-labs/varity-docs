@@ -46,17 +46,24 @@ if (eventName === 'pull_request') {
   } else {
     const event = JSON.parse(fs.readFileSync(eventPath, 'utf8'));
     const body = event.pull_request?.body || '';
-    const impact = body.match(/^Architecture impact:\s*(none|updated)\s*$/im);
-    const reason = body.match(/^Reason:\s*(.+)\s*$/im);
-    const affected = body.match(/^Affected runtime services\/modules:\s*(.+)\s*$/im);
-    const changed = body.match(/^Interfaces\/data\/security\/topology changed:\s*(.+)\s*$/im);
-    const files = body.match(/^Architecture\/ADR files:\s*(.+)\s*$/im);
+    const author = event.pull_request?.user?.login;
 
-    if (!impact) errors.push('PR body must contain exactly "Architecture impact: none" or "Architecture impact: updated"');
-    if (!reason || reason[1].includes('<!--')) errors.push('PR body must contain a concrete Reason');
-    if (!affected) errors.push('PR body must name affected runtime services/modules or none');
-    if (!changed) errors.push('PR body must declare interface/data/security/topology impact');
-    if (!files) errors.push('PR body must name architecture/ADR files or none');
+    // Dependabot owns its generated PR body. Keep all repository architecture
+    // entrypoint checks above unconditional, but do not require a human-authored
+    // declaration shape that Dependabot cannot produce.
+    if (author !== 'dependabot[bot]') {
+      const impact = body.match(/^Architecture impact:\s*(none|updated)\s*$/im);
+      const reason = body.match(/^Reason:\s*(.+)\s*$/im);
+      const affected = body.match(/^Affected runtime services\/modules:\s*(.+)\s*$/im);
+      const changed = body.match(/^Interfaces\/data\/security\/topology changed:\s*(.+)\s*$/im);
+      const files = body.match(/^Architecture\/ADR files:\s*(.+)\s*$/im);
+
+      if (!impact) errors.push('PR body must contain exactly "Architecture impact: none" or "Architecture impact: updated"');
+      if (!reason || reason[1].includes('<!--')) errors.push('PR body must contain a concrete Reason');
+      if (!affected) errors.push('PR body must name affected runtime services/modules or none');
+      if (!changed) errors.push('PR body must declare interface/data/security/topology impact');
+      if (!files) errors.push('PR body must name architecture/ADR files or none');
+    }
   }
 }
 
