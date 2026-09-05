@@ -7,6 +7,7 @@
 // same source the default Head.astro consumes.
 import Default from "@astrojs/starlight/components/Head.astro";
 import DocsAnalytics from "../DocsAnalytics.astro";
+import BetterStackBrowser from "../BetterStackBrowser.astro";
 
 const SITE = "https://docs.varity.so";
 const OG_IMAGE = `${SITE}/og-image.png`;
@@ -170,3 +171,4 @@ const jsonLd = {
 <Default />
 <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
 <DocsAnalytics />
+<BetterStackBrowser />

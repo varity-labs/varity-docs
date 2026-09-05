@@ -116,6 +116,23 @@ the module can strip raw URL query, hash, and referrer fields before the single
 manual pageview is sent. `ANALYTICS.md` owns the full privacy and report
 taxonomy contract.
 
+### Browser error reporting module
+
+- **Interface:** one Better Stack browser error tag mounted once from the
+  global Head override.
+- **Implementation:** `src/lib/betterstack-browser.mjs` and
+  `src/components/BetterStackBrowser.astro`.
+- **Seam:** the `betterstack.net/b.js` loader, initialised only when the
+  browser hostname is exactly `docs.varity.so`.
+- **Test surface:** `tests/test-betterstack-browser.cjs` and built HTML
+  inspection.
+
+The tag reports uncaught browser errors on the published site to the dedicated
+`docs.varity.so` error application. Its public application token is compiled
+into every page like the Umami website ID; no runtime credential is present.
+Local dev servers and preview hosts never initialise the tag, and it does not
+identify users.
+
 ## Content and artifact provenance
 
 | Published surface | Checked-in owner | Narrower authority to reconcile | Required verification |
@@ -182,6 +199,9 @@ and requires no production credential.
   closed on unknown routes, events, properties, Portal links, and UTM values.
   It never reads search input text or sends raw URL query, hash, or referrer
   fields.
+- The browser error tag is exact-host fenced, drops browser-extension frames,
+  and never identifies users. Uncaught errors leave the browser only from the
+  published `docs.varity.so` host.
 - All content in this public repository must be safe for public disclosure.
 - Examples use environment-variable names and non-secret sample values only.
 - Public interface documentation must stay provider-neutral and must not expose

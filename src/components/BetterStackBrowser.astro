@@ -1,0 +1,32 @@
+---
+// Better Stack's browser error tag. Keeping the tag in one module prevents a
+// second browser error SDK from being mounted. The tag only initialises on the
+// exact production hostname, the same fence the Umami tracker uses, so local
+// dev servers and preview hosts never report into the production application.
+import { BETTERSTACK_BROWSER } from '../lib/betterstack-browser.mjs';
+---
+
+<script is:inline id="docs-betterstack" define:vars={{ ...BETTERSTACK_BROWSER }}>
+  if (window.location.hostname === hostname) {
+    !function (b, e, t, r) {
+      b[t] = b[t] || function () { (b[t].q = b[t].q || []).push(arguments); };
+      b[t].l = +new Date();
+      var s = e.createElement('script');
+      s.async = 1;
+      s.crossOrigin = 'anonymous';
+      s.src = 'https://betterstack.net/b.js?t=' + r;
+      (e.head || e.getElementsByTagName('head')[0]).appendChild(s);
+    }(window, document, 'betterstack', applicationToken);
+    betterstack('config', {
+      environment: 'production',
+      sentry: {
+        denyUrls: ['chrome-extension://', 'moz-extension://', 'safari-web-extension://'],
+        ignoreErrors: [
+          'ResizeObserver loop completed with undelivered notifications.',
+          'ResizeObserver loop limit exceeded',
+        ],
+      },
+    });
+    betterstack('init');
+  }
+</script>
