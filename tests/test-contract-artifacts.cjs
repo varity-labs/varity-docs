@@ -118,6 +118,16 @@ for (const [name, content] of [['public/llms.txt', llms], ['public/llms-full.txt
 }
 if (llmsFull.length <= llms.length) errors.push('public/llms-full.txt must contain more context than public/llms.txt');
 
+// Pricing rules the executable owners state (varity-platform, tags gateway-v1.14.30 /
+// deploy-api-v0.5.239): the AI Gateway funding fee is 0 (ai-gateway-billing.ts
+// FUNDING_SERVICE_FEE_CENTS = 0), and every machine seals a 7 200 s minimum
+// runway that billing-meter books at create (accelerator_quote.py:44,
+// machine_operations_api.py:467, gpu-hourly-usage.ts machineUsageOverlapUsd).
+const pricingPage = read('src/content/docs/resources/pricing.mdx');
+if (/\$21|including the fee/.test(pricingPage)) errors.push('resources/pricing.mdx must not restate the retired AI Gateway funding fee');
+if (!pricingPage.includes('no funding fee')) errors.push('resources/pricing.mdx must state that a refill carries no funding fee');
+if ((pricingPage.match(/two-hour minimum/g) || []).length < 2) errors.push('resources/pricing.mdx must state the two-hour machine minimum for CPU VMs and GPU machines');
+
 if (process.env.VERIFY_DIST === '1') {
   for (const artifact of ['openapi.yaml', 'mcp-schema.json', 'llms.txt', 'llms-full.txt']) {
     const publicPath = path.join(root, 'public', artifact);
