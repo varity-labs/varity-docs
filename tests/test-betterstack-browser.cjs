@@ -10,7 +10,7 @@ const count = (source, needle) => source.split(needle).length - 1;
 (async () => {
   const { BETTERSTACK_BROWSER } = await import(pathToFileURL(path.join(ROOT, 'src/lib/betterstack-browser.mjs')).href);
   assert.equal(BETTERSTACK_BROWSER.hostname, 'docs.varity.so');
-  assert.match(BETTERSTACK_BROWSER.applicationToken, /^[A-Za-z0-9]{20,}$/, 'application token must be the public browser token');
+  assert.match(BETTERSTACK_BROWSER.jsTagToken, /^[A-Za-z0-9]{20,}$/, 'js tag token must be the public browser token');
 
   const head = read('src/components/overrides/Head.astro');
   assert.equal(count(head, '<BetterStackBrowser />'), 1, 'exactly one browser error tag must be mounted');
@@ -35,11 +35,21 @@ const count = (source, needle) => source.split(needle).length - 1;
     const builtHtml = read('dist/deploy/deploy-from-dashboard/index.html');
     assert.equal(count(builtHtml, 'id="docs-betterstack"'), 1, 'built page must contain one browser error tag');
     assert.equal(count(builtHtml, 'https://betterstack.net/b.js?t='), 1, 'built page must load the tag once');
-    assert.ok(builtHtml.includes(`"${BETTERSTACK_BROWSER.applicationToken}"`), 'built page must carry the public application token');
+    assert.ok(builtHtml.includes(`"${BETTERSTACK_BROWSER.jsTagToken}"`), 'built page must carry the public js tag token');
     assert.ok(builtHtml.includes(`"${BETTERSTACK_BROWSER.hostname}"`), 'built page must carry the exact-host fence');
   }
 
-  console.log('PASS Better Stack browser error tag (single mount, exact-host fence, public token)');
+  if (process.env.VERIFY_LIVE === '1') {
+    // Network check, deliberately outside `npm test`/CI: the only way to tell the
+    // js tag token from the same application's ingest token is to ask b.js.
+    const response = await fetch(`https://betterstack.net/b.js?t=${BETTERSTACK_BROWSER.jsTagToken}`);
+    const body = await response.text();
+    assert.equal(response.status, 200, 'b.js must answer 200 for the js tag token');
+    assert.equal(body.includes('Invalid token'), false, 'b.js rejected the token: this is the ingest token, not js_tag_token');
+    assert.ok(body.length > 100000, `b.js must serve the SDK, got ${body.length} bytes`);
+  }
+
+  console.log('PASS Better Stack browser error tag (single mount, exact-host fence, public js tag token)');
 })().catch((error) => {
   console.error(error);
   process.exitCode = 1;

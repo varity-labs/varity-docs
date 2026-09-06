@@ -128,7 +128,8 @@ taxonomy contract.
   inspection.
 
 The tag reports uncaught browser errors on the published site to the dedicated
-`docs.varity.so` error application. Its public application token is compiled
+`docs.varity.so` error application. The application's public js tag token
+(`js_tag_token` in the Errors API, distinct from its ingest token) is compiled
 into every page like the Umami website ID; no runtime credential is present.
 Local dev servers and preview hosts never initialise the tag, and it does not
 identify users.
