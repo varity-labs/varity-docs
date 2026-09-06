@@ -74,10 +74,10 @@ If your project already runs locally, deploy it directly.
 
 ```bash
 cd my-app
-varitykit app deploy
+varitykit app deploy --repo-url https://github.com/you/my-app
 ```
 
-Varity auto-detects the framework and hosting mode, then returns a live URL. Static sites live at `https://varity.app/<app-name>/`; dynamic apps live at `https://<app-name>.varity.app/`.
+Varity builds from your GitHub repository in the cloud (nothing is uploaded from your machine), so the project must be pushed to GitHub first. `--repo-url` is auto-detected inside a Git checkout that has a GitHub remote. Prebuilt containers deploy with `--image`, and certified apps with `--template`. Varity auto-detects the framework and hosting mode, then returns a live URL. Static sites live at `https://varity.app/<app-name>/`; dynamic apps live at `https://<app-name>.varity.app/`.
 
 ---
 
@@ -132,7 +132,7 @@ If you are using Claude Code or Cursor, the Varity MCP server lets your AI tool 
 </Steps>
 
 <Aside type="tip" icon="approve-check" title="First deploy?">
-The MCP server will prompt you to log in the first time. Use your email or Google account. No account setup is needed beforehand.
+The first deploy needs an API key. Create one in the developer portal under **Settings > API keys** (a payment method or starter credit is required), then ask your AI tool to "Log in to Varity with key <your key>", or set `VARITY_API_KEY` in the MCP server's environment.
 </Aside>
 
 ---
