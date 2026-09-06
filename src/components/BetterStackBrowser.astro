@@ -16,7 +16,7 @@ import { BETTERSTACK_BROWSER } from '../lib/betterstack-browser.mjs';
       s.crossOrigin = 'anonymous';
       s.src = 'https://betterstack.net/b.js?t=' + r;
       (e.head || e.getElementsByTagName('head')[0]).appendChild(s);
-    }(window, document, 'betterstack', applicationToken);
+    }(window, document, 'betterstack', jsTagToken);
     betterstack('config', {
       environment: 'production',
       sentry: {

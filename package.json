@@ -28,6 +28,7 @@
     "test:analytics": "node tests/test-docs-analytics.cjs",
     "test:errors": "node tests/test-betterstack-browser.cjs",
     "test:built-errors": "VERIFY_DIST=1 node tests/test-betterstack-browser.cjs",
+    "test:live-errors": "VERIFY_LIVE=1 node tests/test-betterstack-browser.cjs",
     "check": "npm test && npm run lint && npm run build && npm run test:built-contracts && npm run test:built-analytics && npm run test:built-errors"
   },
   "dependencies": {
