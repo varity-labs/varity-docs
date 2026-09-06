@@ -15,9 +15,9 @@ import PageMeta from '../../../components/PageMeta.astro';
 
 Varity pricing is based on the resources a deployment reserves, not usage metering. For an unchanged deployment profile, your bill does not grow with request volume, bandwidth, or invocation count; changing the profile (resources, services, replicas, accelerators, or app count) can change the price.
 
-## Static Sites: Free
+## Static Sites: First 3 Free
 
-Static sites are **free** for verified accounts, with a limit of **3 active static sites** and **1 GB of total pinned assets** per account. No payment method is required for free static hosting, only a verified account. Larger or dynamic apps use Managed Cloud.
+**First 3 static sites free, then $1/month per site.** Your first **3 active static sites** are free for a verified account; each additional active static site is **$1.00/month**, prorated by the time it is live. Deleting a site frees its slot. Accounts keep a **1 GB of total pinned assets** limit. No payment method is required for the free sites, only a verified account. Larger or dynamic apps use Managed Cloud.
 
 ## Managed Cloud Presets
 
@@ -30,7 +30,7 @@ Dynamic apps select one of four fixed presets. Each price is a **monthly maximum
 | Scale | 2 | 4 GB | 25 GB | Up to $28/mo, prorated |
 | Pro | 4 | 8 GB | 50 GB | Up to $56/mo, prorated |
 
-- Attached services (Postgres, Redis, MongoDB, MySQL, object storage) select their own preset and bill as separate reserved deployments.
+- Attached services (Postgres, Redis, MongoDB, MySQL, object storage) each bill their own Starter reservation ($7/mo) as a separate reserved deployment, plus the storage you enter for them: **$7.00 service + N GB × $0.16 = your monthly maximum** per service. Storage defaults to 5 GB and can be set from 1 to 100 GB; Redis is in-memory and takes no volume. Ollama is retired for new deployments.
 - Persistent storage is an add-on at **$0.16/GB-month**, prorated on the same period. It bills while allocated, until the volume is deleted.
 - Each replica reserves its own resources: 2 replicas of a preset bill up to 2x that preset's maximum.
 
@@ -40,7 +40,7 @@ CPU VMs bill **hourly against a hard monthly cap**: the hourly rate is derived f
 
 ## GPU
 
-GPU pricing is a **live quote**: the exact hourly rate is computed server-side from currently available capacity and shown before you commit. Any continuous-use monthly figure is an estimate for planning, never a cap. GPU machines carry the same two-hour minimum as CPU VMs, booked when the machine is created. GPU workloads are paid-only and are excluded from the launch credit.
+GPU pricing is a **live quote**: the exact hourly rate is computed server-side from currently available capacity and shown before you commit. Any continuous-use monthly figure is an estimate for planning, never a cap. GPU machines and GPU containers carry the same two-hour minimum as CPU VMs, booked when the machine or container is created: the minimum for the first 2h is billed at deploy. GPU workloads are paid-only and are excluded from the launch credit.
 
 ## AI Gateway
 

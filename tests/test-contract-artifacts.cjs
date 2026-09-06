@@ -127,6 +127,16 @@ const pricingPage = read('src/content/docs/resources/pricing.mdx');
 if (/\$21|including the fee/.test(pricingPage)) errors.push('resources/pricing.mdx must not restate the retired AI Gateway funding fee');
 if (!pricingPage.includes('no funding fee')) errors.push('resources/pricing.mdx must state that a refill carries no funding fee');
 if ((pricingPage.match(/two-hour minimum/g) || []).length < 2) errors.push('resources/pricing.mdx must state the two-hour machine minimum for CPU VMs and GPU machines');
+// Founder pricing decisions 2026-09-06 (D1, D2/D3, D4, D5).
+if (!pricingPage.includes('First 3 static sites free, then $1/month per site')) errors.push('resources/pricing.mdx must state "First 3 static sites free, then $1/month per site" (decision D1)');
+if (/Static sites are \*\*free\*\*/.test(pricingPage)) errors.push('resources/pricing.mdx must not claim unconditional free static hosting (decision D1)');
+if (!pricingPage.includes('$7.00 service + N GB × $0.16')) errors.push('resources/pricing.mdx must show the per-service "$7.00 service + N GB × $0.16" formula (decision D2)');
+if (!/Redis is in-memory/.test(pricingPage)) errors.push('resources/pricing.mdx must state that Redis takes no volume (decision D3)');
+if (!/Ollama is retired/.test(pricingPage)) errors.push('resources/pricing.mdx must state that Ollama is retired for new deployments (decision D4)');
+if (!/GPU containers carry the same two-hour minimum/.test(pricingPage)) errors.push('resources/pricing.mdx must state the GPU container two-hour minimum (decision D5)');
+for (const page of ['src/content/docs/resources/billing.mdx', 'src/content/docs/resources/faq.mdx', 'src/content/docs/cli/overview.mdx', 'src/content/docs/cli/commands/deploy.mdx']) {
+  if (!read(page).includes('$1/month per site')) errors.push(`${page} must carry the "then $1/month per site" static pricing (decision D1)`);
+}
 
 if (process.env.VERIFY_DIST === '1') {
   for (const artifact of ['openapi.yaml', 'mcp-schema.json', 'llms.txt', 'llms-full.txt']) {
