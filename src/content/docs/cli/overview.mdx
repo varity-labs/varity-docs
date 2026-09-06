@@ -41,6 +41,7 @@ VarityKit is a Python-based CLI that helps you deploy and manage applications. I
 | [`varitykit login`](/cli/commands/auth) | Log in with your deploy key from the developer portal |
 | [`varitykit doctor`](/cli/commands/doctor) | Validate your development environment |
 | [`varitykit completions`](#completions) | Set up shell completions (bash, zsh, fish) |
+| `varitykit bootstrap` | Install a cloned project's npm and pip dependencies (`--skip-npm`, `--skip-pip`, `--skip-docker`) |
 
 ### Authentication
 
@@ -58,6 +59,12 @@ VarityKit is a Python-based CLI that helps you deploy and manage applications. I
 | `varitykit app list` | List all deployments |
 | `varitykit app info` | Show deployment details |
 | `varitykit app delete --yes` | Delete a deployment |
+| `varitykit app status [RUN_ID]` | Show one deployment operation or your most recent deployment |
+| `varitykit app templates` | List certified templates (`--json` for the raw catalog) |
+| `varitykit app env NAME KEY=VALUE...` | Set environment variables on a live app, then redeploy in place (`--replace` overwrites the set) |
+| `varitykit app redeploy NAME` | Reapply the saved configuration on the same URL |
+| `varitykit app restart NAME` | Restart with a verified replacement on the same URL |
+| `varitykit app rollback DEPLOYMENT_ID` | Redeploy an earlier configuration (`--confirm` skips the prompt) |
 
 ### Domains
 
@@ -89,8 +96,13 @@ varitykit doctor
 # Log in with your developer portal deploy key
 varitykit login
 
-# Deploy (auto-detects static vs dynamic)
+# Deploy from the GitHub repo of the current checkout (auto-detects static vs dynamic)
 varitykit app deploy
+
+# Or name the source explicitly
+varitykit app deploy --repo-url https://github.com/you/my-app
+varitykit app deploy --image ghcr.io/you/app:latest --port 8080
+varitykit app deploy --template agent-zero --name my-agent
 
 # Or force a specific mode
 varitykit app deploy --hosting dynamic
@@ -125,10 +137,10 @@ Run `varitykit doctor` to automatically check all requirements and get installat
 
 ### Static Sites
 
-Deploy static websites and single-page applications:
+Deploy static websites and single-page applications from their GitHub repository:
 
 ```bash
-varitykit app deploy
+varitykit app deploy --repo-url https://github.com/you/my-site
 ```
 
 - **Best for**: Marketing sites, documentation, SPAs
