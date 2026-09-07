@@ -9,7 +9,8 @@ a static Astro/Starlight surface, not a control-plane runtime.
 ## Read first
 
 Cross-repository authority lives in the `varity-engineering` control
-repository, checked out at `/workspaces/varity-engineering/`. Read these before
+repository, checked out at `/home/macoding/varity-v2/varity-engineering/` on
+this host. Read these before
 changing product claims:
 
 - `CURRENT-STATE.md` — dated shipped, unfinished, and blocker status.
@@ -64,3 +65,9 @@ artifact provenance, security posture, or publishing topology changes.
 - Do not treat the legacy live-crawl harness in `tests/test-docs.cjs` as a merge
   gate. It is network-dependent and contains historical checks; the deterministic
   merge gate is `npm run check`.
+
+## Agent skills
+
+- GitHub Issues and shared operations: [issue tracker](docs/agents/issue-tracker.md).
+- Canonical triage roles: [label mapping](docs/agents/triage-labels.md).
+- Existing ownership maps, decisions and code: [domain routes](docs/agents/domain.md).
