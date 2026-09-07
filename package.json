@@ -34,7 +34,7 @@
   "dependencies": {
     "@astrojs/sitemap": "3.6.0",
     "@astrojs/starlight": "^0.37.7",
-    "astro": "^5.18.1"
+    "astro": "^7.3.1"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.8",
