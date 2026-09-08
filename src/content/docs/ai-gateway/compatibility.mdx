@@ -78,36 +78,54 @@ against one model can be unsupported on another.
 
 | Capability | Models supporting it |
 |------------|----------------------|
-| `chat_completions` | 42 of 42 |
-| `streaming` | 42 of 42 |
-| `tool_calls` | **11 of 42** |
-| `streaming_tool_calls` | **7 of 42** |
+| `chat_completions` | 82 of 82 |
+| `streaming` | 80 of 82 |
+| `tool_calls` | **30 of 82** |
+| `streaming_tool_calls` | **25 of 82** |
 
 ### Tool calling is the exception, not the default
 
-Only 11 of the 42 models accept `tools` / `tool_choice`. If your agent framework
+Only 30 of the 82 models accept `tools` / `tool_choice`. If your agent framework
 assumes function calling works everywhere, as most do, it will break on the other
-31. These are the models reporting `tool_calls: true`:
+52. These are the models reporting `tool_calls: true`:
 
 | Model ID | Name | Tool calls while streaming |
 |----------|------|----------------------------|
-| `model-01e5cfb9cd019cee62a62b13` | Gemma 4 Uncensored | Yes |
-| `model-afb55f3c0379fce9fb050497` | Google Gemma 3 27B Instruct | No |
-| `model-1bcd5b1a9fc32ffb985afc6b` | Grok 4.20 | Yes |
-| `model-4e27cf37044481968f24c858` | Grok 4.3 | Yes |
-| `model-7ac496866ed390aa843e23ea` | Grok 4.5 | Yes |
-| `model-0bf4d9df75eb028b048a51ed` | Grok Build 0.1 | Yes |
-| `model-c09137265edddbdec9dfda8b` | Llama 3.2 3B | No |
+| `claude-fable-5` | Claude Fable 5 | Yes |
+| `claude-opus-4-5` | Claude Opus 4.5 | Yes |
+| `claude-opus-4-6` | Claude Opus 4.6 | Yes |
+| `claude-opus-4-7` | Claude Opus 4.7 | Yes |
+| `claude-opus-4-8` | Claude Opus 4.8 | Yes |
+| `claude-opus-4-8-fast` | Claude Opus 4.8 Fast | Yes |
+| `claude-opus-5` | Claude Opus 5 | Yes |
+| `claude-opus-5-fast` | Claude Opus 5 Fast | Yes |
+| `claude-sonnet-4-5` | Claude Sonnet 4.5 | Yes |
+| `claude-sonnet-4-6` | Claude Sonnet 4.6 | Yes |
+| `claude-sonnet-5` | Claude Sonnet 5 | Yes |
+| `gemma-4-uncensored` | Gemma 4 Uncensored | Yes |
+| `google-gemma-3-27b-instruct` | Google Gemma 3 27B Instruct | No |
+| `gpt-4o` | GPT-4o | Yes |
+| `gpt-4o-mini` | GPT-4o Mini | Yes |
+| `gpt-5-5` | GPT-5.5 | Yes |
+| `gpt-5-5-pro` | GPT-5.5 Pro | Yes |
+| `gpt-5-6-luna-pro` | GPT-5.6 Luna Pro | Yes |
+| `gpt-5-6-sol` | GPT-5.6 Sol | Yes |
+| `gpt-5-6-sol-pro` | GPT-5.6 Sol Pro | Yes |
+| `grok-4-20` | Grok 4.20 | Yes |
+| `grok-4-3` | Grok 4.3 | Yes |
+| `grok-4-5` | Grok 4.5 | Yes |
+| `grok-build-0-1` | Grok Build 0.1 | Yes |
+| `llama-3-2-3b` | Llama 3.2 3B | No |
 | `llama-3-3-70b` | Llama 3.3 70B | No |
-| `model-ca8c32ffa3e6ec1adee98495` | Mistral Small 3.2 24B Instruct | No |
-| `model-38c8e473186cf182a89ee7ff` | Role Play Uncensored | Yes |
-| `model-665e90a28adb3a74b27bb064` | Uncensored 1.2 | Yes |
+| `mistral-small-3-2-24b-instruct` | Mistral Small 3.2 24B Instruct | No |
+| `role-play-uncensored` | Role Play Uncensored | Yes |
+| `seed-2-1-turbo` | Seed 2.1 Turbo | No |
+| `uncensored-1-2` | Uncensored 1.2 | Yes |
 
-Four of those eleven support tool calls only in non-streaming mode
-(`tool_calls: true`, `streaming_tool_calls: false`): `llama-3-3-70b`,
-`model-afb55f3c0379fce9fb050497`, `model-c09137265edddbdec9dfda8b`, and
-`model-ca8c32ffa3e6ec1adee98495`. Combining `stream: true` with `tools` on those
-is outside the supported surface. Drop `stream` or pick a model from the seven
+Five of those 30 support tool calls only in non-streaming mode
+(`tool_calls: true`, `streaming_tool_calls: false`): `google-gemma-3-27b-instruct`, `llama-3-2-3b`, `llama-3-3-70b`, `mistral-small-3-2-24b-instruct`, and
+`seed-2-1-turbo`. Combining `stream: true` with `tools` on those
+is outside the supported surface. Drop `stream` or pick a model from the 25
 that report `streaming_tool_calls: true`.
 
 Resolve this at runtime rather than hardcoding:
@@ -198,10 +216,21 @@ This is the property usually searched for as zero data retention, or ZDR.
 
 ## Privacy Routing
 
-Every model in the catalog reports `privacy: "private"` with
-`privacy_routes: ["private"]`. This field has no OpenAI equivalent; it is
-Varity-specific catalog metadata describing how the model is routed. There is
-currently no non-private route to choose between.
+Every model in the catalog reports a `privacy` class and the `privacy_routes`
+available for it. This field has no OpenAI equivalent; it is Varity-specific
+catalog metadata describing how the model is routed. Two classes exist today:
+
+| Class | Models | What it means |
+|-------|--------|---------------|
+| `private` | 42 of 82 | The serving route's provider declares a private posture for prompts and completions. |
+| `anonymized` | 40 of 82 | The prompt reaches the provider under Varity's upstream account, not yours, and the provider may transiently log failed inputs. This is not confidential compute and is not the same as the private posture. |
+
+Your account has a privacy floor. The public catalog (`GET /v1/models` without a
+credential) lists both classes and reports `"privacy_scope": "anonymized"`. An
+account floored at `private` sees and routes to the `private` models only;
+the floor can be tightened to `private` at any time in the AI Gateway settings,
+and a request's `varity_extensions.privacy_floor` can only tighten it further,
+never loosen it.
 
 ## Next Steps
 

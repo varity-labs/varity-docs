@@ -33,60 +33,103 @@ Do not hardcode this table. Resolve models at runtime from `/v1/models` and read
 
 ## Catalog
 
-**42 models** were listed at the time of writing, all reporting
-`availability.status: "available"` and `chat_completions: true`.
+**82 models** were listed at the time of writing, all reporting
+`availability.status: "available"` and `chat_completions: true`. 42 report
+`privacy: "private"` and 40 report `privacy: "anonymized"`; see
+[Privacy Routing](/ai-gateway/compatibility/#privacy-routing) for what each
+class means and how your account's privacy floor selects between them.
 
 Pass the `id` column verbatim as the `model` field of a chat-completions
-request. Note that most ids are opaque `model-<hash>` strings rather than
-vendor-style names; the `display_name` is a label, not an identifier.
+request. Ids are readable, provider-neutral names (`glm-5-2`, `llama-3-3-70b`);
+the `display_name` is a label, not an identifier.
 
 Prices are USD per million tokens, taken from each model's `customer_pricing`
 object.
 
-| Model ID | Name | Context window | Max completion tokens | Tool calls | Streaming | Input / 1M | Output / 1M |
-|----------|------|----------------|-----------------------|------------|-----------|------------|-------------|
-| `model-23ceb717e8b9fbdf4170804c` | DeepSeek V3.2 | 160,000 | 32,768 | No | Yes | $0.3465 | $0.504 |
-| `model-01e5cfb9cd019cee62a62b13` | Gemma 4 Uncensored | 256,000 | 8,192 | Yes | Yes | $0.170625 | $0.525 |
-| `model-e7a95bbb411e58c5b94bd949` | GLM 4.6 | 198,000 | 16,384 | No | Yes | $0.4515 | $1.8375 |
-| `model-84999d7f31100ae1be7e4ee9` | GLM 4.7 | 198,000 | 16,384 | No | Yes | $0.5775 | $2.7825 |
-| `model-4d0399841ad2104adac8673f` | GLM 4.7 Flash | 128,000 | 16,384 | No | Yes | $0.063 | $0.42 |
-| `model-8f0e33a63784a2569979827d` | GLM 4.7 Flash Heretic | 200,000 | 24,000 | No | Yes | $0.0735 | $0.42 |
-| `model-975fe730d6699badb8f13ca0` | GLM 5 | 198,000 | 32,000 | No | Yes | $1.05 | $3.36 |
-| `glm-5-1` | GLM 5.1 | 200,000 | 80,000 | No | Yes | $1.617 | $5.082 |
-| `glm-5-2` | GLM 5.2 | 1,000,000 | 131,072 | No | Yes | $1.47 | $4.62 |
-| `model-afb55f3c0379fce9fb050497` | Google Gemma 3 27B Instruct | 198,000 | 16,384 | Yes | Yes | $0.126 | $0.21 |
-| `model-592b84ed19d414fc58b3c1b8` | Google Gemma 4 26B A4B Instruct | 256,000 | 8,192 | No | Yes | $0.1365 | $0.42 |
-| `model-da12ebb256e118bd1b7f4c86` | Google Gemma 4 31B Instruct | 256,000 | 8,192 | No | Yes | $0.126 | $0.378 |
-| `model-1bcd5b1a9fc32ffb985afc6b` | Grok 4.20 | 2,000,000 | 128,000 | Yes | Yes | $1.491 | $2.9715 |
-| `model-13cb7872bbc7954e8ae400d8` | Grok 4.20 Multi-Agent | 2,000,000 | 128,000 | No | Yes | $1.491 | $2.9715 |
-| `model-4e27cf37044481968f24c858` | Grok 4.3 | 1,000,000 | 32,000 | Yes | Yes | $1.491 | $2.9715 |
-| `model-7ac496866ed390aa843e23ea` | Grok 4.5 | 500,000 | 32,000 | Yes | Yes | $2.3835 | $7.14 |
-| `model-0bf4d9df75eb028b048a51ed` | Grok Build 0.1 | 256,000 | 65,536 | Yes | Yes | $1.05 | $2.1 |
-| `model-b5bcc7a2b398465798a0759a` | Hermes 3 Llama 3.1 405b | 128,000 | 16,384 | No | Yes | $1.155 | $3.15 |
-| `model-35fec70a1356b5981dba26d9` | Inkling | 524,288 | 65,536 | No | Yes | $1.3125 | $5.315625 |
-| `model-547bc7d442bda226b1ac0d52` | Kimi K2.5 | 256,000 | 65,536 | No | Yes | $0.588 | $3.675 |
-| `model-932fa0c5bc52d3ea2e193584` | Kimi K2.6 | 256,000 | 65,536 | No | Yes | $0.7875 | $3.675 |
-| `model-28805f587470f2b9e31381f8` | Kimi K2.7 Code | 256,000 | 65,536 | No | Yes | $0.7875 | $3.675 |
-| `model-93e21d329a7b4dd9514d9c9f` | Kimi K3 | 1,000,000 | 131,072 | No | Yes | $3.9375 | $19.6875 |
-| `model-c09137265edddbdec9dfda8b` | Llama 3.2 3B | 128,000 | 4,096 | Yes | Yes | $0.1575 | $0.63 |
-| `llama-3-3-70b` | Llama 3.3 70B | 128,000 | 4,096 | Yes | Yes | $0.735 | $2.94 |
-| `model-36acfa144b41de8ac1c27944` | MiniMax M2.5 | 198,000 | 32,768 | No | Yes | $0.2835 | $0.9975 |
-| `model-c783b8f80c60041a340bdb07` | MiniMax M2.7 | 198,000 | 32,768 | No | Yes | $0.39375 | $1.575 |
-| `model-ca8c32ffa3e6ec1adee98495` | Mistral Small 3.2 24B Instruct | 256,000 | 16,384 | Yes | Yes | $0.0984375 | $0.2625 |
-| `model-305938ab9ebc39e1beb95ac4` | Mistral Small 4 | 256,000 | 65,536 | No | Yes | $0.196875 | $0.7875 |
-| `model-adeed85bab462c43614e8e1c` | NVIDIA Nemotron 3 Nano 30B | 128,000 | 16,384 | No | Yes | $0.07875 | $0.315 |
-| `model-2207a53b5a3f856264ce7753` | NVIDIA Nemotron 3 Ultra | 256,000 | 32,768 | No | Yes | $0.65625 | $3.28125 |
-| `model-94ab4b38ef8b46c8cdf5ffa0` | OpenAI GPT OSS 120B | 128,000 | 16,384 | No | Yes | $0.0735 | $0.315 |
-| `model-ab4d70a40590dc6ed07d5187` | Qwen 3 235B A22B Instruct 2507 | 128,000 | 16,384 | No | Yes | $0.1575 | $0.7875 |
-| `model-366edcdf75d467e68639879b` | Qwen 3 235B A22B Thinking 2507 | 128,000 | 16,384 | No | Yes | $0.4725 | $3.675 |
-| `model-bbb8171a9ad936cd006e9640` | Qwen 3 Coder 480B Turbo | 256,000 | 65,536 | No | Yes | $0.3675 | $1.575 |
-| `model-2f3b522ed43cc37cb7cac581` | Qwen 3 Next 80b | 256,000 | 16,384 | No | Yes | $0.3675 | $1.995 |
-| `qwen-3-5-35b-a3b` | Qwen 3.5 35B A3B | 256,000 | 16,384 | No | Yes | $0.328125 | $1.3125 |
-| `model-e838b0fde95335963c1bc9d4` | Qwen 3.5 9B | 256,000 | 32,768 | No | Yes | $0.105 | $0.1575 |
-| `model-f660e96789aa9606296abe39` | Qwen 3.6 27B | 256,000 | 65,536 | No | Yes | $0.34125 | $3.4125 |
-| `model-be42cfa83562024c857a01fb` | Qwen3 VL 235B | 128,000 | 16,384 | No | Yes | $0.2205 | $1.995 |
-| `model-38c8e473186cf182a89ee7ff` | Role Play Uncensored | 128,000 | 4,096 | Yes | Yes | $0.525 | $2.1 |
-| `model-665e90a28adb3a74b27bb064` | Uncensored 1.2 | 128,000 | 8,192 | Yes | Yes | $0.21 | $0.945 |
+| Model ID | Name | Context window | Max completion tokens | Tool calls | Streaming | Privacy | Input / 1M | Output / 1M |
+|----------|------|----------------|-----------------------|------------|-----------|---------|------------|-------------|
+| `aion-3-0` | Aion 3.0 | 128,000 | 32,768 | No | Yes | anonymized | $3.9375 | $7.875 |
+| `aion-3-0-mini` | Aion 3.0 Mini | 128,000 | 32,768 | No | Yes | anonymized | $0.91875 | $1.8375 |
+| `claude-fable-5` | Claude Fable 5 | 1,000,000 | 128,000 | Yes | Yes | anonymized | $12.6 | $63 |
+| `claude-opus-4-5` | Claude Opus 4.5 | 198,000 | 32,768 | Yes | Yes | anonymized | $6.3 | $31.5 |
+| `claude-opus-4-6` | Claude Opus 4.6 | 1,000,000 | 128,000 | Yes | Yes | anonymized | $6.3 | $31.5 |
+| `claude-opus-4-7` | Claude Opus 4.7 | 1,000,000 | 128,000 | Yes | Yes | anonymized | $6.3 | $31.5 |
+| `claude-opus-4-8` | Claude Opus 4.8 | 1,000,000 | 128,000 | Yes | Yes | anonymized | $6.3 | $31.5 |
+| `claude-opus-4-8-fast` | Claude Opus 4.8 Fast | 1,000,000 | 128,000 | Yes | Yes | anonymized | $12.6 | $63 |
+| `claude-opus-5` | Claude Opus 5 | 1,000,000 | 128,000 | Yes | Yes | anonymized | $6.3 | $31.5 |
+| `claude-opus-5-fast` | Claude Opus 5 Fast | 1,000,000 | 128,000 | Yes | Yes | anonymized | $12.6 | $63 |
+| `claude-sonnet-4-5` | Claude Sonnet 4.5 | 198,000 | 64,000 | Yes | Yes | anonymized | $3.9375 | $19.6875 |
+| `claude-sonnet-4-6` | Claude Sonnet 4.6 | 1,000,000 | 64,000 | Yes | Yes | anonymized | $3.78 | $18.9 |
+| `claude-sonnet-5` | Claude Sonnet 5 | 1,000,000 | 64,000 | Yes | Yes | anonymized | $3.15 | $15.75 |
+| `deepseek-v3-2` | DeepSeek V3.2 | 160,000 | 32,768 | No | Yes | private | $0.3465 | $0.504 |
+| `deepseek-v4-pro` | DeepSeek V4 Pro | 1,000,000 | 32,768 | No | Yes | anonymized | $1.7325 | $3.46605 |
+| `gemini-3-1-pro-preview` | Gemini 3.1 Pro Preview | 1,000,000 | 32,768 | No | Yes | anonymized | $2.625 | $15.75 |
+| `gemini-3-5-flash` | Gemini 3.5 Flash | 1,000,000 | 65,536 | No | Yes | anonymized | $1.6275 | $9.9225 |
+| `gemini-3-5-flash-lite` | Gemini 3.5 Flash-Lite | 1,000,000 | 65,536 | No | No | anonymized | $0.39375 | $3.28125 |
+| `gemini-3-flash-preview` | Gemini 3 Flash Preview | 256,000 | 65,536 | No | Yes | anonymized | $0.735 | $3.9375 |
+| `gemma-4-uncensored` | Gemma 4 Uncensored | 256,000 | 8,192 | Yes | Yes | private | $0.170625 | $0.525 |
+| `glm-4-6` | GLM 4.6 | 198,000 | 16,384 | No | Yes | private | $0.4515 | $1.8375 |
+| `glm-4-7` | GLM 4.7 | 198,000 | 16,384 | No | Yes | private | $0.5775 | $2.7825 |
+| `glm-4-7-flash` | GLM 4.7 Flash | 128,000 | 16,384 | No | Yes | private | $0.063 | $0.42 |
+| `glm-4-7-flash-heretic` | GLM 4.7 Flash Heretic | 200,000 | 24,000 | No | Yes | private | $0.0735 | $0.42 |
+| `glm-5` | GLM 5 | 198,000 | 32,000 | No | Yes | private | $1.05 | $3.36 |
+| `glm-5-1` | GLM 5.1 | 200,000 | 80,000 | No | Yes | private | $1.617 | $5.082 |
+| `glm-5-2` | GLM 5.2 | 1,000,000 | 131,072 | No | Yes | private | $1.47 | $4.62 |
+| `glm-5-turbo` | GLM 5 Turbo | 200,000 | 32,768 | No | Yes | anonymized | $1.26 | $4.2 |
+| `glm-5v-turbo` | GLM 5V Turbo | 200,000 | 32,768 | No | Yes | anonymized | $1.575 | $5.25 |
+| `google-gemma-3-27b-instruct` | Google Gemma 3 27B Instruct | 198,000 | 16,384 | Yes | Yes | private | $0.126 | $0.21 |
+| `google-gemma-4-26b-a4b-instruct` | Google Gemma 4 26B A4B Instruct | 256,000 | 8,192 | No | Yes | private | $0.1365 | $0.42 |
+| `google-gemma-4-31b-instruct` | Google Gemma 4 31B Instruct | 256,000 | 8,192 | No | Yes | private | $0.126 | $0.378 |
+| `gpt-4o` | GPT-4o | 128,000 | 16,384 | Yes | Yes | anonymized | $3.28125 | $13.125 |
+| `gpt-4o-mini` | GPT-4o Mini | 128,000 | 16,384 | Yes | Yes | anonymized | $0.196875 | $0.7875 |
+| `gpt-5-2` | GPT-5.2 | 256,000 | 65,536 | No | Yes | anonymized | $2.2995 | $18.375 |
+| `gpt-5-3-codex` | GPT-5.3 Codex | 400,000 | 128,000 | No | Yes | anonymized | $2.2995 | $18.375 |
+| `gpt-5-4` | GPT-5.4 | 1,000,000 | 131,072 | No | Yes | anonymized | $3.2865 | $19.74 |
+| `gpt-5-4-mini` | GPT-5.4 Mini | 400,000 | 128,000 | No | Yes | anonymized | $0.984375 | $5.90625 |
+| `gpt-5-4-pro` | GPT-5.4 Pro | 1,000,000 | 128,000 | No | Yes | anonymized | $39.375 | $236.25 |
+| `gpt-5-5` | GPT-5.5 | 1,000,000 | 131,072 | Yes | Yes | anonymized | $6.5625 | $39.375 |
+| `gpt-5-5-pro` | GPT-5.5 Pro | 1,000,000 | 128,000 | Yes | Yes | anonymized | $39.375 | $236.25 |
+| `gpt-5-6-luna-pro` | GPT-5.6 Luna Pro | 1,000,000 | 128,000 | Yes | Yes | anonymized | $1.3125 | $7.875 |
+| `gpt-5-6-sol` | GPT-5.6 Sol | 1,000,000 | 128,000 | Yes | Yes | anonymized | $6.5625 | $39.375 |
+| `gpt-5-6-sol-pro` | GPT-5.6 Sol Pro | 1,000,000 | 128,000 | Yes | Yes | anonymized | $6.5625 | $39.375 |
+| `gpt-5-6-terra` | GPT-5.6 Terra | 1,000,000 | 128,000 | No | Yes | anonymized | $3.28125 | $19.6875 |
+| `gpt-5-6-terra-pro` | GPT-5.6 Terra Pro | 1,000,000 | 128,000 | No | Yes | anonymized | $3.28125 | $19.6875 |
+| `grok-4-20` | Grok 4.20 | 2,000,000 | 128,000 | Yes | Yes | private | $1.491 | $2.9715 |
+| `grok-4-20-multi-agent` | Grok 4.20 Multi-Agent | 2,000,000 | 128,000 | No | Yes | private | $1.491 | $2.9715 |
+| `grok-4-3` | Grok 4.3 | 1,000,000 | 32,000 | Yes | Yes | private | $1.491 | $2.9715 |
+| `grok-4-5` | Grok 4.5 | 500,000 | 32,000 | Yes | Yes | private | $2.3835 | $7.14 |
+| `grok-build-0-1` | Grok Build 0.1 | 256,000 | 65,536 | Yes | Yes | private | $1.05 | $2.1 |
+| `hermes-3-llama-3-1-405b` | Hermes 3 Llama 3.1 405b | 128,000 | 16,384 | No | Yes | private | $1.155 | $3.15 |
+| `inkling` | Inkling | 524,288 | 65,536 | No | Yes | private | $1.3125 | $5.315625 |
+| `kimi-k2-5` | Kimi K2.5 | 256,000 | 65,536 | No | Yes | private | $0.588 | $3.675 |
+| `kimi-k2-6` | Kimi K2.6 | 256,000 | 65,536 | No | Yes | private | $0.7875 | $3.675 |
+| `kimi-k2-7-code` | Kimi K2.7 Code | 256,000 | 65,536 | No | Yes | private | $0.7875 | $3.675 |
+| `kimi-k3` | Kimi K3 | 1,000,000 | 131,072 | No | Yes | private | $3.9375 | $19.6875 |
+| `llama-3-2-3b` | Llama 3.2 3B | 128,000 | 4,096 | Yes | Yes | private | $0.1575 | $0.63 |
+| `llama-3-3-70b` | Llama 3.3 70B | 128,000 | 4,096 | Yes | Yes | private | $0.735 | $2.94 |
+| `mercury-2` | Mercury 2 | 128,000 | 50,000 | No | Yes | anonymized | $0.328125 | $0.984375 |
+| `minimax-m2-5` | MiniMax M2.5 | 198,000 | 32,768 | No | Yes | private | $0.2835 | $0.9975 |
+| `minimax-m2-7` | MiniMax M2.7 | 198,000 | 32,768 | No | Yes | private | $0.39375 | $1.575 |
+| `mistral-small-3-2-24b-instruct` | Mistral Small 3.2 24B Instruct | 256,000 | 16,384 | Yes | Yes | private | $0.098437 | $0.2625 |
+| `mistral-small-4` | Mistral Small 4 | 256,000 | 65,536 | No | Yes | private | $0.196875 | $0.7875 |
+| `nvidia-nemotron-3-nano-30b` | NVIDIA Nemotron 3 Nano 30B | 128,000 | 16,384 | No | Yes | private | $0.07875 | $0.315 |
+| `nvidia-nemotron-3-ultra` | NVIDIA Nemotron 3 Ultra | 256,000 | 32,768 | No | Yes | private | $0.65625 | $3.28125 |
+| `openai-gpt-oss-120b` | OpenAI GPT OSS 120B | 128,000 | 16,384 | No | Yes | private | $0.0735 | $0.315 |
+| `qwen-3-235b-a22b-instruct-2507` | Qwen 3 235B A22B Instruct 2507 | 128,000 | 16,384 | No | Yes | private | $0.1575 | $0.7875 |
+| `qwen-3-235b-a22b-thinking-2507` | Qwen 3 235B A22B Thinking 2507 | 128,000 | 16,384 | No | Yes | private | $0.4725 | $3.675 |
+| `qwen-3-5-35b-a3b` | Qwen 3.5 35B A3B | 256,000 | 16,384 | No | Yes | private | $0.328125 | $1.3125 |
+| `qwen-3-5-397b` | Qwen 3.5 397B | 128,000 | 32,768 | No | Yes | anonymized | $0.7875 | $4.725 |
+| `qwen-3-5-9b` | Qwen 3.5 9B | 256,000 | 32,768 | No | Yes | private | $0.105 | $0.1575 |
+| `qwen-3-6-27b` | Qwen 3.6 27B | 256,000 | 65,536 | No | Yes | private | $0.34125 | $3.4125 |
+| `qwen-3-6-plus-uncensored` | Qwen 3.6 Plus Uncensored | 1,000,000 | 65,536 | No | Yes | anonymized | $0.65625 | $3.9375 |
+| `qwen-3-7-max` | Qwen 3.7 Max | 1,000,000 | 65,536 | No | Yes | anonymized | $2.835 | $8.4525 |
+| `qwen-3-7-plus` | Qwen 3.7 Plus | 1,000,000 | 65,536 | No | Yes | anonymized | $0.525 | $2.1 |
+| `qwen-3-coder-480b-turbo` | Qwen 3 Coder 480B Turbo | 256,000 | 65,536 | No | Yes | private | $0.3675 | $1.575 |
+| `qwen-3-next-80b` | Qwen 3 Next 80b | 256,000 | 16,384 | No | Yes | private | $0.3675 | $1.995 |
+| `qwen3-vl-235b` | Qwen3 VL 235B | 128,000 | 16,384 | No | Yes | private | $0.2205 | $1.995 |
+| `role-play-uncensored` | Role Play Uncensored | 128,000 | 4,096 | Yes | Yes | private | $0.525 | $2.1 |
+| `seed-2-1-turbo` | Seed 2.1 Turbo | 256,000 | 65,536 | Yes | No | anonymized | $0.65625 | $3.28125 |
+| `uncensored-1-2` | Uncensored 1.2 | 128,000 | 8,192 | Yes | Yes | private | $0.21 | $0.945 |
 
 ## Reading The Catalog Fields
 
@@ -96,14 +139,14 @@ Each entry in `data` carries these Varity fields:
 |-------|------|-------|
 | `id` | string | Pass this as `model` in a request |
 | `display_name` | string | Human label only, never an identifier |
-| `capabilities.chat_completions` | boolean | `true` on all 42 models |
-| `capabilities.tool_calls` | boolean | `true` on 11 of 42 models |
-| `capabilities.streaming` | boolean | `true` on all 42 models |
-| `capabilities.streaming_tool_calls` | boolean | `true` on 7 of 42 models |
+| `capabilities.chat_completions` | boolean | `true` on all 82 models |
+| `capabilities.tool_calls` | boolean | `true` on 30 of 82 models |
+| `capabilities.streaming` | boolean | `true` on 80 of 82 models |
+| `capabilities.streaming_tool_calls` | boolean | `true` on 25 of 82 models |
 | `context_window` | integer | Total tokens, input plus output |
 | `max_completion_tokens` | integer | Ceiling on generated tokens |
-| `privacy` | string | `"private"` on every model in the catalog |
-| `privacy_routes` | array | `["private"]` on every model in the catalog |
+| `privacy` | string | `"private"` or `"anonymized"`: the privacy class of the route that serves the model |
+| `privacy_routes` | array | The privacy classes available for the model (`["private"]` or `["anonymized"]` today) |
 | `availability.status` | string | `"available"` on every model, with an `observed_at` timestamp |
 | `customer_pricing` | object | See below |
 | `refreshed_at` | string | When the gateway last refreshed the entry |
@@ -125,12 +168,12 @@ numbers:
 }
 ```
 
-`cached_input` equals `input` on all 42 models. Cached input tokens are not
+`cached_input` equals `input` on all 82 models. Cached input tokens are not
 discounted today. Always read `unit` and `currency` rather than assuming; the
 `version` string identifies the price set the numbers came from.
 
-Across the catalog, input prices run from $0.063 to $3.9375 per million tokens
-and output prices from $0.1575 to $19.6875 per million tokens.
+Across the catalog, input prices run from $0.063 to $39.375 per million tokens
+and output prices from $0.1575 to $236.25 per million tokens.
 
 ### Context Windows
 
@@ -140,9 +183,9 @@ is a separate, much smaller ceiling on any single response, and it goes as low a
 
 ## Picking A Model
 
-- **Need tool calling?** Only 11 models support it, and only 7 support tool calls while streaming. See [Compatibility](/ai-gateway/compatibility/) for the exact lists.
-- **Need a very large context?** `model-13cb7872bbc7954e8ae400d8` (Grok 4.20 Multi-Agent) and `model-1bcd5b1a9fc32ffb985afc6b` (Grok 4.20) both report 2,000,000 tokens.
-- **Cost sensitive?** `model-4d0399841ad2104adac8673f` (GLM 4.7 Flash) is the cheapest input price in the catalog at $0.063 per million input tokens.
+- **Need tool calling?** 30 of 82 models support it, and 25 support tool calls while streaming. See [Compatibility](/ai-gateway/compatibility/) for the exact lists.
+- **Need a very large context?** `grok-4-20` (Grok 4.20) and `grok-4-20-multi-agent` (Grok 4.20 Multi-Agent) report 2,000,000 tokens.
+- **Cost sensitive?** `glm-4-7-flash` (GLM 4.7 Flash) has the lowest input price in the catalog at $0.063 per million input tokens.
 
 <Aside type="caution">
 There is no per-model retrieval route. `GET /v1/models/{id}` returns `404`; fetch
