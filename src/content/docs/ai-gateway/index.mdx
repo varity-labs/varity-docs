@@ -138,8 +138,11 @@ curl https://varity.app/health
 ```
 
 ```json
-{ "status": "healthy", "service": "varity-gateway", "version": "1.13.49" }
+{ "status": "healthy", "service": "varity-gateway", "version": "1.14.45" }
 ```
+
+The `version` field tracks the deployed gateway build; re-probe for the current
+one rather than pinning it in your own config.
 
 ## Authentication
 
@@ -180,8 +183,9 @@ model error.
 
 ## Streaming
 
-Set `stream: true` for server-sent events, exactly as with OpenAI. Every model in
-the catalog reports `"streaming": true`.
+Set `stream: true` for server-sent events, exactly as with OpenAI. Most, but not
+all, models in the catalog support streaming, so read `capabilities.streaming`
+per model rather than assuming it is universal.
 
 <Tabs>
   <TabItem label="curl">

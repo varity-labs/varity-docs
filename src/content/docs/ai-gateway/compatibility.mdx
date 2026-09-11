@@ -62,7 +62,7 @@ A non-`/v1` health probe is also available:
 
 | Endpoint | Status |
 |----------|--------|
-| `GET /health` | **Supported.** Public. Returns `{"status":"healthy","service":"varity-gateway","version":"1.13.49"}`. |
+| `GET /health` | **Supported.** Public. Returns `{"status":"healthy","service":"varity-gateway","version":"1.14.45"}` (the version tracks the deployed build; re-probe for the current one). |
 
 <Aside type="caution">
 Any OpenAI SDK helper that touches an unimplemented route will fail, including
@@ -78,39 +78,17 @@ against one model can be unsupported on another.
 
 | Capability | Models supporting it |
 |------------|----------------------|
-| `chat_completions` | 42 of 42 |
-| `streaming` | 42 of 42 |
-| `tool_calls` | **11 of 42** |
-| `streaming_tool_calls` | **7 of 42** |
+| `chat_completions` | Every model in the current catalog |
+| `streaming` | Most, but not all, catalog models |
+| `tool_calls` | A subset of the catalog |
+| `streaming_tool_calls` | A smaller subset of the catalog |
 
 ### Tool calling is the exception, not the default
 
-Only 11 of the 42 models accept `tools` / `tool_choice`. If your agent framework
-assumes function calling works everywhere, as most do, it will break on the other
-31. These are the models reporting `tool_calls: true`:
-
-| Model ID | Name | Tool calls while streaming |
-|----------|------|----------------------------|
-| `model-01e5cfb9cd019cee62a62b13` | Gemma 4 Uncensored | Yes |
-| `model-afb55f3c0379fce9fb050497` | Google Gemma 3 27B Instruct | No |
-| `model-1bcd5b1a9fc32ffb985afc6b` | Grok 4.20 | Yes |
-| `model-4e27cf37044481968f24c858` | Grok 4.3 | Yes |
-| `model-7ac496866ed390aa843e23ea` | Grok 4.5 | Yes |
-| `model-0bf4d9df75eb028b048a51ed` | Grok Build 0.1 | Yes |
-| `model-c09137265edddbdec9dfda8b` | Llama 3.2 3B | No |
-| `llama-3-3-70b` | Llama 3.3 70B | No |
-| `model-ca8c32ffa3e6ec1adee98495` | Mistral Small 3.2 24B Instruct | No |
-| `model-38c8e473186cf182a89ee7ff` | Role Play Uncensored | Yes |
-| `model-665e90a28adb3a74b27bb064` | Uncensored 1.2 | Yes |
-
-Four of those eleven support tool calls only in non-streaming mode
-(`tool_calls: true`, `streaming_tool_calls: false`): `llama-3-3-70b`,
-`model-afb55f3c0379fce9fb050497`, `model-c09137265edddbdec9dfda8b`, and
-`model-ca8c32ffa3e6ec1adee98495`. Combining `stream: true` with `tools` on those
-is outside the supported surface. Drop `stream` or pick a model from the seven
-that report `streaming_tool_calls: true`.
-
-Resolve this at runtime rather than hardcoding:
+Only a subset of the catalog accepts `tools` / `tool_choice`. If your agent
+framework assumes function calling works everywhere, as most do, it will break on
+the models that report `tool_calls: false`. Resolve this at runtime rather than
+hardcoding a list:
 
 ```python
 models = {m["id"]: m for m in client.models.list().model_dump()["data"]}
@@ -129,18 +107,19 @@ HTTP client) rather than expecting SDK attributes for them.
 
 ## Model Identifiers
 
-Varity model ids are **not** OpenAI model ids. There is no `gpt-4o`, no
-`gpt-3.5-turbo`, and no aliasing layer that maps OpenAI names onto Varity
-models. A request naming an OpenAI model id is a request for a model that does
-not exist here.
+Varity model ids are **not** guaranteed to be OpenAI model ids. Some entries now
+carry OpenAI-style names such as `gpt-4o`, but every id is a Varity catalog entry
+with Varity routing and pricing, and there is no aliasing layer that maps an
+OpenAI name onto a different model. A request naming an id that is not in the
+live catalog is a request for a model that does not exist here.
 
-Most ids are opaque, in the form `model-<hex>`; a handful are readable, such as
-`glm-5-1`, `glm-5-2`, `llama-3-3-70b`, and `qwen-3-5-35b-a3b`. Always take ids
-from [the catalog](/ai-gateway/models/).
+Ids are readable human slugs, for example `glm-5-1`, `glm-5-2`,
+`llama-3-3-70b`, and `qwen-3-5-35b-a3b`. Always take ids from
+[the live catalog](/ai-gateway/models/).
 
 ## Limits That Differ From OpenAI
 
-- **`max_completion_tokens` is per-model and often small.** Values in the catalog run from 4,096 up to 131,072, independent of the context window (which runs from 128,000 to 2,000,000). A 2M-token context does not mean a long reply is allowed.
+- **`max_completion_tokens` is per-model and often small.** The ceiling is independent of the context window, so a very large context does not mean a long reply is allowed. Read both fields per model.
 - **No cached-input discount.** Every model returns `cached_input` equal to `input`. Prompt caching does not currently reduce price.
 - **Rate limits are advertised in response headers.** `GET /v1/models` returns `ratelimit-limit: 120` with `ratelimit-policy: 120;w=60`. Read `ratelimit-remaining` and `ratelimit-reset` at runtime instead of assuming a fixed budget.
 
@@ -198,10 +177,11 @@ This is the property usually searched for as zero data retention, or ZDR.
 
 ## Privacy Routing
 
-Every model in the catalog reports `privacy: "private"` with
-`privacy_routes: ["private"]`. This field has no OpenAI equivalent; it is
-Varity-specific catalog metadata describing how the model is routed. There is
-currently no non-private route to choose between.
+The live catalog reports two routing privacy classes: `privacy: "private"` with
+`privacy_routes: ["private"]`, and `privacy: "anonymized"` with
+`privacy_routes: ["anonymized"]`. This field has no OpenAI equivalent; it is
+Varity-specific catalog metadata describing how each model is routed. Read it per
+model; there is no route choice to make at request time.
 
 ## Next Steps
 
