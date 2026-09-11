@@ -137,11 +137,11 @@ The gateway also exposes an unauthenticated health probe:
 curl https://varity.app/health
 ```
 
-```json
-{ "status": "healthy", "service": "varity-gateway", "version": "1.14.45" }
+```text
+{ "status": "healthy", "service": "varity-gateway", "version": "<deployed build>" }
 ```
 
-The `version` field tracks the deployed gateway build; re-probe for the current
+The `version` field reports the deployed gateway build; re-probe for the current
 one rather than pinning it in your own config.
 
 ## Authentication
