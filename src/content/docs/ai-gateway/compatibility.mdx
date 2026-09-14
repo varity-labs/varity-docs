@@ -62,7 +62,7 @@ A non-`/v1` health probe is also available:
 
 | Endpoint | Status |
 |----------|--------|
-| `GET /health` | **Supported.** Public. Returns `{"status":"healthy","service":"varity-gateway","version":"1.14.45"}` (the version tracks the deployed build; re-probe for the current one). |
+| `GET /health` | **Supported.** Public. Returns `{"status":"healthy","service":"varity-gateway","version":"<deployed build>"}` (the version tracks the deployed build; re-probe for the current one). |
 
 <Aside type="caution">
 Any OpenAI SDK helper that touches an unimplemented route will fail, including

@@ -12,11 +12,15 @@ It runs:
    pull-request impact declaration.
 2. `test-contract-artifacts.cjs`: checked-in OpenAPI, MCP, and LLM publication
    artifacts.
-3. `test-positioning-static.cjs`: high-severity public terminology and hosting
+3. `test-generated-artifacts.mjs`: generated-artifact drift check. Regenerates
+   `public/llms.txt`, `public/llms-full.txt`, and `public/openapi.yaml` from
+   their checked-in sources and fails on any difference. Regenerate with
+   `node tools/generate-ai-gateway-artifacts.mjs --update`.
+4. `test-positioning-static.cjs`: high-severity public terminology and hosting
    redirect invariants.
-4. `astro check`: Astro and content typing.
-5. `astro build`: production static-site composition.
-6. `test:built-contracts`: verifies Astro copied each public contract artifact
+5. `astro check`: Astro and content typing.
+6. `astro build`: production static-site composition.
+7. `test:built-contracts`: verifies Astro copied each public contract artifact
    into `dist/` unchanged.
 
 The checks are repository-local, deterministic, unprivileged, and require no

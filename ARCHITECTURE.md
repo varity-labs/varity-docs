@@ -70,16 +70,26 @@ calls. The built site does not depend on those repositories or their secrets.
 
 - **Interface:** stable public URLs `/openapi.yaml`, `/mcp-schema.json`,
   `/llms.txt`, and `/llms-full.txt`.
-- **Implementation:** checked-in files under `public/` which Astro copies into
-  `dist/` without transformation.
+- **Implementation:** `tools/generate-ai-gateway-artifacts.mjs` generates
+  `public/llms.txt` and `public/llms-full.txt` from the checked-in pages under
+  `src/content/docs/` plus the MCP catalog machine-readable fields in
+  `public/mcp-schema.json`, and generates `public/openapi.yaml` from the
+  checked-in canonical mirror `contracts/openapi.platform.mirror.json`.
+  `--refresh-mirror` replaces that mirror with the exact body of the live
+  platform document `https://varity.app/api/openapi.json`.
+  `public/mcp-schema.json` remains a checked-in projection reconciled from its
+  own authority. Astro copies all four files into `dist/` without
+  transformation.
 - **Seam:** static public-file publication.
-- **Test surface:** `tests/test-contract-artifacts.cjs`, followed by the Astro
-  build and `npm run test:built-contracts`.
+- **Test surface:** `tests/test-contract-artifacts.cjs` and the deterministic
+  drift check `tests/test-generated-artifacts.mjs`, followed by the Astro build
+  and `npm run test:built-contracts`.
 
-This module intentionally makes no generation claim. The four artifacts are
-checked-in projections and must be reconciled manually from their narrower
-authorities in the same pull request. A future generator is acceptable only if
-its source and deterministic verification are checked in with it.
+None of the generated files is hand-edited. The drift check regenerates each in
+memory from its checked-in source and fails on any byte difference, so a stale
+projection cannot become LLM authority. `--check-live` additionally proves the
+OpenAPI mirror still equals its live upstream; it is a network step for release
+verification, not part of the offline merge check.
 
 ### Verification module
 
@@ -139,10 +149,10 @@ identify users.
 | Published surface | Checked-in owner | Narrower authority to reconcile | Required verification |
 |---|---|---|---|
 | Human pages | `src/content/docs/` | Workspace manifest, positioning, pricing, security, and current public behavior | `npm run check` plus browser review when visual/navigation behavior changes |
-| OpenAPI | `public/openapi.yaml` | Gateway-owned public platform interface and its current implementation tests | JSON/OpenAPI structure, internal references, unique operation IDs, API-reference link, build copy |
+| OpenAPI | `public/openapi.yaml` (generated) | `contracts/openapi.platform.mirror.json`, refreshed from live `https://varity.app/api/openapi.json`; gateway-owned public platform interface | Generated-artifact drift check, JSON/OpenAPI structure, internal references, unique operation IDs, API-reference link, build copy |
 | MCP catalog | `public/mcp-schema.json` | Canonical `@varity-labs/mcp` implementation and published package contract | JSON/schema structure, tool-count/name uniqueness, reference-page links, build copy |
-| LLM summary | `public/llms.txt` | Current public pages and supported product claims | Required identity/artifact links, no placeholder content, build copy |
-| LLM full context | `public/llms-full.txt` | Current public pages and supported product claims | Required identity/artifact links, nontrivial full-content size, build copy |
+| LLM summary | `public/llms.txt` (generated) | `src/content/docs/` and `public/mcp-schema.json` | Generated-artifact drift check, required identity/artifact links, no placeholder content, build copy |
+| LLM full context | `public/llms-full.txt` (generated) | `src/content/docs/` | Generated-artifact drift check, required identity/artifact links, nontrivial full-content size, build copy |
 | Redirects and static assets | `public/` | Current hosting behavior and brand assets | Redirect invariant, Astro build, visual review where applicable |
 
 The contract projections are public documentation artifacts. They must not
@@ -156,6 +166,7 @@ source content + components + public artifacts
   -> npm test
      -> architecture governance
      -> contract projection conformance
+     -> generated-artifact drift check
      -> positioning guardrails
   -> npm run lint
   -> npm run build
@@ -171,6 +182,9 @@ and requires no production credential.
 ## Failure semantics
 
 - A malformed or internally inconsistent contract projection fails `npm test`.
+- A generated artifact that no longer matches its checked-in source fails
+  `npm test` until it is regenerated with
+  `node tools/generate-ai-gateway-artifacts.mjs --update`.
 - A high-severity public terminology violation fails `npm test`.
 - A missing architecture declaration fails pull-request CI, but local and push
   runs still validate the required architecture files.
