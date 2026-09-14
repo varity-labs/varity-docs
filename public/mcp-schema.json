@@ -18,8 +18,7 @@
             ]
           }
         }
-      },
-      "hostedHttp": "https://mcp.varity.so"
+      }
     },
     "transports": [
       "stdio",

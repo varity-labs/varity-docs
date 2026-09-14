@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Varity Public Platform API",
-    "version": "2026-07-25",
+    "version": "2026-08-15",
     "description": "Gateway-owned resource API for deploying and operating Varity apps."
   },
   "servers": [
@@ -30,6 +30,7 @@
               "type": "string",
               "enum": [
                 "gpu",
+                "virtual_machine",
                 "cpu"
               ]
             }
@@ -174,8 +175,26 @@
                     "machines": {
                       "type": "array",
                       "items": {
-                        "$ref": "#/components/schemas/Machine"
+                        "oneOf": [
+                          {
+                            "$ref": "#/components/schemas/Machine"
+                          },
+                          {
+                            "$ref": "#/components/schemas/DegradedMachine"
+                          }
+                        ]
                       }
+                    },
+                    "inventory_status": {
+                      "type": "string",
+                      "enum": [
+                        "complete",
+                        "partial"
+                      ]
+                    },
+                    "dropped_count": {
+                      "type": "integer",
+                      "minimum": 0
                     }
                   }
                 }
@@ -481,6 +500,20 @@
                   "properties": {
                     "deployment": {
                       "$ref": "#/components/schemas/Deployment"
+                    },
+                    "inventory_status": {
+                      "type": "string",
+                      "enum": [
+                        "complete",
+                        "partial"
+                      ]
+                    },
+                    "inventory_warning": {
+                      "type": "string",
+                      "enum": [
+                        "durable_inventory_unavailable",
+                        "durable_inventory_degraded"
+                      ]
                     }
                   }
                 }
@@ -1106,10 +1139,47 @@
             "name": "persistent_gb",
             "in": "query",
             "required": false,
-            "description": "Persistent NVMe add-on in GB, billed per GB-month on top of the preset monthly maximum.",
+            "description": "Persistent NVMe add-on in whole GB, billed per GB-month on top of the preset monthly maximum.",
             "schema": {
-              "type": "number",
-              "minimum": 0
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100
+            }
+          },
+          {
+            "name": "services",
+            "in": "query",
+            "required": false,
+            "description": "Attached services. Each service reserves and bills its own Managed Cloud preset.",
+            "schema": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "enum": [
+                  "postgres",
+                  "mysql",
+                  "redis",
+                  "mongodb",
+                  "minio",
+                  "ollama"
+                ]
+              }
+            }
+          },
+          {
+            "name": "service_volumes",
+            "in": "query",
+            "required": false,
+            "description": "Per-attached-service persistent volume as service:size_gb:absolute_mount_path. Repeat once per customized service.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "examples": [
+                  "postgres:20:/var/lib/postgresql/data"
+                ]
+              }
             }
           },
           {
@@ -2381,7 +2451,14 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 256,
-            "description": "Varity plan name. Present exactly when execution_class is cpu_virtual_machine."
+            "description": "Varity plan name. Required for cpu_virtual_machine and optional for accelerated machine profiles."
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256,
+            "deprecated": true,
+            "description": "Transitional accelerated-machine display name. New producers use display_name."
           },
           "cpu_class": {
             "type": "string",
@@ -2825,6 +2902,47 @@
                 "$ref": "#/components/schemas/MachineBilling"
               }
             ]
+          },
+          "allowed_actions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "restart",
+                "soft_reboot"
+              ]
+            },
+            "description": "Day-2 actions this machine's durable state currently permits. Absent when none apply."
+          },
+          "degradation_reason": {
+            "type": "string",
+            "enum": [
+              "billing_projection_incomplete",
+              "access_projection_invalid"
+            ],
+            "description": "Present when this machine's billing or access projection is incomplete. Every other field is still authoritative; treat only the named projection as untrustworthy. The list route collapses such a row to DegradedMachine and counts it as partial inventory, EXCEPT when the machine's delete already succeeded and its cleanup is complete: that machine is gone, so its row is served in full and the inventory stays complete. A single-machine read always returns the full row so nothing observed is withheld."
+          }
+        }
+      },
+      "DegradedMachine": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "machine_id",
+          "degradation_reason"
+        ],
+        "properties": {
+          "machine_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "degradation_reason": {
+            "type": "string",
+            "enum": [
+              "billing_projection_incomplete",
+              "access_projection_invalid"
+            ],
+            "description": "Bounded reason the complete lifecycle projection is unavailable for this row."
           }
         }
       },
@@ -3182,6 +3300,11 @@
           },
           "correlation_id": {
             "type": "string"
+          },
+          "trace_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$",
+            "description": "OpenTelemetry trace identifier for this failed request. Span identifiers and propagation state are never exposed."
           }
         }
       },
@@ -3193,14 +3316,20 @@
           "subdomain",
           "status",
           "runtime",
-          "public_url"
+          "public_url",
+          "region",
+          "membership"
         ],
         "properties": {
           "id": {
             "type": "string"
           },
           "app_name": {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Null when the durable inventory view carries no name for the record."
           },
           "subdomain": {
             "type": [
@@ -3219,12 +3348,24 @@
               "unknown"
             ]
           },
+          "region": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Recorded provider-neutral placement region; null when no placement was observed."
+          },
           "runtime": {
-            "type": "string",
+            "type": [
+              "string",
+              "null"
+            ],
             "enum": [
               "static",
-              "dynamic"
-            ]
+              "dynamic",
+              null
+            ],
+            "description": "Application runtime. Null where the resource has none (a machine) or it is no longer observable (a deleted deployment)."
           },
           "public_url": {
             "type": [
@@ -3233,8 +3374,25 @@
             ],
             "format": "uri"
           },
+          "run_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Latest durable run behind this deployment; poll /deployments/runs/{run_id} for classified failure detail. Null when no durable run is linked."
+          },
+          "status_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "created_at": {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Null when the durable inventory view carries no accepted-at for the record."
           },
           "updated_at": {
             "type": [
@@ -3266,12 +3424,240 @@
           "billing": {
             "$ref": "#/components/schemas/DeploymentBilling"
           },
+          "membership": {
+            "type": "string",
+            "enum": [
+              "registry_durable",
+              "registry_legacy",
+              "durable_only"
+            ],
+            "description": "How this owner-scoped collection row is represented. This is not provider-live state."
+          },
           "operation_deployment_id": {
             "type": [
               "string",
               "null"
             ],
             "description": "Durable deployment-operation identity (dashed UUID) when the app was deployed through the durable path; delete by this id for independently reconciled route/compute/billing teardown."
+          },
+          "outcome": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DeploymentOutcome"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Allowlisted durable terminal outcome. Null when no valid outcome was observed."
+          },
+          "appName": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "deprecated": true,
+            "description": "camelCase twin of `app_name`. Read `app_name`; this key is retained for existing clients and will be retired."
+          },
+          "createdAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "deprecated": true,
+            "description": "camelCase twin of `created_at`. Read `created_at`; this key is retained for existing clients and will be retired."
+          },
+          "deletedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "deprecated": true,
+            "description": "camelCase twin of `deleted_at`. Read `deleted_at`; this key is retained for existing clients and will be retired."
+          },
+          "closureReason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "deprecated": true,
+            "description": "camelCase twin of `closure_reason`. Read `closure_reason`; this key is retained for existing clients and will be retired."
+          },
+          "operationDeploymentId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "deprecated": true,
+            "description": "camelCase twin of `operation_deployment_id`. Read `operation_deployment_id`; this key is retained for existing clients and will be retired."
+          },
+          "resourceProfile": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "cpu_units": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0.25,
+                "maximum": 4
+              },
+              "memory_mb": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 256,
+                "maximum": 8192
+              },
+              "storage_mb": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 512,
+                "maximum": 20480
+              },
+              "persistent_storage_gb": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "attached_resources": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/AttachedServiceVolume"
+                }
+              },
+              "accelerator": {
+                "$ref": "#/components/schemas/AcceleratorRequirement"
+              }
+            },
+            "deprecated": true,
+            "description": "camelCase twin of `resource_profile`."
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri",
+            "deprecated": true,
+            "description": "camelCase-era twin of `public_url`."
+          },
+          "execution_class": {
+            "type": "string",
+            "enum": [
+              "automatic",
+              "static",
+              "container",
+              "virtual_machine",
+              "bare_metal",
+              "cpu_virtual_machine"
+            ],
+            "description": "Observed compute category. Emitted only for GPU containers today; a machine row omits it until deploy-api carries execution_class on the deployment inventory view."
+          },
+          "executionClass": {
+            "type": "string",
+            "deprecated": true,
+            "description": "camelCase twin of `execution_class`."
+          },
+          "deploymentType": {
+            "type": "string",
+            "description": "Registry storage codec, not the public category. Use `execution_class`."
+          },
+          "deploymentId": {
+            "type": "string",
+            "deprecated": true,
+            "description": "camelCase-era twin of `id` on GPU container rows."
+          },
+          "deploymentUrl": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri",
+            "deprecated": true,
+            "description": "camelCase-era twin of `public_url` on GPU container rows."
+          },
+          "resources": {
+            "type": "object",
+            "description": "GPU container compute request.",
+            "properties": {
+              "cpu_units": {
+                "type": "number"
+              },
+              "memory_mb": {
+                "type": "integer"
+              },
+              "storage_mb": {
+                "type": "integer"
+              }
+            }
+          },
+          "accelerator": {
+            "type": "object",
+            "description": "GPU container accelerator request.",
+            "properties": {
+              "offer_id": {
+                "type": "string"
+              },
+              "count": {
+                "type": "integer"
+              },
+              "alternatives": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      },
+      "DeploymentOutcome": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "classification",
+          "stage",
+          "code",
+          "action_code",
+          "diagnostic_code",
+          "terminal_at"
+        ],
+        "properties": {
+          "classification": {
+            "type": "string"
+          },
+          "stage": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "code": {
+            "type": "string"
+          },
+          "action_code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "diagnostic_code": {
+            "type": "string"
+          },
+          "terminal_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
           }
         }
       },
@@ -3509,11 +3895,44 @@
           "attached_resources": {
             "type": "array",
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/AttachedServiceVolume"
             }
           },
           "accelerator": {
             "$ref": "#/components/schemas/AcceleratorRequirement"
+          }
+        }
+      },
+      "AttachedServiceVolume": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "service",
+          "size_gb",
+          "mount_path"
+        ],
+        "properties": {
+          "service": {
+            "type": "string",
+            "enum": [
+              "postgres",
+              "mysql",
+              "redis",
+              "mongodb",
+              "minio",
+              "ollama"
+            ]
+          },
+          "size_gb": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "mount_path": {
+            "type": [
+              "string",
+              "null"
+            ]
           }
         }
       },
@@ -3569,12 +3988,17 @@
             ]
           },
           "state": {
-            "type": "string",
+            "type": [
+              "string",
+              "null"
+            ],
             "enum": [
               "pending",
               "active",
-              "stopped"
-            ]
+              "stopped",
+              null
+            ],
+            "description": "Observed accrual state. Stopped confirms the owning billing source ended accrual; it does not mean the final invoice is settled. Null means unobserved, including a delete accepted without billing-stop evidence."
           },
           "hourly_cost_usd": {
             "type": "number",
@@ -3592,7 +4016,11 @@
       "DeploymentList": {
         "type": "object",
         "required": [
-          "deployments"
+          "deployments",
+          "inventory_status",
+          "dropped_count",
+          "dropped_by_reason",
+          "membership_counts"
         ],
         "properties": {
           "deployments": {
@@ -3600,6 +4028,38 @@
             "items": {
               "$ref": "#/components/schemas/Deployment"
             }
+          },
+          "inventory_status": {
+            "type": "string",
+            "enum": [
+              "complete",
+              "partial"
+            ]
+          },
+          "dropped_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "dropped_by_reason": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "membership_counts": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "inventory_warning": {
+            "type": "string",
+            "enum": [
+              "durable_inventory_unavailable",
+              "durable_inventory_degraded"
+            ]
           }
         }
       },
@@ -3747,6 +4207,7 @@
             "type": "string",
             "enum": [
               "create_public_image",
+              "create_static_release",
               "create_gpu_container",
               "delete_deployment"
             ]
@@ -4154,9 +4615,151 @@
             "execution_class"
           ]
         },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "hosting": {
+                  "const": "static"
+                }
+              },
+              "required": [
+                "hosting"
+              ]
+            },
+            "then": {
+              "required": [
+                "repository"
+              ],
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "image"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "template_id"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "port"
+                    ]
+                  },
+                  {
+                    "properties": {
+                      "command": {
+                        "minItems": 1
+                      }
+                    },
+                    "required": [
+                      "command"
+                    ]
+                  },
+                  {
+                    "properties": {
+                      "args": {
+                        "minItems": 1
+                      }
+                    },
+                    "required": [
+                      "args"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "health_path"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "resource_profile"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "ingress"
+                    ]
+                  },
+                  {
+                    "properties": {
+                      "volumes": {
+                        "minItems": 1
+                      }
+                    },
+                    "required": [
+                      "volumes"
+                    ]
+                  },
+                  {
+                    "properties": {
+                      "dedicated_ip": {
+                        "const": true
+                      }
+                    },
+                    "required": [
+                      "dedicated_ip"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "tee"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "reclamation_min_window_seconds"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "accelerator"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "accelerator_quote_token"
+                    ]
+                  }
+                ]
+              },
+              "properties": {
+                "repository": {
+                  "required": [
+                    "url"
+                  ],
+                  "not": {
+                    "anyOf": [
+                      {
+                        "required": [
+                          "dockerfile_path"
+                        ]
+                      },
+                      {
+                        "required": [
+                          "docker_context_path"
+                        ]
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        ],
         "properties": {
           "name": {
             "type": "string"
+          },
+          "hosting": {
+            "type": "string",
+            "enum": [
+              "static",
+              "dynamic"
+            ],
+            "description": "Optional override for repository sources. When omitted, Varity automatically classifies the repository as a static site or web service. Static releases require repository and do not accept image, template_id, or runtime compute fields."
           },
           "repository": {
             "type": "object",
@@ -4221,6 +4824,29 @@
           },
           "resource_profile": {
             "$ref": "#/components/schemas/ResourceProfile"
+          },
+          "services": {
+            "type": "array",
+            "uniqueItems": true,
+            "maxItems": 8,
+            "items": {
+              "type": "string",
+              "enum": [
+                "postgres",
+                "mysql",
+                "redis",
+                "mongodb",
+                "minio",
+                "ollama"
+              ]
+            }
+          },
+          "service_volumes": {
+            "type": "array",
+            "maxItems": 8,
+            "items": {
+              "$ref": "#/components/schemas/AttachedServiceVolume"
+            }
           },
           "ingress": {
             "$ref": "#/components/schemas/IngressPolicy"
@@ -4356,6 +4982,7 @@
       },
       "TemplateDeployRequest": {
         "type": "object",
+        "description": "A certified template deploys the certified spec. Name it and set its environment; the runtime, image, resources, attached services and volumes come from the template. A body that also sets a source, workload or billable add-on (image, repo_url, command, args, services, volumes, accelerator, profile_id, …) is rejected 400 naming the conflicting fields — deploy an image or repository instead to choose your own runtime.",
         "properties": {
           "name": {
             "type": "string"
@@ -4368,7 +4995,8 @@
             "additionalProperties": {
               "type": "string"
             },
-            "writeOnly": true
+            "writeOnly": true,
+            "description": "Merged OVER the template's own defaults per key: keys you send win, keys you omit keep the certified default."
           }
         }
       },

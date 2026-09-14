@@ -266,17 +266,7 @@ The AI calls `varity_migrate`, which clones the repository, removes Vercel-speci
 
 ## Browser-based AI tools (Claude.ai, ChatGPT)
 
-If you use a browser-based AI tool instead of a desktop editor, connect to the hosted MCP endpoint:
-
-```
-https://mcp.varity.so
-```
-
-**Claude.ai:** Settings > Connectors > Add MCP Server > URL: `https://mcp.varity.so`
-
-**ChatGPT:** Settings > Connectors > Create > MCP server URL: `https://mcp.varity.so`
-
-The first connection asks you to authenticate via the Varity login page.
+The hosted endpoint `mcp.varity.so` is retired. Browser-based tools that only accept a remote MCP URL are not supported today; use the stdio package (`npx -y @varity-labs/mcp`) from Claude Code, Cursor, VS Code, or Windsurf, or the [llms.txt context files](#llmstxt-alternative) for LLMs without MCP support.
 
 ## Troubleshooting
 

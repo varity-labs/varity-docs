@@ -87,6 +87,10 @@ The MCP server works with **any editor that supports MCP**: Cursor, Claude Code,
   </TabItem>
 </Tabs>
 
+<Aside type="note">
+**Headless or CI use.** The server reads your API key from `VARITY_API_KEY` (or `VARITY_DEPLOY_KEY`) in its environment, or from `~/.varitykit/config.json` after `varity_login`. Add an `env` block to the config above when no browser is available.
+</Aside>
+
 ## Tools Reference
 
 The server exposes a full set of tools. Read-only tools run safely with no side effects. Destructive tools create files or deploy infrastructure.
@@ -250,9 +254,9 @@ List deployments or get the status of a specific one. Shows URL, status, framewo
 
 ---
 
-### `varity_deploy_logs`: Get build logs
+### `varity_deploy_logs`: Get runtime logs
 
-Get build and deployment logs for debugging failed or recent deployments.
+Get recent runtime logs for a live deployment from the public API. Local build errors come from `varity_build`.
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
@@ -448,21 +452,11 @@ Run `claude mcp list` to verify the server is registered. Re-add with `claude mc
 The MCP server supports two transports:
 
 - **stdio** (default): for desktop editors like Cursor, Claude Code, VS Code, Windsurf
-- **HTTP**: for browser-based AI tools like Claude.ai and ChatGPT
+- **HTTP**: self-hosted only (see below); there is no hosted endpoint
 
-### Hosted MCP
+### Hosted MCP (retired)
 
-Connect directly to the hosted Varity MCP at:
-
-```
-https://mcp.varity.so
-```
-
-**Claude.ai:** Settings → Connectors → Add MCP Server → URL: `https://mcp.varity.so`
-
-**ChatGPT:** Settings → Connectors → Create → MCP server URL: `https://mcp.varity.so`
-
-Hosted OAuth login is in progress: hosted OAuth and per-user deployment authorization are not yet certified end to end. Until that verification passes, do not use the hosted endpoint for owner-scoped operations (deploys, env changes, deletes). Connect via the stdio package (`npx -y @varity-labs/mcp`) instead.
+The hosted endpoint `mcp.varity.so` is retired. Browser-based tools that only accept a remote MCP URL are not supported today; use the stdio package (`npx -y @varity-labs/mcp`) from Claude Code, Cursor, VS Code, or Windsurf, or the [llms.txt context files](#llmstxt-alternative) for LLMs without MCP support.
 
 ### Self-Hosted HTTP
 
