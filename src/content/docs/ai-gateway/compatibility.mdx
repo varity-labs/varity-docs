@@ -9,7 +9,7 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="August 2026"
+  lastUpdated="September 2026"
   stability="beta"
 />
 
@@ -17,24 +17,28 @@ import PageMeta from '../../../components/PageMeta.astro';
 This page states the boundary. An exclusion you discover at runtime instead of
 reading it here is a documentation bug. If you hit one, report it.
 
-Everything below was checked against the live gateway at `https://varity.app/v1`.
+Everything below was checked against the live gateway at
+`https://ai.varity.app/v1`, its canonical host, and against the contract it
+publishes at `GET /v1/openapi.json`. `https://varity.app/v1` is a compatibility
+alias routed to the same service and serves the same surface.
 
 ## Endpoints
 
 | Endpoint | Status |
 |----------|--------|
-| `POST /v1/chat/completions` | **Supported.** Requires a bearer API key. |
+| `POST /v1/chat/completions` | **Supported.** Requires a bearer API key. Streaming and tool-call generation on eligible models. |
 | `GET /v1/models` | **Supported.** Public, no key required. |
+| `POST /v1/embeddings` | **Supported.** Requires a bearer API key. Only a model whose `capabilities.output_modalities` includes `embedding` is routable. |
+| `POST /v1/images/generations` | **Supported.** Requires a bearer API key. Image-capable models only; results are returned inline as base64 and never stored. |
+| `POST /v1/images/edits` | **Supported.** Requires a bearer API key. JSON with base64 image data (`image/png`, `image/jpeg`, `image/webp`); a source image or mask at or above 25 MB is rejected. |
+| `POST /v1/audio/transcriptions` | **Supported.** Requires a bearer API key. JSON with the audio as a base64 typed part; the model must advertise `capabilities.transcription`. Returns JSON, or plain text when `response_format` is `text`. No streaming mode. |
+| `POST /v1/audio/speech` | **Supported.** Requires a bearer API key. The model must advertise `capabilities.speech` and the format must be one of its `capabilities.speech_formats`. Returns audio bytes with a matching `audio/*` content type; `stream: true` gives a chunked binary response, not SSE. |
 | `GET /v1/models/{id}` | **Not implemented.** Returns `404`. Fetch the list and filter client-side. |
 | `POST /v1/completions` (legacy text completions) | **Not implemented.** Returns `404`. |
 | `POST /v1/responses` | **Not implemented.** Returns `404`. |
-| `POST /v1/embeddings` | **Not implemented.** Returns `404`. |
 | `/v1/assistants` | **Not implemented.** Returns `404`. |
 | `/v1/files` | **Not implemented.** Returns `404`. |
 | `/v1/vector_stores` | **Not implemented.** Returns `404`. |
-| `POST /v1/images/generations` | **Not implemented.** Returns `404`. |
-| `POST /v1/audio/speech` | **Not implemented.** Returns `404`. |
-| `POST /v1/audio/transcriptions` | **Not implemented.** Returns `404`. |
 | `POST /v1/moderations` | **Not implemented.** Returns `404`. |
 | `/v1/batches` | **Not implemented.** Returns `404`. |
 | `/v1/fine_tuning/jobs` | **Not implemented.** Returns `404`. |
@@ -48,26 +52,49 @@ them, but they are public and stable.
 | `GET /v1/openapi.json` | **Supported.** Public, no key required. The machine-readable contract for this surface, including the data-handling block below. |
 | `GET /v1/inference/requests` | **Supported.** Requires a bearer API key. Per-request metadata. |
 | `GET /v1/inference/usage` | **Supported.** Requires a bearer API key. |
-| `GET /v1/inference/policy` | **Supported.** Requires a bearer API key. |
+| `GET /v1/inference/policy` | **Supported.** Requires a bearer API key. Returns the privacy floor (`private` or `anonymized`) enforced for the account; with a scoped key the key's effective floor is reported beside it. |
 | `GET /v1/inference/performance` | **Supported.** Requires a bearer API key. Accepts `window` of `1h`, `24h`, `7d`, or `30d`. |
 
-For the OpenAI-compatible surface, the gateway is a **chat-completions gateway**. Text generation is the product;
-embeddings, files, assistants, batch, fine-tuning, images, audio, and moderation
-are not part of it. Unimplemented routes return an HTML `404` page, not a JSON
-error envelope. A client that assumes every failure parses as JSON throws a
-parse error rather than surfacing a clean status. Branch on the HTTP status
-code, not on the body.
+### Account routes
 
-A non-`/v1` health probe is also available:
+The AI Gateway host also serves the account routes for its own keys, prepaid
+balance, and privacy entitlement. These require a Developer Portal session token
+as the bearer credential; an inference API key is refused on them.
 
 | Endpoint | Status |
 |----------|--------|
-| `GET /health` | **Supported.** Public. Returns `{"status":"healthy","service":"varity-gateway","version":"<deployed build>"}` (the version tracks the deployed build; re-probe for the current one). |
+| `GET /v1/keys` | **Supported.** Secret-free list of the account's inference keys. |
+| `POST /v1/keys` | **Supported.** Mints an inference-only key; the plaintext is returned exactly once. |
+| `GET /v1/keys/audit` | **Supported.** Secret-free key lifecycle events. Accepts `limit`. |
+| `POST /v1/keys/{id}/revoke` | **Supported.** Revokes one of the account's own keys. |
+| `PUT /v1/inference/policy` | **Supported.** Enables or revokes anonymized-route access for the account. `private` is the default. |
+| `GET /v1/billing/balance` | **Supported.** The prepaid Gateway balance. |
+| `GET /v1/billing/transactions` | **Supported.** Balance transactions. Accepts `limit` and `offset`. |
+| `PATCH /v1/billing/settings` | **Supported.** Monthly spending limit and auto-reload. |
+| `POST /v1/billing/top-up` | **Supported.** Starts a checkout that funds the balance. Minimum and maximum amounts, and the no-funding-fee rule, are stated on the live contract. |
+
+The same keys can also be created from the platform API with
+`POST /api/api-keys/inference`; see the
+[Public API Reference](/ai-tools/api-reference/).
+
+Hosted tool execution, batch, files, assistants, fine-tuning, and moderation
+are not part of the surface. Unimplemented routes return `404` with the JSON
+error envelope below (`code: "invalid_request"`, message `Route not found.`).
+Branch on the HTTP status code, not on the message text.
+
+Unauthenticated health and readiness probes are available outside `/v1` on the
+canonical host:
+
+| Endpoint | Status |
+|----------|--------|
+| `GET /healthz` | **Supported.** Public. Returns `{"status":"ok","service":"varity-ai-gateway","version":"<deployed build>","source_commit":"<commit>"}` (re-probe for the current build rather than pinning it). |
+| `GET /readyz` | **Supported.** Public. Same fields plus `servable`, `published`, and `minimum_servable` model counts. |
 
 <Aside type="caution">
 Any OpenAI SDK helper that touches an unimplemented route will fail, including
-`client.embeddings.create(...)`, the Assistants and Responses APIs, and file
-upload helpers. Only the `chat.completions` and `models` namespaces work.
+the Assistants and Responses APIs, file upload helpers, and batch. The
+`chat.completions`, `models`, `embeddings`, `images`, and `audio` namespaces
+work, on the models whose `capabilities` advertise them.
 </Aside>
 
 ## Per-Model Capabilities
@@ -78,10 +105,12 @@ against one model can be unsupported on another.
 
 | Capability | Models supporting it |
 |------------|----------------------|
-| `chat_completions` | Every model in the current catalog |
-| `streaming` | Most, but not all, catalog models |
-| `tool_calls` | A subset of the catalog |
-| `streaming_tool_calls` | A smaller subset of the catalog |
+| `chat_completions` | The chat models; image, audio, and embedding models report `false` |
+| `streaming` | Most, but not all, chat models |
+| `tool_calls` | A subset of the chat models |
+| `streaming_tool_calls` | A smaller subset; absent on a few entries, which means unproven, not unsupported |
+| `output_modalities` | `text`, `embedding`, `image`, or `audio`: the route a model belongs on |
+| `transcription`, `speech` | The audio models, each on exactly one of the two audio routes |
 
 ### Tool calling is the exception, not the default
 
@@ -165,13 +194,14 @@ assert against it in CI rather than taking a page's word for it.
 |-------|-------|
 | `inference_metadata_retention_days` | `30` |
 | `stored_content` | `[]` |
-| `content_never_stored` | `prompts`, `responses`, `tool_arguments`, `uploaded_content`, `playground_conversations` |
+| `content_never_stored` | `prompts`, `responses`, `tool_arguments`, `uploaded_content`, `generated_image_bytes`, `playground_conversations` |
+| `generated_image_retention` | `inline_only` |
 | `financial_and_security_records` | `separate_retention_classes` |
 
-Prompt and response bodies are never written to the inference records. What is
-retained for 30 days is request metadata: model and provider identifiers, token
-counts, latency, fallback count, error code, and timestamps. Read it back with
-`GET /v1/inference/requests`.
+Prompt, response, uploaded, and generated-image bytes are never written to the
+inference records. What is retained for 30 days is request metadata: model id,
+token counts, latency, fallback count, error code, and timestamps. Read it back
+with `GET /v1/inference/requests`.
 
 This is the property usually searched for as zero data retention, or ZDR.
 

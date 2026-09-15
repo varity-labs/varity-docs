@@ -34,18 +34,20 @@ Varity exposes two public base URLs:
 https://varity.app/api
 ```
 
-**AI Gateway** covers OpenAI-compatible inference. Chat completions and model listing:
+**AI Gateway** covers OpenAI-compatible inference: chat completions, embeddings, images, audio, and model listing:
 
 ```text
-https://varity.app/v1
+https://ai.varity.app/v1
 ```
+
+`https://varity.app/v1` remains a compatibility alias routed to the same service.
 
 These are two different products with two different contracts:
 
 - **`/api/*` is the platform surface.** Resource CRUD for deployments, machines, templates, pricing, credits, keys, and webhooks. Everything on this page. Errors use the [Varity error envelope](/api/errors/).
-- **`/v1/*` is the OpenAI-compatible inference surface.** Chat completions and model listing. Point any OpenAI client at it by setting the base URL. It has its own error shape and its own rate limits, documented in the [AI Gateway](/ai-gateway/) docs. Nothing on this page applies to it.
+- **`/v1/*` is the OpenAI-compatible inference surface.** Chat completions, embeddings, images, audio, and model listing. Point any OpenAI client at it by setting the base URL. It has its own error shape and its own rate limits, documented in the [AI Gateway](/ai-gateway/) docs. Nothing on this page applies to it.
 
-A single Varity API key does not automatically work on both surfaces: keys are scoped per product, and using one out of scope returns `403 credential_scope_violation`. Create AI Gateway keys in the Developer Portal, or via `POST /api/api-keys/inference`.
+A single Varity API key does not automatically work on both surfaces: keys are scoped per product, and using one out of scope returns `403 credential_scope_violation`. Create AI Gateway keys in the Developer Portal, via `POST /api/api-keys/inference`, or via `POST /v1/keys` on the AI Gateway host with a Portal session.
 
 For non-browser callers, send your Varity API key as a bearer credential:
 

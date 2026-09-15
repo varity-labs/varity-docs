@@ -1,6 +1,6 @@
 ---
 title: AI Gateway Models
-description: Ids, context windows, completion limits, tool-calling and streaming support, and per-token pricing in the live Varity AI Gateway model catalog.
+description: Ids, makers, modalities, context windows, completion limits, tool-calling and streaming support, and per-unit pricing in the live Varity AI Gateway model catalog.
 ---
 
 import { Aside } from '@astrojs/starlight/components';
@@ -9,7 +9,7 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="August 2026"
+  lastUpdated="September 2026"
   stability="beta"
 />
 
@@ -17,14 +17,16 @@ The catalog is served live. This page is a snapshot of it; the endpoint is the
 source of truth:
 
 ```bash
-curl https://varity.app/v1/models
+curl https://ai.varity.app/v1/models
 ```
 
 `GET /v1/models` is public and needs no API key. It returns an OpenAI-shaped
-`{ "object": "list", "data": [...] }` response. Varity adds fields OpenAI does
-not return: `display_name`, `capabilities`, `context_window`,
-`max_completion_tokens`, `privacy`, `privacy_routes`, `availability`, and
-`customer_pricing`.
+`{ "object": "list", "data": [...] }` response plus a top-level
+`privacy_scope`, the privacy floor the public catalog is projected at
+(`"anonymized"` on this unauthenticated route). Varity adds fields OpenAI does
+not return on each entry: `display_name`, `maker`, `capabilities`,
+`context_window`, `max_completion_tokens`, `privacy`, `privacy_routes`,
+`availability`, `refreshed_at`, and `customer_pricing`.
 
 <Aside type="tip" icon="approve-check">
 Do not hardcode the catalog. Resolve models at runtime from `/v1/models` and read
@@ -33,16 +35,24 @@ Do not hardcode the catalog. Resolve models at runtime from `/v1/models` and rea
 
 ## Catalog
 
-The live catalog currently reports `availability.status: "available"` and
-`chat_completions: true` on every entry, but neither is a promise: read both per
-model from the endpoint rather than from this page.
+The catalog is not chat-only. Each entry's `capabilities.output_modalities`
+says what the model produces: `text` (chat completions), `embedding`, `image`,
+or `audio` (speech). Transcription models take `audio` in and return `text`.
+The live catalog currently reports `availability.status: "available"` on every
+entry, but that is not a promise: read it per model from the endpoint rather
+than from this page.
 
-Pass an entry's `id` verbatim as the `model` field of a chat-completions request.
-Ids are readable human slugs, for example `glm-5-2`, `llama-3-3-70b`, and
-`claude-opus-5`. `display_name` is a separate human label, not an identifier.
+Pass an entry's `id` verbatim as the `model` field of a request on the matching
+route. Ids are readable human slugs, for example `glm-5-2`, `llama-3-3-70b`, and
+`gpt-4o`. `display_name` is a separate human label, not an identifier.
 
-Prices are USD per million tokens, taken from each model's `customer_pricing`
-object.
+`maker` says who built the model, never who serves it (`owned_by` is always
+`varity`). It carries a stable slug `key` and a human `label`; the key is
+`unreported`, with the label `Maker not published`, when no maker evidence was
+observed.
+
+Prices are USD, taken from each model's `customer_pricing` object, and the
+`unit` differs by modality: see [Pricing](#pricing) below.
 
 This page carries no model table on purpose. A snapshot of ids, context windows,
 capabilities, and prices is stale the moment the catalog changes, so query
@@ -56,10 +66,16 @@ Each entry in `data` carries these Varity fields:
 |-------|------|-------|
 | `id` | string | Pass this as `model` in a request |
 | `display_name` | string | Human label only, never an identifier |
-| `capabilities.chat_completions` | boolean | `true` on every model in the current catalog; read it per model |
+| `maker.key` | string | Stable slug of who built the model, for example `zai`; `unreported` when unknown |
+| `maker.label` | string | Human maker label, for example `Z.ai` |
+| `capabilities.input_modalities` | array | What a request may carry: `text`, `image`, `document`, `audio`, `video` |
+| `capabilities.output_modalities` | array | What the model produces: `text`, `embedding`, `image`, `audio` |
+| `capabilities.chat_completions` | boolean | `true` on the chat models only; image, audio, and embedding models report `false`. Read it per model |
 | `capabilities.tool_calls` | boolean | Supported on a subset of the catalog; read it per model |
-| `capabilities.streaming` | boolean | Supported on most, not all, catalog models; read it per model |
-| `capabilities.streaming_tool_calls` | boolean | Narrower than `streaming`; read it per model |
+| `capabilities.streaming` | boolean | Supported on most, not all, chat models; read it per model |
+| `capabilities.streaming_tool_calls` | boolean | Narrower than `streaming`; read it per model. Absent on a few entries, which means unproven, not unsupported |
+| `capabilities.transcription` | boolean | `true` when `POST /v1/audio/transcriptions` accepts the model |
+| `capabilities.speech` | boolean | `true` when `POST /v1/audio/speech` accepts the model; `speech_formats` lists its output formats |
 | `context_window` | integer | Total tokens, input plus output |
 | `max_completion_tokens` | integer | Ceiling on generated tokens |
 | `privacy` | string | Routing privacy class. The live catalog contains both `"private"` and `"anonymized"` entries |
@@ -70,13 +86,15 @@ Each entry in `data` carries these Varity fields:
 
 ### Pricing
 
-Every model returns `customer_pricing.status: "configured"` with concrete
-numbers:
+Every model in the current catalog returns `customer_pricing.status: "configured"`
+with concrete numbers. The schema also allows `status: "not_configured"`, which
+carries no other fields, so branch on `status` before reading a rate:
 
 ```json
 "customer_pricing": {
   "status": "configured",
   "version": "2026-07-28.v3.d74e3f5155b10314",
+  "observed_at": "2026-08-01T02:30:58.677Z",
   "currency": "usd",
   "unit": "per_million_tokens",
   "input": 1.47,
@@ -85,10 +103,23 @@ numbers:
 }
 ```
 
-`cached_input` equals `input` on every model in the current catalog. Cached
-input tokens are not discounted today. Always read `unit` and `currency` rather
-than assuming; the `version` string identifies the price set the numbers came
-from.
+`currency` is always `usd`. `unit` takes one of four values, and it decides
+which fields carry the rate:
+
+| `unit` | Models | Where the rate is |
+|--------|--------|-------------------|
+| `per_million_tokens` | Chat and embedding models | `input` and `output` per million tokens; `cached_input` for cached prompt tokens |
+| `per_image` | Image generation and editing models | `request`, a flat price per generated image; `input`, `output`, and `cached_input` are `0` |
+| `per_million_characters` | Speech models | `input` per million characters of text; `output` and `cached_input` are `0` |
+| `per_audio_second` | Transcription models | `input` per second of audio; `output` and `cached_input` are `0` |
+
+`request` is present only on `per_image` entries. `cached_input` equals
+`input` on every token-priced model in the current catalog, so cached input
+tokens are not discounted today. Always read `unit` and `currency` rather than
+assuming; the `version` string identifies the immutable price set the numbers
+came from and `observed_at` says when the gateway last observed it. Rates are
+the current managed rate for the model's preferred route, not a permanent
+guarantee: each admitted request snapshots its own price before it runs.
 
 Input and output prices both vary widely across the catalog and change with it,
 so read `customer_pricing` per model instead of carrying a range from this page.
@@ -103,7 +134,7 @@ large answer, so read both fields per model.
 
 - **Need tool calling?** Only a subset of the catalog accepts `tools` / `tool_choice`, and fewer support them while streaming. Read `capabilities.tool_calls` and `capabilities.streaming_tool_calls` per model, and see [Compatibility](/ai-gateway/compatibility/).
 - **Need a very large context?** Sort the live catalog by `context_window`. The Grok 4.20 entries (`grok-4-20`, `grok-4-20-multi-agent`) have the widest windows in the current catalog, but read the field rather than assuming.
-- **Cost sensitive?** Compare `customer_pricing.input` across the live catalog. `glm-4-7-flash` has the lowest input rate in the current catalog.
+- **Cost sensitive?** Compare `customer_pricing.input` across the live catalog, within one `unit`. Embedding models carry the lowest token rates; among chat models, `mercury-2-5` and `glm-4-7-flash` have the lowest input rates in the current catalog.
 
 <Aside type="caution">
 There is no per-model retrieval route. `GET /v1/models/{id}` returns `404`; fetch

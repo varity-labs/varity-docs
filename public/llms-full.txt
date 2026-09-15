@@ -45,7 +45,7 @@ Description: Predictable cloud hosting for Node, Python, Go, static apps, AI age
 ## Varity AI Gateway
 
 URL: https://docs.varity.so/ai-gateway/
-Description: OpenAI-compatible inference on Varity. Point any OpenAI client at https://varity.app/v1 and change nothing else.
+Description: OpenAI-compatible inference on Varity. Point any OpenAI client at https://ai.varity.app/v1 and change nothing else.
 
 The Varity AI Gateway is an OpenAI-compatible inference API. It speaks the same
 chat-completions wire format as the OpenAI API, so every OpenAI SDK, framework
@@ -53,8 +53,17 @@ adapter, and agent runtime already knows how to talk to it. The integration is a
 one-line base-URL swap.
 
 ```text
-https://varity.app/v1
+https://ai.varity.app/v1
 ```
+
+`https://ai.varity.app` is the canonical AI Gateway host. `https://varity.app/v1`
+remains a compatibility alias that the edge routes to the same service, so
+existing clients keep working; new integrations should use `ai.varity.app`.
+
+Chat completions are the core, and the same host serves OpenAI-compatible
+[embeddings, image generation and editing, transcription, and
+speech](/ai-gateway/compatibility/) on the models whose `capabilities` advertise
+them.
 
 ## Fastest Path
 
@@ -63,7 +72,7 @@ Set two variables and send a request. This is the whole integration.
   
 
     ```bash
-    curl https://varity.app/v1/chat/completions \
+    curl https://ai.varity.app/v1/chat/completions \
       -H "Authorization: Bearer $VARITY_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{
@@ -83,7 +92,7 @@ Set two variables and send a request. This is the whole integration.
     from openai import OpenAI
 
     client = OpenAI(
-        base_url="https://varity.app/v1",
+        base_url="https://ai.varity.app/v1",
         api_key=os.environ["VARITY_API_KEY"],
     )
 
@@ -103,7 +112,7 @@ Set two variables and send a request. This is the whole integration.
     import OpenAI from "openai";
 
     const client = new OpenAI({
-      baseURL: "https://varity.app/v1",
+      baseURL: "https://ai.varity.app/v1",
       apiKey: process.env.VARITY_API_KEY,
     });
 
@@ -127,18 +136,20 @@ ids come from the Varity catalog, not OpenAI's. See
 `200` plus the live catalog:
 
 ```bash
-curl https://varity.app/v1/models
+curl https://ai.varity.app/v1/models
 ```
 
 ```json
 {
   "object": "list",
+  "privacy_scope": "anonymized",
   "data": [
     {
       "id": "glm-5-2",
       "display_name": "GLM 5.2",
       "object": "model",
       "owned_by": "varity",
+      "maker": { "key": "zai", "label": "Z.ai" },
       "capabilities": {
         "chat_completions": true,
         "tool_calls": false,
@@ -163,18 +174,21 @@ curl https://varity.app/v1/models
 }
 ```
 
-The gateway also exposes an unauthenticated health probe:
+The gateway also exposes unauthenticated health and readiness probes on the
+canonical host:
 
 ```bash
-curl https://varity.app/health
+curl https://ai.varity.app/healthz
+curl https://ai.varity.app/readyz
 ```
 
 ```text
-{ "status": "healthy", "service": "varity-gateway", "version": "<deployed build>" }
+{ "status": "ok", "service": "varity-ai-gateway", "version": "<deployed build>", "source_commit": "<commit>" }
 ```
 
-The `version` field reports the deployed gateway build; re-probe for the current
-one rather than pinning it in your own config.
+`/readyz` adds `servable` and `published` model counts. The `version` field
+reports the deployed gateway build; re-probe for the current one rather than
+pinning it in your own config.
 
 ## Authentication
 
@@ -188,13 +202,13 @@ Create keys in the [Developer Portal settings page](https://developer.store.vari
 at creation and is never returned again. The same key format is used across the
 Varity [public API](/ai-tools/api-reference/).
 
-Auth is enforced on `/v1/chat/completions`. A request with no `Authorization`
+Auth is enforced on every inference route. A request with no `Authorization`
 header returns `401`:
 
 ```json
 {
   "error": {
-    "message": "A Bearer API key is required.",
+    "message": "A bearer credential is required.",
     "type": "authentication_error",
     "code": "authentication_required",
     "param": null,
@@ -220,7 +234,7 @@ per model rather than assuming it is universal.
   
 
     ```bash
-    curl https://varity.app/v1/chat/completions \
+    curl https://ai.varity.app/v1/chat/completions \
       -H "Authorization: Bearer $VARITY_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{
@@ -304,8 +318,8 @@ budget; the policy is served live and can change.
 
 ## Next Steps
 
-- **[Models](/ai-gateway/models/)**: the full live catalog with context windows, limits, and prices
-- **[Compatibility](/ai-gateway/compatibility/)**: exactly what the OpenAI surface includes and excludes
+- **[Models](/ai-gateway/models/)**: the full live catalog with makers, context windows, limits, and prices
+- **[Compatibility](/ai-gateway/compatibility/)**: exactly what the OpenAI surface includes and excludes, plus the key, billing, and privacy-policy routes
 - **[Public API Reference](/ai-tools/api-reference/)**: the `/api` platform contract for deploys and operations
 
 ---
@@ -319,24 +333,28 @@ Description: Exactly which parts of the OpenAI API surface the Varity AI Gateway
 This page states the boundary. An exclusion you discover at runtime instead of
 reading it here is a documentation bug. If you hit one, report it.
 
-Everything below was checked against the live gateway at `https://varity.app/v1`.
+Everything below was checked against the live gateway at
+`https://ai.varity.app/v1`, its canonical host, and against the contract it
+publishes at `GET /v1/openapi.json`. `https://varity.app/v1` is a compatibility
+alias routed to the same service and serves the same surface.
 
 ## Endpoints
 
 | Endpoint | Status |
 |----------|--------|
-| `POST /v1/chat/completions` | **Supported.** Requires a bearer API key. |
+| `POST /v1/chat/completions` | **Supported.** Requires a bearer API key. Streaming and tool-call generation on eligible models. |
 | `GET /v1/models` | **Supported.** Public, no key required. |
+| `POST /v1/embeddings` | **Supported.** Requires a bearer API key. Only a model whose `capabilities.output_modalities` includes `embedding` is routable. |
+| `POST /v1/images/generations` | **Supported.** Requires a bearer API key. Image-capable models only; results are returned inline as base64 and never stored. |
+| `POST /v1/images/edits` | **Supported.** Requires a bearer API key. JSON with base64 image data (`image/png`, `image/jpeg`, `image/webp`); a source image or mask at or above 25 MB is rejected. |
+| `POST /v1/audio/transcriptions` | **Supported.** Requires a bearer API key. JSON with the audio as a base64 typed part; the model must advertise `capabilities.transcription`. Returns JSON, or plain text when `response_format` is `text`. No streaming mode. |
+| `POST /v1/audio/speech` | **Supported.** Requires a bearer API key. The model must advertise `capabilities.speech` and the format must be one of its `capabilities.speech_formats`. Returns audio bytes with a matching `audio/*` content type; `stream: true` gives a chunked binary response, not SSE. |
 | `GET /v1/models/{id}` | **Not implemented.** Returns `404`. Fetch the list and filter client-side. |
 | `POST /v1/completions` (legacy text completions) | **Not implemented.** Returns `404`. |
 | `POST /v1/responses` | **Not implemented.** Returns `404`. |
-| `POST /v1/embeddings` | **Not implemented.** Returns `404`. |
 | `/v1/assistants` | **Not implemented.** Returns `404`. |
 | `/v1/files` | **Not implemented.** Returns `404`. |
 | `/v1/vector_stores` | **Not implemented.** Returns `404`. |
-| `POST /v1/images/generations` | **Not implemented.** Returns `404`. |
-| `POST /v1/audio/speech` | **Not implemented.** Returns `404`. |
-| `POST /v1/audio/transcriptions` | **Not implemented.** Returns `404`. |
 | `POST /v1/moderations` | **Not implemented.** Returns `404`. |
 | `/v1/batches` | **Not implemented.** Returns `404`. |
 | `/v1/fine_tuning/jobs` | **Not implemented.** Returns `404`. |
@@ -350,25 +368,48 @@ them, but they are public and stable.
 | `GET /v1/openapi.json` | **Supported.** Public, no key required. The machine-readable contract for this surface, including the data-handling block below. |
 | `GET /v1/inference/requests` | **Supported.** Requires a bearer API key. Per-request metadata. |
 | `GET /v1/inference/usage` | **Supported.** Requires a bearer API key. |
-| `GET /v1/inference/policy` | **Supported.** Requires a bearer API key. |
+| `GET /v1/inference/policy` | **Supported.** Requires a bearer API key. Returns the privacy floor (`private` or `anonymized`) enforced for the account; with a scoped key the key's effective floor is reported beside it. |
 | `GET /v1/inference/performance` | **Supported.** Requires a bearer API key. Accepts `window` of `1h`, `24h`, `7d`, or `30d`. |
 
-For the OpenAI-compatible surface, the gateway is a **chat-completions gateway**. Text generation is the product;
-embeddings, files, assistants, batch, fine-tuning, images, audio, and moderation
-are not part of it. Unimplemented routes return an HTML `404` page, not a JSON
-error envelope. A client that assumes every failure parses as JSON throws a
-parse error rather than surfacing a clean status. Branch on the HTTP status
-code, not on the body.
+### Account routes
 
-A non-`/v1` health probe is also available:
+The AI Gateway host also serves the account routes for its own keys, prepaid
+balance, and privacy entitlement. These require a Developer Portal session token
+as the bearer credential; an inference API key is refused on them.
 
 | Endpoint | Status |
 |----------|--------|
-| `GET /health` | **Supported.** Public. Returns `{"status":"healthy","service":"varity-gateway","version":"<deployed build>"}` (the version tracks the deployed build; re-probe for the current one). |
+| `GET /v1/keys` | **Supported.** Secret-free list of the account's inference keys. |
+| `POST /v1/keys` | **Supported.** Mints an inference-only key; the plaintext is returned exactly once. |
+| `GET /v1/keys/audit` | **Supported.** Secret-free key lifecycle events. Accepts `limit`. |
+| `POST /v1/keys/{id}/revoke` | **Supported.** Revokes one of the account's own keys. |
+| `PUT /v1/inference/policy` | **Supported.** Enables or revokes anonymized-route access for the account. `private` is the default. |
+| `GET /v1/billing/balance` | **Supported.** The prepaid Gateway balance. |
+| `GET /v1/billing/transactions` | **Supported.** Balance transactions. Accepts `limit` and `offset`. |
+| `PATCH /v1/billing/settings` | **Supported.** Monthly spending limit and auto-reload. |
+| `POST /v1/billing/top-up` | **Supported.** Starts a checkout that funds the balance. Minimum and maximum amounts, and the no-funding-fee rule, are stated on the live contract. |
+
+The same keys can also be created from the platform API with
+`POST /api/api-keys/inference`; see the
+[Public API Reference](/ai-tools/api-reference/).
+
+Hosted tool execution, batch, files, assistants, fine-tuning, and moderation
+are not part of the surface. Unimplemented routes return `404` with the JSON
+error envelope below (`code: "invalid_request"`, message `Route not found.`).
+Branch on the HTTP status code, not on the message text.
+
+Unauthenticated health and readiness probes are available outside `/v1` on the
+canonical host:
+
+| Endpoint | Status |
+|----------|--------|
+| `GET /healthz` | **Supported.** Public. Returns `{"status":"ok","service":"varity-ai-gateway","version":"<deployed build>","source_commit":"<commit>"}` (re-probe for the current build rather than pinning it). |
+| `GET /readyz` | **Supported.** Public. Same fields plus `servable`, `published`, and `minimum_servable` model counts. |
 
 Any OpenAI SDK helper that touches an unimplemented route will fail, including
-`client.embeddings.create(...)`, the Assistants and Responses APIs, and file
-upload helpers. Only the `chat.completions` and `models` namespaces work.
+the Assistants and Responses APIs, file upload helpers, and batch. The
+`chat.completions`, `models`, `embeddings`, `images`, and `audio` namespaces
+work, on the models whose `capabilities` advertise them.
 
 ## Per-Model Capabilities
 
@@ -378,10 +419,12 @@ against one model can be unsupported on another.
 
 | Capability | Models supporting it |
 |------------|----------------------|
-| `chat_completions` | Every model in the current catalog |
-| `streaming` | Most, but not all, catalog models |
-| `tool_calls` | A subset of the catalog |
-| `streaming_tool_calls` | A smaller subset of the catalog |
+| `chat_completions` | The chat models; image, audio, and embedding models report `false` |
+| `streaming` | Most, but not all, chat models |
+| `tool_calls` | A subset of the chat models |
+| `streaming_tool_calls` | A smaller subset; absent on a few entries, which means unproven, not unsupported |
+| `output_modalities` | `text`, `embedding`, `image`, or `audio`: the route a model belongs on |
+| `transcription`, `speech` | The audio models, each on exactly one of the two audio routes |
 
 ### Tool calling is the exception, not the default
 
@@ -463,13 +506,14 @@ assert against it in CI rather than taking a page's word for it.
 |-------|-------|
 | `inference_metadata_retention_days` | `30` |
 | `stored_content` | `[]` |
-| `content_never_stored` | `prompts`, `responses`, `tool_arguments`, `uploaded_content`, `playground_conversations` |
+| `content_never_stored` | `prompts`, `responses`, `tool_arguments`, `uploaded_content`, `generated_image_bytes`, `playground_conversations` |
+| `generated_image_retention` | `inline_only` |
 | `financial_and_security_records` | `separate_retention_classes` |
 
-Prompt and response bodies are never written to the inference records. What is
-retained for 30 days is request metadata: model and provider identifiers, token
-counts, latency, fallback count, error code, and timestamps. Read it back with
-`GET /v1/inference/requests`.
+Prompt, response, uploaded, and generated-image bytes are never written to the
+inference records. What is retained for 30 days is request metadata: model id,
+token counts, latency, fallback count, error code, and timestamps. Read it back
+with `GET /v1/inference/requests`.
 
 This is the property usually searched for as zero data retention, or ZDR.
 
@@ -492,36 +536,46 @@ model; there is no route choice to make at request time.
 ## AI Gateway Models
 
 URL: https://docs.varity.so/ai-gateway/models/
-Description: Ids, context windows, completion limits, tool-calling and streaming support, and per-token pricing in the live Varity AI Gateway model catalog.
+Description: Ids, makers, modalities, context windows, completion limits, tool-calling and streaming support, and per-unit pricing in the live Varity AI Gateway model catalog.
 
 The catalog is served live. This page is a snapshot of it; the endpoint is the
 source of truth:
 
 ```bash
-curl https://varity.app/v1/models
+curl https://ai.varity.app/v1/models
 ```
 
 `GET /v1/models` is public and needs no API key. It returns an OpenAI-shaped
-`{ "object": "list", "data": [...] }` response. Varity adds fields OpenAI does
-not return: `display_name`, `capabilities`, `context_window`,
-`max_completion_tokens`, `privacy`, `privacy_routes`, `availability`, and
-`customer_pricing`.
+`{ "object": "list", "data": [...] }` response plus a top-level
+`privacy_scope`, the privacy floor the public catalog is projected at
+(`"anonymized"` on this unauthenticated route). Varity adds fields OpenAI does
+not return on each entry: `display_name`, `maker`, `capabilities`,
+`context_window`, `max_completion_tokens`, `privacy`, `privacy_routes`,
+`availability`, `refreshed_at`, and `customer_pricing`.
 
 Do not hardcode the catalog. Resolve models at runtime from `/v1/models` and read
 `capabilities` per model. The catalog changes without a docs release.
 
 ## Catalog
 
-The live catalog currently reports `availability.status: "available"` and
-`chat_completions: true` on every entry, but neither is a promise: read both per
-model from the endpoint rather than from this page.
+The catalog is not chat-only. Each entry's `capabilities.output_modalities`
+says what the model produces: `text` (chat completions), `embedding`, `image`,
+or `audio` (speech). Transcription models take `audio` in and return `text`.
+The live catalog currently reports `availability.status: "available"` on every
+entry, but that is not a promise: read it per model from the endpoint rather
+than from this page.
 
-Pass an entry's `id` verbatim as the `model` field of a chat-completions request.
-Ids are readable human slugs, for example `glm-5-2`, `llama-3-3-70b`, and
-`claude-opus-5`. `display_name` is a separate human label, not an identifier.
+Pass an entry's `id` verbatim as the `model` field of a request on the matching
+route. Ids are readable human slugs, for example `glm-5-2`, `llama-3-3-70b`, and
+`gpt-4o`. `display_name` is a separate human label, not an identifier.
 
-Prices are USD per million tokens, taken from each model's `customer_pricing`
-object.
+`maker` says who built the model, never who serves it (`owned_by` is always
+`varity`). It carries a stable slug `key` and a human `label`; the key is
+`unreported`, with the label `Maker not published`, when no maker evidence was
+observed.
+
+Prices are USD, taken from each model's `customer_pricing` object, and the
+`unit` differs by modality: see [Pricing](#pricing) below.
 
 This page carries no model table on purpose. A snapshot of ids, context windows,
 capabilities, and prices is stale the moment the catalog changes, so query
@@ -535,10 +589,16 @@ Each entry in `data` carries these Varity fields:
 |-------|------|-------|
 | `id` | string | Pass this as `model` in a request |
 | `display_name` | string | Human label only, never an identifier |
-| `capabilities.chat_completions` | boolean | `true` on every model in the current catalog; read it per model |
+| `maker.key` | string | Stable slug of who built the model, for example `zai`; `unreported` when unknown |
+| `maker.label` | string | Human maker label, for example `Z.ai` |
+| `capabilities.input_modalities` | array | What a request may carry: `text`, `image`, `document`, `audio`, `video` |
+| `capabilities.output_modalities` | array | What the model produces: `text`, `embedding`, `image`, `audio` |
+| `capabilities.chat_completions` | boolean | `true` on the chat models only; image, audio, and embedding models report `false`. Read it per model |
 | `capabilities.tool_calls` | boolean | Supported on a subset of the catalog; read it per model |
-| `capabilities.streaming` | boolean | Supported on most, not all, catalog models; read it per model |
-| `capabilities.streaming_tool_calls` | boolean | Narrower than `streaming`; read it per model |
+| `capabilities.streaming` | boolean | Supported on most, not all, chat models; read it per model |
+| `capabilities.streaming_tool_calls` | boolean | Narrower than `streaming`; read it per model. Absent on a few entries, which means unproven, not unsupported |
+| `capabilities.transcription` | boolean | `true` when `POST /v1/audio/transcriptions` accepts the model |
+| `capabilities.speech` | boolean | `true` when `POST /v1/audio/speech` accepts the model; `speech_formats` lists its output formats |
 | `context_window` | integer | Total tokens, input plus output |
 | `max_completion_tokens` | integer | Ceiling on generated tokens |
 | `privacy` | string | Routing privacy class. The live catalog contains both `"private"` and `"anonymized"` entries |
@@ -549,13 +609,15 @@ Each entry in `data` carries these Varity fields:
 
 ### Pricing
 
-Every model returns `customer_pricing.status: "configured"` with concrete
-numbers:
+Every model in the current catalog returns `customer_pricing.status: "configured"`
+with concrete numbers. The schema also allows `status: "not_configured"`, which
+carries no other fields, so branch on `status` before reading a rate:
 
 ```json
 "customer_pricing": {
   "status": "configured",
   "version": "2026-07-28.v3.d74e3f5155b10314",
+  "observed_at": "2026-08-01T02:30:58.677Z",
   "currency": "usd",
   "unit": "per_million_tokens",
   "input": 1.47,
@@ -564,10 +626,23 @@ numbers:
 }
 ```
 
-`cached_input` equals `input` on every model in the current catalog. Cached
-input tokens are not discounted today. Always read `unit` and `currency` rather
-than assuming; the `version` string identifies the price set the numbers came
-from.
+`currency` is always `usd`. `unit` takes one of four values, and it decides
+which fields carry the rate:
+
+| `unit` | Models | Where the rate is |
+|--------|--------|-------------------|
+| `per_million_tokens` | Chat and embedding models | `input` and `output` per million tokens; `cached_input` for cached prompt tokens |
+| `per_image` | Image generation and editing models | `request`, a flat price per generated image; `input`, `output`, and `cached_input` are `0` |
+| `per_million_characters` | Speech models | `input` per million characters of text; `output` and `cached_input` are `0` |
+| `per_audio_second` | Transcription models | `input` per second of audio; `output` and `cached_input` are `0` |
+
+`request` is present only on `per_image` entries. `cached_input` equals
+`input` on every token-priced model in the current catalog, so cached input
+tokens are not discounted today. Always read `unit` and `currency` rather than
+assuming; the `version` string identifies the immutable price set the numbers
+came from and `observed_at` says when the gateway last observed it. Rates are
+the current managed rate for the model's preferred route, not a permanent
+guarantee: each admitted request snapshots its own price before it runs.
 
 Input and output prices both vary widely across the catalog and change with it,
 so read `customer_pricing` per model instead of carrying a range from this page.
@@ -582,7 +657,7 @@ large answer, so read both fields per model.
 
 - **Need tool calling?** Only a subset of the catalog accepts `tools` / `tool_choice`, and fewer support them while streaming. Read `capabilities.tool_calls` and `capabilities.streaming_tool_calls` per model, and see [Compatibility](/ai-gateway/compatibility/).
 - **Need a very large context?** Sort the live catalog by `context_window`. The Grok 4.20 entries (`grok-4-20`, `grok-4-20-multi-agent`) have the widest windows in the current catalog, but read the field rather than assuming.
-- **Cost sensitive?** Compare `customer_pricing.input` across the live catalog. `glm-4-7-flash` has the lowest input rate in the current catalog.
+- **Cost sensitive?** Compare `customer_pricing.input` across the live catalog, within one `unit`. Embedding models carry the lowest token rates; among chat models, `mercury-2-5` and `glm-4-7-flash` have the lowest input rates in the current catalog.
 
 There is no per-model retrieval route. `GET /v1/models/{id}` returns `404`; fetch
 the list and filter it client-side.
@@ -618,18 +693,20 @@ Varity exposes two public base URLs:
 https://varity.app/api
 ```
 
-**AI Gateway** covers OpenAI-compatible inference. Chat completions and model listing:
+**AI Gateway** covers OpenAI-compatible inference: chat completions, embeddings, images, audio, and model listing:
 
 ```text
-https://varity.app/v1
+https://ai.varity.app/v1
 ```
+
+`https://varity.app/v1` remains a compatibility alias routed to the same service.
 
 These are two different products with two different contracts:
 
 - **`/api/*` is the platform surface.** Resource CRUD for deployments, machines, templates, pricing, credits, keys, and webhooks. Everything on this page. Errors use the [Varity error envelope](/api/errors/).
-- **`/v1/*` is the OpenAI-compatible inference surface.** Chat completions and model listing. Point any OpenAI client at it by setting the base URL. It has its own error shape and its own rate limits, documented in the [AI Gateway](/ai-gateway/) docs. Nothing on this page applies to it.
+- **`/v1/*` is the OpenAI-compatible inference surface.** Chat completions, embeddings, images, audio, and model listing. Point any OpenAI client at it by setting the base URL. It has its own error shape and its own rate limits, documented in the [AI Gateway](/ai-gateway/) docs. Nothing on this page applies to it.
 
-A single Varity API key does not automatically work on both surfaces: keys are scoped per product, and using one out of scope returns `403 credential_scope_violation`. Create AI Gateway keys in the Developer Portal, or via `POST /api/api-keys/inference`.
+A single Varity API key does not automatically work on both surfaces: keys are scoped per product, and using one out of scope returns `403 credential_scope_violation`. Create AI Gateway keys in the Developer Portal, via `POST /api/api-keys/inference`, or via `POST /v1/keys` on the AI Gateway host with a Portal session.
 
 For non-browser callers, send your Varity API key as a bearer credential:
 
@@ -2013,7 +2090,7 @@ Some limits are enforced by the resource contract rather than by a request budge
 
 Account-level quotas on concurrent deployments and spend are governed by your billing state, not by these request budgets. A request that is refused for billing reasons returns `402 billing_or_credit_required`, not `429`.
 
-The AI Gateway (`https://varity.app/v1`) is a separate surface with its own independent rate-limit, concurrency, and budget admission controls. Limits documented here do not apply to it. See the [AI Gateway](/ai-gateway/) docs.
+The AI Gateway (`https://ai.varity.app/v1`) is a separate surface with its own independent rate-limit, concurrency, and budget admission controls. Limits documented here do not apply to it. See the [AI Gateway](/ai-gateway/) docs.
 
 ## Next Steps
 
@@ -7664,7 +7741,7 @@ Varity automatically detects AI agent apps and configures the right hosting for 
 
 If your agent uses a local language model (via the `ollama` package), Varity detects it and auto-provisions a model server alongside your app. No extra setup required.
 
-The examples below point at `https://varity.app/v1`, Varity's OpenAI-compatible endpoint, so the model call and the deployment are billed to the same account and use the same key. Any OpenAI-compatible client works by changing `base_url`. See [AI Gateway](/ai-gateway/) for the model catalog, or keep your own provider's key if you prefer.
+The examples below point at `https://ai.varity.app/v1`, Varity's OpenAI-compatible endpoint, so the model call and the deployment are billed to the same account and use the same key. Any OpenAI-compatible client works by changing `base_url`. See [AI Gateway](/ai-gateway/) for the model catalog, or keep your own provider's key if you prefer.
 
 ## One-Click Agent Templates
 
@@ -7722,7 +7799,7 @@ This example builds a simple agent endpoint that accepts a prompt and returns a 
 
    app = FastAPI()
    client = openai.OpenAI(
-       base_url="https://varity.app/v1",
+       base_url="https://ai.varity.app/v1",
        api_key=os.environ["VARITY_API_KEY"],
    )
 
@@ -7799,7 +7876,7 @@ This example builds an Express API that wraps the OpenAI API.
    app.use(express.json());
 
    const client = new OpenAI({
-     baseURL: 'https://varity.app/v1',
+     baseURL: 'https://ai.varity.app/v1',
      apiKey: process.env.VARITY_API_KEY,
    });
 

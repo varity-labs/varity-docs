@@ -20,7 +20,7 @@ If your agent uses a local language model (via the `ollama` package), Varity det
 </Aside>
 
 <Aside type="tip" icon="approve-check" title="This uses Varity's own AI Gateway">
-The examples below point at `https://varity.app/v1`, Varity's OpenAI-compatible endpoint, so the model call and the deployment are billed to the same account and use the same key. Any OpenAI-compatible client works by changing `base_url`. See [AI Gateway](/ai-gateway/) for the model catalog, or keep your own provider's key if you prefer.
+The examples below point at `https://ai.varity.app/v1`, Varity's OpenAI-compatible endpoint, so the model call and the deployment are billed to the same account and use the same key. Any OpenAI-compatible client works by changing `base_url`. See [AI Gateway](/ai-gateway/) for the model catalog, or keep your own provider's key if you prefer.
 </Aside>
 
 ## One-Click Agent Templates
@@ -83,7 +83,7 @@ This example builds a simple agent endpoint that accepts a prompt and returns a 
 
    app = FastAPI()
    client = openai.OpenAI(
-       base_url="https://varity.app/v1",
+       base_url="https://ai.varity.app/v1",
        api_key=os.environ["VARITY_API_KEY"],
    )
 
@@ -164,7 +164,7 @@ This example builds an Express API that wraps the OpenAI API.
    app.use(express.json());
 
    const client = new OpenAI({
-     baseURL: 'https://varity.app/v1',
+     baseURL: 'https://ai.varity.app/v1',
      apiKey: process.env.VARITY_API_KEY,
    });
 

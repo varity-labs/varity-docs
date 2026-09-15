@@ -4776,8 +4776,18 @@
               },
               "docker_context_path": {
                 "type": "string"
+              },
+              "git_token": {
+                "type": "string",
+                "writeOnly": true,
+                "description": "Private-repo clone token, sent to deploy-api as git_token; also accepted at the top level as githubToken, github_token, gitToken, or git_token."
               }
             }
+          },
+          "git_token": {
+            "type": "string",
+            "writeOnly": true,
+            "description": "Private-repo clone token. Also accepted as githubToken, github_token, or gitToken; forwarded to deploy-api as git_token."
           },
           "image": {
             "type": "object",
