@@ -13,7 +13,7 @@
  * https://varity.app/api/openapi.json (the platform resource API that
  * public/openapi.yaml has always mirrored), refreshed by `--refresh-mirror`.
  * The AI Gateway inference contract is a DIFFERENT document
- * (https://varity.app/v1/openapi.json, "Varity Managed Inference API"); it is
+ * (https://ai.varity.app/v1/openapi.json, "Varity AI Gateway API"); it is
  * documented on the AI Gateway pages and is intentionally not this artifact.
  *
  * Usage:
