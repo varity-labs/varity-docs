@@ -69,10 +69,10 @@ const EVENT_DETAILS = Object.freeze({
     count_bucket: new Set(['0', '1', '2-5', '6-10', '11+']),
   }),
   docs_cta_click: Object.freeze({
-    cta: new Set(['start-deploying', 'setup-mcp', 'portal-home', 'portal-settings', 'portal-deploy']),
+    cta: new Set(['start-deploying', 'setup-mcp', 'portal-home', 'portal-settings', 'portal-deploy', 'portal-ai-gateway']),
   }),
   docs_portal_handoff: Object.freeze({
-    handoff: new Set(['home', 'settings', 'deploy']),
+    handoff: new Set(['home', 'settings', 'deploy', 'ai-gateway']),
   }),
 });
 
@@ -112,6 +112,7 @@ const PORTAL_PATHS = Object.freeze({
   '/': Object.freeze({ handoff: 'home', cta: 'portal-home' }),
   '/dashboard/settings': Object.freeze({ handoff: 'settings', cta: 'portal-settings' }),
   '/dashboard/deploy': Object.freeze({ handoff: 'deploy', cta: 'portal-deploy' }),
+  '/dashboard/ai-gateway': Object.freeze({ handoff: 'ai-gateway', cta: 'portal-ai-gateway' }),
 });
 
 function plainObject(value) {

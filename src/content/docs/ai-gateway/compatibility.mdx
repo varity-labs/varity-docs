@@ -50,7 +50,7 @@ them, but they are public and stable.
 | Endpoint | Status |
 |----------|--------|
 | `GET /v1/openapi.json` | **Supported.** Public, no key required. The machine-readable contract for this surface, including the data-handling block below. |
-| `GET /v1/inference/requests` | **Supported.** Requires a bearer API key. Per-request metadata. |
+| `GET /v1/inference/requests` | **Supported.** Requires a bearer API key. Per-request metadata. `created_after` and `created_before` take RFC 3339 timestamps; send them with fractional seconds, for example `2026-09-16T00:00:00.000Z`. |
 | `GET /v1/inference/usage` | **Supported.** Requires a bearer API key. |
 | `GET /v1/inference/policy` | **Supported.** Requires a bearer API key. Returns the privacy floor (`private` or `anonymized`) enforced for the account; with a scoped key the key's effective floor is reported beside it. |
 | `GET /v1/inference/performance` | **Supported.** Requires a bearer API key. Accepts `window` of `1h`, `24h`, `7d`, or `30d`. |
@@ -159,25 +159,28 @@ The error envelope matches OpenAI's shape and adds two fields:
 ```json
 {
   "error": {
-    "message": "The API key is invalid or revoked.",
+    "message": "The provided credential is invalid or expired.",
     "type": "authentication_error",
-    "code": "invalid_api_key",
+    "code": "authentication_required",
     "param": null,
     "retryable": false,
-    "request_id": "626e1d39-9b9b-46d6-8781-1dc280dfe85c"
+    "request_id": "504f4a24-1427-4483-89fe-ad332fdad5d6"
   }
 }
 ```
 
 - `retryable` is a boolean OpenAI does not send. Use it instead of guessing from the status code whether to retry.
-- `request_id` is also returned as the `x-request-id` response header on every response, successful or not.
+- `request_id` is also returned as the `x-request-id` response header on every response, successful or not. The gateway generates it; a caller-supplied `x-request-id` header is not echoed.
 
 Observed authentication codes:
 
-| Condition | Status | `code` |
-|-----------|--------|--------|
-| No `Authorization` header | `401` | `authentication_required` |
-| Invalid or revoked key | `401` | `invalid_api_key` |
+| Condition | Status | `code` | `message` |
+|-----------|--------|--------|-----------|
+| No `Authorization` header | `401` | `authentication_required` | `A bearer credential is required.` |
+| Invalid, revoked, or expired key | `401` | `authentication_required` | `The provided credential is invalid or expired.` |
+
+Both conditions share one `code`; only the message differs, and messages are not
+a stable contract.
 
 Authentication is evaluated **before** request-body validation, so an
 unauthenticated request with an invalid `model` returns the authentication

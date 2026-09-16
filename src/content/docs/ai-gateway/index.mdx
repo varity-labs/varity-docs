@@ -166,8 +166,10 @@ Inference requests require a Varity API key sent as a bearer credential:
 Authorization: Bearer $VARITY_API_KEY
 ```
 
-Create keys in the [Developer Portal settings page](https://developer.store.varity.so/dashboard/settings?utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=ai-gateway-api-keys). Key plaintext is shown once
-at creation and is never returned again. The same key format is used across the
+Create keys on the Developer Portal's [AI Gateway page](https://developer.store.varity.so/dashboard/ai-gateway?utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=ai-gateway-api-keys), under the
+**Inference keys** tab. Key plaintext is shown once
+at creation and is never returned again; the list identifies each key by its
+key id (`vki_…`). The same key format is used across the
 Varity [public API](/ai-tools/api-reference/).
 
 Auth is enforced on every inference route. A request with no `Authorization`
@@ -186,8 +188,10 @@ header returns `401`:
 }
 ```
 
-A malformed or revoked key returns `401` with `code: "invalid_api_key"` and the
-message `The API key is invalid or revoked.`
+A malformed, revoked, or expired key also returns `401` with
+`code: "authentication_required"`; only the message differs:
+`The provided credential is invalid or expired.` Treat any `401` as "send a
+valid key" rather than branching on the message text.
 
 <Aside type="note">
 Authentication is checked before the request body is validated. An unauthenticated
@@ -265,13 +269,14 @@ Errors use the OpenAI error envelope, with two Varity additions: `retryable` and
 |-------|---------|
 | `error.message` | Human-readable description |
 | `error.type` | Error class, for example `authentication_error` |
-| `error.code` | Stable machine code, for example `invalid_api_key` |
+| `error.code` | Stable machine code, for example `authentication_required` |
 | `error.param` | Offending request field, or `null` |
 | `error.retryable` | Whether retrying the same request can succeed |
 | `error.request_id` | Correlation id, also returned as the `x-request-id` response header |
 
 Quote `request_id` in any support request. It is present on both the response
 body and the `x-request-id` header on every response, including successful ones.
+The gateway generates it; a caller-supplied `x-request-id` header is not echoed.
 
 ## Rate Limits
 
