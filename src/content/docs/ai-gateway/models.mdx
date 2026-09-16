@@ -68,7 +68,7 @@ Each entry in `data` carries these Varity fields:
 | `display_name` | string | Human label only, never an identifier |
 | `maker.key` | string | Stable slug of who built the model, for example `zai`; `unreported` when unknown |
 | `maker.label` | string | Human maker label, for example `Z.ai` |
-| `capabilities.input_modalities` | array | What a request may carry: `text`, `image`, `document`, `audio`, `video` |
+| `capabilities.input_modalities` | array | What a request may carry: `text`, `image`, `audio`, `video`. `document` input is not currently routed: no model advertises it, and a `document` content part is rejected with `400 input_modality_unsupported` |
 | `capabilities.output_modalities` | array | What the model produces: `text`, `embedding`, `image`, `audio` |
 | `capabilities.chat_completions` | boolean | `true` on the chat models only; image, audio, and embedding models report `false`. Read it per model |
 | `capabilities.tool_calls` | boolean | Supported on a subset of the catalog; read it per model |
