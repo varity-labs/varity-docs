@@ -80,6 +80,24 @@ The default self-service policy is 120 requests per minute over a fixed
 either bound is refused at admission, before any model provider is called, so a
 refused request costs nothing.
 
+Both refusals are `429`, and both pace you — but not with the same header set,
+because they are not the same kind of bound:
+
+| Header | `rate_limit_exceeded` | `concurrency_limit_exceeded` | `upstream_rate_limited` |
+|--------|----------------------|------------------------------|--------------------------|
+| `Retry-After` | yes — the window (`60`) | yes — the nearest in-flight deadline | only if the provider published its own reset |
+| `RateLimit-Limit` | yes | yes | no |
+| `RateLimit-Remaining` | `0` | `0` | no |
+| `RateLimit-Reset` | yes — same value as `Retry-After` | yes — same value as `Retry-After` | no |
+| `RateLimit-Policy` | yes — `120;w=60` | **no** — the bound has no window | no |
+
+Each bound also exists at two scopes. The account's bound is reported with the
+message `The tenant request rate limit is exhausted.` /
+`The tenant concurrency limit is exhausted.`; a key carrying its own lower
+override reports `The API key …` instead. The `code` is identical either way,
+so branch on `code` and read `GET /v1/inference/policy` to see which bound
+applies to you.
+
 ### `rate_limit_exceeded`
 
 ```json
@@ -130,21 +148,36 @@ ratelimit-policy: 120;w=60
 }
 ```
 
-Status `429`. It carries **only two** headers:
+Status `429`. It carries a limit, a remaining, and a retry instant — but no
+policy:
 
 ```text
+retry-after: 37
 ratelimit-limit: 4
 ratelimit-remaining: 0
+ratelimit-reset: 37
 ```
 
+`Retry-After` and `RateLimit-Reset` name the same instant here, and it is not a
+guess: every in-flight request carries the deadline it is contracted to settle
+by, the serving replica aborts at that deadline, and the refusal reports the
+**nearest** of them — the soonest moment a slot can free. Treat it as an upper
+bound on the wait: a slot usually frees earlier, when a request simply
+finishes.
+
 <Aside type="note">
-There is no `Retry-After`, `RateLimit-Reset`, or `RateLimit-Policy` on a
-concurrency refusal, and that is deliberate rather than an omission. A
-concurrency bound is not counted over a window, so it has no reset instant to
-report. The gateway publishes what it observed and nothing else; an invented
-`Retry-After` is worse than none, because a client obeys it. Retry when one of
-your own in-flight requests finishes.
+`RateLimit-Policy` is deliberately **absent** on a concurrency refusal, and it
+is the only pacing header that is. The header's `w` parameter is mandatory and
+names the window the limit is counted over — but a concurrency bound is not
+counted over a window at all. Four in flight is not four per anything. Emitting
+`4;w=37` would assert a throughput policy that does not exist, and a client
+would then pace itself by it. The per-minute refusal, which *is* windowed,
+carries `ratelimit-policy: 120;w=60`.
 </Aside>
+
+If no in-flight deadline could be read, `Retry-After` and `RateLimit-Reset` are
+both omitted rather than guessed. Fall back to your own backoff when they are
+not present.
 
 ### `upstream_rate_limited`
 
@@ -251,16 +284,11 @@ def call(url, **kw):
         if r.status_code != 429:
             return r
 
-        body = r.json().get("error", {})
-        if body.get("code") == "concurrency_limit_exceeded":
-            # No reset instant exists for a concurrency bound. Back off locally
-            # and reduce how many requests you keep in flight.
-            wait = min(2 ** attempt, 30)
-        else:
-            # rate_limit_exceeded and upstream_rate_limited state their window
-            # when they know it.
-            wait = float(r.headers.get("Retry-After", 2 ** attempt))
-
+        # Every 429 states its own wait when it knows one: a window for the
+        # per-minute bound, the nearest in-flight deadline for the concurrency
+        # bound, the provider's reset for upstream_rate_limited. Fall back to
+        # local backoff only when the header is absent.
+        wait = float(r.headers.get("Retry-After", 2 ** attempt))
         time.sleep(wait + random.uniform(0, 1))  # jitter
 
     raise RuntimeError("rate limit not cleared")

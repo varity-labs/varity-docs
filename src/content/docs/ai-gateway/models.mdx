@@ -38,9 +38,11 @@ Do not hardcode the catalog. Resolve models at runtime from `/v1/models` and rea
 The catalog is not chat-only. Each entry's `capabilities.output_modalities`
 says what the model produces: `text` (chat completions), `embedding`, `image`,
 or `audio` (speech). Transcription models take `audio` in and return `text`.
-The live catalog currently reports `availability.status: "available"` on every
-entry, but that is not a promise: read it per model from the endpoint rather
-than from this page.
+The live catalog reported `availability.status: "available"` on all 177 entries
+when this page was last checked against it, but that is not a promise: read it
+per model from the endpoint rather than from this page. See
+[Availability is withheld, not assumed](#availability-is-withheld-not-assumed)
+for what the other statuses mean.
 
 Pass an entry's `id` verbatim as the `model` field of a request on the matching
 route. Ids are readable human slugs, for example `glm-5-2`, `llama-3-3-70b`, and
@@ -80,9 +82,44 @@ Each entry in `data` carries these Varity fields:
 | `max_completion_tokens` | integer | Ceiling on generated tokens |
 | `privacy` | string | Routing privacy class. The live catalog contains both `"private"` and `"anonymized"` entries |
 | `privacy_routes` | array | Route set matching `privacy` |
-| `availability.status` | string | `"available"` on every model, with an `observed_at` timestamp |
+| `availability.status` | string | `"available"`, `"last_known_available"`, `"temporarily_unavailable"`, `"verification_stale"`, or `"unverified"`, with an `observed_at` timestamp and, on the last three, a `reason` |
 | `customer_pricing` | object | See below |
 | `refreshed_at` | string | When the gateway last refreshed the entry |
+
+### Availability Is Withheld, Not Assumed
+
+A model stays listed in `/v1/models` when its routes are unhealthy — it is not
+removed — but it stops claiming to be callable. The gateway publishes a route
+as available only once that route has **succeeded** since its last failure. A
+route whose provider refused Varity's credential, or that failed for any other
+reason, is excluded from the published projection until a real success clears
+it; a routing layer's periodic retry of a failing route is a trial request, not
+evidence of health, and is deliberately not borrowed by the catalog.
+
+When a model has no publishable route left, its entry changes rather than
+disappearing:
+
+| `availability.status` | `reason` | Meaning |
+|-----------------------|----------|---------|
+| `available` | — | A route succeeded recently. Callable. |
+| `last_known_available` | — | The entry is being served from the last good observation; `observed_at` is when that was. |
+| `temporarily_unavailable` | `route_temporarily_unavailable` | Routes exist but none is currently publishable. Expect `503 model_unavailable` if you call it. |
+| `verification_stale` | `route_verification_stale` | The route's capability certification is too old to stand behind. |
+| `unverified` | `route_unverified` | The route was never certified for this capability. |
+
+The affected `capabilities` flags go `false` alongside the status, so a model
+that cannot currently serve chat reports `chat_completions: false` rather than
+advertising a capability the next request would be refused for.
+
+<Aside type="caution">
+This health state is held per gateway replica, in process, and is not shared
+between them. A replica that has observed a route failing will withhold it
+while a replica that has not yet seen one may still publish it, so two reads of
+`/v1/models` seconds apart can legitimately disagree during a provider
+incident. Treat `availability` as a strong hint, not a guarantee, and always
+handle `503 model_unavailable` at call time. We could not observe a divergence
+at the time of writing — every one of the 177 live entries read `available`.
+</Aside>
 
 ### Pricing
 
