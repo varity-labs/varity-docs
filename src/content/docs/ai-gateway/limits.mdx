@@ -80,8 +80,42 @@ The default self-service policy is 120 requests per minute over a fixed
 either bound is refused at admission, before any model provider is called, so a
 refused request costs nothing.
 
-Both refusals are `429`, and both pace you — but not with the same header set,
-because they are not the same kind of bound:
+### Which Bound You Will Actually Meet
+
+In practice, **the concurrency bound is the one that stops you**, and most
+callers will never see the per-minute refusal at all.
+
+The arithmetic is simple. With 4 slots, reaching 120 requests per minute means
+sustaining 2 requests per second, which means every response must come back in
+under 2 seconds. Real chat completions rarely do.
+
+Measured on 2026-09-17 against gateway `0.3.66`, on the cheapest chat model
+with `max_tokens: 1` — about as fast as a real request gets:
+
+| Client concurrency | Requests sent | Result | Elapsed | Effective rate |
+|--------------------|---------------|--------|---------|----------------|
+| 3 | 130 | 130 × `200`, zero `429` | 140.0 s | ≈ 56 / min |
+| 4 | 150 | 150 × `200`, zero `429` | 126.9 s | ≈ 71 / min |
+
+Each request took roughly 3.2 to 3.4 seconds end to end, so 4 slots cap
+throughput near 70 per minute — comfortably under the 120 bound, which is why
+neither run produced a single `rate_limit_exceeded`.
+
+The practical consequences:
+
+- **Size your worker pool to the concurrency limit, not the per-minute one.** A
+  pool of 4 is the account's real ceiling. Widening it past 4 buys no
+  throughput and converts the surplus workers into `429`s.
+- You can still reach the per-minute bound with unusually fast responses, or by
+  spreading work across many keys — but both bounds are **account-scoped**, so
+  extra keys on the same account share the same budget and buy nothing.
+- Read both numbers from `GET /v1/inference/policy` rather than assuming the
+  defaults; an account may be provisioned differently.
+
+### The Two Refusals
+
+Both are `429`, and both pace you — but not with the same header set, because
+they are not the same kind of bound:
 
 | Header | `rate_limit_exceeded` | `concurrency_limit_exceeded` | `upstream_rate_limited` |
 |--------|----------------------|------------------------------|--------------------------|
@@ -131,6 +165,15 @@ ratelimit-policy: 120;w=60
 
 The values track your account's own `requests_per_minute`, so a key with a
 lower override reports that lower number here.
+
+<Aside type="note">
+Unlike the concurrency refusal below, this header block is **derived from the
+gateway source** (`http.ts` `setRateLimitHeaders`, fed by `admission.ts`
+`rpmAdvice`) rather than captured from a live response. Two attempts to provoke
+it on 2026-09-17 could not — the concurrency bound refused the surplus requests
+first, as described above. Trust the header on the response you receive over
+this example.
+</Aside>
 
 ### `concurrency_limit_exceeded`
 
