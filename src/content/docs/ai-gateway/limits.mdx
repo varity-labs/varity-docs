@@ -118,7 +118,8 @@ applies to you.
 }
 ```
 
-Status `429`. It carries the full set of pacing headers:
+Status `429`. It carries the full set of pacing headers, including the policy,
+because this bound *is* counted over a window:
 
 ```text
 retry-after: 60
@@ -128,7 +129,25 @@ ratelimit-reset: 60
 ratelimit-policy: 120;w=60
 ```
 
+The values track your account's own `requests_per_minute`, so a key with a
+lower override reports that lower number here.
+
 ### `concurrency_limit_exceeded`
+
+This one is easy to reproduce: fire more requests at once than the bound
+allows. Twelve concurrent `POST /v1/chat/completions` against one account on
+2026-09-17 (gateway `0.3.66`) returned **4 × `200` and 8 × `429`**, which is
+the concurrency limit of 4 doing exactly what it says.
+
+The `429` below is a verbatim capture from that run, request id
+`32c59a29-5fff-4cf7-8730-f982829c6594`:
+
+```text
+ratelimit-limit: 4
+ratelimit-remaining: 0
+ratelimit-reset: 120
+retry-after: 120
+```
 
 ```json
 {
@@ -137,7 +156,7 @@ ratelimit-policy: 120;w=60
     "type": "rate_limit_error",
     "code": "concurrency_limit_exceeded",
     "param": null,
-    "request_id": "…",
+    "request_id": "32c59a29-5fff-4cf7-8730-f982829c6594",
     "diagnostic_code": "ai_gateway.concurrency_limit_exceeded",
     "failure_cause": "concurrency_limit_exceeded",
     "failure_domain": "varity_projection",
@@ -148,17 +167,19 @@ ratelimit-policy: 120;w=60
 }
 ```
 
-Status `429`. It carries a limit, a remaining, and a retry instant — but no
-policy:
+No `ratelimit-policy` was returned, as described above. The message is the
+account-scoped variant, so this account was held to its own bound rather than
+to a key override.
 
-```text
-retry-after: 37
-ratelimit-limit: 4
-ratelimit-remaining: 0
-ratelimit-reset: 37
-```
+<Aside type="caution">
+**`120` is not the limit, and it is not a constant.** It is the retry value
+*that one response* carried, because the nearest in-flight request at that
+instant was contracted to settle 120 seconds out. Another refusal seconds later
+will carry a different number, and a shorter-deadline workload will carry a much
+smaller one. Read the header every time; never hardcode what you saw once.
+</Aside>
 
-`Retry-After` and `RateLimit-Reset` name the same instant here, and it is not a
+`Retry-After` and `RateLimit-Reset` name the same instant, and it is not a
 guess: every in-flight request carries the deadline it is contracted to settle
 by, the serving replica aborts at that deadline, and the refusal reports the
 **nearest** of them — the soonest moment a slot can free. Treat it as an upper
