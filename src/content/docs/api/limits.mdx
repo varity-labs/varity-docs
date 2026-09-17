@@ -126,9 +126,10 @@ Some limits are enforced by the resource contract rather than by a request budge
 Account-level quotas on concurrent deployments and spend are governed by your billing state, not by these request budgets. A request that is refused for billing reasons returns `402 billing_or_credit_required`, not `429`.
 </Aside>
 
-The AI Gateway (`https://ai.varity.app/v1`) is a separate surface with its own independent rate-limit, concurrency, and budget admission controls. Limits documented here do not apply to it. See the [AI Gateway](/ai-gateway/) docs.
+The AI Gateway (`https://ai.varity.app/v1`) is a separate surface with its own independent rate-limit, concurrency, and budget admission controls. Limits documented here do not apply to it, and its headers differ. See [AI Gateway Rate Limits](/ai-gateway/limits/).
 
 ## Next Steps
 
 - **[API Errors](/api/errors/)**: the error envelope and every verified error code
 - **[Public API Reference](/ai-tools/api-reference/)**: endpoints and examples
+- **[AI Gateway Rate Limits](/ai-gateway/limits/)**: the separate budgets for `ai.varity.app/v1`

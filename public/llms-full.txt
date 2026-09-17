@@ -49,8 +49,15 @@ Description: OpenAI-compatible inference on Varity. Point any OpenAI client at h
 
 The Varity AI Gateway is an OpenAI-compatible inference API. It speaks the same
 chat-completions wire format as the OpenAI API, so every OpenAI SDK, framework
-adapter, and agent runtime already knows how to talk to it. The integration is a
-one-line base-URL swap.
+adapter, and agent runtime already knows how to talk to it. For chat,
+streaming, tool calls, embeddings, image generation, and speech, the
+integration is a one-line base-URL swap.
+
+Two SDK calls are **not** covered by that swap, because they send
+`multipart/form-data` and these routes take JSON: `images.edit` and
+`audio.transcriptions` both answer `415`. Send the bytes as base64 in the JSON
+body instead — the working shapes are in
+[Compatibility](/ai-gateway/compatibility/#the-two-sdk-exceptions).
 
 ```text
 https://ai.varity.app/v1
@@ -308,22 +315,35 @@ The gateway generates it; a caller-supplied `x-request-id` header is not echoed.
 
 ## Rate Limits
 
-`GET /v1/models` returns standard rate-limit headers:
+Inference is bounded two ways at once: **120 requests per minute** and **4
+concurrent requests**, both counted across your whole account rather than per
+key. Crossing either returns `429`, before any model provider is called.
 
-```text
-ratelimit-limit: 120
-ratelimit-policy: 120;w=60
-ratelimit-remaining: 119
-ratelimit-reset: 60
+Read your own numbers instead of hardcoding these defaults:
+
+```bash
+curl https://ai.varity.app/v1/inference/policy \
+  -H "Authorization: Bearer $VARITY_API_KEY"
 ```
 
-That is 120 requests per 60-second window on the catalog endpoint. Read the
-`ratelimit-remaining` and `ratelimit-reset` headers rather than hardcoding a
-budget; the policy is served live and can change.
+```json
+{
+  "object": "inference.tenant_policy",
+  "privacy_floor": "private",
+  "requests_per_minute": 120,
+  "concurrency_limit": 4,
+  "limits_scope": "account"
+}
+```
+
+`GET /v1/models` is public and carries no request budget at all. The budgets,
+the exact headers each refusal returns, and the body-size ceilings are on
+[AI Gateway Rate Limits](/ai-gateway/limits/).
 
 ## Next Steps
 
 - **[Models](/ai-gateway/models/)**: the full live catalog with makers, context windows, limits, and prices
+- **[Rate Limits](/ai-gateway/limits/)**: budgets, concurrency, response headers, and the `429` bodies
 - **[Compatibility](/ai-gateway/compatibility/)**: exactly what the OpenAI surface includes and excludes, plus the key, billing, and privacy-policy routes
 - **[Public API Reference](/ai-tools/api-reference/)**: the `/api` platform contract for deploys and operations
 
@@ -373,7 +393,7 @@ them, but they are public and stable.
 | `GET /v1/openapi.json` | **Supported.** Public, no key required. The machine-readable contract for this surface, including the data-handling block below. |
 | `GET /v1/inference/requests` | **Supported.** Requires a bearer API key. Per-request metadata. `created_after` and `created_before` take RFC 3339 timestamps; send them with fractional seconds, for example `2026-09-16T00:00:00.000Z`. |
 | `GET /v1/inference/usage` | **Supported.** Requires a bearer API key. |
-| `GET /v1/inference/policy` | **Supported.** Requires a bearer API key. Returns the privacy floor (`private` or `anonymized`) enforced for the account; with a scoped key the key's effective floor is reported beside it. |
+| `GET /v1/inference/policy` | **Supported.** Requires a bearer API key. Returns the privacy floor (`private` or `anonymized`) enforced for the account, and the account's `requests_per_minute`, `concurrency_limit` and `limits_scope`; with a scoped key the key's effective floor and its own limit overrides are reported beside them. |
 | `GET /v1/inference/performance` | **Supported.** Requires a bearer API key. Accepts `window` of `1h`, `24h`, `7d`, or `30d`. |
 
 ### Account routes
@@ -413,8 +433,67 @@ canonical host:
 
 Any OpenAI SDK helper that touches an unimplemented route will fail, including
 the Assistants and Responses APIs, file upload helpers, and batch. The
-`chat.completions`, `models`, `embeddings`, `images`, and `audio` namespaces
-work, on the models whose `capabilities` advertise them.
+`chat.completions`, `models`, `embeddings`, `images.generate`, and
+`audio.speech` namespaces work unchanged, on the models whose `capabilities`
+advertise them. `images.edit` and `audio.transcriptions` need a different call
+shape — see below.
+
+## The Two SDK Exceptions
+
+"Point your OpenAI client at the base URL and change nothing else" is true for
+every route except two. `images.edit` and `audio.transcriptions` are the
+operations the OpenAI SDKs send as `multipart/form-data`, and these routes
+accept `application/json` only. A multipart request is refused with `415`:
+
+```json
+{
+  "error": {
+    "message": "This endpoint accepts application/json only: send the audio as audio.data (base64) with audio.media_type. multipart/form-data is not accepted.",
+    "type": "invalid_request_error",
+    "code": "invalid_request",
+    "param": null,
+    "retryable": false,
+    "request_id": "…"
+  }
+}
+```
+
+The refusal names the JSON shape rather than blaming a field you did send. Call
+these two with a plain HTTP client and inline base64:
+
+```bash
+curl https://ai.varity.app/v1/images/edits \
+  -H "Authorization: Bearer $VARITY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "<an image-capable model id>",
+    "prompt": "Make the sky orange.",
+    "image": { "data": "<base64 bytes>", "mime_type": "image/png" }
+  }'
+```
+
+`image.mime_type` is one of `image/png`, `image/jpeg`, or `image/webp`. An
+optional `mask` takes the same `{ data, mime_type }` shape, and `size` is
+optional.
+
+```bash
+curl https://ai.varity.app/v1/audio/transcriptions \
+  -H "Authorization: Bearer $VARITY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "<a transcription model id>",
+    "audio": { "data": "<base64 bytes>", "media_type": "audio/mpeg" }
+  }'
+```
+
+`audio.media_type` is one of `audio/wav`, `audio/wave`, `audio/x-wav`,
+`audio/flac`, `audio/x-flac`, `audio/mp4`, `audio/m4a`, `audio/x-m4a`,
+`audio/aac`, `audio/mpeg`, `audio/ogg`, `audio/oga`, or `audio/webm`. Optional
+fields are `audio.filename`, `response_format` (`json` or `text`), `language`,
+and `timestamps`. Decoded audio must be under 25 MB.
+
+Both shapes are on `GET /v1/openapi.json`, so you can generate a client from
+the contract rather than transcribing this page.
 
 ## Per-Model Capabilities
 
@@ -467,7 +546,8 @@ Ids are readable human slugs, for example `glm-5-1`, `glm-5-2`,
 
 - **`max_completion_tokens` is per-model and often small.** The ceiling is independent of the context window, so a very large context does not mean a long reply is allowed. Read both fields per model.
 - **No cached-input discount.** Every model returns `cached_input` equal to `input`. Prompt caching does not currently reduce price.
-- **Rate limits are advertised in response headers.** `GET /v1/models` returns `ratelimit-limit: 120` with `ratelimit-policy: 120;w=60`. Read `ratelimit-remaining` and `ratelimit-reset` at runtime instead of assuming a fixed budget.
+- **There is a concurrency bound as well as a rate limit.** Inference is held to 120 requests per minute *and* 4 in-flight requests, both counted for the whole account rather than per key. `GET /v1/inference/policy` publishes your own numbers. See [Rate Limits](/ai-gateway/limits/).
+- **`GET /v1/models` carries no request budget** and returns no `RateLimit-*` headers. The headers live on the inference and inference-read routes, not on catalog discovery.
 
 ## Errors
 
@@ -489,20 +569,70 @@ The error envelope matches OpenAI's shape and adds two fields:
 - `retryable` is a boolean OpenAI does not send. Use it instead of guessing from the status code whether to retry.
 - `request_id` is also returned as the `x-request-id` response header on every response, successful or not. The gateway generates it; a caller-supplied `x-request-id` header is not echoed.
 
-Observed authentication codes:
+A managed-inference failure adds a diagnostic block naming who decided the
+failure and where in the request's life it happened:
 
-| Condition | Status | `code` | `message` |
-|-----------|--------|--------|-----------|
-| No `Authorization` header | `401` | `authentication_required` | `A bearer credential is required.` |
-| Invalid, revoked, or expired key | `401` | `authentication_required` | `The provided credential is invalid or expired.` |
+| Field | Meaning |
+|-------|---------|
+| `diagnostic_code` | `ai_gateway.<code>`. |
+| `failure_cause` | The same value as `code`. |
+| `failure_domain` | `varity_projection` (Varity refused), `supplier_observed` (a model provider answered and Varity observed it), or `dependency_observed` (a Varity-operated dependency was unreachable, named in `dependency`). |
+| `lifecycle_stage` | `admission`, `provider_attempt`, `settlement`, or `terminal`. |
+| `action` | What to do next, in one sentence. |
 
-Both conditions share one `code`; only the message differs, and messages are not
-a stable contract.
+### Error Codes
+
+Branch on `code`. `error.retryable` is on every body and is authoritative for
+that response; the column below is what the gateway publishes today.
+
+**Varity refused the request** (`failure_domain: "varity_projection"`):
+
+| Code | HTTP | Retryable | Cause |
+|------|------|-----------|-------|
+| `authentication_required` | `401` | no | No bearer credential, or one that is invalid, revoked, or expired. |
+| `invalid_request` | `400` | no | The body failed validation. Also `404` on an unimplemented route, `413` when the body exceeds the route ceiling, and `415` on `multipart/form-data`. |
+| `input_modality_unsupported` | `400` | no | Every route for this model rejected the supplied image or document part. Distinct from `invalid_request` so you can tell "this model cannot see" from "this body is malformed". |
+| `model_not_found` | `404` | no | The id is not in the live catalog. |
+| `model_not_allowed` | `403` | no | The model exists but this credential's model scope excludes it. |
+| `tenant_not_admitted` | `403` | no | Managed inference is not enabled for the account, or the key is expired. |
+| `privacy_policy_violation` | `403` | no | The request asked for a privacy floor weaker than the account's. |
+| `duplicate_request` | `409` | no | The idempotency identity was already admitted. |
+| `request_cancelled` | `408` | no | The deadline elapsed, or the caller closed the socket. |
+| `rate_limit_exceeded` | `429` | yes | The account's requests-per-minute budget is exhausted. See [Rate Limits](/ai-gateway/limits/). |
+| `concurrency_limit_exceeded` | `429` | yes | The account's in-flight bound is exhausted. |
+| `budget_exceeded` | `429` | yes | The account's inference budget for the period is exhausted. |
+| `payment_method_required` | `402` | no | No active payment method. |
+| `insufficient_gateway_balance` | `402` | no | The prepaid AI Gateway balance cannot cover the request. |
+| `gateway_balance_frozen` | `402` | no | The balance is frozen pending billing review. |
+| `billing_unavailable` | `503` | yes | The isolated billing ledger could not answer. Not your request's fault. |
+| `internal_error` | `500` | no | An unclassified gateway failure. Quote `request_id`. |
+
+**A model provider decided it** (`failure_domain: "supplier_observed"`):
+
+| Code | HTTP | Retryable | Cause |
+|------|------|-----------|-------|
+| `model_unavailable` | `503` | yes | No callable route for this model right now. Choose another model or retry. |
+| `privacy_route_unavailable` | `403` | no | The model has no callable route at the required privacy level. |
+| `upstream_rate_limited` | `429` | yes | The provider is rate-limiting. Carries `Retry-After` only when the provider published its own reset. |
+| `upstream_unavailable` | `503` | yes | No qualified route answered. |
+| `upstream_balance_exhausted` | varies | no | Provider funding is exhausted. Varity's problem, not yours; pick another model. |
+| `upstream_timeout` | varies | yes | The provider did not answer in time. Retry only if the request is known not to have taken effect. |
+| `stream_terminated` | — | no | A stream ended mid-flight. Do not replay an ambiguously chargeable stream; inspect the correlated request instead. |
+
+`upstream_authentication_failed` exists in the gateway's internal vocabulary but
+never reaches you. A refused Varity provider credential is something only Varity
+can fix, so it is published as `model_unavailable` — the one thing a caller can
+act on — and the real cause stays in the operator record.
 
 Authentication is evaluated **before** request-body validation, so an
 unauthenticated request with an invalid `model` returns the authentication
 error, not a model error. Do not use the error type to infer that your payload
 was accepted.
+
+These codes are the AI Gateway's own. The platform API at `varity.app/api` uses
+a **different envelope and a different code vocabulary** — see
+[API Errors](/api/errors/). In particular the AI Gateway never emits
+`invalid_api_key`; an invalid key here is `authentication_required`.
 
 ## Privacy And Data Retention
 
@@ -541,6 +671,365 @@ model; there is no route choice to make at request time.
 
 ---
 
+## AI Gateway Rate Limits
+
+URL: https://docs.varity.so/ai-gateway/limits/
+Description: The request budgets, concurrency bound, and body-size ceilings the Varity AI Gateway enforces, the headers it actually returns, and what each 429 body looks like.
+
+The AI Gateway (`https://ai.varity.app/v1`) is a separate surface from the
+Varity platform API and enforces its own budgets. Nothing on
+[Rate Limits](/api/limits/) applies here, and nothing here applies there.
+
+Two different mechanisms are at work, and they return different headers. Read
+the one that covers the route you are calling.
+
+| Routes | Bound | Where it comes from |
+|--------|-------|---------------------|
+| Inference (`/v1/chat/completions`, `/v1/embeddings`, `/v1/images/*`, `/v1/audio/*`) | 120 requests per minute **and** 4 concurrent requests | Admission, per account |
+| Inference reads (`/v1/inference/policy`, `/requests`, `/usage`, `/performance`) | 120 requests per 60-second window | A request budget, per account |
+| `GET /v1/models`, `GET /v1/openapi.json` | No credential and no request budget | Public discovery |
+| Account routes (`/v1/keys*`, `/v1/billing/*`) | See [Account routes](#account-routes) | A request budget, per account |
+
+## Read Your Own Limits
+
+Do not hardcode the defaults. `GET /v1/inference/policy` publishes the numbers
+your account is actually held to:
+
+```bash
+curl https://ai.varity.app/v1/inference/policy \
+  -H "Authorization: Bearer $VARITY_API_KEY"
+```
+
+```json
+{
+  "object": "inference.tenant_policy",
+  "privacy_floor": "private",
+  "requests_per_minute": 120,
+  "concurrency_limit": 4,
+  "limits_scope": "account"
+}
+```
+
+| Field | Meaning |
+|-------|---------|
+| `requests_per_minute` | Inference requests admitted per fixed 60-second window. |
+| `concurrency_limit` | Inference requests that may be in flight at once. |
+| `limits_scope` | Always `account`. Both bounds are counted globally for the account. |
+| `credential_requests_per_minute` | Present only when you authenticate with a scoped key that carries its own lower rpm bound; `null` when it does not. |
+| `credential_concurrency_limit` | The same, for concurrency. |
+
+`requests_per_minute`, `concurrency_limit`, and `limits_scope` are absent when
+the account has no admission policy yet. Absent means "no bound to state", not
+"unlimited" — treat it as unknown and pace conservatively.
+
+`limits_scope: "account"` means the budget is shared. Every API key your account
+owns draws from the same 120 requests per minute and the same 4 concurrent
+slots, and so does the Developer Portal Playground. The gateway runs on more
+than one replica, and the bounds are counted across all of them — **do not
+multiply a limit by the number of replicas you think are running.**
+
+A key can carry its own `requests_per_minute` or `concurrency_limit`. When it
+does, the account bound is checked first and the key's bound second, so the key
+is held to **the smaller of the two**. Neither number alone is the whole truth,
+which is why the policy route reports them side by side rather than merging
+them.
+
+## Inference: 120 Per Minute And 4 In Flight
+
+The default self-service policy is 120 requests per minute over a fixed
+60-second interval, and 4 concurrent in-flight requests. A request that crosses
+either bound is refused at admission, before any model provider is called, so a
+refused request costs nothing.
+
+### Which Bound You Will Actually Meet
+
+In practice, **the concurrency bound is the one that stops you**, and most
+callers will never see the per-minute refusal at all.
+
+The arithmetic is simple. With 4 slots, reaching 120 requests per minute means
+sustaining 2 requests per second, which means every response must come back in
+under 2 seconds. Real chat completions rarely do.
+
+Measured on 2026-09-17 against gateway `0.3.66`, on the cheapest chat model
+with `max_tokens: 1` — about as fast as a real request gets:
+
+| Client concurrency | Requests sent | Result | Elapsed | Effective rate |
+|--------------------|---------------|--------|---------|----------------|
+| 3 | 130 | 130 × `200`, zero `429` | 140.0 s | ≈ 56 / min |
+| 4 | 150 | 150 × `200`, zero `429` | 126.9 s | ≈ 71 / min |
+
+Each request took roughly 3.2 to 3.4 seconds end to end, so 4 slots cap
+throughput near 70 per minute — comfortably under the 120 bound, which is why
+neither run produced a single `rate_limit_exceeded`.
+
+The practical consequences:
+
+- **Size your worker pool to the concurrency limit, not the per-minute one.** A
+  pool of 4 is the account's real ceiling. Widening it past 4 buys no
+  throughput and converts the surplus workers into `429`s.
+- You can still reach the per-minute bound with unusually fast responses, or by
+  spreading work across many keys — but both bounds are **account-scoped**, so
+  extra keys on the same account share the same budget and buy nothing.
+- Read both numbers from `GET /v1/inference/policy` rather than assuming the
+  defaults; an account may be provisioned differently.
+
+### The Two Refusals
+
+Both are `429`, and both pace you — but not with the same header set, because
+they are not the same kind of bound:
+
+| Header | `rate_limit_exceeded` | `concurrency_limit_exceeded` | `upstream_rate_limited` |
+|--------|----------------------|------------------------------|--------------------------|
+| `Retry-After` | yes — the window (`60`) | yes — the nearest in-flight deadline | only if the provider published its own reset |
+| `RateLimit-Limit` | yes | yes | no |
+| `RateLimit-Remaining` | `0` | `0` | no |
+| `RateLimit-Reset` | yes — same value as `Retry-After` | yes — same value as `Retry-After` | no |
+| `RateLimit-Policy` | yes — `120;w=60` | **no** — the bound has no window | no |
+
+Each bound also exists at two scopes. The account's bound is reported with the
+message `The tenant request rate limit is exhausted.` /
+`The tenant concurrency limit is exhausted.`; a key carrying its own lower
+override reports `The API key …` instead. The `code` is identical either way,
+so branch on `code` and read `GET /v1/inference/policy` to see which bound
+applies to you.
+
+### `rate_limit_exceeded`
+
+```json
+{
+  "error": {
+    "message": "The tenant request rate limit is exhausted.",
+    "type": "rate_limit_error",
+    "code": "rate_limit_exceeded",
+    "param": null,
+    "request_id": "…",
+    "diagnostic_code": "ai_gateway.rate_limit_exceeded",
+    "failure_cause": "rate_limit_exceeded",
+    "failure_domain": "varity_projection",
+    "lifecycle_stage": "admission",
+    "action": "Retry after the credential rate-limit window resets.",
+    "retryable": true
+  }
+}
+```
+
+Status `429`. It carries the full set of pacing headers, including the policy,
+because this bound *is* counted over a window:
+
+```text
+retry-after: 60
+ratelimit-limit: 120
+ratelimit-remaining: 0
+ratelimit-reset: 60
+ratelimit-policy: 120;w=60
+```
+
+The values track your account's own `requests_per_minute`, so a key with a
+lower override reports that lower number here.
+
+Unlike the concurrency refusal below, this header block is **derived from the
+gateway source** (`http.ts` `setRateLimitHeaders`, fed by `admission.ts`
+`rpmAdvice`) rather than captured from a live response. Two attempts to provoke
+it on 2026-09-17 could not — the concurrency bound refused the surplus requests
+first, as described above. Trust the header on the response you receive over
+this example.
+
+### `concurrency_limit_exceeded`
+
+This one is easy to reproduce: fire more requests at once than the bound
+allows. Twelve concurrent `POST /v1/chat/completions` against one account on
+2026-09-17 (gateway `0.3.66`) returned **4 × `200` and 8 × `429`**, which is
+the concurrency limit of 4 doing exactly what it says.
+
+The `429` below is a verbatim capture from that run, request id
+`32c59a29-5fff-4cf7-8730-f982829c6594`:
+
+```text
+ratelimit-limit: 4
+ratelimit-remaining: 0
+ratelimit-reset: 120
+retry-after: 120
+```
+
+```json
+{
+  "error": {
+    "message": "The tenant concurrency limit is exhausted.",
+    "type": "rate_limit_error",
+    "code": "concurrency_limit_exceeded",
+    "param": null,
+    "request_id": "32c59a29-5fff-4cf7-8730-f982829c6594",
+    "diagnostic_code": "ai_gateway.concurrency_limit_exceeded",
+    "failure_cause": "concurrency_limit_exceeded",
+    "failure_domain": "varity_projection",
+    "lifecycle_stage": "admission",
+    "action": "Retry after an active inference request finishes.",
+    "retryable": true
+  }
+}
+```
+
+No `ratelimit-policy` was returned, as described above. The message is the
+account-scoped variant, so this account was held to its own bound rather than
+to a key override.
+
+**`120` is not the limit, and it is not a constant.** It is the retry value
+*that one response* carried, because the nearest in-flight request at that
+instant was contracted to settle 120 seconds out. Another refusal seconds later
+will carry a different number, and a shorter-deadline workload will carry a much
+smaller one. Read the header every time; never hardcode what you saw once.
+
+`Retry-After` and `RateLimit-Reset` name the same instant, and it is not a
+guess: every in-flight request carries the deadline it is contracted to settle
+by, the serving replica aborts at that deadline, and the refusal reports the
+**nearest** of them — the soonest moment a slot can free. Treat it as an upper
+bound on the wait: a slot usually frees earlier, when a request simply
+finishes.
+
+`RateLimit-Policy` is deliberately **absent** on a concurrency refusal, and it
+is the only pacing header that is. The header's `w` parameter is mandatory and
+names the window the limit is counted over — but a concurrency bound is not
+counted over a window at all. Four in flight is not four per anything. Emitting
+`4;w=37` would assert a throughput policy that does not exist, and a client
+would then pace itself by it. The per-minute refusal, which *is* windowed,
+carries `ratelimit-policy: 120;w=60`.
+
+If no in-flight deadline could be read, `Retry-After` and `RateLimit-Reset` are
+both omitted rather than guessed. Fall back to your own backoff when they are
+not present.
+
+### `upstream_rate_limited`
+
+A `429` can also come from the model provider rather than from your Varity
+budget. Its code is `upstream_rate_limited`, its `failure_domain` is
+`supplier_observed`, and it is retryable. It carries `Retry-After` **only when
+the provider published its own reset**; when the provider did not, no
+`Retry-After` is sent. Branch on `error.code`, not on the status, to tell a
+Varity budget refusal from provider backpressure.
+
+## Inference Reads: 120 Per 60 Seconds
+
+`GET /v1/inference/policy`, `/v1/inference/requests`, `/v1/inference/usage`, and
+`/v1/inference/performance` share one budget of 120 requests per 60-second
+window, keyed to the authenticated account.
+
+These four routes emit standard headers on **every** response that passes the
+limiter, not only on a refusal:
+
+| Header | Meaning |
+|--------|---------|
+| `RateLimit-Policy` | `120;w=60` — the budget and its window. |
+| `RateLimit-Limit` | Requests allowed in the current window. |
+| `RateLimit-Remaining` | Requests left in the current window. |
+| `RateLimit-Reset` | Seconds until the window resets. |
+| `Retry-After` | On the `429` only. |
+
+Legacy `X-RateLimit-*` headers are not emitted here. Do not depend on them.
+
+A refusal is `429` with `code: "rate_limit_exceeded"` and the message
+`Too many managed inference requests.`
+
+The budget is applied **after** authentication, so a `401` never carries
+`RateLimit-*` headers. You will only see them on a request that authenticated
+successfully.
+
+## Public Discovery Is Not Rate Limited
+
+`GET /v1/models` and `GET /v1/openapi.json` take no credential and the gateway
+applies no request budget to them. They return **no** `RateLimit-*` headers, so
+there is nothing to program against there:
+
+```bash
+curl -sSI https://ai.varity.app/v1/models
+```
+
+```text
+HTTP/2 200
+content-type: application/json; charset=utf-8
+vary: accept-encoding
+x-request-id: …
+```
+
+Poll the catalog as often as you need; it is served from the gateway's own
+state, not from a provider.
+
+## Account Routes
+
+The key and billing routes on this host take a Developer Portal session token,
+not an inference API key. Their budgets are separate again:
+
+| Routes | Budget | Window |
+|--------|--------|--------|
+| `GET /v1/keys`, `GET /v1/keys/audit` | 300 requests | 1 minute |
+| `POST /v1/keys` (mint a key) | 30 requests | 1 hour |
+| `POST /v1/keys/{id}/revoke` | 120 requests | 1 minute |
+
+Revocation gets its own generous per-minute budget on purpose: a leaked key you
+cannot revoke stays live, so a safety control is never throttled into
+unavailability by the hourly creation budget.
+
+## Size Ceilings Are Not Request Budgets
+
+These are enforced by the request contract, not by a budget, and they return
+`413` or `415` rather than `429`.
+
+| Route | Body ceiling | Per-part ceiling |
+|-------|--------------|------------------|
+| `/v1/chat/completions`, `/v1/embeddings` | 2 MB JSON | — |
+| `/v1/images/generations`, `/v1/images/edits` | 68 MB JSON | Source image or mask must be under 25 MB decoded |
+| `/v1/audio/transcriptions` | ~34 MB JSON | Audio must be under 25 MB decoded |
+| `/v1/audio/speech` | 1 MB JSON | — |
+
+The image and audio body ceilings are derived from the per-part ceiling rather
+than picked independently: base64 inflates by 4/3, and an image-edit request may
+carry both a source image and a mask.
+
+- A body over the ceiling returns `413` with `code: "invalid_request"`.
+- A body that is not valid JSON returns `400` with `code: "invalid_request"`.
+- `multipart/form-data` on `/v1/images/edits` or `/v1/audio/transcriptions`
+  returns `415` with `code: "invalid_request"`. These two routes take JSON with
+  base64 parts; see [Compatibility](/ai-gateway/compatibility/#the-two-sdk-exceptions).
+
+## Retrying Correctly
+
+```python
+import time, random, requests
+
+def call(url, **kw):
+    for attempt in range(6):
+        r = requests.post(url, **kw)
+        if r.status_code != 429:
+            return r
+
+        # Every 429 states its own wait when it knows one: a window for the
+        # per-minute bound, the nearest in-flight deadline for the concurrency
+        # bound, the provider's reset for upstream_rate_limited. Fall back to
+        # local backoff only when the header is absent.
+        wait = float(r.headers.get("Retry-After", 2 ** attempt))
+        time.sleep(wait + random.uniform(0, 1))  # jitter
+
+    raise RuntimeError("rate limit not cleared")
+```
+
+Three rules that matter in practice:
+
+1. **Add jitter.** A fleet that all reads `Retry-After: 60` and wakes together
+   re-exhausts the budget instantly.
+2. **Bound your own concurrency.** The default is 4 in flight for the whole
+   account. A worker pool wider than that will spend most of its requests
+   collecting `concurrency_limit_exceeded`.
+3. **Branch on `error.code`, never on `message`.** Messages are written for
+   people and can be reworded; `code`, `retryable`, and the HTTP status are the
+   contract.
+
+## Next Steps
+
+- **[AI Gateway Overview](/ai-gateway/)**: base URL, auth, quickstart, streaming
+- **[Compatibility](/ai-gateway/compatibility/)**: the supported surface and every error code
+- **[Rate Limits](/api/limits/)**: the separate budgets for the `varity.app/api` platform API
+
+---
+
 ## AI Gateway Models
 
 URL: https://docs.varity.so/ai-gateway/models/
@@ -569,9 +1058,11 @@ Do not hardcode the catalog. Resolve models at runtime from `/v1/models` and rea
 The catalog is not chat-only. Each entry's `capabilities.output_modalities`
 says what the model produces: `text` (chat completions), `embedding`, `image`,
 or `audio` (speech). Transcription models take `audio` in and return `text`.
-The live catalog currently reports `availability.status: "available"` on every
-entry, but that is not a promise: read it per model from the endpoint rather
-than from this page.
+The live catalog reported `availability.status: "available"` on all 177 entries
+when this page was last checked against it, but that is not a promise: read it
+per model from the endpoint rather than from this page. See
+[Availability is withheld, not assumed](#availability-is-withheld-not-assumed)
+for what the other statuses mean.
 
 Pass an entry's `id` verbatim as the `model` field of a request on the matching
 route. Ids are readable human slugs, for example `glm-5-2`, `llama-3-3-70b`, and
@@ -611,9 +1102,42 @@ Each entry in `data` carries these Varity fields:
 | `max_completion_tokens` | integer | Ceiling on generated tokens |
 | `privacy` | string | Routing privacy class. The live catalog contains both `"private"` and `"anonymized"` entries |
 | `privacy_routes` | array | Route set matching `privacy` |
-| `availability.status` | string | `"available"` on every model, with an `observed_at` timestamp |
+| `availability.status` | string | `"available"`, `"last_known_available"`, `"temporarily_unavailable"`, `"verification_stale"`, or `"unverified"`, with an `observed_at` timestamp and, on the last three, a `reason` |
 | `customer_pricing` | object | See below |
 | `refreshed_at` | string | When the gateway last refreshed the entry |
+
+### Availability Is Withheld, Not Assumed
+
+A model stays listed in `/v1/models` when its routes are unhealthy — it is not
+removed — but it stops claiming to be callable. The gateway publishes a route
+as available only once that route has **succeeded** since its last failure. A
+route whose provider refused Varity's credential, or that failed for any other
+reason, is excluded from the published projection until a real success clears
+it; a routing layer's periodic retry of a failing route is a trial request, not
+evidence of health, and is deliberately not borrowed by the catalog.
+
+When a model has no publishable route left, its entry changes rather than
+disappearing:
+
+| `availability.status` | `reason` | Meaning |
+|-----------------------|----------|---------|
+| `available` | — | A route succeeded recently. Callable. |
+| `last_known_available` | — | The entry is being served from the last good observation; `observed_at` is when that was. |
+| `temporarily_unavailable` | `route_temporarily_unavailable` | Routes exist but none is currently publishable. Expect `503 model_unavailable` if you call it. |
+| `verification_stale` | `route_verification_stale` | The route's capability certification is too old to stand behind. |
+| `unverified` | `route_unverified` | The route was never certified for this capability. |
+
+The affected `capabilities` flags go `false` alongside the status, so a model
+that cannot currently serve chat reports `chat_completions: false` rather than
+advertising a capability the next request would be refused for.
+
+This health state is held per gateway replica, in process, and is not shared
+between them. A replica that has observed a route failing will withhold it
+while a replica that has not yet seen one may still publish it, so two reads of
+`/v1/models` seconds apart can legitimately disagree during a provider
+incident. Treat `availability` as a strong hint, not a guarantee, and always
+handle `503 model_unavailable` at call time. We could not observe a divergence
+at the time of writing — every one of the 177 live entries read `available`.
 
 ### Pricing
 
@@ -2098,12 +2622,13 @@ Some limits are enforced by the resource contract rather than by a request budge
 
 Account-level quotas on concurrent deployments and spend are governed by your billing state, not by these request budgets. A request that is refused for billing reasons returns `402 billing_or_credit_required`, not `429`.
 
-The AI Gateway (`https://ai.varity.app/v1`) is a separate surface with its own independent rate-limit, concurrency, and budget admission controls. Limits documented here do not apply to it. See the [AI Gateway](/ai-gateway/) docs.
+The AI Gateway (`https://ai.varity.app/v1`) is a separate surface with its own independent rate-limit, concurrency, and budget admission controls. Limits documented here do not apply to it, and its headers differ. See [AI Gateway Rate Limits](/ai-gateway/limits/).
 
 ## Next Steps
 
 - **[API Errors](/api/errors/)**: the error envelope and every verified error code
 - **[Public API Reference](/ai-tools/api-reference/)**: endpoints and examples
+- **[AI Gateway Rate Limits](/ai-gateway/limits/)**: the separate budgets for `ai.varity.app/v1`
 
 ---
 

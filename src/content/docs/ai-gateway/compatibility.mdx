@@ -52,7 +52,7 @@ them, but they are public and stable.
 | `GET /v1/openapi.json` | **Supported.** Public, no key required. The machine-readable contract for this surface, including the data-handling block below. |
 | `GET /v1/inference/requests` | **Supported.** Requires a bearer API key. Per-request metadata. `created_after` and `created_before` take RFC 3339 timestamps; send them with fractional seconds, for example `2026-09-16T00:00:00.000Z`. |
 | `GET /v1/inference/usage` | **Supported.** Requires a bearer API key. |
-| `GET /v1/inference/policy` | **Supported.** Requires a bearer API key. Returns the privacy floor (`private` or `anonymized`) enforced for the account; with a scoped key the key's effective floor is reported beside it. |
+| `GET /v1/inference/policy` | **Supported.** Requires a bearer API key. Returns the privacy floor (`private` or `anonymized`) enforced for the account, and the account's `requests_per_minute`, `concurrency_limit` and `limits_scope`; with a scoped key the key's effective floor and its own limit overrides are reported beside them. |
 | `GET /v1/inference/performance` | **Supported.** Requires a bearer API key. Accepts `window` of `1h`, `24h`, `7d`, or `30d`. |
 
 ### Account routes
@@ -93,9 +93,68 @@ canonical host:
 <Aside type="caution">
 Any OpenAI SDK helper that touches an unimplemented route will fail, including
 the Assistants and Responses APIs, file upload helpers, and batch. The
-`chat.completions`, `models`, `embeddings`, `images`, and `audio` namespaces
-work, on the models whose `capabilities` advertise them.
+`chat.completions`, `models`, `embeddings`, `images.generate`, and
+`audio.speech` namespaces work unchanged, on the models whose `capabilities`
+advertise them. `images.edit` and `audio.transcriptions` need a different call
+shape — see below.
 </Aside>
+
+## The Two SDK Exceptions
+
+"Point your OpenAI client at the base URL and change nothing else" is true for
+every route except two. `images.edit` and `audio.transcriptions` are the
+operations the OpenAI SDKs send as `multipart/form-data`, and these routes
+accept `application/json` only. A multipart request is refused with `415`:
+
+```json
+{
+  "error": {
+    "message": "This endpoint accepts application/json only: send the audio as audio.data (base64) with audio.media_type. multipart/form-data is not accepted.",
+    "type": "invalid_request_error",
+    "code": "invalid_request",
+    "param": null,
+    "retryable": false,
+    "request_id": "…"
+  }
+}
+```
+
+The refusal names the JSON shape rather than blaming a field you did send. Call
+these two with a plain HTTP client and inline base64:
+
+```bash
+curl https://ai.varity.app/v1/images/edits \
+  -H "Authorization: Bearer $VARITY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "<an image-capable model id>",
+    "prompt": "Make the sky orange.",
+    "image": { "data": "<base64 bytes>", "mime_type": "image/png" }
+  }'
+```
+
+`image.mime_type` is one of `image/png`, `image/jpeg`, or `image/webp`. An
+optional `mask` takes the same `{ data, mime_type }` shape, and `size` is
+optional.
+
+```bash
+curl https://ai.varity.app/v1/audio/transcriptions \
+  -H "Authorization: Bearer $VARITY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "<a transcription model id>",
+    "audio": { "data": "<base64 bytes>", "media_type": "audio/mpeg" }
+  }'
+```
+
+`audio.media_type` is one of `audio/wav`, `audio/wave`, `audio/x-wav`,
+`audio/flac`, `audio/x-flac`, `audio/mp4`, `audio/m4a`, `audio/x-m4a`,
+`audio/aac`, `audio/mpeg`, `audio/ogg`, `audio/oga`, or `audio/webm`. Optional
+fields are `audio.filename`, `response_format` (`json` or `text`), `language`,
+and `timestamps`. Decoded audio must be under 25 MB.
+
+Both shapes are on `GET /v1/openapi.json`, so you can generate a client from
+the contract rather than transcribing this page.
 
 ## Per-Model Capabilities
 
@@ -150,7 +209,8 @@ Ids are readable human slugs, for example `glm-5-1`, `glm-5-2`,
 
 - **`max_completion_tokens` is per-model and often small.** The ceiling is independent of the context window, so a very large context does not mean a long reply is allowed. Read both fields per model.
 - **No cached-input discount.** Every model returns `cached_input` equal to `input`. Prompt caching does not currently reduce price.
-- **Rate limits are advertised in response headers.** `GET /v1/models` returns `ratelimit-limit: 120` with `ratelimit-policy: 120;w=60`. Read `ratelimit-remaining` and `ratelimit-reset` at runtime instead of assuming a fixed budget.
+- **There is a concurrency bound as well as a rate limit.** Inference is held to 120 requests per minute *and* 4 in-flight requests, both counted for the whole account rather than per key. `GET /v1/inference/policy` publishes your own numbers. See [Rate Limits](/ai-gateway/limits/).
+- **`GET /v1/models` carries no request budget** and returns no `RateLimit-*` headers. The headers live on the inference and inference-read routes, not on catalog discovery.
 
 ## Errors
 
@@ -172,20 +232,74 @@ The error envelope matches OpenAI's shape and adds two fields:
 - `retryable` is a boolean OpenAI does not send. Use it instead of guessing from the status code whether to retry.
 - `request_id` is also returned as the `x-request-id` response header on every response, successful or not. The gateway generates it; a caller-supplied `x-request-id` header is not echoed.
 
-Observed authentication codes:
+A managed-inference failure adds a diagnostic block naming who decided the
+failure and where in the request's life it happened:
 
-| Condition | Status | `code` | `message` |
-|-----------|--------|--------|-----------|
-| No `Authorization` header | `401` | `authentication_required` | `A bearer credential is required.` |
-| Invalid, revoked, or expired key | `401` | `authentication_required` | `The provided credential is invalid or expired.` |
+| Field | Meaning |
+|-------|---------|
+| `diagnostic_code` | `ai_gateway.<code>`. |
+| `failure_cause` | The same value as `code`. |
+| `failure_domain` | `varity_projection` (Varity refused), `supplier_observed` (a model provider answered and Varity observed it), or `dependency_observed` (a Varity-operated dependency was unreachable, named in `dependency`). |
+| `lifecycle_stage` | `admission`, `provider_attempt`, `settlement`, or `terminal`. |
+| `action` | What to do next, in one sentence. |
 
-Both conditions share one `code`; only the message differs, and messages are not
-a stable contract.
+### Error Codes
+
+Branch on `code`. `error.retryable` is on every body and is authoritative for
+that response; the column below is what the gateway publishes today.
+
+**Varity refused the request** (`failure_domain: "varity_projection"`):
+
+| Code | HTTP | Retryable | Cause |
+|------|------|-----------|-------|
+| `authentication_required` | `401` | no | No bearer credential, or one that is invalid, revoked, or expired. |
+| `invalid_request` | `400` | no | The body failed validation. Also `404` on an unimplemented route, `413` when the body exceeds the route ceiling, and `415` on `multipart/form-data`. |
+| `input_modality_unsupported` | `400` | no | Every route for this model rejected the supplied image or document part. Distinct from `invalid_request` so you can tell "this model cannot see" from "this body is malformed". |
+| `model_not_found` | `404` | no | The id is not in the live catalog. |
+| `model_not_allowed` | `403` | no | The model exists but this credential's model scope excludes it. |
+| `tenant_not_admitted` | `403` | no | Managed inference is not enabled for the account, or the key is expired. |
+| `privacy_policy_violation` | `403` | no | The request asked for a privacy floor weaker than the account's. |
+| `duplicate_request` | `409` | no | The idempotency identity was already admitted. |
+| `request_cancelled` | `408` | no | The deadline elapsed, or the caller closed the socket. |
+| `rate_limit_exceeded` | `429` | yes | The account's requests-per-minute budget is exhausted. See [Rate Limits](/ai-gateway/limits/). |
+| `concurrency_limit_exceeded` | `429` | yes | The account's in-flight bound is exhausted. |
+| `budget_exceeded` | `429` | yes | The account's inference budget for the period is exhausted. |
+| `payment_method_required` | `402` | no | No active payment method. |
+| `insufficient_gateway_balance` | `402` | no | The prepaid AI Gateway balance cannot cover the request. |
+| `gateway_balance_frozen` | `402` | no | The balance is frozen pending billing review. |
+| `billing_unavailable` | `503` | yes | The isolated billing ledger could not answer. Not your request's fault. |
+| `internal_error` | `500` | no | An unclassified gateway failure. Quote `request_id`. |
+
+**A model provider decided it** (`failure_domain: "supplier_observed"`):
+
+| Code | HTTP | Retryable | Cause |
+|------|------|-----------|-------|
+| `model_unavailable` | `503` | yes | No callable route for this model right now. Choose another model or retry. |
+| `privacy_route_unavailable` | `403` | no | The model has no callable route at the required privacy level. |
+| `upstream_rate_limited` | `429` | yes | The provider is rate-limiting. Carries `Retry-After` only when the provider published its own reset. |
+| `upstream_unavailable` | `503` | yes | No qualified route answered. |
+| `upstream_balance_exhausted` | varies | no | Provider funding is exhausted. Varity's problem, not yours; pick another model. |
+| `upstream_timeout` | varies | yes | The provider did not answer in time. Retry only if the request is known not to have taken effect. |
+| `stream_terminated` | — | no | A stream ended mid-flight. Do not replay an ambiguously chargeable stream; inspect the correlated request instead. |
+
+<Aside type="note">
+`upstream_authentication_failed` exists in the gateway's internal vocabulary but
+never reaches you. A refused Varity provider credential is something only Varity
+can fix, so it is published as `model_unavailable` — the one thing a caller can
+act on — and the real cause stays in the operator record.
+</Aside>
 
 Authentication is evaluated **before** request-body validation, so an
 unauthenticated request with an invalid `model` returns the authentication
 error, not a model error. Do not use the error type to infer that your payload
 was accepted.
+
+<Aside type="caution">
+These codes are the AI Gateway's own. The platform API at `varity.app/api` uses
+a **different envelope and a different code vocabulary** — see
+[API Errors](/api/errors/). In particular the AI Gateway never emits
+`invalid_api_key`; an invalid key here is `authentication_required`.
+</Aside>
 
 ## Privacy And Data Retention
 

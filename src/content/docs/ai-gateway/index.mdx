@@ -15,8 +15,15 @@ import PageMeta from '../../../components/PageMeta.astro';
 
 The Varity AI Gateway is an OpenAI-compatible inference API. It speaks the same
 chat-completions wire format as the OpenAI API, so every OpenAI SDK, framework
-adapter, and agent runtime already knows how to talk to it. The integration is a
-one-line base-URL swap.
+adapter, and agent runtime already knows how to talk to it. For chat,
+streaming, tool calls, embeddings, image generation, and speech, the
+integration is a one-line base-URL swap.
+
+Two SDK calls are **not** covered by that swap, because they send
+`multipart/form-data` and these routes take JSON: `images.edit` and
+`audio.transcriptions` both answer `415`. Send the bytes as base64 in the JSON
+body instead — the working shapes are in
+[Compatibility](/ai-gateway/compatibility/#the-two-sdk-exceptions).
 
 ```text
 https://ai.varity.app/v1
@@ -280,21 +287,34 @@ The gateway generates it; a caller-supplied `x-request-id` header is not echoed.
 
 ## Rate Limits
 
-`GET /v1/models` returns standard rate-limit headers:
+Inference is bounded two ways at once: **120 requests per minute** and **4
+concurrent requests**, both counted across your whole account rather than per
+key. Crossing either returns `429`, before any model provider is called.
 
-```text
-ratelimit-limit: 120
-ratelimit-policy: 120;w=60
-ratelimit-remaining: 119
-ratelimit-reset: 60
+Read your own numbers instead of hardcoding these defaults:
+
+```bash
+curl https://ai.varity.app/v1/inference/policy \
+  -H "Authorization: Bearer $VARITY_API_KEY"
 ```
 
-That is 120 requests per 60-second window on the catalog endpoint. Read the
-`ratelimit-remaining` and `ratelimit-reset` headers rather than hardcoding a
-budget; the policy is served live and can change.
+```json
+{
+  "object": "inference.tenant_policy",
+  "privacy_floor": "private",
+  "requests_per_minute": 120,
+  "concurrency_limit": 4,
+  "limits_scope": "account"
+}
+```
+
+`GET /v1/models` is public and carries no request budget at all. The budgets,
+the exact headers each refusal returns, and the body-size ceilings are on
+[AI Gateway Rate Limits](/ai-gateway/limits/).
 
 ## Next Steps
 
 - **[Models](/ai-gateway/models/)**: the full live catalog with makers, context windows, limits, and prices
+- **[Rate Limits](/ai-gateway/limits/)**: budgets, concurrency, response headers, and the `429` bodies
 - **[Compatibility](/ai-gateway/compatibility/)**: exactly what the OpenAI surface includes and excludes, plus the key, billing, and privacy-policy routes
 - **[Public API Reference](/ai-tools/api-reference/)**: the `/api` platform contract for deploys and operations
