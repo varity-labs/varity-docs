@@ -269,6 +269,7 @@ export default defineConfig({
             { label: "AI Gateway Overview", slug: "ai-gateway" },
             { label: "Models", slug: "ai-gateway/models" },
             { label: "OpenAI Compatibility", slug: "ai-gateway/compatibility" },
+            { label: "Rate Limits", slug: "ai-gateway/limits" },
           ],
         },
 

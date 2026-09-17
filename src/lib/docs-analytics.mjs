@@ -7,6 +7,7 @@ const PAGE_CATALOG = Object.freeze({
   '/': ['home', 'home'],
   '/ai-gateway/': ['ai-gateway', 'ai-gateway'],
   '/ai-gateway/compatibility/': ['ai-gateway-compatibility', 'ai-gateway'],
+  '/ai-gateway/limits/': ['ai-gateway-limits', 'ai-gateway'],
   '/ai-gateway/models/': ['ai-gateway-models', 'ai-gateway'],
   '/ai-tools/api-reference/': ['ai-tools-api-reference', 'ai-tools'],
   '/ai-tools/mcp-server-spec/': ['ai-tools-mcp-server-spec', 'ai-tools'],
