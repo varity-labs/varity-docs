@@ -38,9 +38,8 @@ Do not hardcode the catalog. Resolve models at runtime from `/v1/models` and rea
 The catalog is not chat-only. Each entry's `capabilities.output_modalities`
 says what the model produces: `text` (chat completions), `embedding`, `image`,
 or `audio` (speech). Transcription models take `audio` in and return `text`.
-The live catalog reported `availability.status: "available"` on all 177 entries
-when this page was last checked against it, but that is not a promise: read it
-per model from the endpoint rather than from this page. See
+Read `availability.status` per model from the endpoint rather than from this
+page. See
 [Availability is withheld, not assumed](#availability-is-withheld-not-assumed)
 for what the other statuses mean.
 
@@ -70,7 +69,7 @@ Each entry in `data` carries these Varity fields:
 | `display_name` | string | Human label only, never an identifier |
 | `maker.key` | string | Stable slug of who built the model, for example `zai`; `unreported` when unknown |
 | `maker.label` | string | Human maker label, for example `Z.ai` |
-| `capabilities.input_modalities` | array | What a request may carry: `text`, `image`, `audio`, `video`. `document` input is not currently routed: no model advertises it, and a `document` content part is rejected with `400 input_modality_unsupported` |
+| `capabilities.input_modalities` | array | What a request may carry: `text`, `image`, `document`, `audio`, `video`. A model without `document` rejects a `document` content part with `400 input_modality_unsupported` |
 | `capabilities.output_modalities` | array | What the model produces: `text`, `embedding`, `image`, `audio` |
 | `capabilities.chat_completions` | boolean | `true` on the chat models only; image, audio, and embedding models report `false`. Read it per model |
 | `capabilities.tool_calls` | boolean | Supported on a subset of the catalog; read it per model |
@@ -117,8 +116,7 @@ between them. A replica that has observed a route failing will withhold it
 while a replica that has not yet seen one may still publish it, so two reads of
 `/v1/models` seconds apart can legitimately disagree during a provider
 incident. Treat `availability` as a strong hint, not a guarantee, and always
-handle `503 model_unavailable` at call time. We could not observe a divergence
-at the time of writing — every one of the 177 live entries read `available`.
+handle `503 model_unavailable` at call time.
 </Aside>
 
 ### Pricing
@@ -134,11 +132,13 @@ carries no other fields, so branch on `status` before reading a rate:
   "observed_at": "2026-08-01T02:30:58.677Z",
   "currency": "usd",
   "unit": "per_million_tokens",
-  "input": 1.47,
-  "output": 4.62,
-  "cached_input": 1.47
+  "input": "<number>",
+  "output": "<number>",
+  "cached_input": "<number>"
 }
 ```
+
+The rates are placeholders here; they are numbers in the live response.
 
 `currency` is always `usd`. `unit` takes one of four values, and it decides
 which fields carry the rate:
@@ -150,9 +150,9 @@ which fields carry the rate:
 | `per_million_characters` | Speech models | `input` per million characters of text; `output` and `cached_input` are `0` |
 | `per_audio_second` | Transcription models | `input` per second of audio; `output` and `cached_input` are `0` |
 
-`request` is present only on `per_image` entries. `cached_input` equals
-`input` on every token-priced model in the current catalog, so cached input
-tokens are not discounted today. Always read `unit` and `currency` rather than
+`request` is present only on `per_image` entries. `cached_input` is per model:
+some models price cached input tokens below `input`, others at the same rate.
+Always read `unit` and `currency` rather than
 assuming; the `version` string identifies the immutable price set the numbers
 came from and `observed_at` says when the gateway last observed it. Rates are
 the current managed rate for the model's preferred route, not a permanent

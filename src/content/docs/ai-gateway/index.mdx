@@ -126,10 +126,12 @@ curl https://ai.varity.app/v1/models
       "owned_by": "varity",
       "maker": { "key": "zai", "label": "Z.ai" },
       "capabilities": {
+        "input_modalities": ["text", "document"],
+        "output_modalities": ["text"],
         "chat_completions": true,
-        "tool_calls": false,
+        "tool_calls": true,
         "streaming": true,
-        "streaming_tool_calls": false
+        "streaming_tool_calls": true
       },
       "context_window": 1000000,
       "max_completion_tokens": 131072,
@@ -140,14 +142,19 @@ curl https://ai.varity.app/v1/models
         "status": "configured",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 1.47,
-        "output": 4.62,
-        "cached_input": 1.47
+        "input": "<live rate>",
+        "output": "<live rate>",
+        "cached_input": "<live rate>"
       }
     }
   ]
 }
 ```
+
+The entry above is trimmed, and the rates are placeholders: `input`, `output`,
+and `cached_input` are numbers in the real response. Read prices from
+`GET /v1/models` or the **Models** tab on the portal's AI Gateway page, never
+from this page.
 
 The gateway also exposes unauthenticated health and readiness probes on the
 canonical host:
@@ -174,10 +181,16 @@ Authorization: Bearer $VARITY_API_KEY
 ```
 
 Create keys on the Developer Portal's [AI Gateway page](https://developer.store.varity.so/dashboard/ai-gateway?utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=ai-gateway-api-keys), under the
-**Inference keys** tab. Key plaintext is shown once
+**Inference keys** tab, or with `POST /v1/keys` from a signed-in portal session.
+Key plaintext is shown once
 at creation and is never returned again; the list identifies each key by its
 key id (`vki_…`). The same key format is used across the
-Varity [public API](/ai-tools/api-reference/).
+Varity [public API](/ai-tools/api-reference/). A revoked key stops working
+within 30 seconds. See [Billing and Keys](/ai-gateway/billing-and-keys/).
+
+Inference is prepaid: add credits on the **Gateway billing** tab before your
+first request. Each request is charged its provider cost, and Varity's 5%
+service fee is charged when credits are added.
 
 Auth is enforced on every inference route. A request with no `Authorization`
 header returns `401`:
@@ -208,9 +221,8 @@ model error.
 
 ## Streaming
 
-Set `stream: true` for server-sent events, exactly as with OpenAI. Most, but not
-all, models in the catalog support streaming, so read `capabilities.streaming`
-per model rather than assuming it is universal.
+Set `stream: true` for server-sent events, exactly as with OpenAI. Read
+`capabilities.streaming` per model rather than assuming it is universal.
 
 <Tabs>
   <TabItem label="curl">
@@ -301,7 +313,7 @@ curl https://ai.varity.app/v1/inference/policy \
 ```json
 {
   "object": "inference.tenant_policy",
-  "privacy_floor": "private",
+  "privacy_floor": "anonymized",
   "requests_per_minute": 120,
   "concurrency_limit": 4,
   "limits_scope": "account"
@@ -314,6 +326,9 @@ the exact headers each refusal returns, and the body-size ceilings are on
 
 ## Next Steps
 
+- **[Endpoints](/ai-gateway/endpoints/)**: one minimal request for every route
+- **[Billing and Keys](/ai-gateway/billing-and-keys/)**: credits, the 5% service fee, top-ups, key create and revoke, usage
+- **[Playground](/ai-gateway/playground/)**: try models in the Developer Portal before writing code
 - **[Models](/ai-gateway/models/)**: the full live catalog with makers, context windows, limits, and prices
 - **[Rate Limits](/ai-gateway/limits/)**: budgets, concurrency, response headers, and the `429` bodies
 - **[Compatibility](/ai-gateway/compatibility/)**: exactly what the OpenAI surface includes and excludes, plus the key, billing, and privacy-policy routes

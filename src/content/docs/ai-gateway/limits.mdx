@@ -25,7 +25,7 @@ the one that covers the route you are calling.
 | Inference (`/v1/chat/completions`, `/v1/embeddings`, `/v1/images/*`, `/v1/audio/*`) | 120 requests per minute **and** 4 concurrent requests | Admission, per account |
 | Inference reads (`/v1/inference/policy`, `/requests`, `/usage`, `/performance`) | 120 requests per 60-second window | A request budget, per account |
 | `GET /v1/models`, `GET /v1/openapi.json` | No credential and no request budget | Public discovery |
-| Account routes (`/v1/keys*`, `/v1/billing/*`) | See [Account routes](#account-routes) | A request budget, per account |
+| Account routes (`/v1/keys*`, `/v1/billing/*`, `PUT /v1/inference/policy`) | See [Account routes](#account-routes) | A request budget, per account |
 
 ## Read Your Own Limits
 
@@ -40,7 +40,7 @@ curl https://ai.varity.app/v1/inference/policy \
 ```json
 {
   "object": "inference.tenant_policy",
-  "privacy_floor": "private",
+  "privacy_floor": "anonymized",
   "requests_per_minute": 120,
   "concurrency_limit": 4,
   "limits_scope": "account"
@@ -302,14 +302,16 @@ state, not from a provider.
 
 ## Account Routes
 
-The key and billing routes on this host take a Developer Portal session token,
-not an inference API key. Their budgets are separate again:
+The key, billing, and policy-change routes on this host take a Developer Portal
+session token, not an inference API key. Their budgets are separate again:
 
 | Routes | Budget | Window |
 |--------|--------|--------|
 | `GET /v1/keys`, `GET /v1/keys/audit` | 300 requests | 1 minute |
 | `POST /v1/keys` (mint a key) | 30 requests | 1 hour |
 | `POST /v1/keys/{id}/revoke` | 120 requests | 1 minute |
+| `/v1/billing/balance`, `/transactions`, `/settings`, `/top-up` | 120 requests | 1 minute |
+| `PUT /v1/inference/policy` | Shares the 120-per-minute [inference-reads](#inference-reads-120-per-60-seconds) budget | 1 minute |
 
 Revocation gets its own generous per-minute budget on purpose: a leaked key you
 cannot revoke stays live, so a safety control is never throttled into
