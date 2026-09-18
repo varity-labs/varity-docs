@@ -1,0 +1,203 @@
+---
+title: AI Gateway Endpoints
+description: One minimal request for every Varity AI Gateway route, with the full schema at /v1/openapi.json.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+import PageMeta from '../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="September 2026"
+  stability="beta"
+/>
+
+Every route is served from `https://ai.varity.app`. The full machine-readable
+schema is public, needs no key, and is the source for anything this page leaves
+out:
+
+```bash
+curl https://ai.varity.app/v1/openapi.json
+```
+
+Replace `<… model id>` in the examples with an `id` from
+[`GET /v1/models`](/ai-gateway/models/) whose `capabilities` fit the route. For
+example, `output_modalities` containing `embedding` for embeddings, `image` for
+images, `capabilities.speech` for speech, and `capabilities.transcription` for
+transcription.
+
+## Discovery
+
+### `GET /v1/models`
+
+The live catalog. Public, no key.
+
+```bash
+curl https://ai.varity.app/v1/models
+```
+
+### `GET /v1/openapi.json`
+
+The contract for this surface, including its commercial and data-handling
+terms. Public, no key.
+
+## Inference
+
+All inference routes take an inference key as `Authorization: Bearer …` and a
+JSON body. Each request may run for at most 120 seconds.
+
+### `POST /v1/chat/completions`
+
+```bash
+curl https://ai.varity.app/v1/chat/completions \
+  -H "Authorization: Bearer $VARITY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "glm-5-2",
+    "messages": [{ "role": "user", "content": "Say hello in one sentence." }]
+  }'
+```
+
+Required: `model`, `messages`. Optional fields include `stream`,
+`max_completion_tokens`, `temperature`, `top_p`, `stop`, `seed`,
+`response_format`, `reasoning_effort`, `tools`, `tool_choice`, and
+`parallel_tool_calls`. Each works only on models whose `capabilities` advertise
+it.
+
+A message's `content` can be an array of parts: `text`, `image_url` (an https URL
+or a base64 `data:` URL), and `document` (`{ "url": …, "filename": … }`), on
+models whose `capabilities.input_modalities` include `image` or `document`.
+
+Varity-specific options go in `varity_extensions`:
+
+| Field | Effect |
+|-------|--------|
+| `web_search` | Ground the answer in a live web search, on models with `capabilities.web_search`. |
+| `web_scraping` | Read up to 5 pages linked from the latest user message. |
+| `privacy_floor` | Tighten, never loosen, the account privacy floor for this request. |
+
+Two optional headers:
+
+| Header | Effect |
+|--------|--------|
+| `Idempotency-Key` | Send the same key when retrying. Reuse returns `409 duplicate_request` instead of charging twice. |
+| `X-Varity-Deadline-Ms` | Absolute Unix-epoch deadline in milliseconds, capped at 120 seconds from receipt. |
+
+Streaming is covered on the [overview](/ai-gateway/#streaming).
+
+### `POST /v1/embeddings`
+
+```bash
+curl https://ai.varity.app/v1/embeddings \
+  -H "Authorization: Bearer $VARITY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "model": "<embedding model id>", "input": "The quick brown fox." }'
+```
+
+`input` is a string or an array of up to 2,048 strings. Optional:
+`encoding_format` (`float` or `base64`) and `dimensions`.
+
+### `POST /v1/images/generations`
+
+```bash
+curl https://ai.varity.app/v1/images/generations \
+  -H "Authorization: Bearer $VARITY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "model": "<image model id>", "prompt": "A red cube on a table" }'
+```
+
+Optional: `size` and `n`. Images come back inline as base64 in
+`data[].b64_json` with a `mime_type`, and Varity never stores them.
+
+### `POST /v1/images/edits`
+
+JSON with the image as base64, not `multipart/form-data`:
+
+```bash
+curl https://ai.varity.app/v1/images/edits \
+  -H "Authorization: Bearer $VARITY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "<image model id>",
+    "prompt": "Make the sky orange.",
+    "image": { "data": "<base64 bytes>", "mime_type": "image/png" }
+  }'
+```
+
+See [The Two SDK Exceptions](/ai-gateway/compatibility/#the-two-sdk-exceptions).
+
+### `POST /v1/audio/speech`
+
+```bash
+curl https://ai.varity.app/v1/audio/speech \
+  -H "Authorization: Bearer $VARITY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "model": "<speech model id>", "input": "Hello from Varity.", "response_format": "mp3" }' \
+  --output hello.mp3
+```
+
+`response_format` must be one of the model's `capabilities.speech_formats`.
+Optional: `voice`, `speed`, `language`, `prompt`, and `stream`. The response is
+audio bytes, not JSON.
+
+### `POST /v1/audio/transcriptions`
+
+JSON with the audio as base64, not `multipart/form-data`:
+
+```bash
+curl https://ai.varity.app/v1/audio/transcriptions \
+  -H "Authorization: Bearer $VARITY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "<transcription model id>",
+    "audio": { "data": "<base64 bytes>", "media_type": "audio/mpeg" }
+  }'
+```
+
+Optional: `response_format` (`json` or `text`), `language`, and `timestamps`.
+
+## Your Account, With An Inference Key
+
+```bash
+curl https://ai.varity.app/v1/inference/policy \
+  -H "Authorization: Bearer $VARITY_API_KEY"
+```
+
+| Route | Returns |
+|-------|---------|
+| `GET /v1/inference/policy` | Privacy floor and rate limits |
+| `GET /v1/inference/usage` | Requests, tokens, and spend for the period |
+| `GET /v1/inference/requests` | Per-request metadata |
+| `GET /v1/inference/performance` | Latency percentiles for a `window` |
+
+## Your Account, With A Portal Session
+
+Keys, billing, and the privacy setting are managed from the Developer Portal.
+These routes refuse an inference key:
+
+`POST /v1/keys`, `GET /v1/keys`, `GET /v1/keys/audit`,
+`POST /v1/keys/{id}/revoke`, `PUT /v1/inference/policy`,
+`GET /v1/billing/balance`, `GET /v1/billing/transactions`,
+`PATCH /v1/billing/settings`, `POST /v1/billing/top-up`.
+
+Each is described on [Billing and Keys](/ai-gateway/billing-and-keys/#account-routes).
+
+## Health
+
+```bash
+curl https://ai.varity.app/healthz
+curl https://ai.varity.app/readyz
+```
+
+Public, no key, outside `/v1`.
+
+<Aside type="note">
+`https://varity.app/v1` is an alias for the same service. Use
+`https://ai.varity.app/v1` in new code.
+</Aside>
+
+## Next Steps
+
+- **[Compatibility](/ai-gateway/compatibility/)**: what the OpenAI surface includes and excludes, and every error code
+- **[Rate Limits](/ai-gateway/limits/)**: request budgets and body-size ceilings

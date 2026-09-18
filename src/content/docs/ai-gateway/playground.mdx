@@ -1,0 +1,99 @@
+---
+title: AI Gateway Playground
+description: Try AI Gateway models in the Developer Portal, compare them, search the web, attach files, and let the assistant work on your connected repository and deployments.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+import PageMeta from '../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="September 2026"
+  stability="beta"
+/>
+
+The Playground is the first tab of the AI Gateway page in the Developer
+Portal. It sends real requests through the AI Gateway, so they
+are charged to your gateway balance and count against the same account rate
+limits as your API keys.
+
+## Choosing A Model
+
+Pick any model from the live catalog. A tool the selected model cannot use is
+shown as unavailable, and its tooltip says why.
+
+## The "+" Menu
+
+**Add**
+
+- **Files** and **Folder**: attach files, or a whole folder, to your message.
+- **Create image**: choose an image model and open its workspace.
+
+**Tools**
+
+- **Web search**: search the web and cite sources.
+- **Read links**: read the pages linked in your message.
+- **Deep research**: several private web searches, then one cited answer.
+- **Compare models**: send one prompt to 2 or 3 models side by side.
+- **Varity tools**: let the assistant work with your deployments, repository,
+  and builds (see below).
+
+**Connect**
+
+- **Repository**: choose the GitHub repository the assistant works on.
+- **Connectors**: add remote MCP servers. A connector tool that is not marked
+  read-only asks you to **Run** or **Don't run** before it executes.
+
+## Varity Tools
+
+With Varity tools on, the assistant can:
+
+- list your deployments and read their status and logs;
+- list, search, and read files in the connected repository;
+- search and read these docs;
+- get a price quote and plan a new deployment;
+- plan a redeploy, an environment change, or a deletion;
+- propose a code change as a pull request, read a pull request and its CI status,
+  and plan its merge;
+- plan deploying a commit.
+
+Anything that changes your account is a plan first. You approve each step, such
+as the commit and then the deploy, before it runs.
+
+Varity tools are available only on models that support streamed tool calls, and
+they add input tokens to every message. The menu shows the approximate cost.
+
+## Workspace Panel
+
+Open the side panel for:
+
+- **Files**: open a file from the chat or the connected repository.
+- **Browser**: open a deployed app, or any https address.
+- **Terminal**: follow a deployment's runtime logs. It is read-only and runs no
+  commands.
+
+## View Code
+
+**View code** shows the exact request the Playground would send for the current
+message, so you can copy it into your own app.
+
+## History, Projects, Memory, And Incognito
+
+- **History and projects**: conversations are grouped into projects and kept on
+  your device, not on Varity's servers. The AI Gateway stores no prompt or
+  response content.
+- **Memory**: notes you save on your device. While memory is on, they are sent
+  with each message, and you can see them in View code.
+- **Incognito**: an incognito chat is not saved to history and does not use
+  memory. It ends when you leave it.
+
+<Aside type="note">
+The Playground uses the same privacy floor as your account. See
+[Privacy Routing](/ai-gateway/compatibility/#privacy-routing).
+</Aside>
+
+## Next Steps
+
+- **[AI Gateway Overview](/ai-gateway/)**: call the same models from your code
+- **[Billing and Keys](/ai-gateway/billing-and-keys/)**: credits and inference keys

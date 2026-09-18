@@ -1,0 +1,131 @@
+---
+title: AI Gateway Billing and Keys
+description: How Varity AI Gateway credits, the 5% service fee, top-ups, inference keys, and usage reporting work.
+---
+
+import PageMeta from '../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  lastUpdated="September 2026"
+  stability="beta"
+/>
+
+The AI Gateway is prepaid. You add credits, each request is charged from that
+balance, and an inference key is what your code sends to spend it.
+
+## How You Are Charged
+
+- **Each request is charged exactly its provider cost.** No markup is added per
+  request.
+- **Varity's 5% service fee is charged when you add credits**, on top of the
+  amount you add. A $20.00 top-up charges your card $21.00 and adds $20.00 of
+  credits.
+- **A top-up is between $20 and $1,000.**
+- **A payment method is required.** There is no automatic sign-up credit, and you
+  cannot bring your own provider key.
+
+These terms are machine-readable in the `x-varity-commercial-contract` block of
+`GET https://ai.varity.app/v1/openapi.json`:
+
+```json
+{
+  "managed_rate": "actual_provider_cost",
+  "funding_service_fee_percent": 5,
+  "minimum_refill_usd": 20,
+  "maximum_refill_usd": 1000,
+  "payment_method_required": true,
+  "automatic_signup_credit": false,
+  "byok": "unavailable"
+}
+```
+
+Per-model rates are in `customer_pricing` on
+[`GET /v1/models`](/ai-gateway/models/#pricing) and on the **Models** tab of the
+portal's AI Gateway page. This page lists no prices, because the catalog changes
+without a docs release.
+
+When the balance cannot cover a request, or your monthly spending limit is
+reached, the request is refused with `402 insufficient_gateway_balance` before
+any model is called.
+
+## Adding Credits
+
+Add credits on the **Gateway billing** tab of the AI Gateway page in the
+Developer Portal. The same tab sets a monthly spending limit and auto-reload.
+
+Auto-reload tops the balance up when it falls below a threshold. Its amount
+follows the same $20 to $1,000 bounds and the same 5% fee, and the threshold
+must be lower than the amount.
+
+## Inference Keys
+
+Create, list, and revoke keys on the **Inference keys** tab.
+
+- The key plaintext is shown **once**, when the key is created. Store it then;
+  it is never returned again.
+- Each key is identified by an id of the form `vki_…`.
+- A key can be limited to a list of up to 64 model ids. An empty list allows
+  every model, including models added later.
+- A key has a privacy floor, `private` or `anonymized`. An `anonymized` key
+  requires the account itself to allow anonymized processing first.
+- A key can carry its own `requests_per_minute` and `concurrency_limit` (the
+  smaller of the key's and the account's bound applies), a spending budget, and
+  an expiry.
+- **A revoked key stops working within 30 seconds.**
+
+Send the key as a bearer credential on every inference request:
+
+```text
+Authorization: Bearer $VARITY_API_KEY
+```
+
+## Account Routes
+
+The portal tabs are built on these routes on `https://ai.varity.app`. They take
+a **Developer Portal session** as the bearer credential. An inference key is
+refused on them with `403 portal_session_required`, so a leaked inference key
+cannot mint more keys, move money, or change privacy settings.
+
+| Route | What it does |
+|-------|--------------|
+| `POST /v1/keys` | Creates an inference key. Body: `name` (1 to 80 characters), `allowed_models` (array, may be empty), `privacy_floor`, and optionally `requests_per_minute`, `concurrency_limit`, `upstream_budget_usd`, `expires_at` (Unix seconds), `project_id`, `application_id`, `environment`. |
+| `GET /v1/keys` | Lists the account's inference keys. No plaintext is ever returned. |
+| `GET /v1/keys/audit` | Key lifecycle events. Accepts `limit` from 1 to 500. |
+| `POST /v1/keys/{id}/revoke` | Revokes one of the account's own keys. |
+| `GET /v1/billing/balance` | The balance: `availableBalanceUsd`, `reservedUsd`, `spendThisMonthUsd`, `monthlySpendingLimitUsd`, `autoReload`, and more. |
+| `GET /v1/billing/transactions` | Balance transactions. Accepts `limit` from 1 to 100 (default 50) and `offset` from 0 to 10,000. |
+| `PATCH /v1/billing/settings` | Sets `monthlySpendingLimitCents` (`null`, or 100 to 10,000,000) and `autoReload` `{ enabled, thresholdCents, amountCents }`. |
+| `POST /v1/billing/top-up` | Starts a card checkout. Body: `email` (must belong to your account) and `balanceCents` (2,000 to 100,000). Returns the checkout `url` plus `balanceCents`, `serviceFeeCents`, and `totalCents`. |
+| `PUT /v1/inference/policy` | Sets the account privacy floor. See [Privacy Routing](/ai-gateway/compatibility/#privacy-routing). |
+
+The request budgets for these routes are on
+[Rate Limits](/ai-gateway/limits/#account-routes).
+
+## Usage And Request History
+
+These routes accept an **inference key**, so your own code can read what it has
+spent:
+
+```bash
+curl https://ai.varity.app/v1/inference/usage \
+  -H "Authorization: Bearer $VARITY_API_KEY"
+```
+
+| Route | What it returns |
+|-------|-----------------|
+| `GET /v1/inference/usage` | Requests, tokens, and `spend_usd` for the current period, with breakdowns. |
+| `GET /v1/inference/requests` | Per-request metadata. Filters: `limit` (1 to 100), `cursor`, `model`, `state`, `created_after`, `created_before`. |
+| `GET /v1/inference/performance` | Latency percentiles. `window` is `1h`, `24h`, `7d`, or `30d`. |
+| `GET /v1/inference/policy` | Your privacy floor and rate limits. |
+
+Request records hold metadata only, never prompt or response content, and are
+kept for 30 days. See
+[Privacy And Data Retention](/ai-gateway/compatibility/#privacy-and-data-retention).
+
+## Next Steps
+
+- **[Endpoints](/ai-gateway/endpoints/)**: a minimal request for every inference route
+- **[Rate Limits](/ai-gateway/limits/)**: request budgets and the `429` bodies
+- **[Models](/ai-gateway/models/)**: per-model pricing fields

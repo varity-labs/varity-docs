@@ -37,9 +37,12 @@ claude mcp add varity -- npx -y @varity-labs/mcp
 
 - [Varity Documentation Home](https://docs.varity.so/): Predictable cloud hosting for Node, Python, Go, static apps, AI agents, and runnable Docker services.
 - [Varity AI Gateway](https://docs.varity.so/ai-gateway/): OpenAI-compatible inference on Varity. Point any OpenAI client at https://ai.varity.app/v1 and change nothing else.
+- [AI Gateway Billing and Keys](https://docs.varity.so/ai-gateway/billing-and-keys/): How Varity AI Gateway credits, the 5% service fee, top-ups, inference keys, and usage reporting work.
 - [AI Gateway OpenAI Compatibility](https://docs.varity.so/ai-gateway/compatibility/): Exactly which parts of the OpenAI API surface the Varity AI Gateway implements, and which parts it does not.
+- [AI Gateway Endpoints](https://docs.varity.so/ai-gateway/endpoints/): One minimal request for every Varity AI Gateway route, with the full schema at /v1/openapi.json.
 - [AI Gateway Rate Limits](https://docs.varity.so/ai-gateway/limits/): The request budgets, concurrency bound, and body-size ceilings the Varity AI Gateway enforces, the headers it actually returns, and what each 429 body looks like.
 - [AI Gateway Models](https://docs.varity.so/ai-gateway/models/): Ids, makers, modalities, context windows, completion limits, tool-calling and streaming support, and per-unit pricing in the live Varity AI Gateway model catalog.
+- [AI Gateway Playground](https://docs.varity.so/ai-gateway/playground/): Try AI Gateway models in the Developer Portal, compare them, search the web, attach files, and let the assistant work on your connected repository and deployments.
 - [Varity Public API Reference](https://docs.varity.so/ai-tools/api-reference/): Varity public API for deploying, operating, and integrating apps programmatically.
 - [Varity MCP Server Reference](https://docs.varity.so/ai-tools/mcp-server-spec/): Install and configure the Varity MCP server for AI editors. A full set of tools for building, deploying, and managing apps via Cursor or Claude Code.
 - [AI Tools for Varity Deploys](https://docs.varity.so/ai-tools/overview/): Accelerate Varity development with AI tools. Copy-paste prompts, Cursor rules, MCP server integration, and LLM-optimized documentation.

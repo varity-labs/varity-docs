@@ -67,11 +67,11 @@ as the bearer credential; an inference API key is refused on them.
 | `POST /v1/keys` | **Supported.** Mints an inference-only key; the plaintext is returned exactly once. |
 | `GET /v1/keys/audit` | **Supported.** Secret-free key lifecycle events. Accepts `limit`. |
 | `POST /v1/keys/{id}/revoke` | **Supported.** Revokes one of the account's own keys. |
-| `PUT /v1/inference/policy` | **Supported.** Enables or revokes anonymized-route access for the account. `private` is the default. |
+| `PUT /v1/inference/policy` | **Supported.** Sets the account's privacy floor to `private` or `anonymized`. `anonymized` is the default for an account that never chose; choosing `anonymized` requires `acknowledge_anonymized_processing: true`. |
 | `GET /v1/billing/balance` | **Supported.** The prepaid Gateway balance. |
 | `GET /v1/billing/transactions` | **Supported.** Balance transactions. Accepts `limit` and `offset`. |
 | `PATCH /v1/billing/settings` | **Supported.** Monthly spending limit and auto-reload. |
-| `POST /v1/billing/top-up` | **Supported.** Starts a checkout that funds the balance. Minimum and maximum amounts, and the no-funding-fee rule, are stated on the live contract. |
+| `POST /v1/billing/top-up` | **Supported.** Starts a card checkout that funds the balance: $20 minimum, $1,000 maximum, plus Varity's 5% service fee. See [Billing and Keys](/ai-gateway/billing-and-keys/). |
 
 The same keys can also be created from the platform API with
 `POST /api/api-keys/inference`; see the
@@ -208,7 +208,7 @@ Ids are readable human slugs, for example `glm-5-1`, `glm-5-2`,
 ## Limits That Differ From OpenAI
 
 - **`max_completion_tokens` is per-model and often small.** The ceiling is independent of the context window, so a very large context does not mean a long reply is allowed. Read both fields per model.
-- **No cached-input discount.** Every model returns `cached_input` equal to `input`. Prompt caching does not currently reduce price.
+- **Cached-input pricing is per model.** Some models price `cached_input` below `input` and others price them the same. Read `customer_pricing.cached_input` per model.
 - **There is a concurrency bound as well as a rate limit.** Inference is held to 120 requests per minute *and* 4 in-flight requests, both counted for the whole account rather than per key. `GET /v1/inference/policy` publishes your own numbers. See [Rate Limits](/ai-gateway/limits/).
 - **`GET /v1/models` carries no request budget** and returns no `RateLimit-*` headers. The headers live on the inference and inference-read routes, not on catalog discovery.
 
@@ -328,7 +328,15 @@ The live catalog reports two routing privacy classes: `privacy: "private"` with
 `privacy_routes: ["private"]`, and `privacy: "anonymized"` with
 `privacy_routes: ["anonymized"]`. This field has no OpenAI equivalent; it is
 Varity-specific catalog metadata describing how each model is routed. Read it per
-model; there is no route choice to make at request time.
+model.
+
+Your account has a privacy floor. It is `anonymized` unless you choose
+otherwise, which lets requests use both `private` and `anonymized` models. Set it
+to `private` with `PUT /v1/inference/policy` (or on the portal's **Gateway
+settings** tab) and only `private` models are callable. A single chat request can
+tighten the floor, never loosen it, with
+`"varity_extensions": { "privacy_floor": "private" }`; asking for a weaker floor
+than the account's returns `403 privacy_policy_violation`.
 
 ## Next Steps
 
