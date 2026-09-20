@@ -24,7 +24,7 @@ export default defineConfig({
     starlight({
       title: "Varity Docs",
       description:
-        "Build and deploy supported apps with predictable cloud hosting.",
+        "Build on The Orchestration Cloud with Varity Cloud and the Varity AI Gateway.",
       logo: {
         src: "./src/assets/varity-logo.svg",
         alt: "Varity Docs",
@@ -148,7 +148,7 @@ export default defineConfig({
           tag: "meta",
           attrs: {
             property: "og:image:alt",
-            content: "Varity Docs: Predictable cloud hosting",
+            content: "Varity Docs: The Orchestration Cloud",
           },
         },
         {

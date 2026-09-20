@@ -16,8 +16,8 @@ changing product claims:
 - `CURRENT-STATE.md` — dated shipped, unfinished, and blocker status.
 - `repos.yaml` — repository topology and remotes.
 - `POSITIONING.md` — stable product definition and public language.
-- `PRICING.md` — pricing-source routing; `PRICING-AND-BILLING.md` — the
-  consolidated pricing and billing model.
+- `PRICING.md` — pricing-source routing.
+- `SECURITY-AND-PRIVACY.md` — security and privacy claim semantics.
 
 Then read `ARCHITECTURE.md` here for content and artifact provenance.
 
@@ -28,10 +28,14 @@ Authority rules:
   `CURRENT-STATE.md` records what has been verified shipped.
 - The control repository's positioning authority owns public language and claim
   structure.
-- Pricing numbers are owned by the gateway, not by any document. Take them from
-  the live `GET /api/pricing` response, or from the executable owners that
-  `PRICING.md` routes to; never invent, remember, or derive a price from any
-  other source.
+- Pricing numbers are owned by executable pricing interfaces, not by any
+  document. Publish a number only from the dated, unexpired projection routed
+  by `PRICING.md`; until that projection exists, link to the live quote or
+  pricing interface instead of copying a mutable value. GPU prices always
+  require a fresh workload-bound quote.
+- Security and privacy language must preserve the claim classes in
+  `SECURITY-AND-PRIVACY.md`. Supplier attestations are not Varity
+  certifications, and roadmap architecture is not a shipped control.
 - `src/content/docs/` owns human-facing pages.
 - `public/openapi.yaml`, `public/mcp-schema.json`, `public/llms.txt`, and
   `public/llms-full.txt` are checked-in public contract projections. Update and
@@ -62,9 +66,8 @@ artifact provenance, security posture, or publishing topology changes.
   into architecture files.
 - Do not restore the retired cross-repository PROPAGATION workflow. Repository
   CI is intentionally unprivileged and checks only this checkout.
-- Do not treat the legacy live-crawl harness in `tests/test-docs.cjs` as a merge
-  gate. It is network-dependent and contains historical checks; the deterministic
-  merge gate is `npm run check`.
+- The deterministic merge gate is `npm run check`. Live link and contract
+  probes are release evidence, not substitutes for that gate.
 
 ## Agent skills
 

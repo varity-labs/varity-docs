@@ -102,10 +102,10 @@ verification, not part of the offline merge check.
 - **Seam:** process exit status in local development and GitHub Actions.
 - **Test surface:** the same commands maintainers and CI run.
 
-The older `tests/test-docs.cjs` live crawler is outside this interface. It is
-network-dependent, refers to retired product surfaces, and is retained only as
-historical diagnostic material until a separate cleanup change proves which
-checks should be ported or deleted.
+Live link and upstream-contract probes remain release evidence outside this
+deterministic interface. They must consume the current route inventory and
+claim owners rather than maintain a second page list, product definition, or
+price book.
 
 ### Acquisition analytics module
 

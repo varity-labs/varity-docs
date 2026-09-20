@@ -1,6 +1,6 @@
 ---
 title: Machine Catalogs
-description: Live profile counts, regions, and hourly price ranges for the four Varity machine catalogs (CPU VMs, GPU containers, GPU VMs, and GPU bare metal).
+description: How to read and quote Varity CPU VM, GPU container, GPU VM, and GPU bare-metal catalogs without relying on stale inventory.
 ---
 
 import { Aside, LinkCard } from '@astrojs/starlight/components';
@@ -9,67 +9,31 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="August 2026"
+  lastUpdated="September 2026"
   stability="beta"
 />
 
-Varity publishes **four** separate machine catalogs. Each one is a different product with a different price shape and a different way of getting a machine. Pick the catalog first.
-
-Every number on this page was read from `GET /api/deployment-profiles` on 22 August 2026.
+Varity Cloud exposes four machine and accelerator catalog scopes. Capacity,
+regions, configurations, and GPU prices can change independently of this page,
+so the authenticated catalog and a fresh quote are the only current sources.
 
 ## The Four Catalogs
 
-| Catalog | `workload` | `execution_class` | Profiles | Regions | Hourly price |
+| Catalog | `workload` | `execution_class` | Create with | Access | Monthly cap |
 | --- | --- | --- | --- | --- | --- |
-| CPU VMs | `virtual_machine` | `cpu_virtual_machine` | 26 | 2 | $0.019178 to $0.89726 |
-| GPU containers | `gpu` | `container` | 9 | not returned | $1.431 to $5.13 |
-| GPU VMs | `gpu` | `virtual_machine` | 186 | 53 | $0.513 to $59.562 |
-| GPU bare metal | `gpu` | `bare_metal` | 4 | 4 | $53.4735 |
+| CPU VMs | `virtual_machine` | `cpu_virtual_machine` | `POST /api/machines` | SSH | When present in the quote |
+| GPU containers | `gpu` | `container` | `POST /api/deployments` | Container endpoint | No |
+| GPU VMs | `gpu` | `virtual_machine` | `POST /api/machines` | SSH | No |
+| GPU bare metal | `gpu` | `bare_metal` | `POST /api/machines` | SSH | No |
 
-Both query parameters are required. Every profile in all four catalogs was `available` at the time of reading.
-
-## What You Get
-
-| Catalog | You rent | How you create it | Access | Monthly cap |
-| --- | --- | --- | --- | --- |
-| CPU VMs | A CPU virtual machine, 2 to 64 vCPU | `POST /api/machines` | SSH | Yes |
-| GPU containers | A container running on one GPU | `POST /api/deployments` | Container deployment, no SSH | No |
-| GPU VMs | A VM with 1, 2, 4, or 8 attached GPUs | `POST /api/machines` | SSH | No |
-| GPU bare metal | A physical 8-GPU host, no hypervisor | `POST /api/machines` | SSH | No |
-
-Only CPU VMs carry `monthly_cap_microusd`. GPU profiles do not have a cap at all. A forgotten GPU machine accrues indefinitely.
-
-## Which One
-
-| You want to… | Use |
-| --- | --- |
-| Run a worker, daemon, database, or build agent you administer | [CPU VMs](/machines/cpu-vms/) |
-| Control the kernel or install system packages, cheaply | [CPU VMs](/machines/cpu-vms/), from $0.019178/hour |
-| Run one container on one GPU without managing a host | [GPU containers](/machines/gpu/#gpu-containers), 4 card types, $1.431 to $5.13/hour |
-| Train or fine-tune on a specific card, with SSH | [GPU VMs](/machines/gpu/#gpu-vms), 21 card models, 53 regions |
-| Get a whole 8× RTXPRO6000 host with no virtualization layer | [GPU bare metal](/machines/gpu/#gpu-bare-metal), $53.4735/hour |
-| Ship a web app and get a URL, with no machine to maintain | [Applications](/deploy/what-you-can-deploy/) |
-| Call a hosted model instead of running one | [AI Gateway](/ai-gateway/) |
+Both query parameters are required. Treat `availability` as a snapshot, not a
+reservation.
 
 <Aside type="tip" icon="approve-check" title="You may not need a machine">
-Applications are a separate managed product: you bring a repo or image, Varity places it and returns a URL, and you never pick a host. Machines are the opposite. You choose the exact profile, region, and price, and you own the box.
+Applications are a managed Varity Cloud workload: you provide a supported repo
+or image and Varity returns an application URL. Choose a machine only when you
+need host-level access or an exact accelerator configuration.
 </Aside>
-
-## GPU Containers Use a Different Schema
-
-CPU VM, GPU VM, and GPU bare-metal profiles share one shape (`schema_version: public-machine-profile-v1`). GPU container profiles are deliberately different (`gpu-container-profiles-v1`). Do not write one parser for all four.
-
-| | Machine profiles | GPU container profiles |
-| --- | --- | --- |
-| Identifier | `profile_id`, prefix `mp-` | `id`, prefix `gpo-` |
-| Human name | `display_name` | `label` |
-| Price field | `customer_price.amount_microusd` (integer microdollars) | `customer_price.hourly_usd` (decimal dollars) |
-| Host hardware | `cpu_units`, `memory_mb`, `storage_mb` | none (card only) |
-| GPU facts | `hardware.accelerator.alternatives[]` | `hardware` and `accelerator.alternatives[]` |
-| `region` | present | not returned |
-| `os_images` | present | not returned |
-| `availability` | a string, e.g. `"available"` | an object: `status`, `matching_capacity_count`, `aggregate_available_units`, `source_age_seconds` |
-| Created via | `POST /api/machines` | `POST /api/deployments` |
 
 ## Reading a Catalog
 
@@ -83,22 +47,37 @@ curl "https://varity.app/api/deployment-profiles?workload=gpu&execution_class=vi
   -H "Authorization: Bearer $VARITY_API_KEY"
 ```
 
-Swap `execution_class` for `container` or `bare_metal` to read the other two GPU catalogs.
+Use `execution_class=container` or `execution_class=bare_metal` for the other
+GPU scopes. Read the selected profile's identifier, resources, region, images,
+availability, and price fields from the response you receive. Do not copy a
+profile id or GPU rate from documentation into automation.
 
-## Prices
+## Different Catalog Shapes
 
-Every catalog quotes `billing_period: "hour"` in USD.
+Machine profiles and GPU container profiles are different contracts. Machine
+profiles use `profile_id` and describe a host. GPU container profiles use `id`
+and describe accelerator capacity for a container deployment. Use the returned
+`schema_version` and the public [OpenAPI document](/openapi.yaml) rather than a
+single permissive parser for both shapes.
 
-- CPU VMs publish `amount_microusd` and `monthly_cap_microusd`. The hourly rate is the monthly cap divided by 730.
-- GPU VMs and bare metal publish `amount_microusd` only.
-- GPU containers publish `hourly_usd` directly, with `price_basis: "exact"` and `pricing_policy_version: "gpu-hourly-v2-2026-07-28"`.
+## Quote Before Create
 
-Catalog prices are the list rate at the moment the catalog was read. CPU VM rates are fixed: the hourly figure is the monthly cap divided by 730. GPU rates are not a fixed price list. They follow the capacity actually on offer, so the GPU figures on this page are a dated snapshot rather than a rate card. See [GPU machines](/machines/gpu/) for the detail.
+- CPU VMs and GPU machines use `POST /api/pricing/machine-quote`.
+- GPU containers use `POST /api/pricing/accelerator-quote`.
+- The quote binds the current price and configuration and carries a
+  `valid_until` deadline.
+- If the quote expires or any workload input changes, request another quote.
+- A catalog price is discovery data. The accepted quote is the price contract
+  for the create request.
 
-Before creating anything you request a quote, which returns the binding `hourly_usd`, an `authorization_usd`, and a `valid_until` timestamp.
+<Aside type="danger" title="GPU pricing fails closed">
+This documentation deliberately publishes no GPU rate, cheapest-offer claim,
+or continuous-use total. If a fresh workload-bound quote is unavailable, no
+GPU price is available to publish or spend against.
+</Aside>
 
 ## Next
 
-<LinkCard title="CPU Virtual Machines" href="/machines/cpu-vms/" description="All 13 CPU VM sizes, both regions, exact hourly prices and monthly caps." />
-<LinkCard title="GPU Machines" href="/machines/gpu/" description="All three GPU execution classes, every card model, and real prices." />
-<LinkCard title="API Reference" href="/ai-tools/api-reference/" description="Authentication and the full endpoint surface." />
+<LinkCard title="CPU Virtual Machines" href="/machines/cpu-vms/" description="CPU VM selection, quote, create, access, and lifecycle." />
+<LinkCard title="GPU Workloads" href="/machines/gpu/" description="GPU containers, VMs, and bare metal through fresh catalogs and quotes." />
+<LinkCard title="API Reference" href="/ai-tools/api-reference/" description="Authentication and the public resource interface." />

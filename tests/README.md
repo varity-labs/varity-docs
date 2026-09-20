@@ -24,10 +24,6 @@ It runs:
    into `dist/` unchanged.
 
 The checks are repository-local, deterministic, unprivileged, and require no
-private checkout or production credential.
-
-`test-docs.cjs` is a retained historical live-crawl harness. It depends on the
-network and contains checks for retired product surfaces, so it is not part of
-`npm test` or CI. Do not cite it as proof that the current docs are correct. A
-separate cleanup change may port still-useful checks into deterministic tests
-before deleting it.
+private checkout or production credential. Live link and upstream-contract
+probes are separate release evidence; they must derive their route and claim
+inputs from current owners rather than a hand-maintained page or price list.
