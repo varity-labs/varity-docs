@@ -124,13 +124,15 @@ if (llmsFull.length <= llms.length) errors.push('public/llms-full.txt must conta
 // runway that billing-meter books at create (accelerator_quote.py:44,
 // machine_operations_api.py:467, gpu-hourly-usage.ts machineUsageOverlapUsd).
 const pricingPage = read('src/content/docs/resources/pricing.mdx');
-if (/\$21|including the fee/.test(pricingPage)) errors.push('resources/pricing.mdx must not restate the retired AI Gateway funding fee');
-if (!pricingPage.includes('no funding fee')) errors.push('resources/pricing.mdx must state that a refill carries no funding fee');
+if (/provider's actual cost for your requests \*\*plus a 5%/.test(pricingPage)) errors.push('resources/pricing.mdx must not charge the AI Gateway fee per request');
+if (!pricingPage.includes('Each AI Gateway request is charged exactly its provider cost')) errors.push('resources/pricing.mdx must state the provider-cost request contract');
+if (!pricingPage.includes('5% service fee is charged when credits are added')) errors.push('resources/pricing.mdx must state the funding-fee contract');
 if ((pricingPage.match(/two-hour minimum/g) || []).length < 2) errors.push('resources/pricing.mdx must state the two-hour machine minimum for CPU VMs and GPU machines');
 // Founder pricing decisions 2026-09-06 (D1, D2/D3, D4, D5).
 if (!pricingPage.includes('First 3 static sites free, then $1/month per site')) errors.push('resources/pricing.mdx must state "First 3 static sites free, then $1/month per site" (decision D1)');
 if (/Static sites are \*\*free\*\*/.test(pricingPage)) errors.push('resources/pricing.mdx must not claim unconditional free static hosting (decision D1)');
-if (!pricingPage.includes('$7.00 service + N GB × $0.16')) errors.push('resources/pricing.mdx must show the per-service "$7.00 service + N GB × $0.16" formula (decision D2)');
+if (/\$7\.00 service/.test(pricingPage)) errors.push('resources/pricing.mdx must not charge attached-service compute');
+if (!/Attached services .* add only their persistent storage charge/.test(pricingPage)) errors.push('resources/pricing.mdx must state the attached-service storage-only contract');
 if (!/Redis is in-memory/.test(pricingPage)) errors.push('resources/pricing.mdx must state that Redis takes no volume (decision D3)');
 if (!/Ollama is retired/.test(pricingPage)) errors.push('resources/pricing.mdx must state that Ollama is retired for new deployments (decision D4)');
 if (!/GPU containers carry the same two-hour minimum/.test(pricingPage)) errors.push('resources/pricing.mdx must state the GPU container two-hour minimum (decision D5)');

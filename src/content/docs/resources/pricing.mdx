@@ -30,7 +30,7 @@ Dynamic apps select one of four fixed presets. Each price is a **monthly maximum
 | Scale | 2 | 4 GB | 25 GB | Up to $28/mo, prorated |
 | Pro | 4 | 8 GB | 50 GB | Up to $56/mo, prorated |
 
-- Attached services (Postgres, Redis, MongoDB, MySQL, object storage) each bill their own Starter reservation ($7/mo) as a separate reserved deployment, plus the storage you enter for them: **$7.00 service + N GB × $0.16 = your monthly maximum** per service. Storage defaults to 5 GB and can be set from 1 to 100 GB; Redis is in-memory and takes no volume. Ollama is retired for new deployments.
+- Attached services (Postgres, MongoDB, MySQL, object storage) add only their persistent storage charge. Their reserved CPU, memory, and ephemeral capacity is not a separate customer charge. Redis is in-memory and adds no volume charge. Ollama is retired for new deployments.
 - Persistent storage is an add-on at **$0.16/GB-month**, prorated on the same period. It bills while allocated, until the volume is deleted.
 - Each replica reserves its own resources: 2 replicas of a preset bill up to 2x that preset's maximum.
 
@@ -44,7 +44,7 @@ GPU pricing is a **live quote**: the exact hourly rate is computed server-side f
 
 ## AI Gateway
 
-The AI Gateway bills the provider's actual cost for your requests **plus a 5% Varity fee**, drawn from a prepaid balance. The minimum refill is **$20** and the maximum is $1,000; you are charged exactly the balance you are credited, with no funding fee. AI Gateway balances are separate from other Varity products and cannot be spent on Cloud, VM, GPU, or static hosting.
+Each AI Gateway request is charged exactly its provider cost, with no per-request markup. Varity's **5% service fee is charged when credits are added**: a $20.00 top-up charges $21.00 and credits $20.00. The minimum refill is **$20** and the maximum is $1,000. AI Gateway balances are separate from Varity Cloud and cannot be spent on application, VM, GPU, or static hosting.
 
 ## Launch Credit
 

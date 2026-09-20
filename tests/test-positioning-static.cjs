@@ -13,7 +13,7 @@ const path = require('path');
 
 const DOCS_SRC = path.join(__dirname, '../src/content/docs');
 
-// Mirror the FORBIDDEN_WORDS from test-docs.cjs (HIGH-severity subset worth blocking CI on)
+// Public infrastructure vocabulary that must stay behind Varity's interface.
 const HIGH_SEVERITY_PATTERNS = [
   { pattern: /\busdc\b/gi, term: 'usdc', fix: 'Use "payments" or "credit card" instead' },
   { pattern: /\bpaymaster\b/gi, term: 'paymaster', fix: 'Never mention gas sponsorship internals. Use "free for users" instead' },

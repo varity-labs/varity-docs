@@ -17,10 +17,19 @@ Security is a partnership between Varity and you. This page explains what Varity
 
 ## What Varity protects
 
-- **Encryption in transit:** all traffic between you, Varity, and your deployments is encrypted with TLS, with HTTP Strict Transport Security enforced.
-- **Isolated secrets:** environment variables and credentials are injected at runtime, never built into images, and never written to logs.
-- **Account isolation:** every account is isolated from every other account.
-- **Hardened deploy path:** inputs to the build and deploy pipeline are validated to prevent injection and server-side request forgery.
+- **Encryption in transit:** public Varity product endpoints and deployment
+  routes are served over HTTPS. Do not infer a broader transport or HSTS
+  guarantee from this statement.
+- **Protected inputs:** secret values use write-only customer interfaces and
+  are not returned by the environment-variable read path. Customers remain
+  responsible for values their own applications print or transmit.
+- **Owner-scoped control paths:** authenticated deployment and machine reads
+  are scoped to the owning account.
+- **Validated deploy inputs:** the public deploy interfaces validate supported
+  source, image, network, and resource shapes before execution.
+
+These are scoped platform controls, not a certification statement or a claim
+that Varity and the selected infrastructure never process customer data.
 
 ## Shared-responsibility model
 
@@ -49,4 +58,8 @@ Found a security issue? Email **security@varity.so**. Please report it responsib
 
 ## On our roadmap
 
-We are transparent about what is in place today versus what is coming. In active development: platform-managed encryption at rest, tamper-evident audit logging, and team accounts with role-based access control.
+Platform-managed encryption at rest, broader confidential-compute coverage,
+tamper-evident audit logging, team role controls, fully homomorphic encryption,
+and post-quantum migration are roadmap architecture. They are not current
+product-wide controls. Any future confidential-compute statement will name the
+supported workload and adapter instead of implying universal coverage.
