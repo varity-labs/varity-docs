@@ -1,41 +1,23 @@
 # CLAUDE.md - Varity Documentation
 
-Status: repository entrypoint
-Last updated: 2026-08-19
-
 This repository publishes the public documentation at `docs.varity.so`. It is
 a static Astro/Starlight surface, not a control-plane runtime.
 
 ## Read first
 
-Cross-repository authority lives in the `varity-engineering` control
-repository, checked out at `/home/macoding/varity-v2/varity-engineering/` on
-this host. Read these before
-changing product claims:
-
-- `CURRENT-STATE.md` — dated shipped, unfinished, and blocker status.
-- `repos.yaml` — repository topology and remotes.
-- `POSITIONING.md` — stable product definition and public language.
-- `PRICING.md` — pricing-source routing.
-- `SECURITY-AND-PRIVACY.md` — security and privacy claim semantics.
-
-Then read `ARCHITECTURE.md` here for content and artifact provenance.
+Start at `/home/macoding/varity-v2/varity-engineering/CLAUDE.md`. Its
+`architecture/CHANGE-IMPACT.md` routes product facts to their executable owners;
+its `.opencode-plan.md` is the only current workspace finish board. Then read
+`ARCHITECTURE.md` here for this repository's stable interfaces and artifact
+provenance.
 
 Authority rules:
 
-- Live code and live gateway responses own shipped capability and public
-  interface reality. Documentation projects that truth; it does not create it.
-  `CURRENT-STATE.md` records what has been verified shipped.
-- The control repository's positioning authority owns public language and claim
-  structure.
-- Pricing numbers are owned by executable pricing interfaces, not by any
-  document. Publish a number only from the dated, unexpired projection routed
-  by `PRICING.md`; until that projection exists, link to the live quote or
-  pricing interface instead of copying a mutable value. GPU prices always
-  require a fresh workload-bound quote.
-- Security and privacy language must preserve the claim classes in
-  `SECURITY-AND-PRIVACY.md`. Supplier attestations are not Varity
-  certifications, and roadmap architecture is not a shipped control.
+- Current code, deployed behavior, and live responses own shipped capability.
+  Documentation projects that truth; it does not create it.
+- Control `POSITIONING.md` owns stable product language. Control `PRICING.md`
+  routes mutable values to executable and live owners; unknown values stay
+  unknown.
 - `src/content/docs/` owns human-facing pages.
 - `public/openapi.yaml`, `public/mcp-schema.json`, `public/llms.txt`, and
   `public/llms-full.txt` are checked-in public contract projections. Update and

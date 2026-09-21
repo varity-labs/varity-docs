@@ -59,7 +59,7 @@ npm run check
 
 ```bash
 git checkout -b my-contribution
-git add .
+git add -- path/to/changed-file.md
 git commit -m "docs: your descriptive commit message"
 git push origin my-contribution
 ```
