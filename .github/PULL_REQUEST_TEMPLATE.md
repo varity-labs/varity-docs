@@ -28,7 +28,7 @@ none. Reviewers compare this declaration with the diff.
 ## Checklist
 
 - [ ] Code examples are tested and working
-- [ ] No forbidden vocabulary in prose (no blockchain/crypto/DePIN/wallet/Akash/IPFS terms — see [terminology guide](CONTRIBUTING.md#terminology))
+- [ ] No forbidden vocabulary in prose (no blockchain/crypto/DePIN/wallet/Akash/IPFS terms — see [terminology guide](../CONTRIBUTING.md#terminology))
 - [ ] No em-dashes in prose (use "and", "or", "with", or a colon instead)
 - [ ] Build passes (`npm run build`)
 - [ ] Repository check passes (`npm run check`)

@@ -1,7 +1,5 @@
 # Varity Documentation
 
-> **Predictable cloud hosting for supported apps and runnable Docker services.**
-
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![Discord](https://img.shields.io/badge/Discord-Join-5865F2?logo=discord&logoColor=white)](https://discord.gg/7vWsdwa2Bg)
 
