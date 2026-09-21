@@ -10,7 +10,6 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="June 2026"
   stability="stable"
 />
 
@@ -119,15 +118,13 @@ Choose the right hosting for your application type:
 
 ### Environment Variables
 
-Credentials are managed automatically by Varity. Optionally set your app ID:
+Supply the third-party secrets and configuration your application owns. Varity
+does not create shared development credentials or an application ID variable.
+When a supported attached service is actually provisioned, its reserved
+connection variables are injected into the deployed runtime.
 
-```bash title=".env.local"
-# Optional: Your Varity App ID
-NEXT_PUBLIC_VARITY_APP_ID=<your-app-id>
-
-```
-
-See [Environment Variables](/deploy/env-variables) for the complete list and [Managed Credentials](/deploy/managed-credentials) for how credential auto-provision works.
+See [Environment Variables](/deploy/env-variables/) and
+[Deployment Credentials](/deploy/managed-credentials/).
 
 ### Test Locally First
 

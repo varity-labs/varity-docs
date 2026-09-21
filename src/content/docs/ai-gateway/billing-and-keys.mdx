@@ -1,6 +1,6 @@
 ---
 title: AI Gateway Billing and Keys
-description: How Varity AI Gateway credits, the 5% service fee, top-ups, inference keys, and usage reporting work.
+description: How Varity AI Gateway credits, live funding terms, inference keys, and usage reporting work.
 ---
 
 import PageMeta from '../../../components/PageMeta.astro';
@@ -8,7 +8,6 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="September 2026"
   stability="beta"
 />
 
@@ -19,27 +18,14 @@ balance, and an inference key is what your code sends to spend it.
 
 - **Each request is charged exactly its provider cost.** No markup is added per
   request.
-- **Varity's 5% service fee is charged when you add credits**, on top of the
-  amount you add. A $20.00 top-up charges your card $21.00 and adds $20.00 of
-  credits.
-- **A top-up is between $20 and $1,000.**
+- **Funding terms are published by the live OpenAPI contract.** Read the fee
+  and refill bounds before opening checkout; this page does not retain a copy.
 - **A payment method is required.** There is no automatic sign-up credit, and you
   cannot bring your own provider key.
 
 These terms are machine-readable in the `x-varity-commercial-contract` block of
-`GET https://ai.varity.app/v1/openapi.json`:
-
-```json
-{
-  "managed_rate": "actual_provider_cost",
-  "funding_service_fee_percent": 5,
-  "minimum_refill_usd": 20,
-  "maximum_refill_usd": 1000,
-  "payment_method_required": true,
-  "automatic_signup_credit": false,
-  "byok": "unavailable"
-}
-```
+`GET https://ai.varity.app/v1/openapi.json`. Treat a missing block or field as
+unavailable; do not fall back to an earlier value.
 
 Per-model rates are in `customer_pricing` on
 [`GET /v1/models`](/ai-gateway/models/#pricing) and on the **Models** tab of the
@@ -55,9 +41,9 @@ any model is called.
 Add credits on the **Gateway billing** tab of the AI Gateway page in the
 Developer Portal. The same tab sets a monthly spending limit and auto-reload.
 
-Auto-reload tops the balance up when it falls below a threshold. Its amount
-follows the same $20 to $1,000 bounds and the same 5% fee, and the threshold
-must be lower than the amount.
+Auto-reload tops the balance up when it falls below a threshold. Its amount and
+fee use the live commercial contract, and the threshold must be lower than the
+amount.
 
 ## Inference Keys
 

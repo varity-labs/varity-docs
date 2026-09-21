@@ -2,8 +2,8 @@
 // Drift gate for the generated AI-facing artifacts. A stale public/llms.txt,
 // public/llms-full.txt or public/openapi.yaml must never reach main: this
 // regenerates each from its checked-in source in memory and fails on any byte
-// difference. Requirement: varity-engineering/architecture/AI-GATEWAY-COMPLETION.md
-// sections 6 and 7. Regenerate with:
+// difference. Workspace concept ownership is routed by
+// varity-engineering/architecture/CHANGE-IMPACT.md. Regenerate with:
 //   node tools/generate-ai-gateway-artifacts.mjs --update
 //
 // Check name: generated AI gateway artifacts match their sources

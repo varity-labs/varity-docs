@@ -9,7 +9,6 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="September 2026"
   stability="beta"
 />
 
@@ -189,8 +188,8 @@ Varity [public API](/ai-tools/api-reference/). A revoked key stops working
 within 30 seconds. See [Billing and Keys](/ai-gateway/billing-and-keys/).
 
 Inference is prepaid: add credits on the **Gateway billing** tab before your
-first request. Each request is charged its provider cost, and Varity's 5%
-service fee is charged when credits are added.
+first request. Each request is charged according to the live model catalog;
+funding terms come from the live OpenAPI commercial-contract block.
 
 Auth is enforced on every inference route. A request with no `Authorization`
 header returns `401`:
@@ -327,7 +326,7 @@ the exact headers each refusal returns, and the body-size ceilings are on
 ## Next Steps
 
 - **[Endpoints](/ai-gateway/endpoints/)**: one minimal request for every route
-- **[Billing and Keys](/ai-gateway/billing-and-keys/)**: credits, the 5% service fee, top-ups, key create and revoke, usage
+- **[Billing and Keys](/ai-gateway/billing-and-keys/)**: credits, live funding terms, top-ups, key create and revoke, usage
 - **[Playground](/ai-gateway/playground/)**: try models in the Developer Portal before writing code
 - **[Models](/ai-gateway/models/)**: the full live catalog with makers, context windows, limits, and prices
 - **[Rate Limits](/ai-gateway/limits/)**: budgets, concurrency, response headers, and the `429` bodies

@@ -8,30 +8,8 @@ Use these docs as the public Varity documentation context. Current MCP install c
 claude mcp add varity -- npx -y @varity-labs/mcp
 ```
 
-## Current MCP Tools
+MCP clients must discover executable tool definitions from the installed server's `tools/list` response. The Docs `/mcp-schema.json` artifact is a conservative safety reference, not the wire contract.
 
-- `varity_search_docs`
-- `varity_cost_calculator`
-- `varity_doctor`
-- `varity_login`
-- `varity_install_deps`
-- `varity_build`
-- `varity_open_browser`
-- `varity_dev_server`
-- `varity_create_repo`
-- `varity_deploy`
-- `varity_deploy_status`
-- `varity_deploy_logs`
-- `varity_delete_deployment`
-- `varity_set_env`
-- `varity_redeploy`
-- `varity_list_templates`
-- `varity_template_info`
-- `varity_deploy_template`
-- `varity_list_agents`
-- `varity_agent_info`
-- `varity_deploy_agent`
-- `varity_migrate`
 
 ## Varity Documentation Home
 
@@ -221,8 +199,8 @@ Varity [public API](/ai-tools/api-reference/). A revoked key stops working
 within 30 seconds. See [Billing and Keys](/ai-gateway/billing-and-keys/).
 
 Inference is prepaid: add credits on the **Gateway billing** tab before your
-first request. Each request is charged its provider cost, and Varity's 5%
-service fee is charged when credits are added.
+first request. Each request is charged according to the live model catalog;
+funding terms come from the live OpenAPI commercial-contract block.
 
 Auth is enforced on every inference route. A request with no `Authorization`
 header returns `401`:
@@ -355,7 +333,7 @@ the exact headers each refusal returns, and the body-size ceilings are on
 ## Next Steps
 
 - **[Endpoints](/ai-gateway/endpoints/)**: one minimal request for every route
-- **[Billing and Keys](/ai-gateway/billing-and-keys/)**: credits, the 5% service fee, top-ups, key create and revoke, usage
+- **[Billing and Keys](/ai-gateway/billing-and-keys/)**: credits, live funding terms, top-ups, key create and revoke, usage
 - **[Playground](/ai-gateway/playground/)**: try models in the Developer Portal before writing code
 - **[Models](/ai-gateway/models/)**: the full live catalog with makers, context windows, limits, and prices
 - **[Rate Limits](/ai-gateway/limits/)**: budgets, concurrency, response headers, and the `429` bodies
@@ -367,7 +345,7 @@ the exact headers each refusal returns, and the body-size ceilings are on
 ## AI Gateway Billing and Keys
 
 URL: https://docs.varity.so/ai-gateway/billing-and-keys/
-Description: How Varity AI Gateway credits, the 5% service fee, top-ups, inference keys, and usage reporting work.
+Description: How Varity AI Gateway credits, live funding terms, inference keys, and usage reporting work.
 
 The AI Gateway is prepaid. You add credits, each request is charged from that
 balance, and an inference key is what your code sends to spend it.
@@ -376,27 +354,14 @@ balance, and an inference key is what your code sends to spend it.
 
 - **Each request is charged exactly its provider cost.** No markup is added per
   request.
-- **Varity's 5% service fee is charged when you add credits**, on top of the
-  amount you add. A $20.00 top-up charges your card $21.00 and adds $20.00 of
-  credits.
-- **A top-up is between $20 and $1,000.**
+- **Funding terms are published by the live OpenAPI contract.** Read the fee
+  and refill bounds before opening checkout; this page does not retain a copy.
 - **A payment method is required.** There is no automatic sign-up credit, and you
   cannot bring your own provider key.
 
 These terms are machine-readable in the `x-varity-commercial-contract` block of
-`GET https://ai.varity.app/v1/openapi.json`:
-
-```json
-{
-  "managed_rate": "actual_provider_cost",
-  "funding_service_fee_percent": 5,
-  "minimum_refill_usd": 20,
-  "maximum_refill_usd": 1000,
-  "payment_method_required": true,
-  "automatic_signup_credit": false,
-  "byok": "unavailable"
-}
-```
+`GET https://ai.varity.app/v1/openapi.json`. Treat a missing block or field as
+unavailable; do not fall back to an earlier value.
 
 Per-model rates are in `customer_pricing` on
 [`GET /v1/models`](/ai-gateway/models/#pricing) and on the **Models** tab of the
@@ -412,9 +377,9 @@ any model is called.
 Add credits on the **Gateway billing** tab of the AI Gateway page in the
 Developer Portal. The same tab sets a monthly spending limit and auto-reload.
 
-Auto-reload tops the balance up when it falls below a threshold. Its amount
-follows the same $20 to $1,000 bounds and the same 5% fee, and the threshold
-must be lower than the amount.
+Auto-reload tops the balance up when it falls below a threshold. Its amount and
+fee use the live commercial contract, and the threshold must be lower than the
+amount.
 
 ## Inference Keys
 
@@ -552,7 +517,7 @@ as the bearer credential; an inference API key is refused on them.
 | `GET /v1/billing/balance` | **Supported.** The prepaid Gateway balance. |
 | `GET /v1/billing/transactions` | **Supported.** Balance transactions. Accepts `limit` and `offset`. |
 | `PATCH /v1/billing/settings` | **Supported.** Monthly spending limit and auto-reload. |
-| `POST /v1/billing/top-up` | **Supported.** Starts a card checkout that funds the balance: $20 minimum, $1,000 maximum, plus Varity's 5% service fee. See [Billing and Keys](/ai-gateway/billing-and-keys/). |
+| `POST /v1/billing/top-up` | **Supported.** Starts a card checkout using the funding terms in the live OpenAPI commercial-contract block. See [Billing and Keys](/ai-gateway/billing-and-keys/). |
 
 The same keys can also be created from the platform API with
 `POST /api/api-keys/inference`; see the
@@ -1686,14 +1651,19 @@ Create API keys in the [Developer Portal settings page](https://developer.store.
 
 `POST /api/deployments` creates a deployment from one source: repository, image, or template. It returns `202 Accepted`. Creation is asynchronous.
 
-Always send an `Idempotency-Key` on creates so a retry cannot produce a duplicate deployment:
+Send an `Idempotency-Key` on creates so a retry cannot produce a duplicate deployment:
 
-- Format: `[A-Za-z0-9._:-]`, 8 to 128 characters. Anything else returns `400 invalid_idempotency_key`.
+- Deployment and template creates accept an optional key up to 160 characters.
+- Machine create and delete require `[A-Za-z0-9._:-]{8,128}`.
+- AI Gateway attachment mutations require `[A-Za-z0-9._:-]{1,160}`.
 - Retention: 24 hours.
 - Replaying the same key with the **same** body returns the original result, flagged `replayed: true`.
 - Reusing the same key with a **different** body returns `409 idempotency_key_reused`.
 
-The header is optional on `POST /api/deployments`, `POST /api/templates/{id}/deploy`, `POST /api/machines`, and `DELETE /api/machines/{id}`, and **required** on every `/api/ai-gateway/attachments` mutation.
+The header is optional on `POST /api/deployments` and
+`POST /api/templates/{id}/deploy`; it is **required** on machine create/delete
+and every `/api/ai-gateway/attachments` mutation. The operation-specific
+OpenAPI parameter is authoritative.
 
 Do not fire concurrent create requests with the same idempotency key; atomic concurrent idempotency is a backend hardening follow-up for v1.
 
@@ -1989,13 +1959,16 @@ Every platform-API error returns the same envelope:
 
 Branch on `code` and `retryable`, never on `message`. Send an `X-Request-Id` header and it comes back as `correlation_id`; include it in support requests.
 
-Rate limits are enforced per account and per class of request. Reads get 300 per minute, deployment creates get 10 per hour. Exhausting one returns `429 rate_limited` with a `Retry-After` header. Honor it.
+Rate limits are enforced per account and per class of request. Exhausting a
+budget returns `429 rate_limited` with a `Retry-After` header. Honor the
+returned `RateLimit-*` headers; documentation does not own a copied numeric
+budget.
 
 See **[API Errors](/api/errors/)** and **[Rate Limits](/api/limits/)** for the full reference.
 
 ## Endpoint Summary
 
-The live OpenAPI document at `https://varity.app/api/openapi.json` defines **33 paths and 45 operations**. This is the full list; the document itself is authoritative.
+The live OpenAPI document at `https://varity.app/api/openapi.json` defines **34 paths and 46 operations** in the checked-in projection. The live document itself is authoritative.
 
 ### Deployments
 
@@ -2004,6 +1977,7 @@ The live OpenAPI document at `https://varity.app/api/openapi.json` defines **33 
 | `GET`, `POST` | `/api/deployments` | List or create deployments |
 | `GET` | `/api/deployments/runs/{run_id}` | Get deployment run status |
 | `GET`, `DELETE` | `/api/deployments/{deployment_id}` | Read or delete a deployment |
+| `GET` | `/api/deployments/{deployment_id}/access-credential` | Read owner-only private application access with a Portal session |
 | `GET` | `/api/deployments/{deployment_id}/logs` | Read deployment logs |
 | `GET` | `/api/deployments/{deployment_id}/events` | Read deployment events |
 | `GET` | `/api/deployments/{deployment_id}/health-history` | Read durable runtime and route health history |
@@ -2083,24 +2057,29 @@ API-key management endpoints are Developer Portal session routes in v1. API keys
 ## Varity MCP Server Reference
 
 URL: https://docs.varity.so/ai-tools/mcp-server-spec/
-Description: Install and configure the Varity MCP server for AI editors. A full set of tools for building, deploying, and managing apps via Cursor or Claude Code.
+Description: Install the published Varity MCP package, configure a supported editor, and use its machine-readable tool catalog without relying on unreleased source.
 
-The Varity MCP server (`@varity-labs/mcp`) gives AI editors a full set of tools for the full build and deploy workflow. It runs locally via stdio. Install the current npm package.
+The Varity MCP server (`@varity-labs/mcp`) runs locally over stdio and gives an
+MCP-compatible editor access to Varity's published tools. The install command
+uses npm's current `latest` release; an unreleased source branch is not evidence
+of what that command installs.
 
-The MCP server works with **any editor that supports MCP**: Cursor, Claude Code, VS Code (Copilot), Windsurf, and more. Setup takes under a minute.
-
-**Machine-readable schema.** The Varity MCP tool catalog is published at [`/mcp-schema.json`](/mcp-schema.json), including tool names, descriptions, JSON Schema, and annotations. The HTTP API the tools wrap is published as [`/openapi.yaml`](/openapi.yaml). See the [API Reference](/ai-tools/api-reference/) for both.
+The machine-readable [`/mcp-schema.json`](/mcp-schema.json) is a conservative
+documentation reference tied to the named npm release. It is not the MCP wire
+contract. Your installed server's `tools/list` response is authoritative for
+executable definitions. The scheduled check fails when npm's `latest` version
+moves ahead of the reference's release marker.
 
 ## Prerequisites
 
-- **Node.js 20+** (runs the MCP server)
-- **Python 3.11+** (needed for varitykit CLI)
-- **varitykit** (install with: `pipx install varitykit`)
+- **Node.js 18 or newer**, as required by the package currently published to npm
+- **Python 3.11 or newer** for the current `varitykit` CLI
+- **varitykit**, installed with `pipx install varitykit`
 
 ## Setup
 
   
-    Add to `.cursor/mcp.json` in your project root:
+    Add this to `.cursor/mcp.json` in your project:
 
     ```json
     {
@@ -2113,19 +2092,17 @@ The MCP server works with **any editor that supports MCP**: Cursor, Claude Code,
     }
     ```
 
-    Restart Cursor. The Varity tools appear in the MCP tool list.
+    Restart Cursor after saving the file.
   
   
-    Run once from any directory:
+    Run once:
 
     ```bash
     claude mcp add varity -- npx -y @varity-labs/mcp
     ```
-
-    Claude Code picks up the server automatically on the next conversation.
   
   
-    Add to `.vscode/mcp.json`:
+    Add this to `.vscode/mcp.json`:
 
     ```json
     {
@@ -2139,412 +2116,103 @@ The MCP server works with **any editor that supports MCP**: Cursor, Claude Code,
     ```
   
   
-    Add to `~/.codeium/windsurf/mcp_config.json`:
-
-    ```json
-    {
-      "mcpServers": {
-        "varity": {
-          "command": "npx",
-          "args": ["-y", "@varity-labs/mcp"]
-        }
-      }
-    }
-    ```
+    Add the same server entry to `~/.codeium/windsurf/mcp_config.json`.
   
 
-**Headless or CI use.** The server reads your API key from `VARITY_API_KEY` (or `VARITY_DEPLOY_KEY`) in its environment, or from `~/.varitykit/config.json` after `varity_login`. Add an `env` block to the config above when no browser is available.
-
-## Tools Reference
-
-The server exposes a full set of tools. Read-only tools run safely with no side effects. Destructive tools create files or deploy infrastructure.
-
-### `varity_doctor`: Check environment setup
-
-Verify that your development environment is ready to build and deploy Varity apps. Checks Node.js, npm, varitykit CLI installation, and authentication status.
-
-*No parameters required.*
-
-**Annotations:** `readOnlyHint: true`
-
-**Example prompt:** "Check if my environment is set up for Varity"
-
----
-
-### `varity_login`: Authenticate with Varity
-
-Log in to Varity to enable deployments. If a `deploy_key` is provided, it is saved to local config; otherwise the tool opens the developer portal where you add a payment method and copy your deploy key. Required before deploying apps.
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `deploy_key` | string | No | none | Your deploy key from the developer portal (`developer.store.varity.so/dashboard/settings`). If omitted, opens the portal to get one. |
-
-**Example prompt:** "Log in to Varity" or "Authenticate with my deploy key"
-
----
-
-### `varity_search_docs`: Search documentation
-
-Search Varity docs for guides, API references, and tutorials.
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `query` | string | Yes | none | Search query (e.g., "database setup", "how to deploy") |
-| `maxResults` | number | No | 3 | Maximum results to return |
-
-**Annotations:** `readOnlyHint: true`
-
-**Example prompt:** "Search the Varity docs for how to set up authentication"
-
----
-
-### `varity_cost_calculator`: Estimate costs
-
-Estimate the fixed monthly price for a deployment profile. Pricing is computed by the Varity pricing service, so this tool, the CLI, and the portal render identical numbers.
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `app_profile` | string | No | `web-app` | Pre-deploy estimate preset: `static-site`, `web-app`, `web-app-db`, `ai-agent-cpu`, or `ai-agent-gpu` |
-| `subdomain` | string | No | none | A live deployment's subdomain. Returns that deployment's real cost (overrides `app_profile`) |
-| `has_database` | boolean | No | none | Whether the app uses a database (selects the database-inclusive estimate) |
-
-**Annotations:** `readOnlyHint: true`
-
-**Example prompt:** "How much would it cost to host a web app with a database on Varity?"
-
----
-
-### `varity_install_deps`: Install npm dependencies
-
-Install dependencies for a Varity project. Runs `npm install` for all packages or installs specific packages.
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `path` | string | No | Current directory | Project directory to install dependencies in |
-| `packages` | string[] | No | none | Specific packages to install (e.g., `["axios", "lodash"]`). If omitted, installs all dependencies. |
-
-**Example prompt:** "Install dependencies for my project" or "Install axios and lodash"
-
----
-
-### `varity_dev_server`: Manage local dev server
-
-Start, stop, or check the status of your local development server. Returns the localhost URL for previewing your app.
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `action` | `"start"` \| `"stop"` \| `"status"` | Yes | none | Action to perform |
-| `path` | string | No | Current directory | Project directory |
-| `port` | number | No | 3000 | Port to run the dev server on. If busy, auto-selects next available port and persists to `varity.config.json`. |
-
-**Example prompt:** "Start the dev server" or "Check dev server status"
-
----
-
-### `varity_build`: Build for production
-
-Build the project for production. Auto-detects framework from `package.json`. Run before deploying or to verify the project compiles.
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `path` | string | No | Current directory | Path to the project directory |
-
-**Example prompt:** "Build my project"
-
----
-
-### `varity_open_browser`: Open URL in browser
-
-Open a URL in the user's default browser. Use after deploying to show the live app or after starting the dev server.
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `url` | string | Yes | none | URL to open in the default browser |
-
-**Example prompt:** "Open the deployment in my browser"
-
----
-
-### `varity_create_repo`: Create GitHub repository
-
-Create a new GitHub repository and push your project to it. Useful for getting your code into version control before deploying.
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `name` | string | Yes | none | Repository name (lowercase, hyphens allowed) |
-| `description` | string | No | none | Short description for the repo |
-| `path` | string | No | Current directory | Absolute path to the local project to push (e.g. `/home/user/my-app`) |
-| `visibility` | `"public"` \| `"private"` | No | `"public"` | Repository visibility |
-| `github_token` | string | No | none | GitHub personal access credential with `repo` scope (or set `GITHUB_TOKEN`) |
-
-**Annotations:** `destructiveHint: true` (creates an external GitHub repository)
-
-**Example prompt:** "Create a new GitHub repo called my-dashboard and push my project"
-
----
-
-### `varity_deploy`: Deploy to production
-
-Deploy the current project to production. Detects the framework, selects static vs dynamic hosting, auto-configures any backend services your code needs, and returns a live URL at `https://varity.app/<name>/`. Deploy from source (a project path or a GitHub repo) or from a prebuilt Docker/OCI image.
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `path` | string | No | MCP working dir | Absolute path to the project root (the directory with `package.json`). |
-| `repo_url` | string | No | auto-detected | GitHub repo URL. Required for dynamic deployments; auto-detected from `.git/config` if omitted. |
-| `app_name` | string | No | directory name | URL-safe name controlling the URL `https://varity.app/{app_name}/`. |
-| `image` | string | No | none | Deploy a prebuilt Docker/OCI image (e.g. `ghcr.io/you/app:latest`) instead of building. Mutually exclusive with `repo_url`. |
-| `image_credentials` | object | No | none | `{ host, username, password }` pull credentials for a **private** registry image. Omit for public images. |
-| `port` | integer | No | `80` | Container listen port for an `image` deploy. |
-
-**Annotations:** `destructiveHint: true` (deploys real infrastructure)
-
-**Example prompt:** "Deploy this project to Varity" or "Deploy the image ghcr.io/me/api:latest on port 8080"
-
----
-
-### `varity_deploy_status`: Check deployments
-
-List deployments or get the status of a specific one. Shows URL, status, framework, size, and creation time.
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `deployment_id` | string | No | none | Specific deployment ID (omit to list recent) |
-| `path` | string | No | none | Project directory. Only show deployments for this project |
-| `limit` | integer | No | 10 | Maximum deployments to return (max 50) |
-
-**Annotations:** `readOnlyHint: true`
-
-**Example prompt:** "Show me the status of my deployments"
-
----
-
-### `varity_deploy_logs`: Get runtime logs
-
-Get recent runtime logs for a live deployment from the public API. Local build errors come from `varity_build`.
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `deployment_id` | string | Yes | none | The deployment ID to get logs for |
-| `limit` | number | No | 100 | Maximum log lines to return |
-
-**Annotations:** `readOnlyHint: true`
-
-**Example prompt:** "Show me the build logs for deployment abc123"
-
----
-
-### `varity_set_env`: Set env vars on a live app
-
-Set or update environment variables (config + secrets) on an app that is **already deployed**, then redeploy it in place with the same URL and same reserved hardware. By default the supplied variables are merged over the current set; pass `replace: true` to overwrite the entire set. Values are write-only and are never echoed back.
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `name` | string | Yes | none | The app name or subdomain. The `<name>` in `https://varity.app/<name>/` |
-| `env` | object | Yes | none | Variables to set, as a map of UPPER_SNAKE_CASE name to value |
-| `replace` | boolean | No | `false` | When true, replace the entire variable set instead of merging |
-
-**Annotations:** `destructiveHint: true` (redeploys live infrastructure)
-
-**Example prompt:** "Set DATABASE_URL on my-api and redeploy" or "Rotate the API key on worker-bot"
-
----
-
-### `varity_redeploy`: Redeploy an app in place
-
-Redeploy or restart an app that is **already deployed**, in place. This re-pulls the image (or rebuilds from source) and restarts the container on the **same** deployment with the same URL and same reserved hardware. Takes no body and keeps the current environment variables; use `varity_set_env` to change config at the same time.
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `name` | string | Yes | none | The app name or subdomain. The `<name>` in `https://varity.app/<name>/` |
-
-**Annotations:** `destructiveHint: true` (restarts live infrastructure)
-
-**Example prompt:** "Redeploy my-api" or "My app is stuck. Restart worker-bot"
-
----
-
-### `varity_delete_deployment`: Tear down a deployment
-
-Permanently remove a deployment by its app name and stop its billing immediately. Use when you no longer need an app you deployed.
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `name` | string | Yes | none | The app name or subdomain. The `<name>` in `https://varity.app/<name>/` |
-
-**Annotations:** `destructiveHint: true` (tears down live infrastructure)
-
-**Example prompt:** "Stop my worker-bot deployment" or "Delete the app my-dashboard"
-
----
-
-### `varity_list_templates`: List certified templates
-
-List certified Varity templates from the gateway-owned catalog.
-
-*No parameters required.*
-
-**Annotations:** `readOnlyHint: true`
-
-**Example prompt:** "What templates can Varity deploy?"
-
----
-
-### `varity_template_info`: Show template details
-
-Show required environment variables, resource profile, access mode, hardware profile, and certification state for one certified template.
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `template` | string | Yes | none | Template ID from `varity_list_templates` |
-
-**Annotations:** `readOnlyHint: true`
-
-**Example prompt:** "Show details for Agent Zero"
-
----
-
-### `varity_deploy_template`: Deploy a template
-
-Deploy one certified Varity template. Use this for curated templates such as Agent Zero instead of `varity_deploy`, which is for deploying a local project or Docker image.
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `template` | string | Yes | none | Template ID from `varity_list_templates` |
-| `name` | string | No | generated name | Memorable deployment name for the URL slug |
-| `env` | object | No | none | Required environment variables for the selected template |
-
-**Annotations:** `destructiveHint: true` (deploys real infrastructure)
-
-**Example prompt:** "Deploy Agent Zero on Varity"
-
-The older `varity_list_agents`, `varity_agent_info`, and `varity_deploy_agent`
-tools are backward-compatible aliases for the template tools above.
-
----
-
-### `varity_migrate`: Migrate from Vercel to Varity
-
-Migrate a Vercel project to Varity in one step: clone the GitHub repository, remove Vercel-specific artifacts (`vercel.json`, `@vercel/*` packages, image optimizer config, env var renames), and deploy the transformed app to Varity.
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `github_url` | string | Yes | none | GitHub repository URL to migrate (e.g. `https://github.com/user/my-app`) |
-| `dry_run` | boolean | No | `false` | Preview what would change without deploying |
-
-**Annotations:** `destructiveHint: true` (clones a repo and deploys infrastructure)
-
-**Example prompt:** "Migrate my Vercel app at https://github.com/user/my-app to Varity"
-
----
-
-## Response Format
-
-All tools return JSON with a consistent structure:
-
-```typescript
-// Success
-{
-  success: true,
-  data: { /* tool-specific data */ },
-  message: "Human-readable summary"
-}
-
-// Error
-{
-  success: false,
-  error: {
-    code: "ERROR_CODE",
-    message: "What went wrong",
-    suggestion?: "How to fix it"
-  }
-}
-```
+## Authentication
+
+Use `varity_login` for interactive setup. For a headless process, provide
+`VARITY_API_KEY` (or the package's compatibility name `VARITY_DEPLOY_KEY`) to
+the MCP process. Never put a real key in a checked-in editor configuration.
+
+The server can also read the credential written by varitykit. API keys are
+account credentials; a project path is not an ownership boundary.
+
+## Tool Reference
+
+Use [`/mcp-schema.json`](/mcp-schema.json) for conservative usage guidance and
+the release identity reviewed by Docs. Discover names, input schemas, and
+annotations from the installed server before calling a tool. Do not copy a tool
+table into automation from this page. The platform HTTP routes wrapped by
+deployment tools are separately published at [`/openapi.yaml`](/openapi.yaml).
+
+Important lifecycle semantics:
+
+- A deploy, environment update, redeploy, or delete request can return before
+  every runtime effect has converged. Track the returned state or operation.
+- Deletion acceptance is not proof that routing, allocation release, and
+  billing closure are all complete.
+- A redeploy request reapplies saved configuration and can be a no-op. Do not
+  describe it as a verified restart or image refresh without runtime evidence.
+- Deployment-log availability depends on how the deployment was created. Use
+  the local build tool for compilation diagnostics.
+- Environment-variable values are write-only. Do not expect read APIs or tool
+  results to echo secrets.
 
 ## Typical Workflow
 
-Here is the practical build-and-deploy flow using the MCP tools:
+1. Run `varity_doctor` to check local prerequisites.
+2. Run `varity_login` if authentication is missing.
+3. Use `varity_cost_calculator` or a live quote before a billable action.
+4. Build locally and inspect the result.
+5. Deploy the project or a certified template.
+6. Follow the returned deployment state to a terminal outcome.
+7. For deletion, verify terminal cleanup and billing state rather than treating
+   request acceptance as closure.
 
-**Deploy an existing app:**
+The package also exposes local-development and repository helpers. Discover
+their current schemas and annotations from the installed server's `tools/list`
+response before calling them. Use `/mcp-schema.json` only for conservative Docs
+guidance tied to its recorded release marker.
 
-1. **"Check if my environment is ready"** → `varity_doctor`
-2. **"Install dependencies"** → `varity_install_deps`
-3. **"What will this cost per month?"** → `varity_cost_calculator`
-4. **"Start the dev server"** → `varity_dev_server` → `varity_open_browser`
-5. **"Build for production"** → `varity_build`
-6. **"Deploy this"** → `varity_deploy`
-7. **"Did the deploy succeed?"** → `varity_deploy_status`
-8. **"Show me the build logs"** → `varity_deploy_logs` (if needed)
-9. **"Update env vars"** → `varity_set_env` (when live config changes)
-10. **"Redeploy this app"** → `varity_redeploy` (same URL, no new reservation)
-11. **"Tear down this deployment"** → `varity_delete_deployment` (when you no longer need it)
+## Transports
 
-**Deploying Agent Zero or another template:**
+The package supports:
 
-1. **"What templates can Varity deploy?"** → `varity_list_templates`
-2. **"Show details for Agent Zero"** → `varity_template_info`
-3. **"Deploy Agent Zero"** → `varity_deploy_template`
+- **stdio**, for local editor integrations; and
+- **self-hosted HTTP**, for a server you operate yourself.
 
-**Migrating from Vercel:**
-
-1. **"Check if my environment is ready"** → `varity_doctor`
-2. **"Migrate my Vercel app at https://github.com/user/my-app"** → `varity_migrate`
-3. *(Done. The app is live on Varity infrastructure.)*
-
-**Deploying a certified template:**
-
-1. **"What templates can I deploy?"** → `varity_list_templates`
-2. **"What does the Agent Zero template need?"** → `varity_template_info`
-3. **"Deploy Agent Zero"** → `varity_deploy_template`
-4. **"Did it come up?"** → `varity_deploy_status`
-
-## Troubleshooting
-
-**"Cannot find module @varity-labs/mcp"**
-Make sure Node.js 20+ is installed. Run `node --version` to check.
-
-**Deploy tools fail with "varitykit not found"**
-Install the CLI: `pipx install varitykit`. Run `varitykit doctor` to verify.
-
-**Server not showing in Cursor**
-Restart Cursor after adding the config. Check that `.cursor/mcp.json` is valid JSON.
-
-**Server not showing in Claude Code**
-Run `claude mcp list` to verify the server is registered. Re-add with `claude mcp add varity -- npx -y @varity-labs/mcp`.
-
-## HTTP Transport (Claude.ai, ChatGPT, Browser-Based LLMs)
-
-The MCP server supports two transports:
-
-- **stdio** (default): for desktop editors like Cursor, Claude Code, VS Code, Windsurf
-- **HTTP**: self-hosted only (see below); there is no hosted endpoint
-
-### Hosted MCP (retired)
-
-The hosted endpoint `mcp.varity.so` is retired. Browser-based tools that only accept a remote MCP URL are not supported today; use the stdio package (`npx -y @varity-labs/mcp`) from Claude Code, Cursor, VS Code, or Windsurf, or the [llms.txt context files](#llmstxt-alternative) for LLMs without MCP support.
-
-### Self-Hosted HTTP
-
-Run the HTTP server locally for development:
+Start a local HTTP transport with:
 
 ```bash
 npx -y @varity-labs/mcp --transport http --port 3100
 ```
 
-This starts the MCP server at `http://localhost:3100/mcp`.
+It serves MCP at `http://localhost:3100/mcp`.
 
-Local-browser tools (`varity_open_browser`, `varity_dev_server`) require local execution, so they are stdio-only. Use stdio when you need local execution; use HTTP for remote connector workflows.
+`mcp.varity.so` is retired. Varity does not currently operate a hosted MCP
+transport. Browser-only clients that require a remote MCP URL cannot use the
+local stdio package directly.
 
-### llms.txt Alternative
+Local-browser and local-dev-server tools require local execution, so use stdio
+for those workflows.
 
-For LLMs without MCP support, use the docs context files:
+## LLM Context Without MCP
 
-- **Summary:** `https://docs.varity.so/llms.txt`
-- **Full context:** `https://docs.varity.so/llms-full.txt`
+Clients that cannot run MCP can read:
+
+- `https://docs.varity.so/llms.txt` for the compact index; or
+- `https://docs.varity.so/llms-full.txt` for the generated documentation corpus.
+
+These are documentation projections, not substitutes for live resource state,
+quotes, or operation receipts.
+
+## Troubleshooting
+
+- If npm cannot resolve the package, confirm `node --version` meets the
+  published package requirement and retry `npx -y @varity-labs/mcp`.
+- If deploy tools cannot find varitykit, install it with pipx and run
+  `varitykit doctor`.
+- If an editor does not show the server, validate its JSON configuration,
+  restart the editor, and inspect the editor's MCP process log.
+- If a tool's behavior differs from this page, record the installed npm version
+  first and use the matching package and platform contracts as evidence.
 
 ## Support
 
-- [Documentation](https://docs.varity.so/ai-tools/overview)
-- [Discord](https://discord.gg/7vWsdwa2Bg): ask in #general
+- [Documentation overview](/ai-tools/overview/)
+- [Public API reference](/ai-tools/api-reference/)
+- [Discord](https://discord.gg/7vWsdwa2Bg)
 - [Varity on GitHub](https://github.com/varity-labs)
 
 ---
@@ -2780,7 +2448,7 @@ API keys cannot manage other API keys. The `/api/api-keys*` routes are Developer
 | Code | HTTP | Retryable | Cause |
 |------|------|-----------|-------|
 | <span id="invalid_env"></span>`invalid_env` | 400 | no | Malformed environment-variable update payload. |
-| <span id="invalid_idempotency_key"></span>`invalid_idempotency_key` | 400 | no | The key is not `[A-Za-z0-9._:-]{8,128}`. |
+| <span id="invalid_idempotency_key"></span>`invalid_idempotency_key` | 400 | no | The key does not satisfy the called route's OpenAPI parameter. Machine operations use `[A-Za-z0-9._:-]{8,128}`; deployment and attachment routes have different bounds. |
 | <span id="invalid_run_id"></span>`invalid_run_id` | 400 | no | Malformed run identifier. |
 | <span id="invalid_webhook_url"></span>`invalid_webhook_url` | 400 | no | The webhook URL is not a public HTTPS URL. |
 | <span id="invalid_webhook_id"></span>`invalid_webhook_id` | 400 | no | Malformed webhook identifier. |
@@ -2957,14 +2625,14 @@ Limits are keyed to the **authenticated account**, not to the API key, the route
 
 Requests are grouped into classes, and each class has its own budget. A budget is shared across **every route in that class**. Exhausting the read budget on `/api/deployments` also blocks `/api/credits`.
 
-| Class | Budget | Window | Covers |
-|-------|--------|--------|--------|
-| Read | 300 requests | 1 minute | Listing and reading deployments, machines, templates, credits, profiles, capabilities, keys, attachments |
-| Quote | 120 requests | 1 minute | `/api/pricing/estimate`, `/api/pricing/accelerator-quote`, `/api/pricing/machine-quote` |
-| Logs | 120 requests | 1 minute | `/api/deployments/{id}/logs` and `/api/deployments/{id}/events` |
-| Stop | 120 requests | 1 minute | Deleting deployments and machines, revoking API keys |
-| Deploy create | 10 requests | 1 hour | `POST /api/deployments`, `POST /api/templates/{id}/deploy`, `POST /api/machines` |
-| Mutation | 30 requests | 1 hour | Redeploy, restart, env updates, webhooks, key creation, AI Gateway attachments |
+| Class | Covers |
+|-------|--------|
+| Read | Listing and reading deployments, machines, templates, credits, profiles, capabilities, keys, attachments |
+| Quote | `/api/pricing/estimate`, `/api/pricing/accelerator-quote`, `/api/pricing/machine-quote` |
+| Logs | `/api/deployments/{id}/logs` and `/api/deployments/{id}/events` |
+| Stop | Deleting deployments and machines, revoking API keys |
+| Deploy create | `POST /api/deployments`, `POST /api/templates/{id}/deploy`, `POST /api/machines` |
+| Mutation | Redeploy, restart, env updates, webhooks, key creation, AI Gateway attachments |
 
 Two of these deserve explanation.
 
@@ -2972,11 +2640,11 @@ Two of these deserve explanation.
 
 **Stopping is never throttled into unavailability.** Delete and credential revocation are safety controls. A resource you cannot turn off keeps billing, and a leaked key you cannot revoke stays live. These get their own generous per-minute budget and never draw from the hourly create budget.
 
-The deploy-create budget is **10 per hour**. It is the tightest limit on the platform. If you are provisioning in bulk, pace your creates and treat `429` on a create as expected backpressure, not an error condition.
-
 ## Response Headers
 
-Limited routes return standard `RateLimit-*` headers. Program against these rather than hardcoding the numbers above. The headers are authoritative for your account at that moment.
+Limited routes return standard `RateLimit-*` headers. Program against them
+rather than copying a numeric budget from documentation. The headers are
+authoritative for your account at that moment.
 
 | Header | Meaning |
 |--------|---------|
@@ -3045,14 +2713,21 @@ curl -X POST https://varity.app/api/deployments \
   -d '{ "name": "my-app", "repository": { "url": "https://github.com/me/my-app" } }'
 ```
 
-Keys match `[A-Za-z0-9._:-]` and are at most 160 characters. Records are retained for 24 hours. Replaying the same key with the same body returns the original result; reusing it with a *different* body returns `409 idempotency_key_reused`. See [API Errors](/api/errors/#not-found-and-conflict).
+Idempotency-key validation is route-specific. Deployment and template creates
+accept an optional key up to 160 characters. Machine create and delete require
+`[A-Za-z0-9._:-]{8,128}`. AI Gateway attachment mutations require the same
+character set with a length of 1 to 160. Follow the operation's schema in the
+[OpenAPI document](/openapi.yaml). Replaying the same key with the same body
+returns the original result; reusing it with a *different* body returns
+`409 idempotency_key_reused`. See [API Errors](/api/errors/#not-found-and-conflict).
 
 ## Other Limits
 
 Some limits are enforced by the resource contract rather than by a request budget:
 
 - **Health history**: `GET /api/deployments/{id}/health-history` accepts `limit` with a default of 100 and a maximum of 500 observations.
-- **Idempotency keys**: 160 characters maximum, 24-hour retention.
+- **Idempotency keys**: constraints differ by operation; use the OpenAPI
+  parameter on the route you are calling. Records are retained for 24 hours.
 
 Account-level quotas on concurrent deployments and spend are governed by your billing state, not by these request budgets. A request that is refused for billing reasons returns `402 billing_or_credit_required`, not `429`.
 
@@ -3278,7 +2953,8 @@ varitykit app deploy
 - Global CDN distribution
 - Permanent deployment URLs
 - Automatic SSL
-- First 3 static sites free, then $1/month per site, for verified accounts; 1 GB of pinned assets
+- Current eligibility and price come from the live pricing response shown
+  before confirmation; see [Pricing and Costs](/resources/pricing/)
 
 ### Dynamic Apps
 
@@ -3729,7 +3405,8 @@ varitykit app deploy --repo-url https://github.com/you/my-site
 ```
 
 - **Best for**: Marketing sites, documentation, SPAs
-- **Cost**: First 3 static sites free, then $1/month per site, for verified accounts; 1 GB of pinned assets. See [Pricing and Costs](/resources/pricing/).
+- **Cost**: Read the current estimate from the live pricing service before
+  deploy. See [Pricing and Costs](/resources/pricing/).
 - **Speed**: Global CDN distribution
 
 ### Dynamic Apps
@@ -3830,8 +3507,6 @@ You do not configure ports, credentials, or connection strings. Varity handles a
 | `ioredis` | Redis cache | `REDIS_URL` |
 | `redis` | Redis cache | `REDIS_URL` |
 | `@vercel/kv` | Redis cache | `REDIS_URL` |
-| `@langchain/ollama` | AI model server | `OLLAMA_URL` |
-| `ollama` | AI model server | `OLLAMA_URL` |
 | `mongoose` | MongoDB database | `MONGODB_URI` |
 | `mongodb` | MongoDB database | `MONGODB_URI` |
 | `mysql` | MySQL database | `MYSQL_URL` |
@@ -3847,7 +3522,6 @@ You do not configure ports, credentials, or connection strings. Varity handles a
 | `psycopg2-binary` | Postgres database | `DATABASE_URL` |
 | `asyncpg` | Postgres database | `DATABASE_URL` |
 | `redis` | Redis cache | `REDIS_URL` |
-| `ollama` | AI model server | `OLLAMA_URL` |
 | `pymongo` | MongoDB database | `MONGODB_URI` |
 | `pymysql` | MySQL database | `MYSQL_URL` |
 | `boto3` | Object storage (S3-compatible) | `MINIO_URL`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY` |
@@ -3874,12 +3548,6 @@ If your project includes a `prisma/schema.prisma` file, Varity reads the `dataso
     An in-memory key-value store for caching, sessions, and queues. Ideal for rate limiting, temporary data, and speeding up repeated queries.
 
     Your app receives `REDIS_URL` automatically.
-  
-
-  
-    A local model runtime so your app can run language models without calling an external API. Useful for apps with on-device inference or privacy requirements.
-
-    Your app receives `OLLAMA_URL` automatically.
   
 
   
@@ -4212,7 +3880,10 @@ Varity detects these from your dependencies and provisions them alongside your a
     Relational database. Injected as `MYSQL_URL`.
   
 
-Varity also provisions an **Ollama** model server (`OLLAMA_URL`) and an **S3-compatible object store** (`MINIO_URL`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`) when your app uses one. Detection and the full env-var list are covered in [Auto-wired Services](/deploy/auto-wired-services/).
+Varity also provisions an **S3-compatible object store** (`MINIO_URL`,
+`MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`) when the current detection contract
+matches. Detection and the full env-var list are covered in
+[Auto-wired Services](/deploy/auto-wired-services/).
 
 Your app reads these from its environment. No connection strings to manage:
 
@@ -4332,7 +4003,9 @@ When you are done, delete the deployment to stop billing:
 varitykit app delete <name>
 ```
 
-You can also delete from the Developer Portal. Deleting an app stops its billing immediately.
+You can also request deletion from the Developer Portal. Follow the resulting
+state until cleanup and billing closure are terminal; acceptance alone is not
+proof that either has completed.
 
 ## Related Guides
 
@@ -4401,7 +4074,8 @@ Everything after deploy lives in the dashboard:
     See the monthly maximum for each app, prorated by running time. It doesn't move with traffic.
   
   
-    Remove an app from the dashboard. Deleting stops its billing immediately.
+    Request app teardown from the dashboard, then verify terminal cleanup and
+    billing state. Acceptance is not closure proof.
   
 
 ## What Varity Handles for You
@@ -4523,15 +4197,13 @@ Choose the right hosting for your application type:
 
 ### Environment Variables
 
-Credentials are managed automatically by Varity. Optionally set your app ID:
+Supply the third-party secrets and configuration your application owns. Varity
+does not create shared development credentials or an application ID variable.
+When a supported attached service is actually provisioned, its reserved
+connection variables are injected into the deployed runtime.
 
-```bash title=".env.local"
-# Optional: Your Varity App ID
-NEXT_PUBLIC_VARITY_APP_ID=<your-app-id>
-
-```
-
-See [Environment Variables](/deploy/env-variables) for the complete list and [Managed Credentials](/deploy/managed-credentials) for how credential auto-provision works.
+See [Environment Variables](/deploy/env-variables/) and
+[Deployment Credentials](/deploy/managed-credentials/).
 
 ### Test Locally First
 
@@ -4930,164 +4602,93 @@ When reporting an issue, include:
 ## Environment Variables on Varity
 
 URL: https://docs.varity.so/deploy/env-variables/
-Description: Configure environment variables for Varity deployments. Inject custom API keys via .env.varity. Most Varity credentials are managed automatically.
+Description: Configure application-owned environment variables for a Varity deployment without relying on retired shared-credential or app-identity behavior.
 
-Varity manages most credentials automatically. You only need to set environment variables for services you manage yourself, like your own API keys for OpenAI, Stripe, SendGrid, and similar third-party services.
+Supply the configuration and third-party secrets that your application owns,
+such as an OpenAI, Stripe, SendGrid, or Resend key. Varity does not create those
+accounts or provide shared development credentials.
 
-**No credential setup required.** Storage and service credentials are provided automatically by Varity. See [Managed Credentials](/deploy/managed-credentials) for details.
+If Varity provisions a supported attached service for a deployment, the runtime
+injects that service's reserved connection variables. See
+[Auto-wired Services](/deploy/auto-wired-services/) for that separate contract.
 
-## Custom Environment Variables
+## Add Custom Variables
 
-If your app uses third-party APIs (OpenAI, Stripe, SendGrid, Resend, or any other service), you need to inject those API keys into your deployment. Varity reads them during `varitykit app deploy` and passes them through to your running app. It looks for three filenames in precedence order: `.env.varity`, then `.env.local`, then `.env`. It uses the first one it finds.
-
-### Step 1: Create a `.env.varity` file
-
-Create `.env.varity` in your project root with your custom keys:
+Create `.env.varity` in the project root and add it to `.gitignore`:
 
 ```bash title=".env.varity"
-# Third-party API keys
 OPENAI_API_KEY=sk-...
 STRIPE_SECRET_KEY=sk_live_...
-RESEND_API_KEY=re_...
-SENDGRID_API_KEY=SG....
 MY_CUSTOM_VAR=some-value
 ```
 
-`.env.varity` is the recommended file for Varity-specific production secrets. It takes precedence over `.env.local` and `.env`. Add it to your `.gitignore`.
-
-### Step 2: Deploy
+Then deploy:
 
 ```bash
 varitykit app deploy
 ```
 
-The CLI reads your `.env.varity` file, filters out any reserved or platform-specific keys, and injects the rest directly into your deployment's runtime environment. Your app code accesses them the same way as any environment variable:
+The CLI uses the first file it finds in this precedence order:
+
+1. `.env.varity`
+2. `.env.local`
+3. `.env`
+
+It validates names, filters reserved platform keys, and sends the remaining
+values as write-only deployment input. Your application reads them through its
+normal process environment.
 
 ```js
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 ```
 
-### File precedence
+Only one environment file is loaded. Values from lower-precedence files are not
+merged into the selected file.
 
-When multiple `.env` files are present, Varity reads the first match (highest precedence wins):
+## Reserved Runtime Variables
 
-| File | When to use |
-|------|-------------|
-| `.env.varity` | Varity production secrets (overrides all others) |
-| `.env.local` | Local overrides / Next.js convention |
-| `.env` | Fallback for all environments |
+Do not try to override runtime-owned fields such as `NODE_ENV`, `PORT`,
+`NODE_OPTIONS`, or `APP_NAME`. Connection variables for an attached service,
+including `DATABASE_URL`, `REDIS_URL`, `MONGODB_URI`, and `MYSQL_URL`, are also
+reserved when that service is provisioned. The platform contract owns the exact
+reserved set.
 
-### What gets passed through
+Migration-specific keys from other hosting platforms are filtered from dynamic
+deployments so unrelated provider configuration is not forwarded accidentally.
 
-Any key that is a valid shell variable name and is **not** reserved by Varity passes through automatically, including `NEXT_PUBLIC_*` variables.
+There is no automatic `NEXT_PUBLIC_VARITY_APP_ID`, shared local credential, or
+application `VARITY_API_KEY`. If your application itself calls a Varity API,
+create and scope that credential explicitly, store it as a server-side secret,
+and never expose it through a browser-public prefix.
 
-Keys that are **not** forwarded (Varity sets these automatically):
+## Public Versus Server-only Values
 
-| Key | Set by |
-|-----|--------|
-| `NODE_ENV`, `PORT`, `NODE_OPTIONS` | Runtime defaults |
-| `DATABASE_URL`, `REDIS_URL`, `MONGODB_URI`, `MYSQL_URL`, `OLLAMA_URL` | Varity service wiring |
-| `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | Managed database config |
-| `APP_NAME` | Deployment metadata |
+Framework prefixes such as `NEXT_PUBLIC_`, `VITE_`, and `REACT_APP_` usually
+embed values into browser code. They are suitable only for deliberately public
+configuration. Never put a secret in a public-prefixed variable.
 
-Platform migration keys (`VERCEL_*`, `AWS_*`, `RAILWAY_*`, `RENDER_*`, `NETLIFY_*`, `FLY_*`) are also filtered so they don't leak into dynamic deployments.
+## Security Checklist
 
-**Special characters in values** (quotes, dollar signs, colons) are automatically escaped. You do not need to quote values in `.env.varity`.
-
----
-
-## Varity App Configuration
-
-```bash title=".env.local"
-# Your Varity App ID (from developer portal)
-NEXT_PUBLIC_VARITY_APP_ID=your-app-id
-```
-
-## Optional Variables
-
-These variables are only needed for specific use cases:
-
-| Variable | Required For | Default |
-|----------|--------------|---------|
-| `NEXT_PUBLIC_VARITY_APP_ID` | App identity | Dev default |
-| `VARITY_API_URL` | Custom API endpoint | `https://varity.app` |
-| `VARITY_API_KEY` | API authentication | Auto-provided |
-
-Deployment credentials for hosting (both static and dynamic) are managed automatically by Varity. No manual credential setup is needed.
-
-## Example .env Files
-
-  
-    ```bash title=".env.local"
-    # Varity app ID (optional, dev defaults work automatically)
-    NEXT_PUBLIC_VARITY_APP_ID=your-app-id
-    ```
-
-    In development, your app uses shared credentials automatically. No other variables are needed.
-  
-  
-    ```bash title=".env.production"
-    # Varity app ID
-    NEXT_PUBLIC_VARITY_APP_ID=your-app-id
-    VARITY_API_URL=https://varity.app
-    VARITY_API_KEY=your_production_api_key
-    ```
-
-    Production credentials for storage and services are auto-provided by the CLI during deployment.
-  
-
-## Framework-Specific Prefixes
-
-Different frameworks require different prefixes for client-side variables:
-
-| Framework | Prefix | Example |
-|-----------|--------|---------|
-| Next.js | `NEXT_PUBLIC_` | `NEXT_PUBLIC_VARITY_APP_ID` |
-| Vite | `VITE_` | `VITE_VARITY_APP_ID` |
-| Create React App | `REACT_APP_` | `REACT_APP_VARITY_APP_ID` |
-
-## Security Best Practices
-
-**Never expose secret keys in client-side code.** Only use `_PUBLIC_` prefixed variables for client-side access.
-
-### Do:
-- Use `.env.local` for local development (git-ignored)
-- Store production secrets in your CI/CD platform
-- Rotate keys regularly
-
-### Don't:
-- Commit `.env` files with real credentials
-- Use production keys in development
-- Share API keys in public repositories
-- Hardcode secrets in source code
-
-## Verifying Configuration
-
-Run the doctor command to verify your configuration:
-
-```bash
-varitykit doctor
-```
-
-This checks:
-- Credential availability (auto-provided or manually set)
-- Network connectivity
-- API key validity
-- Project structure
+- Keep every environment file containing secrets out of version control.
+- Use separate credentials for development and production.
+- Rotate a credential after suspected exposure.
+- Treat environment values as write-only; logs and read APIs should not echo
+  them.
+- Test the application locally with your own development credentials before
+  deploying.
 
 ## Troubleshooting
 
-### Variables not loading
+If a variable is absent after deploy:
 
-1. Check the file name is one of `.env.varity`, `.env.local`, or `.env`. Those three are read, in that order, and only the first one found is used
-2. Restart your development server after changes
-3. Verify no syntax errors in the file
-4. Check framework-specific prefixes (`NEXT_PUBLIC_`, `VITE_`, etc.)
+1. Confirm the file name and precedence order above.
+2. Confirm the variable name is a valid shell identifier and is not reserved.
+3. Redeploy, then follow the returned operation to a terminal state.
+4. Check runtime logs for the variable name only; never print its value.
 
-### Credentials not working
-
-Run `varitykit doctor` to diagnose. Credentials are auto-provided. If they fail, check your network connection.
+Use `varitykit doctor` for local tool and connectivity checks. It does not prove
+that an application secret was created for you or that a deployed service is
+healthy.
 
 ---
 
@@ -5189,7 +4790,6 @@ Varity starts supported services when your dependencies indicate they are needed
 | MongoDB | `MONGODB_URI` |
 | MySQL | `MYSQL_URL` |
 | Object storage | `MINIO_URL`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY` |
-| Model runtime | `OLLAMA_URL` |
 
 The full detection table lives in [Auto wired Services](/deploy/auto-wired-services/).
 
@@ -5224,93 +4824,46 @@ Most deploys should keep `--hosting auto`. Override only when the detected setti
 
 ---
 
-## Managed Credentials on Varity
+## Deployment Credentials on Varity
 
 URL: https://docs.varity.so/deploy/managed-credentials/
-Description: Varity auto-provides database, storage, and service credentials at every stage. No third-party accounts, no API key setup, no .env configuration.
+Description: Distinguish application-owned secrets from runtime connection variables injected for an attached service.
 
-Varity provides the infrastructure, database, and storage credentials your app needs automatically. You still supply your own third-party API keys (OpenAI, Stripe, and similar) as [environment variables](/deploy/env-variables). Varity does not create those accounts for you.
+Varity has two distinct environment-variable paths. Keeping them separate
+prevents the retired shared-credential model from becoming current guidance.
 
-## How It Works
+## Application-owned Secrets
 
-When you deploy with Varity, credentials are handled automatically at every stage:
+You create and supply credentials for services your application chooses, such
+as a payment processor, email provider, or external AI API. Varity does not
+create those third-party accounts, and it does not provide shared development
+credentials.
 
-1. **Development:** Shared development credentials are available so you can start building without any `.env` setup.
+Use [Environment Variables](/deploy/env-variables/) for file precedence,
+reserved names, and secret-handling rules.
 
-2. **Production:** When you run `varitykit app deploy`, Varity fetches production credentials and injects them into your deployed app's environment.
+## Attached-service Connection Variables
 
-3. **Runtime:** Your deployed app reads its credentials from injected environment variables. Users never see API keys or configuration prompts.
+When the deployment engine actually provisions a supported attached service,
+it injects that service's reserved connection variables into the deployed
+runtime. Those values are deployment-scoped runtime wiring, not local
+development credentials and not a general credential-fetch API.
 
-```
-Developer runs: varitykit app deploy
-    |
-Varity resolves the infrastructure & database credentials
-    |
-Credentials injected into the deployment automatically
-    |
-App deployed with everything configured
-```
+Use [Auto-wired Services](/deploy/auto-wired-services/) for the supported
+detection and variable contract. Bring your own managed database through an
+application-owned environment variable when you need durability or lifecycle
+behavior beyond that contract.
 
-## What's Managed
+The retired credential-proxy path is not part of the current CLI contract. Do
+not expect `NEXT_PUBLIC_VARITY_APP_ID`, an automatically supplied application
+API key, or a doctor command that retrieves shared credentials.
 
-Varity provides credentials for:
+## Verification
 
-| Service | What It Covers | Developer Action |
-|---------|---------------|-----------------|
-| **Database** | Connection details for detected databases (Postgres, Redis, MongoDB, MySQL) | None required |
-| **File Storage** | Uploads, CDN delivery | None required |
-| **Infrastructure** | Network access, operations | None required |
-
-## Development Mode
-
-During local development, shared development credentials are available automatically, so your app can connect to a database without any setup. When Varity detects that your app needs a service (for example, a database client in your dependencies), it provisions that service on deploy and injects the connection details into your app's environment.
-
-Build your app and deploy. Varity resolves and injects the credentials your app needs. You do not import an SDK or manage keys.
-
-## Production Deployment
-
-When you deploy, the CLI handles everything:
-
-```bash
-varitykit app deploy
-```
-
-Output:
-```
-✓ Credentials: Auto-provided
-✓ Build complete
-✓ Deployed successfully
-✓ URL: https://your-app.varity.app
-```
-
-No manual credential setup required.
-
-## Security
-
-- **Rate-limited**: Credential issuance is rate-limited per app
-- **Authenticated**: Credential requests are authenticated before any secret is issued
-- **Credentials never stored on disk**: Injected at deploy time only
-- **Isolated per app**: Each app receives its own credential scope
-
-## Verifying Credentials
-
-Run the doctor command to verify your credential status:
-
-```bash
-varitykit doctor
-```
-
-```
-Checking environment variables...
-  ✓ Credentials: Auto-provided
-  ✓ Storage API: Accessible
-```
-
-## Next Steps
-
-- [Environment Variables](/deploy/env-variables): Variables you can customize
-- [Deploy Your App](/deploy/deploy-your-app): Deploy with one command
-- [CLI Doctor](/cli/commands/doctor): Verify your setup
+After deployment, follow the returned operation to a terminal result and check
+application logs for connection success. Do not print secret values. A
+successful local `varitykit doctor` run proves local prerequisites only; it does
+not prove attached-service provisioning or runtime health.
 
 ---
 
@@ -5810,7 +5363,7 @@ Varity serves three deployment categories:
 
 See [Supported Frameworks](/deploy/supported-frameworks/) for the full detection matrix.
 
-**Auto-wired services** (provisioned in the same deployment when your code needs them): Postgres (with pgvector), Redis, MongoDB, MySQL, Ollama, and object storage. See [Auto-wired Services](/deploy/auto-wired-services/).
+**Auto-wired services** (provisioned in the same deployment when your code needs them): Postgres (with pgvector), Redis, MongoDB, MySQL, and object storage. See [Auto-wired Services](/deploy/auto-wired-services/).
 
 **Where your app lives:**
 - Static sites → `https://varity.app/<your-app>/`
@@ -5822,7 +5375,7 @@ Rent a dedicated CPU virtual machine when you need full control of the box
 rather than a managed app runtime. The VM marketplace shows the exact machines
 on offer. You choose the machine, region, and price before you deploy.
 
-See [CPU virtual machines](/machines/cpu-vms/) for the 13 available sizes, prices, and regions.
+See [CPU virtual machines](/machines/cpu-vms/) for live catalog and quote instructions.
 
 ### GPU workloads
 
@@ -7282,97 +6835,33 @@ GPU price is available to publish or spend against.
 ## CPU Virtual Machines
 
 URL: https://docs.varity.so/machines/cpu-vms/
-Description: All 13 Varity CPU VM sizes with exact vCPU, memory, disk, hourly price, and monthly cap, plus the OS images, the create flow, and how billing stops.
+Description: Read the live CPU VM catalog, seal a quote, create a machine, and verify its lifecycle without relying on copied profiles or prices.
 
-A CPU VM is a machine you rent for yourself. You pick a profile, pick an OS image, send an SSH public key, and get a box you administer. Varity does not build your code, wire services, or give it a `varity.app` URL. That is [Applications](/deploy/what-you-can-deploy/).
+A CPU VM is a machine you administer through SSH. Varity does not build your
+code, wire application services, or assign it an application URL. For a managed
+application runtime, see [What You Can Deploy](/deploy/what-you-can-deploy/).
 
-The catalog holds **26 profiles: 13 sizes in 2 regions.** Specs and price are identical in both regions. Every profile was `available` when this page was written.
+## Read the Live Catalog
 
-Values below were read from `GET /api/deployment-profiles?workload=virtual_machine&execution_class=cpu_virtual_machine` on 22 August 2026.
+Profiles, regions, images, availability, resources, and prices are mutable.
+Read them from the authenticated catalog immediately before requesting a quote:
 
-## Dedicated CPU
-
-These profiles report `cpu_class: "dedicated"`.
-
-| Profile | vCPU | Memory | Disk | Hourly | Monthly cap |
-| --- | --- | --- | --- | --- | --- |
-| Performance S | 2 | 4 GB | 20 GB | $0.038356 | $28.00 |
-| Performance M | 4 | 8 GB | 20 GB | $0.067123 | $49.00 |
-| Performance L | 8 | 16 GB | 20 GB | $0.121918 | $89.00 |
-| Performance L-Memory | 8 | 32 GB | 20 GB | $0.205479 | $150.00 |
-| Performance XL | 16 | 32 GB | 20 GB | $0.232877 | $170.00 |
-| Performance 24 | 24 | 48 GB | 20 GB | $0.343836 | $251.00 |
-| Performance 32 | 32 | 64 GB | 20 GB | $0.453425 | $331.00 |
-| Performance 64 | 64 | 128 GB | 20 GB | $0.89726 | $655.00 |
-
-## Shared CPU
-
-These profiles report `cpu_class: "shared"`. Cheaper per vCPU.
-
-| Profile | vCPU | Memory | Disk | Hourly | Monthly cap |
-| --- | --- | --- | --- | --- | --- |
-| Shared S | 2 | 2 GB | 20 GB | $0.019178 | $14.00 |
-| Shared M | 3 | 4 GB | 20 GB | $0.026027 | $19.00 |
-| Shared L | 4 | 8 GB | 20 GB | $0.038356 | $28.00 |
-| Shared XL | 8 | 16 GB | 20 GB | $0.067123 | $49.00 |
-| Shared 2XL | 16 | 32 GB | 20 GB | $0.121918 | $89.00 |
-
-Three shared sizes cost exactly the same as a dedicated size with half the hardware:
-
-| Same hourly price | Shared | Dedicated |
-| --- | --- | --- |
-| $0.038356 | Shared L (4 vCPU / 8 GB) | Performance S (2 vCPU / 4 GB) |
-| $0.067123 | Shared XL (8 vCPU / 16 GB) | Performance M (4 vCPU / 8 GB) |
-| $0.121918 | Shared 2XL (16 vCPU / 32 GB) | Performance L (8 vCPU / 16 GB) |
-
-So pay for Performance when you need the cores to be yours, not when you need more of them.
-
-## Regions
-
-Two regions, and they are interchangeable on paper:
-
-| Region | Country |
-| --- | --- |
-| `de-frankfurt` | Germany |
-| `pl-poz` | Poland |
-
-All 13 sizes exist in both, at identical specs and identical prices. Each region has its own `profile_id`. The region is a property of the profile, not a create-time argument.
-
-## Disk
-
-**Every CPU VM profile has a 20 GB disk.** All 26 report `storage_mb: 20480`. There is no larger boot disk to choose and no size that comes with more.
-
-For more, pass `additional_storage_gb` when you request a quote and again when you create the machine. It is an integer from 0 to 32768 GB, valid **only** when `execution_class` is `cpu_virtual_machine`. Additional storage is priced into the quote's `hourly_usd`, and it bills **outside** the monthly cap.
-
-## OS Images
-
-All 26 profiles offer the same five images. Pass the `id`, not the label.
-
-| `id` | Label |
-| --- | --- |
-| `os-ubuntu-24-04-lts-x64-70031bd79dea` | Ubuntu 24.04 (LTS) x64 |
-| `os-ubuntu-22-04-lts-x64-8eff1404d444` | Ubuntu 22.04 (LTS) x64 |
-| `os-debian-12-x64-6bf00e145a61` | Debian 12 x64 |
-| `os-fedora-41-x64-f29cddf55723` | Fedora 41 x64 |
-| `os-centos-stream-10-x64-4cc111f9cdc5` | CentOS Stream 10 x64 |
-
-An image a profile does not list is rejected at create time. Read `os_images` from the profile you picked rather than hardcoding these IDs.
-
-## How the Price Is Derived
-
-The hourly rate is the monthly cap divided by 730, rounded to whole microdollars. It is not an independent number.
-
-Performance XL, verbatim from the catalog:
-
-```
-monthly_cap_microusd  170000000
-170000000 / 730     = 232876.71…
-customer_price.amount_microusd = 232877
+```bash
+curl "https://varity.app/api/deployment-profiles?workload=virtual_machine&execution_class=cpu_virtual_machine" \
+  -H "Authorization: Bearer $VARITY_API_KEY"
 ```
 
-That holds for all 13 sizes. So the monthly cap is exactly 730 hours of runtime, and a machine that runs every hour of a 744-hour month pays the cap, not 744 × the hourly rate. Divide `amount_microusd` by 1,000,000 for dollars.
+Keep the selected `profile_id` and one `os_images[].id` returned on that same
+profile. Do not copy an identifier, region, disk size, or rate from
+documentation into automation.
 
-The cap covers **compute only**. Additional NVMe storage is billed on top of it.
+If you need additional storage, include `additional_storage_gb` in both the
+quote and create requests. Read its current validation bounds and billing
+fields from the [OpenAPI contract](/openapi.yaml) and returned quote.
+
+The catalog is discovery data. The accepted, unexpired machine quote is the
+transactional price contract. If the selection changes or the quote expires,
+request a new quote.
 
 ## Create a Machine
 
@@ -7626,11 +7115,15 @@ deployment lifecycle documented in the [API reference](/ai-tools/api-reference/)
 URL: https://docs.varity.so/resources/billing/
 Description: How Varity billing works: a payment method for paid products, free static hosting with a verified account, and a monthly maximum per app that doesn't grow with traffic.
 
-Varity billing is built to be predictable: each paid app bills up to a fixed monthly maximum for the resources it reserves, prorated by running time, and the bill doesn't grow with your traffic. Your first 3 static sites are free for a verified account, then $1/month per site. This page covers the practical side: adding a card, what you're charged for, and where to see your costs.
+Varity billing is built around the profile and resources an app reserves. This
+page explains the billing shape; the live pricing service and the quote you
+confirm own current numeric values, eligibility, and credits.
 
 ## A Card on File
 
-Varity asks for a payment method **before your first paid deploy**, so your app can go live and keep running. You add it once in the dashboard; you're only charged for apps you actually deploy. Free static sites (your first 3) don't need a card; a verified account is enough.
+The Developer Portal shows whether the selected workload requires a payment
+method before confirmation. Account eligibility and credits come from the live
+billing response, not from a rule copied into this page.
 
 ## What You're Charged For
 
@@ -7644,7 +7137,9 @@ Your bill does **not** change with:
 
 This is the core difference from usage-metered hosting, where billing follows usage meters. With Varity, an unchanged profile keeps the same monthly maximum no matter how much traffic it serves. For the full model, see [How Pricing Works](/resources/pricing/).
 
-First 3 static sites free, then $1/month per site, for verified accounts (1 GB of pinned assets). Dynamic apps select a Managed Cloud preset. Use the cost calculator in the dashboard (or the `varity_cost_calculator` tool in your AI editor) for a current estimate before you deploy.
+Use the cost calculator in the dashboard (or `varity_cost_calculator` in an AI
+editor) for a current estimate before you deploy. The quote shown at
+confirmation is the transactional price for that deployment.
 
 ## Seeing Your Costs
 
@@ -7652,7 +7147,9 @@ Your dashboard shows the monthly maximum for each app and your overall bill. Bec
 
 ## Deleting an App
 
-Deleting an app from the dashboard stops its billing immediately. You're not charged for hardware after you remove it.
+Deleting an app requests teardown. Follow the resulting operation or resource
+state until billing reports a terminal stopped state; request acceptance is not
+proof that resource release and billing closure are complete.
 
 ## Related
 
@@ -7749,9 +7246,9 @@ No. Your existing auth works as-is. Set any secrets your provider needs as envir
 
 ### How much does Varity cost?
 
-First 3 static sites free, then $1/month per site, for verified accounts (1 GB of pinned assets). Dynamic apps select a fixed Managed Cloud preset that bills up to a monthly maximum, prorated by running time.
-
-For current numbers, use [Pricing and Costs](/resources/pricing) or run `varity_cost_calculator`.
+For current eligibility and numbers, use [Pricing and Costs](/resources/pricing)
+to select the live owner, or run `varity_cost_calculator`. Documentation does
+not retain a fallback price when the live source is unavailable.
 
 ### Why doesn't my bill grow with traffic?
 
@@ -7927,59 +7424,54 @@ Not sure which hosting type your app needs? Run `varitykit app deploy`. Varity d
 ## Pricing and Costs on Varity
 
 URL: https://docs.varity.so/resources/pricing/
-Description: The Varity price reference: free static hosting, Managed Cloud presets, the VM billing model, live GPU quotes, and AI Gateway fees.
+Description: How to obtain a current Varity price from the live pricing service or a sealed workload quote without relying on copied documentation values.
 
-Varity pricing is based on the resources a deployment reserves, not usage metering. For an unchanged deployment profile, your bill does not grow with request volume, bandwidth, or invocation count; changing the profile (resources, services, replicas, accelerators, or app count) can change the price.
+Varity documentation does not maintain a price book. Prices, credits, fees,
+catalog availability, and resource profiles can change independently of this
+site. A copied value would become a second, discrepancy-causing owner.
 
-## Static Sites: First 3 Free
+## Current Price Sources
 
-**First 3 static sites free, then $1/month per site.** Your first **3 active static sites** are free for a verified account; each additional active static site is **$1.00/month**, prorated by the time it is live. Deleting a site frees its slot. Accounts keep a **1 GB of total pinned assets** limit. No payment method is required for the free sites, only a verified account. Larger or dynamic apps use Managed Cloud.
+Use the source that matches the workload:
 
-## Managed Cloud Presets
+| Workload | Current source |
+| --- | --- |
+| Managed applications and static sites | `GET https://varity.app/api/pricing` or the [Developer Portal](https://developer.store.varity.so/?utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=pricing-portal) quote shown before deploy |
+| Pre-deploy application estimate | `GET https://varity.app/api/pricing/estimate` or `varity_cost_calculator` |
+| CPU VM or GPU machine | `POST https://varity.app/api/pricing/machine-quote` |
+| GPU container | `POST https://varity.app/api/pricing/accelerator-quote` |
+| AI Gateway request rates | `GET https://ai.varity.app/v1/models` |
+| AI Gateway funding terms | `GET https://ai.varity.app/v1/openapi.json`, field `x-varity-commercial-contract` |
 
-Dynamic apps select one of four fixed presets. Each price is a **monthly maximum**: billing is prorated by running time (per minute, against a 730-hour month), so a deployment that runs part of the month bills less than its maximum.
+If the live pricing response or workload-bound quote is unavailable, no current
+numeric price is available to publish or spend against. Do not fall back to a
+number copied from this page, a screenshot, or an earlier quote.
 
-| Preset | vCPU | RAM | Ephemeral storage | Price |
-|--------|-----:|----:|------------------:|-------|
-| Starter | 0.5 | 1 GB | 2 GB | Up to $7/mo, prorated |
-| Growth | 1 | 2 GB | 5 GB | Up to $14/mo, prorated |
-| Scale | 2 | 4 GB | 25 GB | Up to $28/mo, prorated |
-| Pro | 4 | 8 GB | 50 GB | Up to $56/mo, prorated |
+## How Billing Is Shaped
 
-- Attached services (Postgres, MongoDB, MySQL, object storage) add only their persistent storage charge. Their reserved CPU, memory, and ephemeral capacity is not a separate customer charge. Redis is in-memory and adds no volume charge. Ollama is retired for new deployments.
-- Persistent storage is an add-on at **$0.16/GB-month**, prorated on the same period. It bills while allocated, until the volume is deleted.
-- Each replica reserves its own resources: 2 replicas of a preset bill up to 2x that preset's maximum.
+- Application pricing is tied to the selected reserved profile. Read the live
+  response for the applicable maximum, proration, storage, replica, and credit
+  policy.
+- Machine and accelerator prices are bound by a time-limited quote. If the
+  quote expires or the requested workload changes, request a new one.
+- AI Gateway request rates come from the live model catalog. Funding terms are
+  separately published in its OpenAPI commercial-contract block.
+- A price shown when a billable action is confirmed is the transactional price
+  for that action. Documentation never authorizes a charge.
 
-## CPU VMs
+## Deletion and Billing Closure
 
-CPU VMs bill **hourly against a hard monthly cap**: the hourly rate is derived from the VM's monthly maximum divided by 730 hours, and the month's compute charge never exceeds that cap. Every VM includes a **20 GB NVMe boot disk** and **one public IPv4**, with no separate ingress or egress charge. Additional NVMe storage is **$0.09/GB-month**, prorated hourly. Every VM carries a **two-hour minimum**: the first two hours at the quoted hourly rate are booked when the machine is created, and longer runtimes bill by elapsed hour. Billing continues while the VM's resources remain reserved; stopping the guest OS does not by itself release them; delete the VM to stop billing. VM sizes and regions are published in the Developer Portal as they pass Varity's end-to-end release verification.
-
-## GPU
-
-GPU pricing is a **live quote**: the exact hourly rate is computed server-side from currently available capacity and shown before you commit. Any continuous-use monthly figure is an estimate for planning, never a cap. GPU machines and GPU containers carry the same two-hour minimum as CPU VMs, booked when the machine or container is created: the minimum for the first 2h is billed at deploy. GPU workloads are paid-only and are excluded from the launch credit.
-
-## AI Gateway
-
-Each AI Gateway request is charged exactly its provider cost, with no per-request markup. Varity's **5% service fee is charged when credits are added**: a $20.00 top-up charges $21.00 and credits $20.00. The minimum refill is **$20** and the maximum is $1,000. AI Gateway balances are separate from Varity Cloud and cannot be spent on application, VM, GPU, or static hosting.
-
-## Launch Credit
-
-New accounts with a valid payment method receive a **$5 Managed Cloud credit, valid for 14 days**. It applies to Managed Cloud CPU deployments only, not to VMs, GPU, the AI Gateway, or static sites (which are already free).
-
-## How to Get an Exact Number
-
-Every price is computed by Varity's server-side pricing authority, so all surfaces show identical numbers:
-
-- Developer Portal: [developer.store.varity.so](https://developer.store.varity.so/?utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=pricing-portal) shows the exact price before you confirm a deployment.
-- MCP tool: `varity_cost_calculator` in your AI editor.
-
-The price you confirm at deploy time is authoritative for that deployment. Cost comparisons with other platforms live on [varity.so](https://www.varity.so), not in these docs.
+Deletion can be asynchronous. An accepted delete request is not proof that
+routing, resource release, and billing closure have all converged. Follow the
+returned operation or resource state until the billing state is terminal.
 
 ## Related Guides
 
-- [Billing and Pricing](/resources/billing)
-- [Deploy Your App](/deploy/deploy-your-app)
-- [FAQ](/resources/faq)
+- [Billing and Pricing](/resources/billing/)
+- [Machine Catalogs](/machines/)
+- [CPU Virtual Machines](/machines/cpu-vms/)
+- [GPU Workloads](/machines/gpu/)
+- [AI Gateway Billing and Keys](/ai-gateway/billing-and-keys/)
 
 ---
 
@@ -8761,82 +8253,6 @@ This example builds an Express API that wraps the OpenAI API.
    Deploying...
    Your agent is live at: https://your-agent.varity.app/
    ```
-
-## Using a Local Language Model
-
-If your agent runs a language model locally instead of calling an external API, add the `ollama` package to your dependencies. Varity will detect it and automatically provision a model server alongside your app.
-
-  
-
-  ```text title="requirements.txt"
-  fastapi
-  uvicorn
-  ollama
-  ```
-
-  ```python title="main.py"
-  import os
-  import ollama
-  from fastapi import FastAPI
-  from pydantic import BaseModel
-
-  app = FastAPI()
-  ollama_url = os.environ.get("OLLAMA_URL", "http://localhost:11434")
-
-  class PromptRequest(BaseModel):
-      prompt: str
-
-  @app.post("/run")
-  async def run_agent(request: PromptRequest):
-      response = ollama.chat(
-          model="llama3",
-          messages=[{"role": "user", "content": request.prompt}],
-          host=ollama_url
-      )
-      return {"result": response["message"]["content"]}
-  ```
-
-  
-  
-
-  ```json title="package.json"
-  {
-    "dependencies": {
-      "express": "^4.20.0",
-      "@langchain/ollama": "^0.1.0"
-    }
-  }
-  ```
-
-  ```js title="index.js"
-  const express = require('express');
-  const { Ollama } = require('@langchain/ollama');
-
-  const app = express();
-  app.use(express.json());
-
-  const llm = new Ollama({
-    baseUrl: process.env.OLLAMA_URL || 'http://localhost:11434',
-    model: 'llama3'
-  });
-
-  app.post('/run', async (req, res) => {
-    const result = await llm.invoke(req.body.prompt);
-    res.json({ result });
-  });
-  ```
-
-  
-
-When you deploy, Varity:
-
-1. Detects `ollama` or `@langchain/ollama` in your dependencies
-2. Provisions a model server alongside your app
-3. Injects `OLLAMA_URL` into your runtime environment automatically
-
-Your app code reads `process.env.OLLAMA_URL` (Node.js) or `os.environ["OLLAMA_URL"]` (Python) to connect.
-
-The model server starts automatically when your app is deployed. You do not need to install or configure it yourself.
 
 ## Check Deployment Status
 

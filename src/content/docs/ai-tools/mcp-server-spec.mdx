@@ -1,6 +1,6 @@
 ---
 title: Varity MCP Server Reference
-description: Install and configure the Varity MCP server for AI editors. A full set of tools for building, deploying, and managing apps via Cursor or Claude Code.
+description: Install the published Varity MCP package, configure a supported editor, and use its machine-readable tool catalog without relying on unreleased source.
 ---
 
 import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
@@ -9,31 +9,33 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="June 2026"
   stability="stable"
 />
 
-The Varity MCP server (`@varity-labs/mcp`) gives AI editors a full set of tools for the full build and deploy workflow. It runs locally via stdio. Install the current npm package.
-
-<Aside type="tip" icon="approve-check">
-The MCP server works with **any editor that supports MCP**: Cursor, Claude Code, VS Code (Copilot), Windsurf, and more. Setup takes under a minute.
-</Aside>
+The Varity MCP server (`@varity-labs/mcp`) runs locally over stdio and gives an
+MCP-compatible editor access to Varity's published tools. The install command
+uses npm's current `latest` release; an unreleased source branch is not evidence
+of what that command installs.
 
 <Aside type="note">
-**Machine-readable schema.** The Varity MCP tool catalog is published at [`/mcp-schema.json`](/mcp-schema.json), including tool names, descriptions, JSON Schema, and annotations. The HTTP API the tools wrap is published as [`/openapi.yaml`](/openapi.yaml). See the [API Reference](/ai-tools/api-reference/) for both.
+The machine-readable [`/mcp-schema.json`](/mcp-schema.json) is a conservative
+documentation reference tied to the named npm release. It is not the MCP wire
+contract. Your installed server's `tools/list` response is authoritative for
+executable definitions. The scheduled check fails when npm's `latest` version
+moves ahead of the reference's release marker.
 </Aside>
 
 ## Prerequisites
 
-- **Node.js 20+** (runs the MCP server)
-- **Python 3.11+** (needed for varitykit CLI)
-- **varitykit** (install with: `pipx install varitykit`)
+- **Node.js 18 or newer**, as required by the package currently published to npm
+- **Python 3.11 or newer** for the current `varitykit` CLI
+- **varitykit**, installed with `pipx install varitykit`
 
 ## Setup
 
 <Tabs>
   <TabItem label="Cursor">
-    Add to `.cursor/mcp.json` in your project root:
+    Add this to `.cursor/mcp.json` in your project:
 
     ```json
     {
@@ -46,19 +48,17 @@ The MCP server works with **any editor that supports MCP**: Cursor, Claude Code,
     }
     ```
 
-    Restart Cursor. The Varity tools appear in the MCP tool list.
+    Restart Cursor after saving the file.
   </TabItem>
   <TabItem label="Claude Code">
-    Run once from any directory:
+    Run once:
 
     ```bash
     claude mcp add varity -- npx -y @varity-labs/mcp
     ```
-
-    Claude Code picks up the server automatically on the next conversation.
   </TabItem>
-  <TabItem label="VS Code (Copilot)">
-    Add to `.vscode/mcp.json`:
+  <TabItem label="VS Code">
+    Add this to `.vscode/mcp.json`:
 
     ```json
     {
@@ -72,415 +72,104 @@ The MCP server works with **any editor that supports MCP**: Cursor, Claude Code,
     ```
   </TabItem>
   <TabItem label="Windsurf">
-    Add to `~/.codeium/windsurf/mcp_config.json`:
-
-    ```json
-    {
-      "mcpServers": {
-        "varity": {
-          "command": "npx",
-          "args": ["-y", "@varity-labs/mcp"]
-        }
-      }
-    }
-    ```
+    Add the same server entry to `~/.codeium/windsurf/mcp_config.json`.
   </TabItem>
 </Tabs>
 
-<Aside type="note">
-**Headless or CI use.** The server reads your API key from `VARITY_API_KEY` (or `VARITY_DEPLOY_KEY`) in its environment, or from `~/.varitykit/config.json` after `varity_login`. Add an `env` block to the config above when no browser is available.
-</Aside>
-
-## Tools Reference
-
-The server exposes a full set of tools. Read-only tools run safely with no side effects. Destructive tools create files or deploy infrastructure.
-
-### `varity_doctor`: Check environment setup
-
-Verify that your development environment is ready to build and deploy Varity apps. Checks Node.js, npm, varitykit CLI installation, and authentication status.
-
-*No parameters required.*
-
-**Annotations:** `readOnlyHint: true`
-
-**Example prompt:** "Check if my environment is set up for Varity"
-
----
-
-### `varity_login`: Authenticate with Varity
-
-Log in to Varity to enable deployments. If a `deploy_key` is provided, it is saved to local config; otherwise the tool opens the developer portal where you add a payment method and copy your deploy key. Required before deploying apps.
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `deploy_key` | string | No | none | Your deploy key from the developer portal (`developer.store.varity.so/dashboard/settings`). If omitted, opens the portal to get one. |
-
-**Example prompt:** "Log in to Varity" or "Authenticate with my deploy key"
-
----
-
-### `varity_search_docs`: Search documentation
-
-Search Varity docs for guides, API references, and tutorials.
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `query` | string | Yes | none | Search query (e.g., "database setup", "how to deploy") |
-| `maxResults` | number | No | 3 | Maximum results to return |
-
-**Annotations:** `readOnlyHint: true`
-
-**Example prompt:** "Search the Varity docs for how to set up authentication"
-
----
-
-### `varity_cost_calculator`: Estimate costs
-
-Estimate the fixed monthly price for a deployment profile. Pricing is computed by the Varity pricing service, so this tool, the CLI, and the portal render identical numbers.
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `app_profile` | string | No | `web-app` | Pre-deploy estimate preset: `static-site`, `web-app`, `web-app-db`, `ai-agent-cpu`, or `ai-agent-gpu` |
-| `subdomain` | string | No | none | A live deployment's subdomain. Returns that deployment's real cost (overrides `app_profile`) |
-| `has_database` | boolean | No | none | Whether the app uses a database (selects the database-inclusive estimate) |
-
-**Annotations:** `readOnlyHint: true`
-
-**Example prompt:** "How much would it cost to host a web app with a database on Varity?"
-
----
-
-### `varity_install_deps`: Install npm dependencies
-
-Install dependencies for a Varity project. Runs `npm install` for all packages or installs specific packages.
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `path` | string | No | Current directory | Project directory to install dependencies in |
-| `packages` | string[] | No | none | Specific packages to install (e.g., `["axios", "lodash"]`). If omitted, installs all dependencies. |
-
-**Example prompt:** "Install dependencies for my project" or "Install axios and lodash"
-
----
-
-### `varity_dev_server`: Manage local dev server
-
-Start, stop, or check the status of your local development server. Returns the localhost URL for previewing your app.
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `action` | `"start"` \| `"stop"` \| `"status"` | Yes | none | Action to perform |
-| `path` | string | No | Current directory | Project directory |
-| `port` | number | No | 3000 | Port to run the dev server on. If busy, auto-selects next available port and persists to `varity.config.json`. |
-
-**Example prompt:** "Start the dev server" or "Check dev server status"
-
----
-
-### `varity_build`: Build for production
-
-Build the project for production. Auto-detects framework from `package.json`. Run before deploying or to verify the project compiles.
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `path` | string | No | Current directory | Path to the project directory |
-
-**Example prompt:** "Build my project"
-
----
-
-### `varity_open_browser`: Open URL in browser
-
-Open a URL in the user's default browser. Use after deploying to show the live app or after starting the dev server.
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `url` | string | Yes | none | URL to open in the default browser |
-
-**Example prompt:** "Open the deployment in my browser"
-
----
-
-### `varity_create_repo`: Create GitHub repository
-
-Create a new GitHub repository and push your project to it. Useful for getting your code into version control before deploying.
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `name` | string | Yes | none | Repository name (lowercase, hyphens allowed) |
-| `description` | string | No | none | Short description for the repo |
-| `path` | string | No | Current directory | Absolute path to the local project to push (e.g. `/home/user/my-app`) |
-| `visibility` | `"public"` \| `"private"` | No | `"public"` | Repository visibility |
-| `github_token` | string | No | none | GitHub personal access credential with `repo` scope (or set `GITHUB_TOKEN`) |
-
-**Annotations:** `destructiveHint: true` (creates an external GitHub repository)
-
-**Example prompt:** "Create a new GitHub repo called my-dashboard and push my project"
-
----
-
-### `varity_deploy`: Deploy to production
-
-Deploy the current project to production. Detects the framework, selects static vs dynamic hosting, auto-configures any backend services your code needs, and returns a live URL at `https://varity.app/<name>/`. Deploy from source (a project path or a GitHub repo) or from a prebuilt Docker/OCI image.
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `path` | string | No | MCP working dir | Absolute path to the project root (the directory with `package.json`). |
-| `repo_url` | string | No | auto-detected | GitHub repo URL. Required for dynamic deployments; auto-detected from `.git/config` if omitted. |
-| `app_name` | string | No | directory name | URL-safe name controlling the URL `https://varity.app/{app_name}/`. |
-| `image` | string | No | none | Deploy a prebuilt Docker/OCI image (e.g. `ghcr.io/you/app:latest`) instead of building. Mutually exclusive with `repo_url`. |
-| `image_credentials` | object | No | none | `{ host, username, password }` pull credentials for a **private** registry image. Omit for public images. |
-| `port` | integer | No | `80` | Container listen port for an `image` deploy. |
-
-**Annotations:** `destructiveHint: true` (deploys real infrastructure)
-
-**Example prompt:** "Deploy this project to Varity" or "Deploy the image ghcr.io/me/api:latest on port 8080"
-
----
-
-### `varity_deploy_status`: Check deployments
-
-List deployments or get the status of a specific one. Shows URL, status, framework, size, and creation time.
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `deployment_id` | string | No | none | Specific deployment ID (omit to list recent) |
-| `path` | string | No | none | Project directory. Only show deployments for this project |
-| `limit` | integer | No | 10 | Maximum deployments to return (max 50) |
-
-**Annotations:** `readOnlyHint: true`
-
-**Example prompt:** "Show me the status of my deployments"
-
----
-
-### `varity_deploy_logs`: Get runtime logs
-
-Get recent runtime logs for a live deployment from the public API. Local build errors come from `varity_build`.
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `deployment_id` | string | Yes | none | The deployment ID to get logs for |
-| `limit` | number | No | 100 | Maximum log lines to return |
-
-**Annotations:** `readOnlyHint: true`
-
-**Example prompt:** "Show me the build logs for deployment abc123"
-
----
-
-### `varity_set_env`: Set env vars on a live app
-
-Set or update environment variables (config + secrets) on an app that is **already deployed**, then redeploy it in place with the same URL and same reserved hardware. By default the supplied variables are merged over the current set; pass `replace: true` to overwrite the entire set. Values are write-only and are never echoed back.
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `name` | string | Yes | none | The app name or subdomain. The `<name>` in `https://varity.app/<name>/` |
-| `env` | object | Yes | none | Variables to set, as a map of UPPER_SNAKE_CASE name to value |
-| `replace` | boolean | No | `false` | When true, replace the entire variable set instead of merging |
-
-**Annotations:** `destructiveHint: true` (redeploys live infrastructure)
-
-**Example prompt:** "Set DATABASE_URL on my-api and redeploy" or "Rotate the API key on worker-bot"
-
----
-
-### `varity_redeploy`: Redeploy an app in place
-
-Redeploy or restart an app that is **already deployed**, in place. This re-pulls the image (or rebuilds from source) and restarts the container on the **same** deployment with the same URL and same reserved hardware. Takes no body and keeps the current environment variables; use `varity_set_env` to change config at the same time.
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `name` | string | Yes | none | The app name or subdomain. The `<name>` in `https://varity.app/<name>/` |
-
-**Annotations:** `destructiveHint: true` (restarts live infrastructure)
-
-**Example prompt:** "Redeploy my-api" or "My app is stuck. Restart worker-bot"
-
----
-
-### `varity_delete_deployment`: Tear down a deployment
-
-Permanently remove a deployment by its app name and stop its billing immediately. Use when you no longer need an app you deployed.
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `name` | string | Yes | none | The app name or subdomain. The `<name>` in `https://varity.app/<name>/` |
-
-**Annotations:** `destructiveHint: true` (tears down live infrastructure)
-
-**Example prompt:** "Stop my worker-bot deployment" or "Delete the app my-dashboard"
-
----
-
-### `varity_list_templates`: List certified templates
-
-List certified Varity templates from the gateway-owned catalog.
-
-*No parameters required.*
-
-**Annotations:** `readOnlyHint: true`
-
-**Example prompt:** "What templates can Varity deploy?"
-
----
-
-### `varity_template_info`: Show template details
-
-Show required environment variables, resource profile, access mode, hardware profile, and certification state for one certified template.
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `template` | string | Yes | none | Template ID from `varity_list_templates` |
-
-**Annotations:** `readOnlyHint: true`
-
-**Example prompt:** "Show details for Agent Zero"
-
----
-
-### `varity_deploy_template`: Deploy a template
-
-Deploy one certified Varity template. Use this for curated templates such as Agent Zero instead of `varity_deploy`, which is for deploying a local project or Docker image.
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `template` | string | Yes | none | Template ID from `varity_list_templates` |
-| `name` | string | No | generated name | Memorable deployment name for the URL slug |
-| `env` | object | No | none | Required environment variables for the selected template |
-
-**Annotations:** `destructiveHint: true` (deploys real infrastructure)
-
-**Example prompt:** "Deploy Agent Zero on Varity"
-
-The older `varity_list_agents`, `varity_agent_info`, and `varity_deploy_agent`
-tools are backward-compatible aliases for the template tools above.
-
----
-
-### `varity_migrate`: Migrate from Vercel to Varity
-
-Migrate a Vercel project to Varity in one step: clone the GitHub repository, remove Vercel-specific artifacts (`vercel.json`, `@vercel/*` packages, image optimizer config, env var renames), and deploy the transformed app to Varity.
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `github_url` | string | Yes | none | GitHub repository URL to migrate (e.g. `https://github.com/user/my-app`) |
-| `dry_run` | boolean | No | `false` | Preview what would change without deploying |
-
-**Annotations:** `destructiveHint: true` (clones a repo and deploys infrastructure)
-
-**Example prompt:** "Migrate my Vercel app at https://github.com/user/my-app to Varity"
-
----
-
-## Response Format
-
-All tools return JSON with a consistent structure:
-
-```typescript
-// Success
-{
-  success: true,
-  data: { /* tool-specific data */ },
-  message: "Human-readable summary"
-}
-
-// Error
-{
-  success: false,
-  error: {
-    code: "ERROR_CODE",
-    message: "What went wrong",
-    suggestion?: "How to fix it"
-  }
-}
-```
+## Authentication
+
+Use `varity_login` for interactive setup. For a headless process, provide
+`VARITY_API_KEY` (or the package's compatibility name `VARITY_DEPLOY_KEY`) to
+the MCP process. Never put a real key in a checked-in editor configuration.
+
+The server can also read the credential written by varitykit. API keys are
+account credentials; a project path is not an ownership boundary.
+
+## Tool Reference
+
+Use [`/mcp-schema.json`](/mcp-schema.json) for conservative usage guidance and
+the release identity reviewed by Docs. Discover names, input schemas, and
+annotations from the installed server before calling a tool. Do not copy a tool
+table into automation from this page. The platform HTTP routes wrapped by
+deployment tools are separately published at [`/openapi.yaml`](/openapi.yaml).
+
+Important lifecycle semantics:
+
+- A deploy, environment update, redeploy, or delete request can return before
+  every runtime effect has converged. Track the returned state or operation.
+- Deletion acceptance is not proof that routing, allocation release, and
+  billing closure are all complete.
+- A redeploy request reapplies saved configuration and can be a no-op. Do not
+  describe it as a verified restart or image refresh without runtime evidence.
+- Deployment-log availability depends on how the deployment was created. Use
+  the local build tool for compilation diagnostics.
+- Environment-variable values are write-only. Do not expect read APIs or tool
+  results to echo secrets.
 
 ## Typical Workflow
 
-Here is the practical build-and-deploy flow using the MCP tools:
+1. Run `varity_doctor` to check local prerequisites.
+2. Run `varity_login` if authentication is missing.
+3. Use `varity_cost_calculator` or a live quote before a billable action.
+4. Build locally and inspect the result.
+5. Deploy the project or a certified template.
+6. Follow the returned deployment state to a terminal outcome.
+7. For deletion, verify terminal cleanup and billing state rather than treating
+   request acceptance as closure.
 
-**Deploy an existing app:**
+The package also exposes local-development and repository helpers. Discover
+their current schemas and annotations from the installed server's `tools/list`
+response before calling them. Use `/mcp-schema.json` only for conservative Docs
+guidance tied to its recorded release marker.
 
-1. **"Check if my environment is ready"** → `varity_doctor`
-2. **"Install dependencies"** → `varity_install_deps`
-3. **"What will this cost per month?"** → `varity_cost_calculator`
-4. **"Start the dev server"** → `varity_dev_server` → `varity_open_browser`
-5. **"Build for production"** → `varity_build`
-6. **"Deploy this"** → `varity_deploy`
-7. **"Did the deploy succeed?"** → `varity_deploy_status`
-8. **"Show me the build logs"** → `varity_deploy_logs` (if needed)
-9. **"Update env vars"** → `varity_set_env` (when live config changes)
-10. **"Redeploy this app"** → `varity_redeploy` (same URL, no new reservation)
-11. **"Tear down this deployment"** → `varity_delete_deployment` (when you no longer need it)
+## Transports
 
-**Deploying Agent Zero or another template:**
+The package supports:
 
-1. **"What templates can Varity deploy?"** → `varity_list_templates`
-2. **"Show details for Agent Zero"** → `varity_template_info`
-3. **"Deploy Agent Zero"** → `varity_deploy_template`
+- **stdio**, for local editor integrations; and
+- **self-hosted HTTP**, for a server you operate yourself.
 
-**Migrating from Vercel:**
-
-1. **"Check if my environment is ready"** → `varity_doctor`
-2. **"Migrate my Vercel app at https://github.com/user/my-app"** → `varity_migrate`
-3. *(Done. The app is live on Varity infrastructure.)*
-
-**Deploying a certified template:**
-
-1. **"What templates can I deploy?"** → `varity_list_templates`
-2. **"What does the Agent Zero template need?"** → `varity_template_info`
-3. **"Deploy Agent Zero"** → `varity_deploy_template`
-4. **"Did it come up?"** → `varity_deploy_status`
-
-## Troubleshooting
-
-**"Cannot find module @varity-labs/mcp"**
-Make sure Node.js 20+ is installed. Run `node --version` to check.
-
-**Deploy tools fail with "varitykit not found"**
-Install the CLI: `pipx install varitykit`. Run `varitykit doctor` to verify.
-
-**Server not showing in Cursor**
-Restart Cursor after adding the config. Check that `.cursor/mcp.json` is valid JSON.
-
-**Server not showing in Claude Code**
-Run `claude mcp list` to verify the server is registered. Re-add with `claude mcp add varity -- npx -y @varity-labs/mcp`.
-
-## HTTP Transport (Claude.ai, ChatGPT, Browser-Based LLMs)
-
-The MCP server supports two transports:
-
-- **stdio** (default): for desktop editors like Cursor, Claude Code, VS Code, Windsurf
-- **HTTP**: self-hosted only (see below); there is no hosted endpoint
-
-### Hosted MCP (retired)
-
-The hosted endpoint `mcp.varity.so` is retired. Browser-based tools that only accept a remote MCP URL are not supported today; use the stdio package (`npx -y @varity-labs/mcp`) from Claude Code, Cursor, VS Code, or Windsurf, or the [llms.txt context files](#llmstxt-alternative) for LLMs without MCP support.
-
-### Self-Hosted HTTP
-
-Run the HTTP server locally for development:
+Start a local HTTP transport with:
 
 ```bash
 npx -y @varity-labs/mcp --transport http --port 3100
 ```
 
-This starts the MCP server at `http://localhost:3100/mcp`.
+It serves MCP at `http://localhost:3100/mcp`.
 
-<Aside type="note">
-Local-browser tools (`varity_open_browser`, `varity_dev_server`) require local execution, so they are stdio-only. Use stdio when you need local execution; use HTTP for remote connector workflows.
+<Aside type="caution" title="No hosted MCP endpoint">
+`mcp.varity.so` is retired. Varity does not currently operate a hosted MCP
+transport. Browser-only clients that require a remote MCP URL cannot use the
+local stdio package directly.
 </Aside>
 
-### llms.txt Alternative
+Local-browser and local-dev-server tools require local execution, so use stdio
+for those workflows.
 
-For LLMs without MCP support, use the docs context files:
+## LLM Context Without MCP
 
-- **Summary:** `https://docs.varity.so/llms.txt`
-- **Full context:** `https://docs.varity.so/llms-full.txt`
+Clients that cannot run MCP can read:
+
+- `https://docs.varity.so/llms.txt` for the compact index; or
+- `https://docs.varity.so/llms-full.txt` for the generated documentation corpus.
+
+These are documentation projections, not substitutes for live resource state,
+quotes, or operation receipts.
+
+## Troubleshooting
+
+- If npm cannot resolve the package, confirm `node --version` meets the
+  published package requirement and retry `npx -y @varity-labs/mcp`.
+- If deploy tools cannot find varitykit, install it with pipx and run
+  `varitykit doctor`.
+- If an editor does not show the server, validate its JSON configuration,
+  restart the editor, and inspect the editor's MCP process log.
+- If a tool's behavior differs from this page, record the installed npm version
+  first and use the matching package and platform contracts as evidence.
 
 ## Support
 
-- [Documentation](https://docs.varity.so/ai-tools/overview)
-- [Discord](https://discord.gg/7vWsdwa2Bg): ask in #general
+- [Documentation overview](/ai-tools/overview/)
+- [Public API reference](/ai-tools/api-reference/)
+- [Discord](https://discord.gg/7vWsdwa2Bg)
 - [Varity on GitHub](https://github.com/varity-labs)

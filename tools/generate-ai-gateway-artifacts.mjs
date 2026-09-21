@@ -2,8 +2,9 @@
 /**
  * Generates the public AI-facing projections. None of these three files may be
  * hand-edited; every one of them is derived here so a stale page can never
- * become an LLM's authority (varity-engineering/architecture/AI-GATEWAY-COMPLETION.md
- * sections 6 and 7).
+ * become an LLM's authority. Workspace concept ownership is routed by
+ * varity-engineering/architecture/CHANGE-IMPACT.md; the executable platform
+ * and published MCP package remain the narrower contract owners.
  *
  *   public/llms.txt        compact page index     <- src/content/docs/** + public/mcp-schema.json
  *   public/llms-full.txt   full retrieval corpus  <- src/content/docs/**
@@ -38,6 +39,7 @@ const OPENAPI_MIRROR_PATH = 'contracts/openapi.platform.mirror.json';
 
 /** The live platform OpenAPI document that public/openapi.yaml mirrors. */
 const CANONICAL_OPENAPI_URL = 'https://varity.app/api/openapi.json';
+const MCP_PACKAGE_URL = 'https://registry.npmjs.org/@varity-labs%2Fmcp/latest';
 
 const GENERATED_ARTIFACTS = ['public/llms.txt', 'public/llms-full.txt', 'public/openapi.yaml'];
 
@@ -149,7 +151,7 @@ function loadPages(root) {
   return pages.sort((a, b) => (a.url < b.url ? -1 : a.url > b.url ? 1 : 0));
 }
 
-/** Header shared by both LLM projections, so the product line and tool list cannot diverge. */
+/** Header shared by both LLM projections; executable MCP tools come from the installed server. */
 function renderHeader(pages, schema) {
   const home = pages.find((page) => page.slug === '');
   const summary = home?.description || 'Predictable cloud hosting for supported apps.';
@@ -164,10 +166,9 @@ function renderHeader(pages, schema) {
     schema.server.install.claudeCode,
     '```',
     '',
-    '## Current MCP Tools',
+    'MCP clients must discover executable tool definitions from the installed server\'s `tools/list` response. The Docs `/mcp-schema.json` artifact is a conservative safety reference, not the wire contract.',
     '',
   ];
-  for (const tool of schema.tools) lines.push(`- \`${tool.name}\``);
   return lines.join('\n');
 }
 
@@ -247,6 +248,25 @@ async function checkLive(root, fetchImpl = fetch) {
   if (JSON.stringify(live) !== JSON.stringify(stored)) {
     return [
       `${OPENAPI_MIRROR_PATH} is stale vs ${CANONICAL_OPENAPI_URL} (refresh with --refresh-mirror, then regenerate)`,
+    ];
+  }
+
+  let packageResponse;
+  try {
+    packageResponse = await fetchImpl(MCP_PACKAGE_URL, {
+      headers: { accept: 'application/json' },
+    });
+  } catch (error) {
+    return [`could not reach ${MCP_PACKAGE_URL}: ${error.message}`];
+  }
+  if (!packageResponse.ok) {
+    return [`${MCP_PACKAGE_URL} returned HTTP ${packageResponse.status}`];
+  }
+  const publishedPackage = await packageResponse.json();
+  const mcpProjection = JSON.parse(readText(join(root, MCP_SCHEMA_PATH)));
+  if (publishedPackage.version !== mcpProjection.server?.version) {
+    return [
+      `${MCP_SCHEMA_PATH} release marker is ${mcpProjection.server?.version || 'missing'}, but npm latest is ${publishedPackage.version}`,
     ];
   }
   return [];

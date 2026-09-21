@@ -9,7 +9,6 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="June 2026"
   stability="stable"
 />
 
@@ -73,7 +72,8 @@ Everything after deploy lives in the dashboard:
     See the monthly maximum for each app, prorated by running time. It doesn't move with traffic.
   </Card>
   <Card title="Delete" icon="trash">
-    Remove an app from the dashboard. Deleting stops its billing immediately.
+    Request app teardown from the dashboard, then verify terminal cleanup and
+    billing state. Acceptance is not closure proof.
   </Card>
 </CardGrid>
 
