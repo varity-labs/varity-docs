@@ -9,7 +9,6 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="June 2026"
   stability="stable"
 />
 
@@ -225,86 +224,6 @@ This example builds an Express API that wraps the OpenAI API.
    ```
 
 </Steps>
-
-## Using a Local Language Model
-
-If your agent runs a language model locally instead of calling an external API, add the `ollama` package to your dependencies. Varity will detect it and automatically provision a model server alongside your app.
-
-<Tabs>
-  <TabItem label="Python">
-
-  ```text title="requirements.txt"
-  fastapi
-  uvicorn
-  ollama
-  ```
-
-  ```python title="main.py"
-  import os
-  import ollama
-  from fastapi import FastAPI
-  from pydantic import BaseModel
-
-  app = FastAPI()
-  ollama_url = os.environ.get("OLLAMA_URL", "http://localhost:11434")
-
-  class PromptRequest(BaseModel):
-      prompt: str
-
-  @app.post("/run")
-  async def run_agent(request: PromptRequest):
-      response = ollama.chat(
-          model="llama3",
-          messages=[{"role": "user", "content": request.prompt}],
-          host=ollama_url
-      )
-      return {"result": response["message"]["content"]}
-  ```
-
-  </TabItem>
-  <TabItem label="Node.js">
-
-  ```json title="package.json"
-  {
-    "dependencies": {
-      "express": "^4.20.0",
-      "@langchain/ollama": "^0.1.0"
-    }
-  }
-  ```
-
-  ```js title="index.js"
-  const express = require('express');
-  const { Ollama } = require('@langchain/ollama');
-
-  const app = express();
-  app.use(express.json());
-
-  const llm = new Ollama({
-    baseUrl: process.env.OLLAMA_URL || 'http://localhost:11434',
-    model: 'llama3'
-  });
-
-  app.post('/run', async (req, res) => {
-    const result = await llm.invoke(req.body.prompt);
-    res.json({ result });
-  });
-  ```
-
-  </TabItem>
-</Tabs>
-
-When you deploy, Varity:
-
-1. Detects `ollama` or `@langchain/ollama` in your dependencies
-2. Provisions a model server alongside your app
-3. Injects `OLLAMA_URL` into your runtime environment automatically
-
-Your app code reads `process.env.OLLAMA_URL` (Node.js) or `os.environ["OLLAMA_URL"]` (Python) to connect.
-
-<Aside type="note">
-The model server starts automatically when your app is deployed. You do not need to install or configure it yourself.
-</Aside>
 
 ## Check Deployment Status
 

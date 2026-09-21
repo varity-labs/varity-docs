@@ -74,11 +74,14 @@ calls. The built site does not depend on those repositories or their secrets.
   `public/llms.txt` and `public/llms-full.txt` from the checked-in pages under
   `src/content/docs/` plus the MCP catalog machine-readable fields in
   `public/mcp-schema.json`, and generates `public/openapi.yaml` from the
-  checked-in canonical mirror `contracts/openapi.platform.mirror.json`.
+  checked-in mirror `contracts/openapi.platform.mirror.json`.
   `--refresh-mirror` replaces that mirror with the exact body of the live
   platform document `https://varity.app/api/openapi.json`.
-  `public/mcp-schema.json` remains a checked-in projection reconciled from its
-  own authority. Astro copies all four files into `dist/` without
+  `public/mcp-schema.json` is a checked-in safety-oriented documentation
+  reference tied to the latest package actually published at the public npm
+  registry, not an MCP wire-contract mirror and not an unreleased source-branch
+  projection. MCP clients discover executable definitions from the installed
+  server's `tools/list` response. Astro copies all four files into `dist/` without
   transformation.
 - **Seam:** static public-file publication.
 - **Test surface:** `tests/test-contract-artifacts.cjs` and the deterministic
@@ -88,8 +91,10 @@ calls. The built site does not depend on those repositories or their secrets.
 None of the generated files is hand-edited. The drift check regenerates each in
 memory from its checked-in source and fails on any byte difference, so a stale
 projection cannot become LLM authority. `--check-live` additionally proves the
-OpenAPI mirror still equals its live upstream; it is a network step for release
-verification, not part of the offline merge check.
+OpenAPI mirror still equals its live upstream and the MCP reference's release
+marker still names npm's published latest release. It is a network step for release
+verification and the scheduled drift workflow, not part of the offline merge
+check.
 
 ### Verification module
 
@@ -150,7 +155,7 @@ identify users.
 |---|---|---|---|
 | Human pages | `src/content/docs/` | Workspace manifest, positioning, pricing, security, and current public behavior | `npm run check` plus browser review when visual/navigation behavior changes |
 | OpenAPI | `public/openapi.yaml` (generated) | `contracts/openapi.platform.mirror.json`, refreshed from live `https://varity.app/api/openapi.json`; gateway-owned public platform interface | Generated-artifact drift check, JSON/OpenAPI structure, internal references, unique operation IDs, API-reference link, build copy |
-| MCP catalog | `public/mcp-schema.json` | Canonical `@varity-labs/mcp` implementation and published package contract | JSON/schema structure, tool-count/name uniqueness, reference-page links, build copy |
+| MCP safety reference | `public/mcp-schema.json` | Installed published package `tools/list` response owns the executable contract; this reference may narrow prose that overclaims lifecycle guarantees | Release-identity drift, JSON/schema structure, tool-count/name uniqueness, reference-page links, build copy |
 | LLM summary | `public/llms.txt` (generated) | `src/content/docs/` and `public/mcp-schema.json` | Generated-artifact drift check, required identity/artifact links, no placeholder content, build copy |
 | LLM full context | `public/llms-full.txt` (generated) | `src/content/docs/` | Generated-artifact drift check, required identity/artifact links, nontrivial full-content size, build copy |
 | Redirects and static assets | `public/` | Current hosting behavior and brand assets | Redirect invariant, Astro build, visual review where applicable |

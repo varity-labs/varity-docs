@@ -9,7 +9,6 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="August 2026"
   stability="beta"
 />
 
@@ -21,14 +20,14 @@ Limits are keyed to the **authenticated account**, not to the API key, the route
 
 Requests are grouped into classes, and each class has its own budget. A budget is shared across **every route in that class**. Exhausting the read budget on `/api/deployments` also blocks `/api/credits`.
 
-| Class | Budget | Window | Covers |
-|-------|--------|--------|--------|
-| Read | 300 requests | 1 minute | Listing and reading deployments, machines, templates, credits, profiles, capabilities, keys, attachments |
-| Quote | 120 requests | 1 minute | `/api/pricing/estimate`, `/api/pricing/accelerator-quote`, `/api/pricing/machine-quote` |
-| Logs | 120 requests | 1 minute | `/api/deployments/{id}/logs` and `/api/deployments/{id}/events` |
-| Stop | 120 requests | 1 minute | Deleting deployments and machines, revoking API keys |
-| Deploy create | 10 requests | 1 hour | `POST /api/deployments`, `POST /api/templates/{id}/deploy`, `POST /api/machines` |
-| Mutation | 30 requests | 1 hour | Redeploy, restart, env updates, webhooks, key creation, AI Gateway attachments |
+| Class | Covers |
+|-------|--------|
+| Read | Listing and reading deployments, machines, templates, credits, profiles, capabilities, keys, attachments |
+| Quote | `/api/pricing/estimate`, `/api/pricing/accelerator-quote`, `/api/pricing/machine-quote` |
+| Logs | `/api/deployments/{id}/logs` and `/api/deployments/{id}/events` |
+| Stop | Deleting deployments and machines, revoking API keys |
+| Deploy create | `POST /api/deployments`, `POST /api/templates/{id}/deploy`, `POST /api/machines` |
+| Mutation | Redeploy, restart, env updates, webhooks, key creation, AI Gateway attachments |
 
 Two of these deserve explanation.
 
@@ -36,13 +35,11 @@ Two of these deserve explanation.
 
 **Stopping is never throttled into unavailability.** Delete and credential revocation are safety controls. A resource you cannot turn off keeps billing, and a leaked key you cannot revoke stays live. These get their own generous per-minute budget and never draw from the hourly create budget.
 
-<Aside type="caution">
-The deploy-create budget is **10 per hour**. It is the tightest limit on the platform. If you are provisioning in bulk, pace your creates and treat `429` on a create as expected backpressure, not an error condition.
-</Aside>
-
 ## Response Headers
 
-Limited routes return standard `RateLimit-*` headers. Program against these rather than hardcoding the numbers above. The headers are authoritative for your account at that moment.
+Limited routes return standard `RateLimit-*` headers. Program against them
+rather than copying a numeric budget from documentation. The headers are
+authoritative for your account at that moment.
 
 | Header | Meaning |
 |--------|---------|
@@ -113,14 +110,21 @@ curl -X POST https://varity.app/api/deployments \
   -d '{ "name": "my-app", "repository": { "url": "https://github.com/me/my-app" } }'
 ```
 
-Keys match `[A-Za-z0-9._:-]` and are at most 160 characters. Records are retained for 24 hours. Replaying the same key with the same body returns the original result; reusing it with a *different* body returns `409 idempotency_key_reused`. See [API Errors](/api/errors/#not-found-and-conflict).
+Idempotency-key validation is route-specific. Deployment and template creates
+accept an optional key up to 160 characters. Machine create and delete require
+`[A-Za-z0-9._:-]{8,128}`. AI Gateway attachment mutations require the same
+character set with a length of 1 to 160. Follow the operation's schema in the
+[OpenAPI document](/openapi.yaml). Replaying the same key with the same body
+returns the original result; reusing it with a *different* body returns
+`409 idempotency_key_reused`. See [API Errors](/api/errors/#not-found-and-conflict).
 
 ## Other Limits
 
 Some limits are enforced by the resource contract rather than by a request budget:
 
 - **Health history**: `GET /api/deployments/{id}/health-history` accepts `limit` with a default of 100 and a maximum of 500 observations.
-- **Idempotency keys**: 160 characters maximum, 24-hour retention.
+- **Idempotency keys**: constraints differ by operation; use the OpenAPI
+  parameter on the route you are calling. Records are retained for 24 hours.
 
 <Aside type="note">
 Account-level quotas on concurrent deployments and spend are governed by your billing state, not by these request budgets. A request that is refused for billing reasons returns `402 billing_or_credit_required`, not `429`.

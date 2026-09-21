@@ -9,7 +9,6 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="June 2026"
   stability="beta"
 />
 
@@ -41,8 +40,6 @@ You do not configure ports, credentials, or connection strings. Varity handles a
 | `ioredis` | Redis cache | `REDIS_URL` |
 | `redis` | Redis cache | `REDIS_URL` |
 | `@vercel/kv` | Redis cache | `REDIS_URL` |
-| `@langchain/ollama` | AI model server | `OLLAMA_URL` |
-| `ollama` | AI model server | `OLLAMA_URL` |
 | `mongoose` | MongoDB database | `MONGODB_URI` |
 | `mongodb` | MongoDB database | `MONGODB_URI` |
 | `mysql` | MySQL database | `MYSQL_URL` |
@@ -58,7 +55,6 @@ You do not configure ports, credentials, or connection strings. Varity handles a
 | `psycopg2-binary` | Postgres database | `DATABASE_URL` |
 | `asyncpg` | Postgres database | `DATABASE_URL` |
 | `redis` | Redis cache | `REDIS_URL` |
-| `ollama` | AI model server | `OLLAMA_URL` |
 | `pymongo` | MongoDB database | `MONGODB_URI` |
 | `pymysql` | MySQL database | `MYSQL_URL` |
 | `boto3` | Object storage (S3-compatible) | `MINIO_URL`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY` |
@@ -86,12 +82,6 @@ If your project includes a `prisma/schema.prisma` file, Varity reads the `dataso
     An in-memory key-value store for caching, sessions, and queues. Ideal for rate limiting, temporary data, and speeding up repeated queries.
 
     Your app receives `REDIS_URL` automatically.
-  </Card>
-
-  <Card title="AI Model Server" icon="star">
-    A local model runtime so your app can run language models without calling an external API. Useful for apps with on-device inference or privacy requirements.
-
-    Your app receives `OLLAMA_URL` automatically.
   </Card>
 
   <Card title="MongoDB Database" icon="seti:db">

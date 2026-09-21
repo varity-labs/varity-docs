@@ -50,6 +50,9 @@ if (openapi) {
   if (!openapi.info?.title || !openapi.info?.version) errors.push('OpenAPI info title and version are required');
   if (!Array.isArray(openapi.servers) || openapi.servers.length === 0) errors.push('OpenAPI must declare a public server');
   if (!openapi.paths || Object.keys(openapi.paths).length === 0) errors.push('OpenAPI must declare at least one path');
+  if (!openapi.paths?.['/deployments/{deployment_id}/access-credential']?.get) {
+    errors.push('OpenAPI projection must include owner application access');
+  }
 
   const operationIds = [];
   const httpMethods = new Set(['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace']);
@@ -85,6 +88,9 @@ if (openapi) {
 const mcp = parseJson('public/mcp-schema.json');
 if (mcp) {
   if (!mcp.server?.name || !mcp.server?.package || !mcp.server?.version) errors.push('MCP schema server identity is incomplete');
+  if (mcp.server?.release?.registry !== 'https://registry.npmjs.org/@varity-labs%2Fmcp/latest') {
+    errors.push('MCP schema must name the public npm release source');
+  }
   if (!Array.isArray(mcp.tools) || mcp.tools.length === 0) errors.push('MCP schema must declare tools');
   if (mcp.toolCount !== mcp.tools?.length) errors.push('MCP schema toolCount must equal tools.length');
 
@@ -118,26 +124,25 @@ for (const [name, content] of [['public/llms.txt', llms], ['public/llms-full.txt
 }
 if (llmsFull.length <= llms.length) errors.push('public/llms-full.txt must contain more context than public/llms.txt');
 
-// Pricing rules the executable owners state (varity-platform, tags gateway-v1.14.30 /
-// deploy-api-v0.5.239): the AI Gateway funding fee is 0 (ai-gateway-billing.ts
-// FUNDING_SERVICE_FEE_CENTS = 0), and every machine seals a 7 200 s minimum
-// runway that billing-meter books at create (accelerator_quote.py:44,
-// machine_operations_api.py:467, gpu-hourly-usage.ts machineUsageOverlapUsd).
+// Public docs route pricing to executable/live owners. Until a generated,
+// expiring pricing projection exists, copied numeric prices fail closed.
 const pricingPage = read('src/content/docs/resources/pricing.mdx');
-if (/provider's actual cost for your requests \*\*plus a 5%/.test(pricingPage)) errors.push('resources/pricing.mdx must not charge the AI Gateway fee per request');
-if (!pricingPage.includes('Each AI Gateway request is charged exactly its provider cost')) errors.push('resources/pricing.mdx must state the provider-cost request contract');
-if (!pricingPage.includes('5% service fee is charged when credits are added')) errors.push('resources/pricing.mdx must state the funding-fee contract');
-if ((pricingPage.match(/two-hour minimum/g) || []).length < 2) errors.push('resources/pricing.mdx must state the two-hour machine minimum for CPU VMs and GPU machines');
-// Founder pricing decisions 2026-09-06 (D1, D2/D3, D4, D5).
-if (!pricingPage.includes('First 3 static sites free, then $1/month per site')) errors.push('resources/pricing.mdx must state "First 3 static sites free, then $1/month per site" (decision D1)');
-if (/Static sites are \*\*free\*\*/.test(pricingPage)) errors.push('resources/pricing.mdx must not claim unconditional free static hosting (decision D1)');
-if (/\$7\.00 service/.test(pricingPage)) errors.push('resources/pricing.mdx must not charge attached-service compute');
-if (!/Attached services .* add only their persistent storage charge/.test(pricingPage)) errors.push('resources/pricing.mdx must state the attached-service storage-only contract');
-if (!/Redis is in-memory/.test(pricingPage)) errors.push('resources/pricing.mdx must state that Redis takes no volume (decision D3)');
-if (!/Ollama is retired/.test(pricingPage)) errors.push('resources/pricing.mdx must state that Ollama is retired for new deployments (decision D4)');
-if (!/GPU containers carry the same two-hour minimum/.test(pricingPage)) errors.push('resources/pricing.mdx must state the GPU container two-hour minimum (decision D5)');
-for (const page of ['src/content/docs/resources/billing.mdx', 'src/content/docs/resources/faq.mdx', 'src/content/docs/cli/overview.mdx', 'src/content/docs/cli/commands/deploy.mdx']) {
-  if (!read(page).includes('$1/month per site')) errors.push(`${page} must carry the "then $1/month per site" static pricing (decision D1)`);
+for (const owner of ['/api/pricing', '/api/pricing/machine-quote', '/api/pricing/accelerator-quote', 'ai.varity.app/v1/models']) {
+  if (!pricingPage.includes(owner)) errors.push(`resources/pricing.mdx must route to ${owner}`);
+}
+const previouslyCopiedPrices = [
+  'First 3 static sites free',
+  '$1/month per site',
+  'Up to $7/mo',
+  '$0.16/GB-month',
+  '$0.09/GB-month',
+  '5% service fee',
+  '$0.038356',
+];
+for (const staleLiteral of previouslyCopiedPrices) {
+  if (llmsFull.includes(staleLiteral)) {
+    errors.push(`public docs restored removed mutable price literal: ${staleLiteral}`);
+  }
 }
 
 if (process.env.VERIFY_DIST === '1') {

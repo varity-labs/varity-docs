@@ -1,6 +1,6 @@
 ---
 title: Pricing and Costs on Varity
-description: "The Varity price reference: free static hosting, Managed Cloud presets, the VM billing model, live GPU quotes, and AI Gateway fees."
+description: How to obtain a current Varity price from the live pricing service or a sealed workload quote without relying on copied documentation values.
 ---
 
 import { Aside } from '@astrojs/starlight/components';
@@ -9,60 +9,54 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="July 2026"
   stability="stable"
 />
 
-Varity pricing is based on the resources a deployment reserves, not usage metering. For an unchanged deployment profile, your bill does not grow with request volume, bandwidth, or invocation count; changing the profile (resources, services, replicas, accelerators, or app count) can change the price.
+Varity documentation does not maintain a price book. Prices, credits, fees,
+catalog availability, and resource profiles can change independently of this
+site. A copied value would become a second, discrepancy-causing owner.
 
-## Static Sites: First 3 Free
+## Current Price Sources
 
-**First 3 static sites free, then $1/month per site.** Your first **3 active static sites** are free for a verified account; each additional active static site is **$1.00/month**, prorated by the time it is live. Deleting a site frees its slot. Accounts keep a **1 GB of total pinned assets** limit. No payment method is required for the free sites, only a verified account. Larger or dynamic apps use Managed Cloud.
+Use the source that matches the workload:
 
-## Managed Cloud Presets
+| Workload | Current source |
+| --- | --- |
+| Managed applications and static sites | `GET https://varity.app/api/pricing` or the [Developer Portal](https://developer.store.varity.so/?utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=pricing-portal) quote shown before deploy |
+| Pre-deploy application estimate | `GET https://varity.app/api/pricing/estimate` or `varity_cost_calculator` |
+| CPU VM or GPU machine | `POST https://varity.app/api/pricing/machine-quote` |
+| GPU container | `POST https://varity.app/api/pricing/accelerator-quote` |
+| AI Gateway request rates | `GET https://ai.varity.app/v1/models` |
+| AI Gateway funding terms | `GET https://ai.varity.app/v1/openapi.json`, field `x-varity-commercial-contract` |
 
-Dynamic apps select one of four fixed presets. Each price is a **monthly maximum**: billing is prorated by running time (per minute, against a 730-hour month), so a deployment that runs part of the month bills less than its maximum.
-
-| Preset | vCPU | RAM | Ephemeral storage | Price |
-|--------|-----:|----:|------------------:|-------|
-| Starter | 0.5 | 1 GB | 2 GB | Up to $7/mo, prorated |
-| Growth | 1 | 2 GB | 5 GB | Up to $14/mo, prorated |
-| Scale | 2 | 4 GB | 25 GB | Up to $28/mo, prorated |
-| Pro | 4 | 8 GB | 50 GB | Up to $56/mo, prorated |
-
-- Attached services (Postgres, MongoDB, MySQL, object storage) add only their persistent storage charge. Their reserved CPU, memory, and ephemeral capacity is not a separate customer charge. Redis is in-memory and adds no volume charge. Ollama is retired for new deployments.
-- Persistent storage is an add-on at **$0.16/GB-month**, prorated on the same period. It bills while allocated, until the volume is deleted.
-- Each replica reserves its own resources: 2 replicas of a preset bill up to 2x that preset's maximum.
-
-## CPU VMs
-
-CPU VMs bill **hourly against a hard monthly cap**: the hourly rate is derived from the VM's monthly maximum divided by 730 hours, and the month's compute charge never exceeds that cap. Every VM includes a **20 GB NVMe boot disk** and **one public IPv4**, with no separate ingress or egress charge. Additional NVMe storage is **$0.09/GB-month**, prorated hourly. Every VM carries a **two-hour minimum**: the first two hours at the quoted hourly rate are booked when the machine is created, and longer runtimes bill by elapsed hour. Billing continues while the VM's resources remain reserved; stopping the guest OS does not by itself release them; delete the VM to stop billing. VM sizes and regions are published in the Developer Portal as they pass Varity's end-to-end release verification.
-
-## GPU
-
-GPU pricing is a **live quote**: the exact hourly rate is computed server-side from currently available capacity and shown before you commit. Any continuous-use monthly figure is an estimate for planning, never a cap. GPU machines and GPU containers carry the same two-hour minimum as CPU VMs, booked when the machine or container is created: the minimum for the first 2h is billed at deploy. GPU workloads are paid-only and are excluded from the launch credit.
-
-## AI Gateway
-
-Each AI Gateway request is charged exactly its provider cost, with no per-request markup. Varity's **5% service fee is charged when credits are added**: a $20.00 top-up charges $21.00 and credits $20.00. The minimum refill is **$20** and the maximum is $1,000. AI Gateway balances are separate from Varity Cloud and cannot be spent on application, VM, GPU, or static hosting.
-
-## Launch Credit
-
-New accounts with a valid payment method receive a **$5 Managed Cloud credit, valid for 14 days**. It applies to Managed Cloud CPU deployments only, not to VMs, GPU, the AI Gateway, or static sites (which are already free).
-
-## How to Get an Exact Number
-
-Every price is computed by Varity's server-side pricing authority, so all surfaces show identical numbers:
-
-- Developer Portal: [developer.store.varity.so](https://developer.store.varity.so/?utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=pricing-portal) shows the exact price before you confirm a deployment.
-- MCP tool: `varity_cost_calculator` in your AI editor.
-
-<Aside type="note">
-The price you confirm at deploy time is authoritative for that deployment. Cost comparisons with other platforms live on [varity.so](https://www.varity.so), not in these docs.
+<Aside type="caution" title="Fail closed on missing pricing">
+If the live pricing response or workload-bound quote is unavailable, no current
+numeric price is available to publish or spend against. Do not fall back to a
+number copied from this page, a screenshot, or an earlier quote.
 </Aside>
+
+## How Billing Is Shaped
+
+- Application pricing is tied to the selected reserved profile. Read the live
+  response for the applicable maximum, proration, storage, replica, and credit
+  policy.
+- Machine and accelerator prices are bound by a time-limited quote. If the
+  quote expires or the requested workload changes, request a new one.
+- AI Gateway request rates come from the live model catalog. Funding terms are
+  separately published in its OpenAPI commercial-contract block.
+- A price shown when a billable action is confirmed is the transactional price
+  for that action. Documentation never authorizes a charge.
+
+## Deletion and Billing Closure
+
+Deletion can be asynchronous. An accepted delete request is not proof that
+routing, resource release, and billing closure have all converged. Follow the
+returned operation or resource state until the billing state is terminal.
 
 ## Related Guides
 
-- [Billing and Pricing](/resources/billing)
-- [Deploy Your App](/deploy/deploy-your-app)
-- [FAQ](/resources/faq)
+- [Billing and Pricing](/resources/billing/)
+- [Machine Catalogs](/machines/)
+- [CPU Virtual Machines](/machines/cpu-vms/)
+- [GPU Workloads](/machines/gpu/)
+- [AI Gateway Billing and Keys](/ai-gateway/billing-and-keys/)

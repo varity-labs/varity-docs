@@ -9,7 +9,6 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="August 2026"
   stability="beta"
 />
 
@@ -80,7 +79,7 @@ API keys cannot manage other API keys. The `/api/api-keys*` routes are Developer
 | Code | HTTP | Retryable | Cause |
 |------|------|-----------|-------|
 | <span id="invalid_env"></span>`invalid_env` | 400 | no | Malformed environment-variable update payload. |
-| <span id="invalid_idempotency_key"></span>`invalid_idempotency_key` | 400 | no | The key is not `[A-Za-z0-9._:-]{8,128}`. |
+| <span id="invalid_idempotency_key"></span>`invalid_idempotency_key` | 400 | no | The key does not satisfy the called route's OpenAPI parameter. Machine operations use `[A-Za-z0-9._:-]{8,128}`; deployment and attachment routes have different bounds. |
 | <span id="invalid_run_id"></span>`invalid_run_id` | 400 | no | Malformed run identifier. |
 | <span id="invalid_webhook_url"></span>`invalid_webhook_url` | 400 | no | The webhook URL is not a public HTTPS URL. |
 | <span id="invalid_webhook_id"></span>`invalid_webhook_id` | 400 | no | Malformed webhook identifier. |

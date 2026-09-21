@@ -9,7 +9,6 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="August 2026"
   stability="beta"
 />
 
@@ -61,14 +60,19 @@ Create API keys in the [Developer Portal settings page](https://developer.store.
 
 `POST /api/deployments` creates a deployment from one source: repository, image, or template. It returns `202 Accepted`. Creation is asynchronous.
 
-Always send an `Idempotency-Key` on creates so a retry cannot produce a duplicate deployment:
+Send an `Idempotency-Key` on creates so a retry cannot produce a duplicate deployment:
 
-- Format: `[A-Za-z0-9._:-]`, 8 to 128 characters. Anything else returns `400 invalid_idempotency_key`.
+- Deployment and template creates accept an optional key up to 160 characters.
+- Machine create and delete require `[A-Za-z0-9._:-]{8,128}`.
+- AI Gateway attachment mutations require `[A-Za-z0-9._:-]{1,160}`.
 - Retention: 24 hours.
 - Replaying the same key with the **same** body returns the original result, flagged `replayed: true`.
 - Reusing the same key with a **different** body returns `409 idempotency_key_reused`.
 
-The header is optional on `POST /api/deployments`, `POST /api/templates/{id}/deploy`, `POST /api/machines`, and `DELETE /api/machines/{id}`, and **required** on every `/api/ai-gateway/attachments` mutation.
+The header is optional on `POST /api/deployments` and
+`POST /api/templates/{id}/deploy`; it is **required** on machine create/delete
+and every `/api/ai-gateway/attachments` mutation. The operation-specific
+OpenAPI parameter is authoritative.
 
 Do not fire concurrent create requests with the same idempotency key; atomic concurrent idempotency is a backend hardening follow-up for v1.
 
@@ -368,13 +372,16 @@ Every platform-API error returns the same envelope:
 
 Branch on `code` and `retryable`, never on `message`. Send an `X-Request-Id` header and it comes back as `correlation_id`; include it in support requests.
 
-Rate limits are enforced per account and per class of request. Reads get 300 per minute, deployment creates get 10 per hour. Exhausting one returns `429 rate_limited` with a `Retry-After` header. Honor it.
+Rate limits are enforced per account and per class of request. Exhausting a
+budget returns `429 rate_limited` with a `Retry-After` header. Honor the
+returned `RateLimit-*` headers; documentation does not own a copied numeric
+budget.
 
 See **[API Errors](/api/errors/)** and **[Rate Limits](/api/limits/)** for the full reference.
 
 ## Endpoint Summary
 
-The live OpenAPI document at `https://varity.app/api/openapi.json` defines **33 paths and 45 operations**. This is the full list; the document itself is authoritative.
+The live OpenAPI document at `https://varity.app/api/openapi.json` defines **34 paths and 46 operations** in the checked-in projection. The live document itself is authoritative.
 
 ### Deployments
 
@@ -383,6 +390,7 @@ The live OpenAPI document at `https://varity.app/api/openapi.json` defines **33 
 | `GET`, `POST` | `/api/deployments` | List or create deployments |
 | `GET` | `/api/deployments/runs/{run_id}` | Get deployment run status |
 | `GET`, `DELETE` | `/api/deployments/{deployment_id}` | Read or delete a deployment |
+| `GET` | `/api/deployments/{deployment_id}/access-credential` | Read owner-only private application access with a Portal session |
 | `GET` | `/api/deployments/{deployment_id}/logs` | Read deployment logs |
 | `GET` | `/api/deployments/{deployment_id}/events` | Read deployment events |
 | `GET` | `/api/deployments/{deployment_id}/health-history` | Read durable runtime and route health history |

@@ -1,6 +1,6 @@
 ---
 title: CPU Virtual Machines
-description: All 13 Varity CPU VM sizes with exact vCPU, memory, disk, hourly price, and monthly cap, plus the OS images, the create flow, and how billing stops.
+description: Read the live CPU VM catalog, seal a quote, create a machine, and verify its lifecycle without relying on copied profiles or prices.
 ---
 
 import { Aside, Steps, LinkCard } from '@astrojs/starlight/components';
@@ -9,99 +9,36 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="August 2026"
   stability="beta"
 />
 
-A CPU VM is a machine you rent for yourself. You pick a profile, pick an OS image, send an SSH public key, and get a box you administer. Varity does not build your code, wire services, or give it a `varity.app` URL. That is [Applications](/deploy/what-you-can-deploy/).
+A CPU VM is a machine you administer through SSH. Varity does not build your
+code, wire application services, or assign it an application URL. For a managed
+application runtime, see [What You Can Deploy](/deploy/what-you-can-deploy/).
 
-The catalog holds **26 profiles: 13 sizes in 2 regions.** Specs and price are identical in both regions. Every profile was `available` when this page was written.
+## Read the Live Catalog
 
-Values below were read from `GET /api/deployment-profiles?workload=virtual_machine&execution_class=cpu_virtual_machine` on 22 August 2026.
+Profiles, regions, images, availability, resources, and prices are mutable.
+Read them from the authenticated catalog immediately before requesting a quote:
 
-## Dedicated CPU
-
-These profiles report `cpu_class: "dedicated"`.
-
-| Profile | vCPU | Memory | Disk | Hourly | Monthly cap |
-| --- | --- | --- | --- | --- | --- |
-| Performance S | 2 | 4 GB | 20 GB | $0.038356 | $28.00 |
-| Performance M | 4 | 8 GB | 20 GB | $0.067123 | $49.00 |
-| Performance L | 8 | 16 GB | 20 GB | $0.121918 | $89.00 |
-| Performance L-Memory | 8 | 32 GB | 20 GB | $0.205479 | $150.00 |
-| Performance XL | 16 | 32 GB | 20 GB | $0.232877 | $170.00 |
-| Performance 24 | 24 | 48 GB | 20 GB | $0.343836 | $251.00 |
-| Performance 32 | 32 | 64 GB | 20 GB | $0.453425 | $331.00 |
-| Performance 64 | 64 | 128 GB | 20 GB | $0.89726 | $655.00 |
-
-## Shared CPU
-
-These profiles report `cpu_class: "shared"`. Cheaper per vCPU.
-
-| Profile | vCPU | Memory | Disk | Hourly | Monthly cap |
-| --- | --- | --- | --- | --- | --- |
-| Shared S | 2 | 2 GB | 20 GB | $0.019178 | $14.00 |
-| Shared M | 3 | 4 GB | 20 GB | $0.026027 | $19.00 |
-| Shared L | 4 | 8 GB | 20 GB | $0.038356 | $28.00 |
-| Shared XL | 8 | 16 GB | 20 GB | $0.067123 | $49.00 |
-| Shared 2XL | 16 | 32 GB | 20 GB | $0.121918 | $89.00 |
-
-Three shared sizes cost exactly the same as a dedicated size with half the hardware:
-
-| Same hourly price | Shared | Dedicated |
-| --- | --- | --- |
-| $0.038356 | Shared L (4 vCPU / 8 GB) | Performance S (2 vCPU / 4 GB) |
-| $0.067123 | Shared XL (8 vCPU / 16 GB) | Performance M (4 vCPU / 8 GB) |
-| $0.121918 | Shared 2XL (16 vCPU / 32 GB) | Performance L (8 vCPU / 16 GB) |
-
-So pay for Performance when you need the cores to be yours, not when you need more of them.
-
-## Regions
-
-Two regions, and they are interchangeable on paper:
-
-| Region | Country |
-| --- | --- |
-| `de-frankfurt` | Germany |
-| `pl-poz` | Poland |
-
-All 13 sizes exist in both, at identical specs and identical prices. Each region has its own `profile_id`. The region is a property of the profile, not a create-time argument.
-
-## Disk
-
-**Every CPU VM profile has a 20 GB disk.** All 26 report `storage_mb: 20480`. There is no larger boot disk to choose and no size that comes with more.
-
-For more, pass `additional_storage_gb` when you request a quote and again when you create the machine. It is an integer from 0 to 32768 GB, valid **only** when `execution_class` is `cpu_virtual_machine`. Additional storage is priced into the quote's `hourly_usd`, and it bills **outside** the monthly cap.
-
-## OS Images
-
-All 26 profiles offer the same five images. Pass the `id`, not the label.
-
-| `id` | Label |
-| --- | --- |
-| `os-ubuntu-24-04-lts-x64-70031bd79dea` | Ubuntu 24.04 (LTS) x64 |
-| `os-ubuntu-22-04-lts-x64-8eff1404d444` | Ubuntu 22.04 (LTS) x64 |
-| `os-debian-12-x64-6bf00e145a61` | Debian 12 x64 |
-| `os-fedora-41-x64-f29cddf55723` | Fedora 41 x64 |
-| `os-centos-stream-10-x64-4cc111f9cdc5` | CentOS Stream 10 x64 |
-
-An image a profile does not list is rejected at create time. Read `os_images` from the profile you picked rather than hardcoding these IDs.
-
-## How the Price Is Derived
-
-The hourly rate is the monthly cap divided by 730, rounded to whole microdollars. It is not an independent number.
-
-Performance XL, verbatim from the catalog:
-
-```
-monthly_cap_microusd  170000000
-170000000 / 730     = 232876.71…
-customer_price.amount_microusd = 232877
+```bash
+curl "https://varity.app/api/deployment-profiles?workload=virtual_machine&execution_class=cpu_virtual_machine" \
+  -H "Authorization: Bearer $VARITY_API_KEY"
 ```
 
-That holds for all 13 sizes. So the monthly cap is exactly 730 hours of runtime, and a machine that runs every hour of a 744-hour month pays the cap, not 744 × the hourly rate. Divide `amount_microusd` by 1,000,000 for dollars.
+Keep the selected `profile_id` and one `os_images[].id` returned on that same
+profile. Do not copy an identifier, region, disk size, or rate from
+documentation into automation.
 
-The cap covers **compute only**. Additional NVMe storage is billed on top of it.
+If you need additional storage, include `additional_storage_gb` in both the
+quote and create requests. Read its current validation bounds and billing
+fields from the [OpenAPI contract](/openapi.yaml) and returned quote.
+
+<Aside type="caution" title="The quote owns the price">
+The catalog is discovery data. The accepted, unexpired machine quote is the
+transactional price contract. If the selection changes or the quote expires,
+request a new quote.
+</Aside>
 
 ## Create a Machine
 

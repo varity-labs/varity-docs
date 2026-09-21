@@ -9,7 +9,6 @@ import PageMeta from '../../../components/PageMeta.astro';
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="September 2026"
   stability="beta"
 />
 
@@ -71,7 +70,7 @@ as the bearer credential; an inference API key is refused on them.
 | `GET /v1/billing/balance` | **Supported.** The prepaid Gateway balance. |
 | `GET /v1/billing/transactions` | **Supported.** Balance transactions. Accepts `limit` and `offset`. |
 | `PATCH /v1/billing/settings` | **Supported.** Monthly spending limit and auto-reload. |
-| `POST /v1/billing/top-up` | **Supported.** Starts a card checkout that funds the balance: $20 minimum, $1,000 maximum, plus Varity's 5% service fee. See [Billing and Keys](/ai-gateway/billing-and-keys/). |
+| `POST /v1/billing/top-up` | **Supported.** Starts a card checkout using the funding terms in the live OpenAPI commercial-contract block. See [Billing and Keys](/ai-gateway/billing-and-keys/). |
 
 The same keys can also be created from the platform API with
 `POST /api/api-keys/inference`; see the

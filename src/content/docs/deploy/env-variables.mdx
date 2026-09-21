@@ -1,184 +1,101 @@
 ---
 title: Environment Variables on Varity
-description: "Configure environment variables for Varity deployments. Inject custom API keys via .env.varity. Most Varity credentials are managed automatically."
+description: Configure application-owned environment variables for a Varity deployment without relying on retired shared-credential or app-identity behavior.
 ---
 
-import { Tabs, TabItem, Aside, Steps } from '@astrojs/starlight/components';
-import Accordion from '../../../components/Accordion.astro';
+import { Aside } from '@astrojs/starlight/components';
 import PageMeta from '../../../components/PageMeta.astro';
 
 <PageMeta
   author="Varity Team"
   authorRole="Core Contributors"
-  lastUpdated="June 2026"
   stability="stable"
 />
 
-Varity manages most credentials automatically. You only need to set environment variables for services you manage yourself, like your own API keys for OpenAI, Stripe, SendGrid, and similar third-party services.
+Supply the configuration and third-party secrets that your application owns,
+such as an OpenAI, Stripe, SendGrid, or Resend key. Varity does not create those
+accounts or provide shared development credentials.
 
-<Aside type="tip" icon="approve-check">
-**No credential setup required.** Storage and service credentials are provided automatically by Varity. See [Managed Credentials](/deploy/managed-credentials) for details.
-</Aside>
+If Varity provisions a supported attached service for a deployment, the runtime
+injects that service's reserved connection variables. See
+[Auto-wired Services](/deploy/auto-wired-services/) for that separate contract.
 
-## Custom Environment Variables
+## Add Custom Variables
 
-If your app uses third-party APIs (OpenAI, Stripe, SendGrid, Resend, or any other service), you need to inject those API keys into your deployment. Varity reads them during `varitykit app deploy` and passes them through to your running app. It looks for three filenames in precedence order: `.env.varity`, then `.env.local`, then `.env`. It uses the first one it finds.
-
-### Step 1: Create a `.env.varity` file
-
-Create `.env.varity` in your project root with your custom keys:
+Create `.env.varity` in the project root and add it to `.gitignore`:
 
 ```bash title=".env.varity"
-# Third-party API keys
 OPENAI_API_KEY=sk-...
 STRIPE_SECRET_KEY=sk_live_...
-RESEND_API_KEY=re_...
-SENDGRID_API_KEY=SG....
 MY_CUSTOM_VAR=some-value
 ```
 
-<Aside type="tip" icon="approve-check">
-`.env.varity` is the recommended file for Varity-specific production secrets. It takes precedence over `.env.local` and `.env`. Add it to your `.gitignore`.
-</Aside>
-
-### Step 2: Deploy
+Then deploy:
 
 ```bash
 varitykit app deploy
 ```
 
-The CLI reads your `.env.varity` file, filters out any reserved or platform-specific keys, and injects the rest directly into your deployment's runtime environment. Your app code accesses them the same way as any environment variable:
+The CLI uses the first file it finds in this precedence order:
+
+1. `.env.varity`
+2. `.env.local`
+3. `.env`
+
+It validates names, filters reserved platform keys, and sends the remaining
+values as write-only deployment input. Your application reads them through its
+normal process environment.
 
 ```js
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 ```
-
-### File precedence
-
-When multiple `.env` files are present, Varity reads the first match (highest precedence wins):
-
-| File | When to use |
-|------|-------------|
-| `.env.varity` | Varity production secrets (overrides all others) |
-| `.env.local` | Local overrides / Next.js convention |
-| `.env` | Fallback for all environments |
-
-### What gets passed through
-
-Any key that is a valid shell variable name and is **not** reserved by Varity passes through automatically, including `NEXT_PUBLIC_*` variables.
-
-Keys that are **not** forwarded (Varity sets these automatically):
-
-| Key | Set by |
-|-----|--------|
-| `NODE_ENV`, `PORT`, `NODE_OPTIONS` | Runtime defaults |
-| `DATABASE_URL`, `REDIS_URL`, `MONGODB_URI`, `MYSQL_URL`, `OLLAMA_URL` | Varity service wiring |
-| `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | Managed database config |
-| `APP_NAME` | Deployment metadata |
-
-Platform migration keys (`VERCEL_*`, `AWS_*`, `RAILWAY_*`, `RENDER_*`, `NETLIFY_*`, `FLY_*`) are also filtered so they don't leak into dynamic deployments.
 
 <Aside type="note">
-**Special characters in values** (quotes, dollar signs, colons) are automatically escaped. You do not need to quote values in `.env.varity`.
+Only one environment file is loaded. Values from lower-precedence files are not
+merged into the selected file.
 </Aside>
 
----
+## Reserved Runtime Variables
 
-## Varity App Configuration
+Do not try to override runtime-owned fields such as `NODE_ENV`, `PORT`,
+`NODE_OPTIONS`, or `APP_NAME`. Connection variables for an attached service,
+including `DATABASE_URL`, `REDIS_URL`, `MONGODB_URI`, and `MYSQL_URL`, are also
+reserved when that service is provisioned. The platform contract owns the exact
+reserved set.
 
-```bash title=".env.local"
-# Your Varity App ID (from developer portal)
-NEXT_PUBLIC_VARITY_APP_ID=your-app-id
-```
+Migration-specific keys from other hosting platforms are filtered from dynamic
+deployments so unrelated provider configuration is not forwarded accidentally.
 
-## Optional Variables
+There is no automatic `NEXT_PUBLIC_VARITY_APP_ID`, shared local credential, or
+application `VARITY_API_KEY`. If your application itself calls a Varity API,
+create and scope that credential explicitly, store it as a server-side secret,
+and never expose it through a browser-public prefix.
 
-These variables are only needed for specific use cases:
+## Public Versus Server-only Values
 
-| Variable | Required For | Default |
-|----------|--------------|---------|
-| `NEXT_PUBLIC_VARITY_APP_ID` | App identity | Dev default |
-| `VARITY_API_URL` | Custom API endpoint | `https://varity.app` |
-| `VARITY_API_KEY` | API authentication | Auto-provided |
+Framework prefixes such as `NEXT_PUBLIC_`, `VITE_`, and `REACT_APP_` usually
+embed values into browser code. They are suitable only for deliberately public
+configuration. Never put a secret in a public-prefixed variable.
 
-<Aside type="tip" icon="approve-check">
-Deployment credentials for hosting (both static and dynamic) are managed automatically by Varity. No manual credential setup is needed.
-</Aside>
+## Security Checklist
 
-## Example .env Files
-
-<Tabs>
-  <TabItem label="Development">
-    ```bash title=".env.local"
-    # Varity app ID (optional, dev defaults work automatically)
-    NEXT_PUBLIC_VARITY_APP_ID=your-app-id
-    ```
-
-    In development, your app uses shared credentials automatically. No other variables are needed.
-  </TabItem>
-  <TabItem label="Production">
-    ```bash title=".env.production"
-    # Varity app ID
-    NEXT_PUBLIC_VARITY_APP_ID=your-app-id
-    VARITY_API_URL=https://varity.app
-    VARITY_API_KEY=your_production_api_key
-    ```
-
-    Production credentials for storage and services are auto-provided by the CLI during deployment.
-  </TabItem>
-</Tabs>
-
-## Framework-Specific Prefixes
-
-Different frameworks require different prefixes for client-side variables:
-
-| Framework | Prefix | Example |
-|-----------|--------|---------|
-| Next.js | `NEXT_PUBLIC_` | `NEXT_PUBLIC_VARITY_APP_ID` |
-| Vite | `VITE_` | `VITE_VARITY_APP_ID` |
-| Create React App | `REACT_APP_` | `REACT_APP_VARITY_APP_ID` |
-
-## Security Best Practices
-
-<Aside type="danger">
-**Never expose secret keys in client-side code.** Only use `_PUBLIC_` prefixed variables for client-side access.
-</Aside>
-
-### Do:
-- Use `.env.local` for local development (git-ignored)
-- Store production secrets in your CI/CD platform
-- Rotate keys regularly
-
-### Don't:
-- Commit `.env` files with real credentials
-- Use production keys in development
-- Share API keys in public repositories
-- Hardcode secrets in source code
-
-## Verifying Configuration
-
-Run the doctor command to verify your configuration:
-
-```bash
-varitykit doctor
-```
-
-This checks:
-- Credential availability (auto-provided or manually set)
-- Network connectivity
-- API key validity
-- Project structure
+- Keep every environment file containing secrets out of version control.
+- Use separate credentials for development and production.
+- Rotate a credential after suspected exposure.
+- Treat environment values as write-only; logs and read APIs should not echo
+  them.
+- Test the application locally with your own development credentials before
+  deploying.
 
 ## Troubleshooting
 
-### Variables not loading
+If a variable is absent after deploy:
 
-1. Check the file name is one of `.env.varity`, `.env.local`, or `.env`. Those three are read, in that order, and only the first one found is used
-2. Restart your development server after changes
-3. Verify no syntax errors in the file
-4. Check framework-specific prefixes (`NEXT_PUBLIC_`, `VITE_`, etc.)
+1. Confirm the file name and precedence order above.
+2. Confirm the variable name is a valid shell identifier and is not reserved.
+3. Redeploy, then follow the returned operation to a terminal state.
+4. Check runtime logs for the variable name only; never print its value.
 
-### Credentials not working
-
-Run `varitykit doctor` to diagnose. Credentials are auto-provided. If they fail, check your network connection.
+Use `varitykit doctor` for local tool and connectivity checks. It does not prove
+that an application secret was created for you or that a deployed service is
+healthy.

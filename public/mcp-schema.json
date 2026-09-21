@@ -1,10 +1,20 @@
 {
   "$schema": "https://modelcontextprotocol.io/schema/2024-11-05/tools-list",
-  "description": "Varity MCP server tool catalog. The canonical machine-readable schema for AI agents and MCP clients. Kept aligned with the @varity-labs/mcp tool catalog.",
+  "description": "Safety-oriented documentation reference for the named @varity-labs/mcp release. It is not the package's MCP wire contract; clients must discover executable tool definitions from the installed server.",
+  "projection": {
+    "kind": "documentation-safety-reference",
+    "authority": "MCP tools/list from the installed published package",
+    "limitations": "Release identity is live-checked. Descriptions are conservative documentation and intentionally do not reproduce unverified lifecycle guarantees from package prose."
+  },
   "server": {
     "name": "varity",
     "package": "@varity-labs/mcp",
-    "version": "2.3.9",
+    "version": "2.3.7",
+    "release": {
+      "registry": "https://registry.npmjs.org/@varity-labs%2Fmcp/latest",
+      "distTag": "latest",
+      "observedAt": "2026-09-21"
+    },
     "docs": "https://docs.varity.so/ai-tools/mcp-server-spec/",
     "install": {
       "claudeCode": "claude mcp add varity -- npx -y @varity-labs/mcp",
@@ -292,7 +302,7 @@
     {
       "name": "varity_deploy",
       "title": "Deploy to Production",
-      "description": "Deploy the current project to production on Varity. Detects the framework, selects the right hosting, and ships it live at https://varity.app/<name>/. Zero configuration required. Flat hardware-reserved pricing. Your bill stays the same as your app grows. No usage-based billing, no surprise overages. Use this when a developer wants to deploy, publish, ship, or make their app live. If the developer wants to deploy a certified template rather than their own code, use varity_deploy_template instead. To stop a deployment and its billing, use varity_delete_deployment.",
+      "description": "Deploy a local project, repository, or supported container image through the published Varity MCP package. The tool delegates deployment to varitykit and returns its result. Use varity_deploy_template for a certified template.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -371,7 +381,7 @@
           },
           "path": {
             "type": "string",
-            "description": "Project directory path, only show deployments for this project"
+            "description": "Compatibility project-path hint accepted by the published package. Deployment state is account-scoped; do not treat this field as an ownership boundary."
           },
           "limit": {
             "type": "integer",
@@ -394,7 +404,7 @@
     {
       "name": "varity_deploy_logs",
       "title": "Deployment Info & Logs",
-      "description": "Get build logs or deployment summary for a specific deployment. When full build logs exist (captured during varity_deploy or varity_build), returns the actual log lines. When only the deployment record exists, returns a structured summary receipt: URL, status, build size, build time, and a debug_tip pointing to varity_build for detailed output. Use this to get the live URL, check status, or confirm build metrics for a deployment. For detailed build error output (TypeScript errors, module-not-found, etc.), use varity_build, it captures the full compilation log with exact file/line numbers.",
+      "description": "Read the logs or summary that the published package can retrieve for one deployment. Availability depends on how the deployment was created; use varity_build for local compilation diagnostics.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -424,8 +434,8 @@
     },
     {
       "name": "varity_delete_deployment",
-      "title": "Delete a Deployment and Stop Its Billing",
-      "description": "Delete an existing Varity deployment by name and stop its billing immediately. Use this when a developer says 'stop my <name>', 'shut down my deployment', 'I'm done with <name>', 'delete <name>', or when they no longer need a running app or agent. This shuts down the running app and releases its reserved hardware, so charges stop accruing right away. Static (CDN-hosted) deployments also stop being billed after delete. Use varity_deploy_status or list deployments at https://varity.app/dashboard to confirm the name first if the developer is unsure.",
+      "title": "Request Deployment Deletion",
+      "description": "Request deletion of an existing Varity deployment by app name. Deletion acceptance is not proof that route removal, resource release, and billing closure have all completed; verify terminal state after the request.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -447,7 +457,7 @@
     {
       "name": "varity_set_env",
       "title": "Set Environment Variables on an Existing Deployment",
-      "description": "Set or update environment variables (config + secrets) on an app that is ALREADY deployed, then redeploy it in place. Use this when a developer says 'add an env var to <name>', 'change the API key on <name>', 'set DATABASE_URL on my app', or 'update the config and redeploy'. The variables are applied to the SAME deployment. Same URL, same reserved hardware, no new bid. The change goes live in about a minute with no downtime churn. By default the new variables are MERGED over the existing set; pass replace=true to overwrite the entire set. Variable values are write-only and are never echoed back. To create a NEW deployment instead, use varity_deploy.",
+      "description": "Set or update write-only environment variables on an existing app and request the package's redeploy flow. By default values merge over the current set; replace=true replaces it. Track the returned operation rather than assuming when the change is live.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -480,8 +490,8 @@
     },
     {
       "name": "varity_redeploy",
-      "title": "Redeploy or Restart an Existing Deployment In Place",
-      "description": "Redeploy or restart an app that is ALREADY deployed, in place. Use this when a developer says 'redeploy <name>', 'restart <name>', 'my app is stuck, restart it', or 'pull the latest image and redeploy'. The app is re-deployed on the SAME deployment. Same URL, same reserved hardware, no new bid. It re-pulls the image (or rebuilds from source) and restarts the container, so it goes live in about a minute with no URL change. To change env vars at the same time, use varity_set_env. To create a NEW deployment instead, use varity_deploy.",
+      "title": "Request an Existing Deployment Redeploy",
+      "description": "Request the published package's redeploy action for an existing app. The action reapplies saved deployment configuration and may be a no-op; do not present it as a verified container restart or image refresh without resulting runtime evidence.",
       "inputSchema": {
         "type": "object",
         "properties": {

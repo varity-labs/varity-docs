@@ -1,13 +1,12 @@
 ---
 /**
  * PageMeta Component
- * Displays author attribution, last updated date, and version info
- * Based on research: trust signals build credibility (E-E-A-T)
+ * Displays durable authorship and stability metadata.
+ * Publication dates are derived by the site/build, never hand-maintained here.
  */
 interface Props {
   author?: string;
   authorRole?: string;
-  lastUpdated?: string;
   version?: string;
   stability?: 'stable' | 'beta' | 'alpha' | 'experimental';
 }
@@ -15,7 +14,6 @@ interface Props {
 const {
   author,
   authorRole,
-  lastUpdated,
   version,
   stability = 'stable'
 } = Astro.props;
@@ -44,16 +42,6 @@ const stabilityBg = {
       </svg>
       <strong>{author}</strong>
       {authorRole && <span class="author-role">{authorRole}</span>}
-    </span>
-  )}
-
-  {lastUpdated && (
-    <span class="meta-item updated">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="10"/>
-        <polyline points="12 6 12 12 16 14"/>
-      </svg>
-      Updated {lastUpdated}
     </span>
   )}
 

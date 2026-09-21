@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Varity Public Platform API",
-    "version": "2026-08-15",
+    "version": "2026-09-16",
     "description": "Gateway-owned resource API for deploying and operating Varity apps."
   },
   "servers": [
@@ -616,6 +616,38 @@
         }
       }
     },
+    "/deployments/{deployment_id}/access-credential": {
+      "get": {
+        "security": [
+          {
+            "PortalSession": []
+          }
+        ],
+        "operationId": "getDeploymentAccessCredential",
+        "summary": "Read owner-only private application access",
+        "description": "Returns the active private application basic-auth credential only to the verified deployment owner. The response is never cacheable.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeploymentId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Owner-only application access",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OwnerApplicationAccess"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      }
+    },
     "/deployments/{deployment_id}/domain": {
       "get": {
         "operationId": "getDeploymentDomain",
@@ -845,6 +877,9 @@
                 }
               }
             }
+          },
+          "409": {
+            "$ref": "#/components/responses/PublicError"
           },
           "default": {
             "$ref": "#/components/responses/PublicError"
@@ -3113,6 +3148,40 @@
           }
         }
       },
+      "OwnerApplicationAccess": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "schema_version",
+          "access"
+        ],
+        "properties": {
+          "schema_version": {
+            "const": "owner-application-access-v1"
+          },
+          "access": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "protocol",
+              "username",
+              "password"
+            ],
+            "properties": {
+              "protocol": {
+                "const": "basic_auth"
+              },
+              "username": {
+                "const": "varity"
+              },
+              "password": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{32}$"
+              }
+            }
+          }
+        }
+      },
       "AutoDetectCapability": {
         "type": "object",
         "additionalProperties": false,
@@ -3650,7 +3719,10 @@
             ]
           },
           "diagnostic_code": {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "terminal_at": {
             "type": [
@@ -3840,21 +3912,66 @@
         }
       },
       "DeploymentSource": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "enum": [
-              "repository",
-              "image",
-              "template",
-              "unknown"
-            ]
+        "oneOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "repository"
+              },
+              "repository_owner": {
+                "type": "string",
+                "description": "GitHub owner login of the deployed repository, when the repository is on github.com.",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9-]{0,38}$"
+              }
+            }
           },
-          "template_id": {
-            "type": "string"
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "image"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "unknown"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "type",
+              "template_id"
+            ],
+            "properties": {
+              "type": {
+                "const": "template"
+              },
+              "template_id": {
+                "type": "string",
+                "pattern": "^[a-z0-9][a-z0-9._-]{0,95}$"
+              }
+            }
           }
-        }
+        ]
       },
       "ResourceProfile": {
         "type": [
@@ -4291,7 +4408,8 @@
           "warning_code": {
             "type": "string",
             "enum": [
-              "logs_incomplete"
+              "logs_incomplete",
+              "runtime_not_started"
             ]
           },
           "retryable": {

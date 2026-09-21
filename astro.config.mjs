@@ -56,10 +56,7 @@ export default defineConfig({
         PageTitle: './src/components/overrides/PageTitle.astro',
         Head: './src/components/overrides/Head.astro',
       },
-      customCss: [
-        "./src/styles/varity-theme.css",
-        "./src/styles/components.css"
-      ],
+      customCss: ["./src/styles/varity-theme.css"],
       head: [
         // Performance: DNS prefetch for external resources
         {
