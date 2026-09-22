@@ -46,7 +46,7 @@ Varity auto-detects and deploys:
 | Go | Go modules |
 | Static | Plain HTML and static builds |
 
-Auto-wired backend services (provisioned when Varity detects them in your dependencies): **Postgres** (with pgvector), **Redis**, **MongoDB**, **MySQL**, **Ollama**, and **MinIO object storage**.
+Auto-wired backend services (provisioned when Varity detects them in your dependencies): **Postgres** (with pgvector), **Redis**, **MongoDB**, **MySQL**, and **MinIO object storage**.
 
 **Not supported yet as source repos:** Rust, Ruby / Rails, Elixir / Phoenix, Java / Spring, Deno, PHP / Laravel, .NET. Package these as runnable Docker/OCI HTTP services to deploy them today. [Request a framework](https://github.com/varity-labs).
 

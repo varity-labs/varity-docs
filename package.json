@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "description": "Documentation for Varity - Build real-world apps on decentralized infrastructure",
   "engines": {
-    "node": ">=18.17.1"
+    "node": ">=22"
   },
   "repository": {
     "type": "git",

@@ -114,6 +114,14 @@ if (!fs.existsSync(REDIRECTS_PATH)) {
   }
 }
 
+const README_PATH = path.join(__dirname, '../README.md');
+const readme = fs.readFileSync(README_PATH, 'utf8');
+const normalizedReadme = readme.replace(/\s+/g, ' ');
+if (/auto-wir(?:e|ed|ing)[^.]*ollama/i.test(normalizedReadme)) {
+  console.error('FAIL [README.md] must not claim that Ollama is auto-wired');
+  totalViolations++;
+}
+
 if (totalViolations === 0) {
   console.log(`PASS — all ${files.length} docs files clean of high-severity positioning violations`);
   process.exit(0);

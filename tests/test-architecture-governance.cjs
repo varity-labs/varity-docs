@@ -22,6 +22,46 @@ const required = {
 
 const errors = [];
 
+const packageJson = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
+const nodeVersion = fs.readFileSync(path.join(root, '.nvmrc'), 'utf8').trim();
+const workflowPaths = [
+  '.github/workflows/test-docs.yml',
+  '.github/workflows/check-live-contracts.yml',
+];
+
+if (packageJson.engines?.node !== '>=22') {
+  errors.push('package.json must require Node >=22');
+}
+if (nodeVersion !== '22') {
+  errors.push('.nvmrc must select Node 22');
+}
+for (const workflowPath of workflowPaths) {
+  const workflow = fs.readFileSync(path.join(root, workflowPath), 'utf8');
+  if (!/^\s*node-version:\s*['"]?22['"]?\s*$/m.test(workflow)) {
+    errors.push(`${workflowPath} must run on Node 22`);
+  }
+}
+
+const mergeWorkflow = fs.readFileSync(
+  path.join(root, '.github/workflows/test-docs.yml'),
+  'utf8',
+);
+if (!/^\s*run:\s*npm run check\s*$/m.test(mergeWorkflow)) {
+  errors.push('docs merge CI must run the complete npm run check interface');
+}
+for (const partialCommand of [
+  'npm test',
+  'npm run lint',
+  'npm run build',
+  'npm run test:built-contracts',
+  'npm run test:built-analytics',
+  'npm run test:built-errors',
+]) {
+  if (mergeWorkflow.includes(`run: ${partialCommand}`)) {
+    errors.push(`docs merge CI must not duplicate the partial check: ${partialCommand}`);
+  }
+}
+
 for (const [relativePath, markers] of Object.entries(required)) {
   const absolutePath = path.join(root, relativePath);
   if (!fs.existsSync(absolutePath)) {
