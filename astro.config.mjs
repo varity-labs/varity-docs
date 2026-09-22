@@ -1,12 +1,15 @@
 import { rehypeTableScroll } from './src/plugins/rehype-table-scroll.mjs';
 // @ts-check
 import { defineConfig } from "astro/config";
+import { unified } from "@astrojs/markdown-remark";
 import starlight from "@astrojs/starlight";
 import sitemap from "@astrojs/sitemap";
 
 // https://astro.build/config
 export default defineConfig({
-  markdown: { rehypePlugins: [rehypeTableScroll] },
+  markdown: {
+    processor: unified({ rehypePlugins: [rehypeTableScroll] }),
+  },
   site: "https://docs.varity.so",
   output: "static",
   image: {

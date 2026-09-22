@@ -29,8 +29,8 @@ const workflowPaths = [
   '.github/workflows/check-live-contracts.yml',
 ];
 
-if (packageJson.engines?.node !== '>=22') {
-  errors.push('package.json must require Node >=22');
+if (packageJson.engines?.node !== '>=22.12.0') {
+  errors.push('package.json must require Node >=22.12.0');
 }
 if (nodeVersion !== '22') {
   errors.push('.nvmrc must select Node 22');
