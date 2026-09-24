@@ -294,7 +294,8 @@ Errors use the OpenAI error envelope, with two Varity additions: `retryable` and
 
 Quote `request_id` in any support request. It is present on both the response
 body and the `x-request-id` header on every response, including successful ones.
-The gateway generates it; a caller-supplied `x-request-id` header is not echoed.
+A caller-supplied `x-request-id` that is a canonical UUID is echoed back as the
+request id; any other value is replaced by a UUID the gateway generates.
 
 ## Rate Limits
 

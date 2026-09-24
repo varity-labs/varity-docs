@@ -71,9 +71,9 @@ Each entry in `data` carries these Varity fields:
 | `capabilities.input_modalities` | array | What a request may carry: `text`, `image`, `document`, `audio`, `video`. A model without `document` rejects a `document` content part with `400 input_modality_unsupported` |
 | `capabilities.output_modalities` | array | What the model produces: `text`, `embedding`, `image`, `audio` |
 | `capabilities.chat_completions` | boolean | `true` on the chat models only; image, audio, and embedding models report `false`. Read it per model |
-| `capabilities.tool_calls` | boolean | Supported on a subset of the catalog; read it per model |
-| `capabilities.streaming` | boolean | Supported on most, not all, chat models; read it per model |
-| `capabilities.streaming_tool_calls` | boolean | Narrower than `streaming`; read it per model. Absent on a few entries, which means unproven, not unsupported |
+| `capabilities.tool_calls` | boolean | `true` when the model accepts `tools` / `tool_choice`. Read it per model; a model reporting `false` rejects tools |
+| `capabilities.streaming` | boolean | `true` when the model accepts `stream: true`; read it per model |
+| `capabilities.streaming_tool_calls` | boolean | `true` when the model streams tool-call deltas; read it per model. Like every proven flag, absent means unknown, not unsupported |
 | `capabilities.transcription` | boolean | `true` when `POST /v1/audio/transcriptions` accepts the model |
 | `capabilities.speech` | boolean | `true` when `POST /v1/audio/speech` accepts the model; `speech_formats` lists its output formats |
 | `context_window` | integer | Total tokens, input plus output |
@@ -127,8 +127,8 @@ carries no other fields, so branch on `status` before reading a rate:
 ```json
 "customer_pricing": {
   "status": "configured",
-  "version": "2026-07-28.v3.d74e3f5155b10314",
-  "observed_at": "2026-08-01T02:30:58.677Z",
+  "version": "<price-set version>",
+  "observed_at": "<ISO-8601 timestamp>",
   "currency": "usd",
   "unit": "per_million_tokens",
   "input": "<number>",
@@ -137,7 +137,8 @@ carries no other fields, so branch on `status` before reading a rate:
 }
 ```
 
-The rates are placeholders here; they are numbers in the live response.
+The values are placeholders here; in the live response the rates are numbers and
+`version` and `observed_at` are strings.
 
 `currency` is always `usd`. `unit` takes one of four values, and it decides
 which fields carry the rate:
@@ -168,9 +169,9 @@ large answer, so read both fields per model.
 
 ## Picking A Model
 
-- **Need tool calling?** Only a subset of the catalog accepts `tools` / `tool_choice`, and fewer support them while streaming. Read `capabilities.tool_calls` and `capabilities.streaming_tool_calls` per model, and see [Compatibility](/ai-gateway/compatibility/).
+- **Need tool calling?** Read `capabilities.tool_calls` and `capabilities.streaming_tool_calls` per model, and see [Compatibility](/ai-gateway/compatibility/).
 - **Need a very large context?** Sort the live catalog by `context_window`. The Grok 4.20 entries (`grok-4-20`, `grok-4-20-multi-agent`) have the widest windows in the current catalog, but read the field rather than assuming.
-- **Cost sensitive?** Compare `customer_pricing.input` across the live catalog, within one `unit`. Embedding models carry the lowest token rates; among chat models, `mercury-2-5` and `glm-4-7-flash` have the lowest input rates in the current catalog.
+- **Cost sensitive?** Sort the live catalog by `customer_pricing.input` within one `unit`; rates change with the catalog, so do not rely on a named model.
 
 <Aside type="caution">
 There is no per-model retrieval route. `GET /v1/models/{id}` returns `404`; fetch

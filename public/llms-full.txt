@@ -301,7 +301,8 @@ Errors use the OpenAI error envelope, with two Varity additions: `retryable` and
 
 Quote `request_id` in any support request. It is present on both the response
 body and the `x-request-id` header on every response, including successful ones.
-The gateway generates it; a caller-supplied `x-request-id` header is not echoed.
+A caller-supplied `x-request-id` that is a canonical UUID is echoed back as the
+request id; any other value is replaced by a UUID the gateway generates.
 
 ## Rate Limits
 
@@ -408,7 +409,9 @@ Authorization: Bearer $VARITY_API_KEY
 The portal tabs are built on these routes on `https://ai.varity.app`. They take
 a **Developer Portal session** as the bearer credential. An inference key is
 refused on them with `403 portal_session_required`, so a leaked inference key
-cannot mint more keys, move money, or change privacy settings.
+cannot mint more keys, move money, or change privacy settings. Because no API
+key can call them, they are deliberately not in `GET /v1/openapi.json`, which
+describes only the API-key surface; this table is their public reference.
 
 | Route | What it does |
 |-------|--------------|
@@ -609,18 +612,17 @@ against one model can be unsupported on another.
 | Capability | Models supporting it |
 |------------|----------------------|
 | `chat_completions` | The chat models; image, audio, and embedding models report `false` |
-| `streaming` | Most, but not all, chat models |
-| `tool_calls` | A subset of the chat models |
-| `streaming_tool_calls` | A smaller subset; absent on a few entries, which means unproven, not unsupported |
+| `streaming` | Chat models reporting `streaming: true` |
+| `tool_calls` | Chat models reporting `tool_calls: true` |
+| `streaming_tool_calls` | Chat models reporting `streaming_tool_calls: true` |
 | `output_modalities` | `text`, `embedding`, `image`, or `audio`: the route a model belongs on |
 | `transcription`, `speech` | The audio models, each on exactly one of the two audio routes |
 
-### Tool calling is the exception, not the default
+### Check tool calling per model
 
-Only a subset of the catalog accepts `tools` / `tool_choice`. If your agent
-framework assumes function calling works everywhere, as most do, it will break on
-the models that report `tool_calls: false`. Resolve this at runtime rather than
-hardcoding a list:
+Most chat models accept `tools` / `tool_choice`, but not all: a model reporting
+`tool_calls: false` rejects them. Resolve this at runtime rather than hardcoding
+a list:
 
 ```python
 models = {m["id"]: m for m in client.models.list().model_dump()["data"]}
@@ -672,7 +674,7 @@ The error envelope matches OpenAI's shape and adds two fields:
 ```
 
 - `retryable` is a boolean OpenAI does not send. Use it instead of guessing from the status code whether to retry.
-- `request_id` is also returned as the `x-request-id` response header on every response, successful or not. The gateway generates it; a caller-supplied `x-request-id` header is not echoed.
+- `request_id` is also returned as the `x-request-id` response header on every response, successful or not. A caller-supplied `x-request-id` that is a canonical UUID is echoed back as the request id; any other value is replaced by a UUID the gateway generates.
 
 A managed-inference failure adds a diagnostic block naming who decided the
 failure and where in the request's life it happened:
@@ -957,7 +959,9 @@ These routes refuse an inference key:
 `GET /v1/billing/balance`, `GET /v1/billing/transactions`,
 `PATCH /v1/billing/settings`, `POST /v1/billing/top-up`.
 
-Each is described on [Billing and Keys](/ai-gateway/billing-and-keys/#account-routes).
+They are Developer Portal session operations, so they are deliberately not in
+`GET /v1/openapi.json`, which describes only what an API key can call. Each is
+described on [Billing and Keys](/ai-gateway/billing-and-keys/#account-routes).
 
 ## Health
 
@@ -1401,9 +1405,9 @@ Each entry in `data` carries these Varity fields:
 | `capabilities.input_modalities` | array | What a request may carry: `text`, `image`, `document`, `audio`, `video`. A model without `document` rejects a `document` content part with `400 input_modality_unsupported` |
 | `capabilities.output_modalities` | array | What the model produces: `text`, `embedding`, `image`, `audio` |
 | `capabilities.chat_completions` | boolean | `true` on the chat models only; image, audio, and embedding models report `false`. Read it per model |
-| `capabilities.tool_calls` | boolean | Supported on a subset of the catalog; read it per model |
-| `capabilities.streaming` | boolean | Supported on most, not all, chat models; read it per model |
-| `capabilities.streaming_tool_calls` | boolean | Narrower than `streaming`; read it per model. Absent on a few entries, which means unproven, not unsupported |
+| `capabilities.tool_calls` | boolean | `true` when the model accepts `tools` / `tool_choice`. Read it per model; a model reporting `false` rejects tools |
+| `capabilities.streaming` | boolean | `true` when the model accepts `stream: true`; read it per model |
+| `capabilities.streaming_tool_calls` | boolean | `true` when the model streams tool-call deltas; read it per model. Like every proven flag, absent means unknown, not unsupported |
 | `capabilities.transcription` | boolean | `true` when `POST /v1/audio/transcriptions` accepts the model |
 | `capabilities.speech` | boolean | `true` when `POST /v1/audio/speech` accepts the model; `speech_formats` lists its output formats |
 | `context_window` | integer | Total tokens, input plus output |
@@ -1455,8 +1459,8 @@ carries no other fields, so branch on `status` before reading a rate:
 ```json
 "customer_pricing": {
   "status": "configured",
-  "version": "2026-07-28.v3.d74e3f5155b10314",
-  "observed_at": "2026-08-01T02:30:58.677Z",
+  "version": "<price-set version>",
+  "observed_at": "<ISO-8601 timestamp>",
   "currency": "usd",
   "unit": "per_million_tokens",
   "input": "<number>",
@@ -1465,7 +1469,8 @@ carries no other fields, so branch on `status` before reading a rate:
 }
 ```
 
-The rates are placeholders here; they are numbers in the live response.
+The values are placeholders here; in the live response the rates are numbers and
+`version` and `observed_at` are strings.
 
 `currency` is always `usd`. `unit` takes one of four values, and it decides
 which fields carry the rate:
@@ -1496,9 +1501,9 @@ large answer, so read both fields per model.
 
 ## Picking A Model
 
-- **Need tool calling?** Only a subset of the catalog accepts `tools` / `tool_choice`, and fewer support them while streaming. Read `capabilities.tool_calls` and `capabilities.streaming_tool_calls` per model, and see [Compatibility](/ai-gateway/compatibility/).
+- **Need tool calling?** Read `capabilities.tool_calls` and `capabilities.streaming_tool_calls` per model, and see [Compatibility](/ai-gateway/compatibility/).
 - **Need a very large context?** Sort the live catalog by `context_window`. The Grok 4.20 entries (`grok-4-20`, `grok-4-20-multi-agent`) have the widest windows in the current catalog, but read the field rather than assuming.
-- **Cost sensitive?** Compare `customer_pricing.input` across the live catalog, within one `unit`. Embedding models carry the lowest token rates; among chat models, `mercury-2-5` and `glm-4-7-flash` have the lowest input rates in the current catalog.
+- **Cost sensitive?** Sort the live catalog by `customer_pricing.input` within one `unit`; rates change with the catalog, so do not rely on a named model.
 
 There is no per-model retrieval route. `GET /v1/models/{id}` returns `404`; fetch
 the list and filter it client-side.
@@ -8301,3 +8306,274 @@ Make sure your `.env` file is in the project root (same directory you run `varit
 - [Auto-wired Services](/deploy/auto-wired-services)
 - [Environment Variables](/deploy/env-variables)
 - [Deploy Your App](/deploy/deploy-your-app)
+
+---
+
+## AI Gateway live contract snapshot
+
+Source: https://ai.varity.app/v1/openapi.json (Varity AI Gateway API 2026-09-17) and https://ai.varity.app/v1/models, snapshotted in varity-docs contracts/ai-gateway.mirror.json. The live endpoints are authoritative; read them at runtime.
+
+### Funding terms (x-varity-commercial-contract)
+
+- managed_rate: actual_provider_cost
+- funding_service_fee_percent: 5
+- minimum_refill_usd: 20
+- maximum_refill_usd: 1000
+- payment_method_required: true
+- automatic_signup_credit: false
+- byok: unavailable
+
+### Capability matrix (x-varity-capability-matrix)
+
+- text_chat_completions: supported
+- streaming_text: supported
+- tool_call_generation_and_transport: eligible_models
+- hosted_tool_execution: unsupported
+- portable_reasoning_controls: eligible_models
+- structured_output: eligible_models
+- vision_input: eligible_models
+- document_input: eligible_models
+- file_input: unsupported
+- image_generation: eligible_models
+- image_editing: eligible_models
+- embeddings: supported
+- audio_transcription: supported
+- audio_speech: supported
+- batch: unsupported
+
+### Operations in the contract (paths)
+
+- GET /v1/openapi.json: Get the AI Gateway contract
+- GET /v1/models: List freshness-bounded models admitted by Varity
+- POST /v1/chat/completions: Create a finite text chat completion
+- POST /v1/embeddings: Create embeddings with an admitted embedding model
+- POST /v1/images/generations: Generate images from a text prompt
+- POST /v1/images/edits: Edit an image from a source image and prompt
+- POST /v1/audio/transcriptions: Transcribe audio into text
+- POST /v1/audio/speech: Generate speech audio from text
+- GET /v1/inference/requests: List recent owner-scoped inference request metadata
+- GET /v1/inference/usage: Get owner-scoped inference usage
+- GET /v1/inference/policy: Get the authenticated tenant privacy policy
+- GET /v1/inference/performance: Get owner-scoped aggregate inference performance
+- POST /v1/billing/stripe/webhook: Signed Stripe webhook for Gateway balance funding
+
+### Catalog capability fields (components.schemas.Model.properties.capabilities)
+
+- `version`: Capability shape version; bumped only on a breaking change.
+- `input_modalities`: Request input modalities every routable candidate accepts.
+- `output_modalities`: Response modalities this model can produce.
+- `chat_completions`: Present only when proven. Absent means the state is `unknown`, never unsupported.
+- `transcription`: True when POST /v1/audio/transcriptions accepts this model. An audio model has chat_completions false.
+- `speech`: True when POST /v1/audio/speech accepts this model.
+- `speech_formats`: Output audio formats this speech model can produce. Empty unless speech is true.
+- `streaming`: Legacy alias of streaming_text, served so clients written against the pre-versioned four-boolean shape keep working. Always equal to streaming_text and present exactly when it is.
+- `streaming_text`: Present only when proven. Absent means the state is `unknown`, never unsupported.
+- `tool_calls`: Present only when proven. Absent means the state is `unknown`, never unsupported.
+- `streaming_tool_calls`: Present only when proven. Absent means the state is `unknown`, never unsupported.
+- `parallel_tool_calls`: no description in the contract
+- `max_tools`: The most tools one chat request may carry: the smallest bound known for any route of the model. A request above it is refused with 400 `too_many_tools` before any supplier call. Absent means no bound is known (none published, none measured), never unlimited.
+- `structured_outputs`: Present only when proven. Absent means the state is `unknown`, never unsupported.
+- `json_schema`: Present only when proven. Absent means the state is `unknown`, never unsupported.
+- `reasoning_controls`: no description in the contract
+- `reasoning_effort`: no description in the contract
+- `web_search`: no description in the contract
+- `x_search`: no description in the contract
+- `optimized_for_code`: no description in the contract
+- `log_probs`: no description in the contract
+- `temperature`: no description in the contract
+- `top_p`: no description in the contract
+- `seed`: no description in the contract
+- `stop`: no description in the contract
+- `context_window`: no description in the contract
+- `max_completion_tokens`: no description in the contract
+- `privacy`: Strongest currently available route class, duplicated from the model top level.
+- `privacy_routes`: Provider-hidden route-level privacy classes, duplicated from the model top level.
+- `availability`: see #/components/schemas/Availability
+- `refreshed_at`: no description in the contract
+- `evidence`: see #/components/schemas/CapabilityEvidenceMap
+
+### Models (183)
+
+- `aion-3-0`: privacy anonymized; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 128000; max completion 32768; usd per_million_tokens input 3.75 output 7.5 cached_input 0.9375 (price set 2026-09-17.v4.3395bb4e50eed133)
+- `aion-3-0-mini`: privacy anonymized; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 128000; max completion 32768; usd per_million_tokens input 0.875 output 1.75 cached_input 0.225 (price set 2026-09-17.v4.6b578cc434765e75)
+- `aion-3-5`: privacy anonymized; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 262144; max completion 32768; usd per_million_tokens input 3.75 output 7.5 cached_input 0.9375 (price set 2026-09-17.v4.3395bb4e50eed133)
+- `aion-3-5-mini`: privacy anonymized; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 262144; max completion 32768; usd per_million_tokens input 0.875 output 1.75 cached_input 0.225 (price set 2026-09-17.v4.6b578cc434765e75)
+- `anime-wai`: privacy private; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.01 (price set 2026-09-17.v4.fed65a03ede592bf)
+- `background-remover`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.03 (price set 2026-09-17.v4.ee3eeaa3f34bc9b4)
+- `bge-en-icl`: privacy private; in text -> out embedding; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 8192; max completion 0; usd per_million_tokens input 0.0125 output 0.0125 cached_input 0.0125 (price set 2026-09-17.v4.8674aa414807717c)
+- `bge-m3`: privacy private; in text -> out embedding; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 8192; max completion 0; usd per_million_tokens input 0.15 output 0.6 cached_input 0.15 (price set 2026-09-17.v4.43d477baf8d6ab45)
+- `chatterbox-hd-resemble-ai`: privacy private; in text -> out audio; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_million_characters input 50 output 0 cached_input 0 (price set 2026-09-17.v4.audio.57bd2cb598c116a3)
+- `chroma`: privacy private; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.01 (price set 2026-09-17.v4.fed65a03ede592bf)
+- `claude-fable-5`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 12 output 60 cached_input 1.2 (price set 2026-09-17.v4.795a701c83bb0ac0)
+- `claude-fable-5-1`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 12 output 60 cached_input 0.3 (price set 2026-09-17.v4.707577305481b7d5)
+- `claude-opus-4-5`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 198000; max completion 32768; usd per_million_tokens input 6 output 30 cached_input 0.6 (price set 2026-09-17.v4.6b3334b7e44c59b4)
+- `claude-opus-4-6`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 6 output 30 cached_input 0.6 (price set 2026-09-17.v4.6b3334b7e44c59b4)
+- `claude-opus-4-7`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 6 output 30 cached_input 0.6 (price set 2026-09-17.v4.6b3334b7e44c59b4)
+- `claude-opus-4-8`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 6 output 30 cached_input 0.6 (price set 2026-09-17.v4.6b3334b7e44c59b4)
+- `claude-opus-4-8-fast`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 12 output 60 cached_input 1.2 (price set 2026-09-17.v4.795a701c83bb0ac0)
+- `claude-opus-5`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 6 output 30 cached_input 0.6 (price set 2026-09-17.v4.6b3334b7e44c59b4)
+- `claude-opus-5-5`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 4.8 output 24 cached_input 0.24 (price set 2026-09-17.v4.7feb926fa8fd3e9f)
+- `claude-opus-5-fast`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 12 output 60 cached_input 1.2 (price set 2026-09-17.v4.795a701c83bb0ac0)
+- `claude-sonnet-4-5`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 198000; max completion 64000; usd per_million_tokens input 3.75 output 18.75 cached_input 0.375 (price set 2026-09-17.v4.659a3827b2163f81)
+- `claude-sonnet-4-6`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 64000; usd per_million_tokens input 3.6 output 18 cached_input 0.36 (price set 2026-09-17.v4.edbfebda73d6cc5d)
+- `claude-sonnet-5`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 64000; usd per_million_tokens input 3 output 15 cached_input 0.3 (price set 2026-09-17.v4.2a30972b7a064dac)
+- `deepseek-v3-2`: privacy private; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 160000; max completion 32768; usd per_million_tokens input 0.33 output 0.48 cached_input 0.16 (price set 2026-09-17.v4.e8fbc8d2dea999ae)
+- `deepseek-v4-1-flash`: privacy private; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 131072; usd per_million_tokens input 0.375 output 1.5 cached_input 0.0075 (price set 2026-09-17.v4.a56a8f750893f82b)
+- `deepseek-v4-flash`: privacy private; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 32768; usd per_million_tokens input 0.138 output 0.275 cached_input 0.028 (price set 2026-09-17.v4.a0ae8fe2294bb09c)
+- `deepseek-v4-flash-0731`: privacy private; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 32768; usd per_million_tokens input 0.175 output 0.35 cached_input 0.035 (price set 2026-09-17.v4.7788247c04882fd0)
+- `deepseek-v4-flash-0731-fast`: privacy private; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 32768; usd per_million_tokens input 0.35 output 0.7 cached_input 0.0875 (price set 2026-09-17.v4.136c279c9b5500d2)
+- `deepseek-v4-pro`: privacy private; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 32768; usd per_million_tokens input 1.65 output 3.301 cached_input 0.33 (price set 2026-09-17.v4.ae6445dcf989a264)
+- `deepseek-v4-pro-0813`: privacy private; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 32768; usd per_million_tokens input 1.65 output 4.95 cached_input 0.165 (price set 2026-09-17.v4.a6ca50ef7de8205f)
+- `elevenlabs-scribe-v2`: privacy anonymized; in audio -> out text; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_audio_second input 0.000167 output 0 cached_input 0 (price set 2026-09-17.v4.audio.6b8e29b77108a07e)
+- `elevenlabs-turbo-v2-5`: privacy anonymized; in text -> out audio; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_million_characters input 62.5 output 0 cached_input 0 (price set 2026-09-17.v4.audio.81a8d366669a4a04)
+- `firered`: privacy private; in text,image -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.04 (price set 2026-09-17.v4.3844ebbaf023291b)
+- `flux-2-max`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.09 (price set 2026-09-17.v4.bd79fb9384cd79f7)
+- `flux-2-pro`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.03 (price set 2026-09-17.v4.ee3eeaa3f34bc9b4)
+- `gemini-3-1-flash-tts`: privacy anonymized; in text -> out audio; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_million_characters input 187.5 output 0 cached_input 0 (price set 2026-09-17.v4.audio.308e0cac19a8cbed)
+- `gemini-3-1-pro-preview`: privacy anonymized; in text,document,audio,image,video -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 32768; usd per_million_tokens input 2.5 output 15 cached_input 0.5 (price set 2026-09-17.v4.d449ea54f5c9c2a5)
+- `gemini-3-5-flash`: privacy anonymized; in text,document,audio,image,video -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 65536; usd per_million_tokens input 1.55 output 9.45 cached_input 0.155 (price set 2026-09-17.v4.4be46891cf618273)
+- `gemini-3-5-flash-lite`: privacy anonymized; in text,document,audio,image,video -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 65536; usd per_million_tokens input 0.375 output 3.125 cached_input 0.0375 (price set 2026-09-17.v4.0efc5d733dad1e9e)
+- `gemini-3-6-flash`: privacy anonymized; in text,document,audio,image,video -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 65536; usd per_million_tokens input 0.9375 output 4.6875 cached_input 0.09375 (price set 2026-09-17.v4.7b9e90de8892bb4b)
+- `gemini-3-7-flash`: privacy anonymized; in text,document,audio,image,video -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 65536; usd per_million_tokens input 0.9375 output 4.6875 cached_input 0.09375 (price set 2026-09-17.v4.7b9e90de8892bb4b)
+- `gemini-3-8-flash`: privacy anonymized; in text,document,audio,image,video -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 65536; usd per_million_tokens input 0.9375 output 4.6875 cached_input 0.09375 (price set 2026-09-17.v4.7b9e90de8892bb4b)
+- `gemini-3-flash-preview`: privacy anonymized; in text,document,audio,image,video -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 256000; max completion 65536; usd per_million_tokens input 0.7 output 3.75 cached_input 0.07 (price set 2026-09-17.v4.7ec9a96197b4e517)
+- `gemini-embedding-2-preview`: privacy anonymized; in text -> out embedding; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 2048; max completion 0; usd per_million_tokens input 0.25 output 0.25 cached_input 0.25 (price set 2026-09-17.v4.bf6cc883a6959315)
+- `gemma-4-uncensored`: privacy private; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools 20; context 256000; max completion 8192; usd per_million_tokens input 0.1625 output 0.5 cached_input 0.1625 (price set 2026-09-17.v4.2819da9c60d7d0b3)
+- `glm-4-6`: privacy private; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 198000; max completion 16384; usd per_million_tokens input 0.43 output 1.75 cached_input 0.08 (price set 2026-09-17.v4.968045786a86ac2e)
+- `glm-4-7`: privacy private; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 198000; max completion 16384; usd per_million_tokens input 0.55 output 2.65 cached_input 0.11 (price set 2026-09-17.v4.098796ec1c55f49d)
+- `glm-4-7-flash`: privacy private; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 128000; max completion 16384; usd per_million_tokens input 0.06 output 0.4 cached_input 0.01 (price set 2026-09-17.v4.edec2f6fcad286da)
+- `glm-4-7-flash-heretic`: privacy private; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 200000; max completion 24000; usd per_million_tokens input 0.07 output 0.4 cached_input 0.035 (price set 2026-09-17.v4.9a397f197ae27fab)
+- `glm-5`: privacy private; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 198000; max completion 32000; usd per_million_tokens input 1 output 3.2 cached_input 0.2 (price set 2026-09-17.v4.3e386f8a8adc270a)
+- `glm-5-1`: privacy private; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 200000; max completion 80000; usd per_million_tokens input 1.54 output 4.84 cached_input 0.286 (price set 2026-09-17.v4.319337e451e23b9c)
+- `glm-5-2`: privacy private; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 131072; usd per_million_tokens input 1.4 output 4.4 cached_input 0.26 (price set 2026-09-17.v4.d700d5eddc298269)
+- `glm-5-3`: privacy private; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 131072; usd per_million_tokens input 1.75 output 5.5 cached_input 0.325 (price set 2026-09-17.v4.b1dc126986cfcd8a)
+- `glm-5-3-flash`: privacy private; in text,document,image,video -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1048576; max completion 131072; usd per_million_tokens input 0.15 output 0.5 cached_input 0.03 (price set 2026-09-17.v4.96387ea950625351)
+- `glm-5-turbo`: privacy anonymized; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 200000; max completion 32768; usd per_million_tokens input 1.2 output 4 cached_input 0.24 (price set 2026-09-17.v4.ee2d09271dec37d7)
+- `glm-5v-turbo`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 200000; max completion 32768; usd per_million_tokens input 1.5 output 5 cached_input 0.3 (price set 2026-09-17.v4.fc3422549a1ba48b)
+- `google-gemma-3-27b-instruct`: privacy private; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 198000; max completion 16384; usd per_million_tokens input 0.12 output 0.2 cached_input 0.12 (price set 2026-09-17.v4.5663da284529546d)
+- `google-gemma-4-26b-a4b-instruct`: privacy private; in text,document,image,video -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 256000; max completion 8192; usd per_million_tokens input 0.13 output 0.4 cached_input 0.05 (price set 2026-09-17.v4.aa7f3deb3fbdb5a6)
+- `google-gemma-4-31b-instruct`: privacy private; in text,document,image,video -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 256000; max completion 8192; usd per_million_tokens input 0.12 output 0.36 cached_input 0.09 (price set 2026-09-17.v4.45054af417645c94)
+- `gpt-4o`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 128000; max completion 16384; usd per_million_tokens input 3.125 output 12.5 cached_input 3.125 (price set 2026-09-17.v4.e7a1604f56bf005e)
+- `gpt-4o-mini`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 128000; max completion 16384; usd per_million_tokens input 0.1875 output 0.75 cached_input 0.09375 (price set 2026-09-17.v4.b4c7b8a11df97265)
+- `gpt-5-2`: privacy anonymized; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 256000; max completion 65536; usd per_million_tokens input 2.19 output 17.5 cached_input 0.219 (price set 2026-09-17.v4.89a4ed66aa3bca45)
+- `gpt-5-3-codex`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 400000; max completion 128000; usd per_million_tokens input 2.19 output 17.5 cached_input 0.219 (price set 2026-09-17.v4.89a4ed66aa3bca45)
+- `gpt-5-4`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 131072; usd per_million_tokens input 3.13 output 18.8 cached_input 0.313 (price set 2026-09-17.v4.90c1ef770d5b9e4a)
+- `gpt-5-4-mini`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 400000; max completion 128000; usd per_million_tokens input 0.9375 output 5.625 cached_input 0.09375 (price set 2026-09-17.v4.13eb5fd5a86d0037)
+- `gpt-5-4-pro`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 37.5 output 225 cached_input 37.5 (price set 2026-09-17.v4.d244dffcf9e7e064)
+- `gpt-5-5`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 131072; usd per_million_tokens input 6.25 output 37.5 cached_input 0.625 (price set 2026-09-17.v4.6880d5ea7d2a589c)
+- `gpt-5-5-pro`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 37.5 output 225 cached_input 37.5 (price set 2026-09-17.v4.d244dffcf9e7e064)
+- `gpt-5-6-luna`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 0.25 output 1.5 cached_input 0.025 (price set 2026-09-17.v4.8a5b329064ba16c4)
+- `gpt-5-6-luna-pro`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 0.25 output 1.5 cached_input 0.025 (price set 2026-09-17.v4.8a5b329064ba16c4)
+- `gpt-5-6-sol`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 5 output 25 cached_input 0.5 (price set 2026-09-17.v4.927fb8bd1cbad40a)
+- `gpt-5-6-sol-pro`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 5 output 25 cached_input 0.5 (price set 2026-09-17.v4.927fb8bd1cbad40a)
+- `gpt-5-6-terra`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 2.5 output 15 cached_input 0.25 (price set 2026-09-17.v4.8b7cb4f7caddc879)
+- `gpt-5-6-terra-pro`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 2.5 output 15 cached_input 0.25 (price set 2026-09-17.v4.8b7cb4f7caddc879)
+- `gpt-6-astra`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1050000; max completion 128000; usd per_million_tokens input 10 output 50 cached_input 1 (price set 2026-09-17.v4.380edf7deefe65b8)
+- `gpt-6-astra-pro`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1050000; max completion 128000; usd per_million_tokens input 12.5 output 62.5 cached_input 1.25 (price set 2026-09-17.v4.a26adae70a0ba7d1)
+- `gpt-6-luna`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1050000; max completion 128000; usd per_million_tokens input 0.125 output 0.625 cached_input 0.0125 (price set 2026-09-17.v4.9a0abaae96c1b1c3)
+- `gpt-6-sol`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1050000; max completion 128000; usd per_million_tokens input 2.5 output 12.5 cached_input 0.25 (price set 2026-09-17.v4.cedee259fa213f3a)
+- `gpt-image-1-5`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.26 (price set 2026-09-17.v4.89fb318e0c236674)
+- `gpt-image-2`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.27 (price set 2026-09-17.v4.abedf7b8b04d8421)
+- `gpt-image-2-5-flare`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.07 (price set 2026-09-17.v4.1e0fc80e08e5e9db)
+- `gpt-image-2-5-sunburst`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.07 (price set 2026-09-17.v4.1e0fc80e08e5e9db)
+- `gpt-oss-120b`: privacy anonymized; in text -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 131072; max completion 131072; usd per_million_tokens input 0.03 output 0.17 cached_input 0.03 (price set 2026-09-17.v4.f791c257a4b57213)
+- `gpt-oss-20b`: privacy anonymized; in text -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 131072; max completion 131072; usd per_million_tokens input 0.02 output 0.1 cached_input 0.02 (price set 2026-09-17.v4.abd271fe62c44f4b)
+- `gradium-tts`: privacy anonymized; in text -> out audio; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_million_characters input 47.5 output 0 cached_input 0 (price set 2026-09-17.v4.audio.51a7315e1a320fbb)
+- `grok-4-20`: privacy private; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 2000000; max completion 128000; usd per_million_tokens input 1.42 output 2.83 cached_input 0.23 (price set 2026-09-17.v4.2697b42cf2706427)
+- `grok-4-20-multi-agent`: privacy private; in text,document,image -> out text; chat yes; tool_calls no; streaming_tool_calls no; max_tools not known; context 2000000; max completion 128000; usd per_million_tokens input 1.42 output 2.83 cached_input 0.23 (price set 2026-09-17.v4.2697b42cf2706427)
+- `grok-4-3`: privacy private; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 32000; usd per_million_tokens input 1.42 output 2.83 cached_input 0.23 (price set 2026-09-17.v4.2697b42cf2706427)
+- `grok-4-5`: privacy private; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 500000; max completion 32000; usd per_million_tokens input 2.27 output 6.8 cached_input 0.34 (price set 2026-09-17.v4.c89218ca7baa3fe5)
+- `grok-4-6`: privacy private; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 500000; max completion 200000; usd per_million_tokens input 2.27 output 6.8 cached_input 0.57 (price set 2026-09-17.v4.2b066ef6aa37d877)
+- `grok-4-7`: privacy private; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 500000; max completion 200000; usd per_million_tokens input 2.27 output 6.8 cached_input 0.57 (price set 2026-09-17.v4.2b066ef6aa37d877)
+- `grok-build-0-1`: privacy private; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 256000; max completion 65536; usd per_million_tokens input 1 output 2 cached_input 0.2 (price set 2026-09-17.v4.cfa71f0ac04ceb62)
+- `grok-imagine`: privacy private; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.03 (price set 2026-09-17.v4.ee3eeaa3f34bc9b4)
+- `grok-imagine-2-0`: privacy private; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.07 (price set 2026-09-17.v4.1e0fc80e08e5e9db)
+- `grok-imagine-high-quality`: privacy private; in text,image -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.06 (price set 2026-09-17.v4.3e393754bb129bb9)
+- `grok-imagine-high-quality-sota`: privacy private; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.06 (price set 2026-09-17.v4.3e393754bb129bb9)
+- `hermes-3-llama-3-1-405b`: privacy private; in text,document -> out text; chat yes; tool_calls no; streaming_tool_calls no; max_tools not known; context 128000; max completion 16384; usd per_million_tokens input 1.1 output 3 cached_input 1.1 (price set 2026-09-17.v4.013aee0a5f99f82d)
+- `hunyuan-image-3-0`: privacy private; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.09 (price set 2026-09-17.v4.bd79fb9384cd79f7)
+- `ideogram-v4`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.06 (price set 2026-09-17.v4.3e393754bb129bb9)
+- `imagineart-1-5-pro`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.06 (price set 2026-09-17.v4.3e393754bb129bb9)
+- `inkling`: privacy private; in text,document,audio,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 524288; max completion 65536; usd per_million_tokens input 1.25 output 5.0625 cached_input 0.2125 (price set 2026-09-17.v4.3d4ee3eca502cd5f)
+- `inworld-tts-1-5-max`: privacy anonymized; in text -> out audio; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_million_characters input 12.5 output 0 cached_input 0 (price set 2026-09-17.v4.audio.5364ff293a04551e)
+- `kimi-k2-5`: privacy private; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 256000; max completion 65536; usd per_million_tokens input 0.56 output 3.5 cached_input 0.22 (price set 2026-09-17.v4.5e5b25c9e088a4ad)
+- `kimi-k2-6`: privacy private; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 256000; max completion 65536; usd per_million_tokens input 0.75 output 3.5 cached_input 0.16 (price set 2026-09-17.v4.60746c851ffd7742)
+- `kimi-k2-7-code`: privacy private; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 256000; max completion 65536; usd per_million_tokens input 0.75 output 3.5 cached_input 0.16 (price set 2026-09-17.v4.60746c851ffd7742)
+- `kimi-k3`: privacy private; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 131072; usd per_million_tokens input 3.75 output 18.75 cached_input 0.375 (price set 2026-09-17.v4.659a3827b2163f81)
+- `kimi-k3-fast`: privacy private; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 131072; usd per_million_tokens input 4.5 output 22.5 cached_input 0.45 (price set 2026-09-17.v4.63b9a8fd5134aaf8)
+- `kokoro-text-to-speech`: privacy private; in text -> out audio; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_million_characters input 3.5 output 0 cached_input 0 (price set 2026-09-17.v4.audio.76c9fdf184d7fe81)
+- `krea-2-turbo`: privacy private; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.04 (price set 2026-09-17.v4.3844ebbaf023291b)
+- `krea-v2-large`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.07 (price set 2026-09-17.v4.1e0fc80e08e5e9db)
+- `krea-v2-medium`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.04 (price set 2026-09-17.v4.3844ebbaf023291b)
+- `llama-3-2-3b`: privacy private; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 128000; max completion 4096; usd per_million_tokens input 0.15 output 0.6 cached_input 0.15 (price set 2026-09-17.v4.43d477baf8d6ab45)
+- `llama-3-3-70b`: privacy private; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 128000; max completion 4096; usd per_million_tokens input 0.7 output 2.8 cached_input 0.7 (price set 2026-09-17.v4.4e4917f8b57c3a0e)
+- `luma-uni-1`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.05 (price set 2026-09-17.v4.a19f3e18d98d2be6)
+- `luma-uni-1-max`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.12 (price set 2026-09-17.v4.3f5e1605690a8667)
+- `lustify-sdxl`: privacy private; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.01 (price set 2026-09-17.v4.fed65a03ede592bf)
+- `lustify-v7`: privacy private; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.01 (price set 2026-09-17.v4.fed65a03ede592bf)
+- `lustify-v8`: privacy private; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.01 (price set 2026-09-17.v4.fed65a03ede592bf)
+- `mercury-2`: privacy anonymized; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 128000; max completion 50000; usd per_million_tokens input 0.3125 output 0.9375 cached_input 0.03125 (price set 2026-09-17.v4.cc893cd6b714478a)
+- `mercury-2-5`: privacy anonymized; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 260000; max completion 65536; usd per_million_tokens input 0.05 output 0.1875 cached_input 0.005 (price set 2026-09-17.v4.4ae8ff3df9c72b39)
+- `mimo-v2-5`: privacy private; in text,document,audio,image,video -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 65536; usd per_million_tokens input 0.4 output 2 cached_input 0.08 (price set 2026-09-17.v4.e5d54bed157ae03f)
+- `minimax-m2-5`: privacy private; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 198000; max completion 32768; usd per_million_tokens input 0.27 output 0.95 cached_input 0.03 (price set 2026-09-17.v4.2c516f73342e02a0)
+- `minimax-m2-7`: privacy private; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 198000; max completion 32768; usd per_million_tokens input 0.375 output 1.5 cached_input 0.06875 (price set 2026-09-17.v4.f97af1ee8360e560)
+- `minimax-m3-preview`: privacy private; in text,document,image,video -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 524288; max completion 65536; usd per_million_tokens input 0.3 output 1.2 cached_input 0.06 (price set 2026-09-17.v4.c705f9fc76c05e22)
+- `minimax-speech-02-hd`: privacy anonymized; in text -> out audio; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_million_characters input 125 output 0 cached_input 0 (price set 2026-09-17.v4.audio.97891e5c5c0ae004)
+- `mistral-small-3-2-24b-instruct`: privacy private; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 256000; max completion 16384; usd per_million_tokens input 0.09375 output 0.25 cached_input 0.09375 (price set 2026-09-17.v4.9ed17b0da3315238)
+- `multilingual-e5-large-instruct`: privacy private; in text -> out embedding; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 512; max completion 0; usd per_million_tokens input 0.0125 output 0.0125 cached_input 0.0125 (price set 2026-09-17.v4.8674aa414807717c)
+- `muse-image`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.02 (price set 2026-09-17.v4.616b1ef05f9fc93c)
+- `nano-banana-2`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.1 (price set 2026-09-17.v4.2ddd0aa325ef5d2a)
+- `nano-banana-2-lite`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.06 (price set 2026-09-17.v4.3e393754bb129bb9)
+- `nano-banana-pro`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.18 (price set 2026-09-17.v4.17eb235529418741)
+- `nemotron-embed-vl-1b-v2`: privacy private; in text -> out embedding; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 32768; max completion 0; usd per_million_tokens input 0.0125 output 0.0125 cached_input 0.0125 (price set 2026-09-17.v4.8674aa414807717c)
+- `nvidia-nemotron-3-nano-30b`: privacy private; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 128000; max completion 16384; usd per_million_tokens input 0.075 output 0.3 cached_input 0.075 (price set 2026-09-17.v4.6a404017c1ee9ff4)
+- `nvidia-nemotron-3-ultra`: privacy private; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 256000; max completion 32768; usd per_million_tokens input 0.625 output 3.125 cached_input 0.1875 (price set 2026-09-17.v4.7cbee4f171ff767a)
+- `openai-gpt-oss-120b`: privacy private; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 128000; max completion 16384; usd per_million_tokens input 0.07 output 0.3 cached_input 0.07 (price set 2026-09-17.v4.5e69af7b2757a5e3)
+- `orpheus-tts`: privacy private; in text -> out audio; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_million_characters input 62.5 output 0 cached_input 0 (price set 2026-09-17.v4.audio.81a8d366669a4a04)
+- `parakeet-asr`: privacy private; in audio -> out text; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_audio_second input 0.0001 output 0 cached_input 0 (price set 2026-09-17.v4.audio.7eb3c3df99e18fc8)
+- `qwen-3-235b-a22b-instruct-2507`: privacy private; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 128000; max completion 16384; usd per_million_tokens input 0.15 output 0.75 cached_input 0.15 (price set 2026-09-17.v4.feaa5aac12f7037f)
+- `qwen-3-235b-a22b-thinking-2507`: privacy private; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 128000; max completion 16384; usd per_million_tokens input 0.45 output 3.5 cached_input 0.45 (price set 2026-09-17.v4.9413405d41a3c813)
+- `qwen-3-5-35b-a3b`: privacy private; in text,document,image,video -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 256000; max completion 16384; usd per_million_tokens input 0.3125 output 1.25 cached_input 0.15625 (price set 2026-09-17.v4.a4546b480fd875a9)
+- `qwen-3-5-397b`: privacy anonymized; in text,document,image,video -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 128000; max completion 32768; usd per_million_tokens input 0.75 output 4.5 cached_input 0.75 (price set 2026-09-17.v4.6a43d691dc00a4b0)
+- `qwen-3-5-9b`: privacy private; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 256000; max completion 32768; usd per_million_tokens input 0.1 output 0.15 cached_input 0.1 (price set 2026-09-17.v4.0b3b49c9122d2310)
+- `qwen-3-6-27b`: privacy private; in text,document,image,video -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 256000; max completion 65536; usd per_million_tokens input 0.325 output 3.25 cached_input 0.325 (price set 2026-09-17.v4.8af346be6ae1a608)
+- `qwen-3-6-35b-a3b`: privacy private; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 256000; max completion 65536; usd per_million_tokens input 0.1 output 1 cached_input 0.1 (price set 2026-09-17.v4.57060c32e084121c)
+- `qwen-3-6-plus-uncensored`: privacy anonymized; in text,document,image,video -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 65536; usd per_million_tokens input 0.625 output 3.75 cached_input 0.0625 (price set 2026-09-17.v4.0ffe7770cef4aeb9)
+- `qwen-3-7-max`: privacy anonymized; in text,document,image,video -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 65536; usd per_million_tokens input 2.7 output 8.05 cached_input 0.27 (price set 2026-09-17.v4.112c124643234ce3)
+- `qwen-3-7-plus`: privacy anonymized; in text,document,image,video -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 65536; usd per_million_tokens input 0.5 output 2 cached_input 0.05 (price set 2026-09-17.v4.47feeb6d762ede8a)
+- `qwen-3-8-2-4t`: privacy private; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 262144; max completion 65536; usd per_million_tokens input 2.5 output 7.5 cached_input 0.3125 (price set 2026-09-17.v4.ee1a81ac48e6ef24)
+- `qwen-3-8-27b`: privacy private; in text,document,image,video -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 262144; max completion 65536; usd per_million_tokens input 0.45 output 3.2 cached_input 0.45 (price set 2026-09-17.v4.f123f58c3c882cff)
+- `qwen-3-8-flash`: privacy anonymized; in text,document,image,video -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 131072; usd per_million_tokens input 0.14 output 0.49 cached_input 0.014 (price set 2026-09-17.v4.02f698edabcf5231)
+- `qwen-3-8-max`: privacy anonymized; in text,document,image,video -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 131072; usd per_million_tokens input 2.5 output 7.5 cached_input 0.3125 (price set 2026-09-17.v4.ee1a81ac48e6ef24)
+- `qwen-3-coder-480b-turbo`: privacy private; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 256000; max completion 65536; usd per_million_tokens input 0.35 output 1.5 cached_input 0.04 (price set 2026-09-17.v4.eb288212b23e78ad)
+- `qwen-3-next-80b`: privacy private; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 256000; max completion 16384; usd per_million_tokens input 0.35 output 1.9 cached_input 0.35 (price set 2026-09-17.v4.e4883443f39ae3f0)
+- `qwen-3-tts-0-6b`: privacy private; in text -> out audio; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_million_characters input 87.5 output 0 cached_input 0 (price set 2026-09-17.v4.audio.47d924abf51b64ee)
+- `qwen-3-tts-1-7b`: privacy private; in text -> out audio; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_million_characters input 112.5 output 0 cached_input 0 (price set 2026-09-17.v4.audio.162dabe487ee6c8f)
+- `qwen-edit-uncensored`: privacy private; in text,image -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.04 (price set 2026-09-17.v4.3844ebbaf023291b)
+- `qwen-image`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.03 (price set 2026-09-17.v4.ee3eeaa3f34bc9b4)
+- `qwen-image-2`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.05 (price set 2026-09-17.v4.a19f3e18d98d2be6)
+- `qwen-image-2-pro`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.1 (price set 2026-09-17.v4.2ddd0aa325ef5d2a)
+- `qwen-image-3`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.04 (price set 2026-09-17.v4.3844ebbaf023291b)
+- `qwen-image-3-pro`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.05 (price set 2026-09-17.v4.a19f3e18d98d2be6)
+- `qwen3-8-27b`: privacy anonymized; in text -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 262144; max completion 131072; usd per_million_tokens input 0.25 output 2.2 cached_input 0.05 (price set 2026-09-17.v4.1d30c460fe7852ff)
+- `qwen3-embedding-0-6b`: privacy private; in text -> out embedding; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 32768; max completion 0; usd per_million_tokens input 0.0125 output 0.0125 cached_input 0.0125 (price set 2026-09-17.v4.8674aa414807717c)
+- `qwen3-embedding-8b`: privacy private; in text -> out embedding; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 32768; max completion 0; usd per_million_tokens input 0.0125 output 0.0125 cached_input 0.0125 (price set 2026-09-17.v4.8674aa414807717c)
+- `qwen3-vl-235b`: privacy private; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 128000; max completion 16384; usd per_million_tokens input 0.21 output 1.9 cached_input 0.1 (price set 2026-09-17.v4.983fd3e035ee799b)
+- `recraft-v4`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.05 (price set 2026-09-17.v4.a19f3e18d98d2be6)
+- `recraft-v4-pro`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.29 (price set 2026-09-17.v4.5d87938f7c7006f8)
+- `role-play-uncensored`: privacy private; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 128000; max completion 4096; usd per_million_tokens input 0.5 output 2 cached_input 0.5 (price set 2026-09-17.v4.1618aa775918b679)
+- `sd35`: privacy private; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.01 (price set 2026-09-17.v4.fed65a03ede592bf)
+- `seed-2-1-turbo`: privacy anonymized; in text,document,image,video -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 256000; max completion 65536; usd per_million_tokens input 0.625 output 3.125 cached_input 0.125 (price set 2026-09-17.v4.e8c8127e91b37bbc)
+- `seedream-v4-5`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.05 (price set 2026-09-17.v4.a19f3e18d98d2be6)
+- `seedream-v5-lite`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.05 (price set 2026-09-17.v4.a19f3e18d98d2be6)
+- `seedream-v5-pro`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.06 (price set 2026-09-17.v4.3e393754bb129bb9)
+- `text-embedding-3-large`: privacy anonymized; in text -> out embedding; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 8191; max completion 0; usd per_million_tokens input 0.1625 output 0.1625 cached_input 0.1625 (price set 2026-09-17.v4.612d5bb78754eaf7)
+- `text-embedding-3-small`: privacy anonymized; in text -> out embedding; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 8191; max completion 0; usd per_million_tokens input 0.025 output 0.025 cached_input 0.025 (price set 2026-09-17.v4.ea23014477891344)
+- `uncensored-1-2`: privacy private; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 128000; max completion 8192; usd per_million_tokens input 0.2 output 0.9 cached_input 0.2 (price set 2026-09-17.v4.5b858ab7ac966037)
+- `wan-2-7`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.0375 (price set 2026-09-17.v4.fd6817bf4b92722d)
+- `wan-2-7-pro`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.09375 (price set 2026-09-17.v4.ce0583ad9c5b52b8)
+- `whisper-large-v3`: privacy private; in audio -> out text; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_audio_second input 0.0001 output 0 cached_input 0 (price set 2026-09-17.v4.audio.7eb3c3df99e18fc8)
+- `wizper-whisper-v3`: privacy private; in audio -> out text; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_audio_second input 0.0001 output 0 cached_input 0 (price set 2026-09-17.v4.audio.7eb3c3df99e18fc8)
+- `xai-speech-to-text-v1`: privacy anonymized; in audio -> out text; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_audio_second input 0.00003148 output 0 cached_input 0 (price set 2026-09-17.v4.audio.540f6f5721047d4e)
+- `xai-tts-v1`: privacy anonymized; in text -> out audio; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_million_characters input 18.75 output 0 cached_input 0 (price set 2026-09-17.v4.audio.cde6cdf1c83e84ee)
+- `z-image-turbo`: privacy private; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.01 (price set 2026-09-17.v4.fed65a03ede592bf)

@@ -164,18 +164,17 @@ against one model can be unsupported on another.
 | Capability | Models supporting it |
 |------------|----------------------|
 | `chat_completions` | The chat models; image, audio, and embedding models report `false` |
-| `streaming` | Most, but not all, chat models |
-| `tool_calls` | A subset of the chat models |
-| `streaming_tool_calls` | A smaller subset; absent on a few entries, which means unproven, not unsupported |
+| `streaming` | Chat models reporting `streaming: true` |
+| `tool_calls` | Chat models reporting `tool_calls: true` |
+| `streaming_tool_calls` | Chat models reporting `streaming_tool_calls: true` |
 | `output_modalities` | `text`, `embedding`, `image`, or `audio`: the route a model belongs on |
 | `transcription`, `speech` | The audio models, each on exactly one of the two audio routes |
 
-### Tool calling is the exception, not the default
+### Check tool calling per model
 
-Only a subset of the catalog accepts `tools` / `tool_choice`. If your agent
-framework assumes function calling works everywhere, as most do, it will break on
-the models that report `tool_calls: false`. Resolve this at runtime rather than
-hardcoding a list:
+Most chat models accept `tools` / `tool_choice`, but not all: a model reporting
+`tool_calls: false` rejects them. Resolve this at runtime rather than hardcoding
+a list:
 
 ```python
 models = {m["id"]: m for m in client.models.list().model_dump()["data"]}
@@ -229,7 +228,7 @@ The error envelope matches OpenAI's shape and adds two fields:
 ```
 
 - `retryable` is a boolean OpenAI does not send. Use it instead of guessing from the status code whether to retry.
-- `request_id` is also returned as the `x-request-id` response header on every response, successful or not. The gateway generates it; a caller-supplied `x-request-id` header is not echoed.
+- `request_id` is also returned as the `x-request-id` response header on every response, successful or not. A caller-supplied `x-request-id` that is a canonical UUID is echoed back as the request id; any other value is replaced by a UUID the gateway generates.
 
 A managed-inference failure adds a diagnostic block naming who decided the
 failure and where in the request's life it happened:
