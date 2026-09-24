@@ -72,7 +72,9 @@ Authorization: Bearer $VARITY_API_KEY
 The portal tabs are built on these routes on `https://ai.varity.app`. They take
 a **Developer Portal session** as the bearer credential. An inference key is
 refused on them with `403 portal_session_required`, so a leaked inference key
-cannot mint more keys, move money, or change privacy settings.
+cannot mint more keys, move money, or change privacy settings. Because no API
+key can call them, they are deliberately not in `GET /v1/openapi.json`, which
+describes only the API-key surface; this table is their public reference.
 
 | Route | What it does |
 |-------|--------------|

@@ -180,7 +180,9 @@ These routes refuse an inference key:
 `GET /v1/billing/balance`, `GET /v1/billing/transactions`,
 `PATCH /v1/billing/settings`, `POST /v1/billing/top-up`.
 
-Each is described on [Billing and Keys](/ai-gateway/billing-and-keys/#account-routes).
+They are Developer Portal session operations, so they are deliberately not in
+`GET /v1/openapi.json`, which describes only what an API key can call. Each is
+described on [Billing and Keys](/ai-gateway/billing-and-keys/#account-routes).
 
 ## Health
 
