@@ -4,7 +4,7 @@
     "info": {
       "title": "Varity AI Gateway API",
       "version": "2026-09-17",
-      "description": "Provider-neutral managed inference, served by the Varity AI Gateway at ai.varity.app. The text chat, streaming and tool-call surfaces are OpenAI-compatible. The image and audio routes take an application/json body with inline base64 parts (image.data, audio.data) and REJECT multipart/form-data with 415, so the OpenAI SDK's multipart image-edit and transcription calls are not served by these routes. Tool execution and orchestration are client-managed."
+      "description": "Provider-neutral managed inference, served by the Varity AI Gateway at ai.varity.app. The text chat, streaming and tool-call surfaces are OpenAI-compatible. The image-edit and transcription routes take either the OpenAI SDK's multipart/form-data upload (file fields image or image[] and mask; file) or an application/json body with inline base64 parts (image.data, audio.data); both are validated as one contract. Tool execution and orchestration are client-managed."
     },
     "externalDocs": {
       "description": "Varity AI Gateway guide",
@@ -35,6 +35,17 @@
       "payment_method_required": true,
       "automatic_signup_credit": false,
       "byok": "unavailable"
+    },
+    "x-varity-catalog-exclusions": {
+      "row_reasons": {
+        "e2ee_transport_unattested": "The model speaks an end-to-end-encrypted or TEE-attested protocol this gateway does not attest; it is never sent plaintext.",
+        "no_neutral_operation": "No public operation of this API serves the model (for example image upscaling)."
+      },
+      "unserved_types": {
+        "video": "Video generation is an asynchronous job API; this gateway does not serve it yet.",
+        "music": "Music and sound-effect generation is an asynchronous job API; this gateway does not serve it yet.",
+        "decision": "Decision models (for example jev-latest) have no operation in this API."
+      }
     },
     "x-varity-data-handling": {
       "inference_metadata_retention_days": 30,
@@ -521,7 +532,7 @@
         "post": {
           "operationId": "createImageEdit",
           "summary": "Edit an image from a source image and prompt",
-          "description": "Provider-neutral image editing on image-capable models. Accepts application/json only: send the source image as image.data (base64) with image.mime_type. A multipart/form-data request is rejected with 415. A source image or mask at or above 25 MB is rejected.",
+          "description": "Provider-neutral image editing on image-capable models. Send the OpenAI SDK multipart/form-data upload (one source image in image or image[], optional mask) or application/json with the source image as image.data (base64) and image.mime_type; both are validated as one contract. More than one source image is rejected (param $.image). A source image or mask above 25 MB is rejected.",
           "parameters": [
             {
               "$ref": "#/components/parameters/IdempotencyKey"
@@ -555,6 +566,38 @@
                     },
                     "mask": {
                       "$ref": "#/components/schemas/ImageInput"
+                    },
+                    "size": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "multipart/form-data": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "model",
+                    "prompt",
+                    "image"
+                  ],
+                  "properties": {
+                    "model": {
+                      "type": "string"
+                    },
+                    "prompt": {
+                      "type": "string",
+                      "maxLength": 32768
+                    },
+                    "image": {
+                      "type": "string",
+                      "format": "binary",
+                      "description": "The one source image; image[] with exactly one file is the same field."
+                    },
+                    "mask": {
+                      "type": "string",
+                      "format": "binary"
                     },
                     "size": {
                       "type": "string"
@@ -630,16 +673,6 @@
                 }
               }
             },
-            "415": {
-              "description": "The request declares a media type this endpoint does not accept, for example multipart/form-data. The body must be application/json.",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/ErrorEnvelope"
-                  }
-                }
-              }
-            },
             "default": {
               "description": "Normalized error envelope",
               "content": {
@@ -657,7 +690,7 @@
         "post": {
           "operationId": "createAudioTranscription",
           "summary": "Transcribe audio into text",
-          "description": "Accepts application/json only: send the audio as audio.data (base64) with audio.media_type. A multipart/form-data request is rejected with 415. The accepted media types, the 25 MB byte ceiling, and the audio-duration admission bound are the provider-neutral contract; the model id must advertise capabilities.transcription. Returns JSON (or plain text when response_format is text). Transcription is request/response with no streaming mode.",
+          "description": "Send the OpenAI SDK multipart/form-data upload (file field file; the part type, else the filename extension, is the media type) or application/json with the audio as audio.data (base64) and audio.media_type; both are validated as one contract. The accepted media types, the 25 MB byte ceiling, and the 600-second audio-duration admission bound are the provider-neutral contract; the model id must advertise capabilities.transcription. Returns JSON (or plain text when response_format is text). Transcription is request/response with no streaming mode.",
           "parameters": [
             {
               "$ref": "#/components/parameters/IdempotencyKey"
@@ -687,6 +720,35 @@
                     }
                   }
                 }
+              },
+              "multipart/form-data": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "model",
+                    "file"
+                  ],
+                  "properties": {
+                    "model": {
+                      "type": "string"
+                    },
+                    "file": {
+                      "type": "string",
+                      "format": "binary"
+                    },
+                    "response_format": {
+                      "type": "string",
+                      "enum": [
+                        "json",
+                        "text"
+                      ]
+                    },
+                    "language": {
+                      "type": "string"
+                    }
+                  }
+                }
               }
             }
           },
@@ -707,16 +769,6 @@
                 "text/plain": {
                   "schema": {
                     "type": "string"
-                  }
-                }
-              }
-            },
-            "415": {
-              "description": "The request declares a media type this endpoint does not accept, for example multipart/form-data. The body must be application/json.",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/ErrorEnvelope"
                   }
                 }
               }
@@ -833,13 +885,16 @@
         "get": {
           "operationId": "listInferenceRequests",
           "summary": "List recent owner-scoped inference request metadata",
-          "description": "Returns metadata only for the authenticated owner and current key or workload attachment scope. Returns no prompt, response, provider identity, upstream cost, reservation, secret, or idempotency key.",
+          "description": "Returns metadata only for the authenticated owner and current key or workload attachment scope. Returns no prompt, response, provider identity, upstream cost, reservation, secret, or idempotency key. Request metadata is retained for 30 days, then deleted; money records outlive it in the billing ledger.",
           "parameters": [
             {
               "$ref": "#/components/parameters/RequestLogLimit"
             },
             {
               "$ref": "#/components/parameters/RequestLogCursor"
+            },
+            {
+              "$ref": "#/components/parameters/RequestId"
             },
             {
               "$ref": "#/components/parameters/RequestModel"
@@ -1123,6 +1178,16 @@
           },
           "description": "The last request_id from the previous page."
         },
+        "RequestId": {
+          "name": "request_id",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "description": "Exactly one request: the X-Request-Id its response carried. Returns at most one row."
+        },
         "RequestModel": {
           "name": "model",
           "in": "query",
@@ -1242,7 +1307,7 @@
             "data",
             "mime_type"
           ],
-          "description": "Inline image bytes. The body is application/json and carries bare base64 here; this host does not accept multipart/form-data (415).",
+          "description": "Inline image bytes for an application/json body (bare base64). A multipart/form-data request sends the file itself instead.",
           "properties": {
             "data": {
               "type": "string",
@@ -1743,6 +1808,8 @@
             "deployment_id",
             "environment",
             "attachment_id",
+            "privacy_floor",
+            "privacy_class",
             "customer_charge"
           ],
           "properties": {
@@ -1875,6 +1942,27 @@
                 "string",
                 "null"
               ]
+            },
+            "privacy_floor": {
+              "type": "string",
+              "enum": [
+                "private",
+                "anonymized",
+                "legacy_unknown"
+              ],
+              "description": "The privacy floor the request required. legacy_unknown only for requests recorded before floors were enforced."
+            },
+            "privacy_class": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "enum": [
+                "private",
+                "anonymized",
+                null
+              ],
+              "description": "The privacy class of the route that served the request. Null when the request was never dispatched to a route, or was recorded before this field existed."
             },
             "customer_charge": {
               "$ref": "#/components/schemas/CustomerCharge"
@@ -2477,7 +2565,7 @@
               "minimum": 1,
               "maximum": 1000000,
               "default": 2048,
-              "description": "Upper bound on generated tokens. Varity reserves against this bound before dispatch and forwards it as the upstream hard cap, so a response may stop with finish_reason \"length\". Defaults to 2048 when neither this nor max_tokens is sent."
+              "description": "Upper bound on generated tokens. Varity reserves against this bound before dispatch and forwards it as the upstream hard cap, so a response may stop with finish_reason \"length\" — including when the provider reported another reason for an answer that used the whole bound. Defaults to 2048 when neither this nor max_tokens is sent."
             },
             "max_tokens": {
               "type": "integer",
