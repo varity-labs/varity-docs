@@ -72,9 +72,9 @@ as the bearer credential; an inference API key is refused on them.
 | `PATCH /v1/billing/settings` | **Supported.** Monthly spending limit and auto-reload. |
 | `POST /v1/billing/top-up` | **Supported.** Starts a card checkout using the funding terms in the live OpenAPI commercial-contract block. See [Billing and Keys](/ai-gateway/billing-and-keys/). |
 
-The same keys can also be created from the platform API with
-`POST /api/api-keys/inference`; see the
-[Public API Reference](/ai-tools/api-reference/).
+`/v1/keys` on `https://ai.varity.app` is the only place AI Gateway keys are
+issued. Create them from the Developer Portal **Inference keys** tab, which calls
+these routes with your Portal session; see [Billing and Keys](/ai-gateway/billing-and-keys/#account-routes).
 
 Hosted tool execution, batch, files, assistants, fine-tuning, and moderation
 are not part of the surface. Unimplemented routes return `404` with the JSON

@@ -46,7 +46,7 @@ These are two different products with two different contracts:
 - **`/api/*` is the platform surface.** Resource CRUD for deployments, machines, templates, pricing, credits, keys, and webhooks. Everything on this page. Errors use the [Varity error envelope](/api/errors/).
 - **`/v1/*` is the OpenAI-compatible inference surface.** Chat completions, embeddings, images, audio, and model listing. Point any OpenAI client at it by setting the base URL. It has its own error shape and its own rate limits, documented in the [AI Gateway](/ai-gateway/) docs. Nothing on this page applies to it.
 
-A single Varity API key does not automatically work on both surfaces: keys are scoped per product, and using one out of scope returns `403 credential_scope_violation`. Create AI Gateway keys in the Developer Portal, via `POST /api/api-keys/inference`, or via `POST /v1/keys` on the AI Gateway host with a Portal session.
+A single Varity API key does not automatically work on both surfaces: keys are scoped per product, and using one out of scope returns `403 credential_scope_violation`. Create AI Gateway keys from the Developer Portal **Inference keys** tab, which calls `POST /v1/keys` on `https://ai.varity.app` with your Portal session; that is the only AI Gateway key issuer (see [Billing and Keys](/ai-gateway/billing-and-keys/#account-routes)).
 
 For non-browser callers, send your Varity API key as a bearer credential:
 
@@ -162,6 +162,15 @@ Both responses include a `complete` flag and an `observed_at` timestamp. When
 `complete` is `false`, the returned window may be partial (for example when the
 live runtime source was momentarily unavailable) and a `warning_code` is set.
 The read is safe to retry for a complete window.
+
+A static site has no runtime, so it has no runtime logs. `GET
+/api/deployments/{id}/logs` answers it with a non-retryable `409`
+`runtime_not_started` ("This is a static site: it is served as files and has no
+runtime, so there are no runtime logs."), not with an incomplete window to
+retry. Its build and publish steps are the deployment run's events: read
+`run_id` from `GET /api/deployments/{id}`, then `GET /api/deployments/runs/{run_id}`.
+A deployment that never started a runtime (a failed create, a machine) gets the
+same `409` with "No runtime logs: this deployment did not start a runtime."
 
 Read durable runtime and route health history:
 
@@ -448,7 +457,6 @@ The live OpenAPI document at `https://varity.app/api/openapi.json` defines **34 
 |---------|------|---------|------|
 | `GET`, `POST` | `/api/api-keys` | List or create Cloud API keys | Portal session |
 | `DELETE` | `/api/api-keys/{key_id}` | Revoke an API key | Portal session |
-| `GET`, `POST` | `/api/api-keys/inference` | List or create scoped AI Gateway keys | Portal session |
 | `GET` | `/api/api-keys/audit` | List key lifecycle events | Portal session |
 | `GET` | `/api/openapi.json` | Read the live OpenAPI contract | None |
 
