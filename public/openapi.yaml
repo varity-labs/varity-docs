@@ -86,6 +86,44 @@
         }
       }
     },
+    "/public/gpu-profiles": {
+      "get": {
+        "operationId": "getPublicGpuProfiles",
+        "summary": "Get signed-out GPU profiles for display",
+        "description": "Unauthenticated, publicly cacheable display projection of the live GPU catalogs: hardware, resources, locations, exact hourly price, and availability. It carries no runtime, access, or quote data; deploying still requires an authenticated quote. Unavailable inventory is a 503, never an empty list.",
+        "security": [],
+        "parameters": [
+          {
+            "name": "execution_class",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "container",
+                "virtual_machine",
+                "bare_metal"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Display-only GPU profile catalog",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicGpuProfileCatalog"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      }
+    },
     "/pricing/accelerator-quote": {
       "post": {
         "operationId": "issueAcceleratorQuote",
@@ -1464,68 +1502,6 @@
         }
       }
     },
-    "/api-keys/inference": {
-      "get": {
-        "security": [
-          {
-            "PortalSession": []
-          }
-        ],
-        "operationId": "listInferenceApiKeys",
-        "summary": "List AI Gateway keys in the Developer Portal",
-        "description": "Returns only owner-scoped inference-only keys. Cloud deploy keys and legacy shared keys are excluded.",
-        "responses": {
-          "200": {
-            "description": "AI Gateway key metadata",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiKeyList"
-                }
-              }
-            }
-          },
-          "default": {
-            "$ref": "#/components/responses/PublicError"
-          }
-        }
-      },
-      "post": {
-        "security": [
-          {
-            "PortalSession": []
-          }
-        ],
-        "operationId": "createInferenceApiKey",
-        "summary": "Create a scoped AI Gateway key in the Developer Portal",
-        "description": "Creates an inference-only key for the authenticated owner. The plaintext key is shown once; owner and authority fields are assigned server-side.",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateInferenceApiKey"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "New scoped inference key",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/IssuedInferenceApiKey"
-                }
-              }
-            }
-          },
-          "default": {
-            "$ref": "#/components/responses/PublicError"
-          }
-        }
-      }
-    },
     "/api-keys/audit": {
       "get": {
         "security": [
@@ -1840,6 +1816,146 @@
       }
     },
     "schemas": {
+      "PublicGpuProfileCatalog": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "execution_class",
+          "profiles"
+        ],
+        "properties": {
+          "execution_class": {
+            "type": "string",
+            "enum": [
+              "container",
+              "virtual_machine",
+              "bare_metal"
+            ]
+          },
+          "profiles": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "label",
+                "hardware",
+                "resources",
+                "locations",
+                "customer_price",
+                "availability"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "hardware": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "vendor",
+                    "model",
+                    "vram_mb",
+                    "interface",
+                    "count"
+                  ],
+                  "properties": {
+                    "vendor": {
+                      "const": "NVIDIA"
+                    },
+                    "model": {
+                      "type": "string"
+                    },
+                    "vram_mb": {
+                      "type": "integer"
+                    },
+                    "interface": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "enum": [
+                        "pcie",
+                        "sxm",
+                        null
+                      ]
+                    },
+                    "count": {
+                      "type": "integer"
+                    }
+                  }
+                },
+                "resources": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "cpu_units",
+                    "memory_mb",
+                    "storage_mb"
+                  ],
+                  "properties": {
+                    "cpu_units": {
+                      "type": "number"
+                    },
+                    "memory_mb": {
+                      "type": "integer"
+                    },
+                    "storage_mb": {
+                      "type": "integer"
+                    }
+                  }
+                },
+                "locations": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "customer_price": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "hourly_usd"
+                  ],
+                  "properties": {
+                    "hourly_usd": {
+                      "type": "number"
+                    }
+                  }
+                },
+                "availability": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "status",
+                    "source_age_seconds"
+                  ],
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "available",
+                        "no_capacity",
+                        "temporarily_unavailable"
+                      ]
+                    },
+                    "source_age_seconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
       "CreateGpuContainerRequest": {
         "type": "object",
         "additionalProperties": false,
@@ -4177,6 +4293,29 @@
               "durable_inventory_unavailable",
               "durable_inventory_degraded"
             ]
+          },
+          "registry_status": {
+            "type": "string",
+            "enum": [
+              "complete",
+              "stale",
+              "unavailable"
+            ],
+            "description": "Completeness of the deployment-registry read behind these rows. `stale` means the live read failed and the last successful snapshot was served — the rows are real, `registry_observed_at` says when they were read. `unavailable` means the read failed with no snapshot to fall back to: an empty list is then an unread collection, not an empty one."
+          },
+          "registry_observed_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "registry_staleness_seconds": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
           }
         }
       },
@@ -5436,89 +5575,6 @@
           },
           "tier": {
             "type": "string"
-          }
-        }
-      },
-      "CreateInferenceApiKey": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "name",
-          "allowed_models",
-          "privacy_floor"
-        ],
-        "properties": {
-          "name": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 80
-          },
-          "project_id": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 128
-          },
-          "application_id": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 128
-          },
-          "environment": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 128
-          },
-          "allowed_models": {
-            "type": "array",
-            "minItems": 0,
-            "maxItems": 64,
-            "uniqueItems": true,
-            "items": {
-              "type": "string",
-              "pattern": "^[a-z0-9][a-z0-9.-]{0,95}$"
-            },
-            "description": "Empty means every current and future admitted model for this human key."
-          },
-          "privacy_floor": {
-            "type": "string",
-            "enum": [
-              "private",
-              "anonymized"
-            ]
-          },
-          "upstream_budget_usd": {
-            "type": "number",
-            "minimum": 0,
-            "maximum": 10000
-          },
-          "requests_per_minute": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 10000
-          },
-          "concurrency_limit": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 1000
-          },
-          "expires_at": {
-            "type": "number"
-          }
-        }
-      },
-      "IssuedInferenceApiKey": {
-        "type": "object",
-        "required": [
-          "api_key",
-          "key"
-        ],
-        "properties": {
-          "api_key": {
-            "type": "string",
-            "writeOnly": true
-          },
-          "key": {
-            "$ref": "#/components/schemas/ApiKey"
           }
         }
       },

@@ -192,6 +192,8 @@ These codes are real and you will see them, but they are not in the table above 
 
 Log, event, and health reads return `200` with a `complete` flag rather than failing when the live source is briefly unavailable. When `complete` is `false` the window may be partial and a `warning_code` is set (`logs_incomplete`, `events_incomplete`). This is a successful response describing an incomplete window. Retry the read for a complete one; do not treat it as a failure.
 
+The exception is a deployment with no runtime at all, such as a static site: its log read is a definite, non-retryable `409` `runtime_not_started` rather than an incomplete window, because retrying can never produce runtime logs. See [Public API Reference](/ai-tools/api-reference/).
+
 ## Correlation IDs
 
 Every error carries a `correlation_id` when one is available. It is the single most useful thing you can give support.
