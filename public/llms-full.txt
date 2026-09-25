@@ -1912,24 +1912,22 @@ Before deploying, discover what is actually available instead of assuming a cata
 `GET /api/deployment-profiles` returns normalized profiles, prices, and aggregate availability for a scope. Both `workload` and `execution_class` are required:
 
 ```bash
-curl "https://varity.app/api/deployment-profiles?workload=gpu&execution_class=container" \
+curl "https://varity.app/api/deployment-profiles?workload=gpu&execution_class=virtual_machine" \
   -H "Authorization: Bearer $VARITY_API_KEY"
 ```
 
 `workload` is one of `gpu`, `virtual_machine`, `cpu`. `execution_class` is one of `container`, `virtual_machine`, `bare_metal`, `cpu_virtual_machine`. An invalid combination returns `422 deployment_profile_scope_invalid`.
 
-For the resource-, location-, runtime-, and access-complete GPU container catalog, pass `contract_version=gpu-container-profiles-v2`. Omit it during the rolling v1 compatibility window.
+GPU containers (`execution_class=container`) are not offered right now: the capability reads `temporarily_unavailable`, and a GPU container create or accelerator quote returns `409 capability_disabled`.
 
 Profiles carry availability, not a price commitment. For an exact hourly figure, take a quote:
 
 ```bash
-curl -X POST https://varity.app/api/pricing/accelerator-quote \
+curl -X POST https://varity.app/api/pricing/machine-quote \
   -H "Authorization: Bearer $VARITY_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{ ... }'
 ```
-
-Quotes draw from a generous per-minute budget, not the hourly mutation budget. Comparing prices will not exhaust your ability to manage running resources.
 
 ## AI Gateway Attachments
 
@@ -1973,10 +1971,10 @@ Every platform-API error returns the same envelope:
 
 Branch on `code` and `retryable`, never on `message`. Send an `X-Request-Id` header and it comes back as `correlation_id`; include it in support requests.
 
-Rate limits are enforced per account and per class of request. Exhausting a
-budget returns `429 rate_limited` with a `Retry-After` header. Honor the
-returned `RateLimit-*` headers; documentation does not own a copied numeric
-budget.
+There are no per-route request budgets. A full deployment queue answers a
+create with `429 queue_saturated` (retry with the same `Idempotency-Key`), and
+the edge's per-client abuse limit answers a runaway client with a plain-text
+`429`.
 
 See **[API Errors](/api/errors/)** and **[Rate Limits](/api/limits/)** for the full reference.
 
@@ -2016,7 +2014,7 @@ The live OpenAPI document at `https://varity.app/api/openapi.json` defines **34 
 | `GET` | `/api/deployment-capabilities` | Provider-neutral deployment catalog |
 | `GET` | `/api/deployment-profiles` | Normalized profiles, prices, and availability |
 | `GET` | `/api/pricing/estimate` | Estimate fixed monthly cost |
-| `POST` | `/api/pricing/accelerator-quote` | Exact hourly GPU quote |
+| `POST` | `/api/pricing/accelerator-quote` | GPU container quote; returns `409 capability_disabled` while GPU containers are unavailable |
 | `POST` | `/api/pricing/machine-quote` | Exact machine quote |
 | `GET` | `/api/credits` | Read credit and deploy eligibility |
 
@@ -2490,6 +2488,7 @@ Validation errors may carry a `field` naming the offending property.
 | <span id="webhook_not_found"></span>`webhook_not_found` | 404 | no | No such webhook. |
 | <span id="idempotency_key_reused"></span>`idempotency_key_reused` | 409 | no | The key was reused with a different request body. |
 | <span id="legacy_deployment_retired"></span>`legacy_deployment_retired` | 409 | no | The deployment predates the current runtime contract. |
+| <span id="capability_disabled"></span>`capability_disabled` | 409 | no | The requested capability is not offered right now (GPU containers). |
 | <span id="legacy_run_retired"></span>`legacy_run_retired` | 410 | no | The run record is retired and permanently gone. |
 | <span id="restart_unavailable"></span>`restart_unavailable` | 409/501/503 | varies | Restart is not possible for this deployment. `503` is retryable; `409` and `501` are not. |
 | <span id="template_not_certified"></span>`template_not_certified` | 409/503 | varies | The template is not certified, or certification could not be checked. `503` is retryable; `409` is not. |
@@ -2527,13 +2526,13 @@ All of these are `retryable: true`. They mean a Varity subsystem or a downstream
 | <span id="redeploy_failed"></span>`redeploy_failed` | 5xx (varies) | The redeploy did not start. |
 | <span id="deployment_delete_failed"></span>`deployment_delete_failed` | 5xx (varies) | The delete did not complete. |
 
-### Rate Limiting
+### Queue Backpressure
 
 | Code | HTTP | Retryable | Cause |
 |------|------|-----------|-------|
-| <span id="rate_limited"></span>`rate_limited` | 429 | yes | An account rate-limit budget is exhausted. |
+| <span id="queue_saturated"></span>`queue_saturated` | 429 | yes | The platform-wide deployment queue is full. Nothing was allocated or charged. |
 
-Read the `Retry-After` header and wait. See [Rate Limits](/api/limits/) for the budgets and headers.
+Wait a few seconds and retry with the same `Idempotency-Key`. A plain-text `429` without this envelope comes from the edge's abuse protection instead. See [Rate Limits](/api/limits/).
 
 ## Responses That Do Not Use The Standard Envelope
 
@@ -2630,70 +2629,29 @@ The envelope covers routes in the published contract. A request to a path that i
 ## Rate Limits
 
 URL: https://docs.varity.so/api/limits/
-Description: Varity public API rate-limit budgets, the response headers clients can program against, and how to retry correctly.
+Description: The two limits the Varity public API can answer with 429 (deployment queue backpressure and edge abuse protection) and how to retry creates safely.
 
-The Varity platform API (`https://varity.app/api`) enforces rate limits per account. When a budget is exhausted the request fails with `429` and the `rate_limited` error code.
+The Varity platform API (`https://varity.app/api`) has no per-route request budgets. Two limits can answer `429`, and they mean different things.
 
-## Budgets Are Per Account And Per Class
+## Deployment Queue Backpressure
 
-Limits are keyed to the **authenticated account**, not to the API key, the route, or the client IP. Two keys owned by the same account draw from the same budgets, and so does a Developer Portal session for that account.
-
-Requests are grouped into classes, and each class has its own budget. A budget is shared across **every route in that class**. Exhausting the read budget on `/api/deployments` also blocks `/api/credits`.
-
-| Class | Covers |
-|-------|--------|
-| Read | Listing and reading deployments, machines, templates, credits, profiles, capabilities, keys, attachments |
-| Quote | `/api/pricing/estimate`, `/api/pricing/accelerator-quote`, `/api/pricing/machine-quote` |
-| Logs | `/api/deployments/{id}/logs` and `/api/deployments/{id}/events` |
-| Stop | Deleting deployments and machines, revoking API keys |
-| Deploy create | `POST /api/deployments`, `POST /api/templates/{id}/deploy`, `POST /api/machines` |
-| Mutation | Redeploy, restart, env updates, webhooks, key creation, AI Gateway attachments |
-
-Two of these deserve explanation.
-
-**Quotes are cheap on purpose.** A price quote allocates nothing and changes nothing, so it draws from a generous per-minute budget rather than the hourly mutation budget. Comparing prices across profiles will not exhaust your ability to manage running resources.
-
-**Stopping is never throttled into unavailability.** Delete and credential revocation are safety controls. A resource you cannot turn off keeps billing, and a leaked key you cannot revoke stays live. These get their own generous per-minute budget and never draw from the hourly create budget.
-
-## Response Headers
-
-Limited routes return standard `RateLimit-*` headers. Program against them
-rather than copying a numeric budget from documentation. The headers are
-authoritative for your account at that moment.
-
-| Header | Meaning |
-|--------|---------|
-| `RateLimit-Limit` | Requests allowed in the current window for this class. |
-| `RateLimit-Remaining` | Requests left in the current window. |
-| `RateLimit-Reset` | Seconds until the window resets. |
-| `Retry-After` | On a `429` only: seconds to wait before retrying. |
-
-Legacy `X-RateLimit-*` headers are **not** emitted. Do not depend on them.
-
-Rate limiting runs **after** authentication. An unauthenticated request is rejected with `401` before it reaches a limiter, so `401` responses carry no `RateLimit-*` headers. You will only see these headers on requests that authenticated successfully.
-
-Every response, limited or not, carries an `x-request-id` header. Send your own `X-Request-Id` and it is echoed back as `correlation_id` in any error body. See [API Errors](/api/errors/).
-
-## The 429 Response
+Creating a deployment or a machine is admitted into a platform-wide queue. When that queue is full, the create is refused before anything is allocated or charged:
 
 ```json
 {
-  "code": "rate_limited",
-  "message": "Too many deployment requests.",
-  "action": "This budget is shared across your whole account for this class of request. Wait for the window in the retry-after header.",
+  "code": "queue_saturated",
+  "message": "The deployment queue is full right now. Try again shortly.",
   "retryable": true,
-  "docs_url": "https://docs.varity.so/api/errors#rate_limited",
+  "docs_url": "https://docs.varity.so/api/errors#queue_saturated",
   "correlation_id": "..."
 }
 ```
 
-The `message` names the class that was exhausted: `Too many API requests.`, `Too many deployment requests.`, `Too many pricing requests.`, `Too many stop requests.`, `Too many mutation requests.`, or `Too many log requests.`
+`queue_saturated` is always `retryable: true`. Wait a few seconds and retry the same request with the same `Idempotency-Key` (below), so a retry can never create a second deployment or machine. Reads, logs, and deletes are not queued. Stopping a resource is never throttled: a resource you cannot turn off keeps billing.
 
-`rate_limited` is always `retryable: true`. Retrying a *different* route in the same class will not help; the budget is shared. Wait out the window.
+## Abuse Protection At The Edge
 
-## Retrying Correctly
-
-Honor `Retry-After`. It is the server's own statement of when the window opens, and it can be much longer than a naive backoff would guess. Hourly-window classes can return waits of many minutes.
+The edge in front of `varity.app` applies a per-client abuse limit. It is set far above what a portal session, the CLI, the MCP server, or an SDK loop sends, so a normal integration never meets it. A client that does is answered with a plain-text `429 Too Many Requests` from the edge, without the JSON error envelope. Slow down and retry with backoff and jitter.
 
 ```python
 import time, random, requests
@@ -2703,18 +2661,13 @@ def call(method, url, **kw):
         r = requests.request(method, url, **kw)
         if r.status_code != 429:
             return r
-
-        # The server knows when the window opens. Trust it.
-        wait = float(r.headers.get("Retry-After", 2 ** attempt))
-        time.sleep(wait + random.uniform(0, 1))  # jitter to avoid a thundering herd
-
-    raise RuntimeError("rate limit not cleared")
+        time.sleep(2 ** attempt + random.uniform(0, 1))  # backoff with jitter
+    raise RuntimeError("still limited")
 ```
 
-Two rules that matter in practice:
+Every response carries an `x-request-id` header. Send your own `X-Request-Id` and it is echoed back as `correlation_id` in any error body. See [API Errors](/api/errors/).
 
-1. **Add jitter.** Fleets that all read `Retry-After: 60` and wake together re-exhaust the budget instantly.
-2. **Pace proactively.** When `RateLimit-Remaining` approaches zero, slow down before you get a `429` rather than after.
+Per-plan account limits are planned. When they ship, they will be documented on this page.
 
 ## Retries And Duplicate Resources
 
@@ -2744,15 +2697,15 @@ Some limits are enforced by the resource contract rather than by a request budge
 - **Idempotency keys**: constraints differ by operation; use the OpenAPI
   parameter on the route you are calling. Records are retained for 24 hours.
 
-Account-level quotas on concurrent deployments and spend are governed by your billing state, not by these request budgets. A request that is refused for billing reasons returns `402 billing_or_credit_required`, not `429`.
+Spend is governed by your billing state, not by a request limit. A request that is refused for billing reasons returns `402 billing_or_credit_required`, not `429`.
 
-The AI Gateway (`https://ai.varity.app/v1`) is a separate surface with its own independent rate-limit, concurrency, and budget admission controls. Limits documented here do not apply to it, and its headers differ. See [AI Gateway Rate Limits](/ai-gateway/limits/).
+The AI Gateway (`https://ai.varity.app/v1`) is a separate surface with its own independent rate-limit, concurrency, and budget admission controls. Limits documented here do not apply to it. See [AI Gateway Rate Limits](/ai-gateway/limits/).
 
 ## Next Steps
 
 - **[API Errors](/api/errors/)**: the error envelope and every verified error code
 - **[Public API Reference](/ai-tools/api-reference/)**: endpoints and examples
-- **[AI Gateway Rate Limits](/ai-gateway/limits/)**: the separate budgets for `ai.varity.app/v1`
+- **[AI Gateway Rate Limits](/ai-gateway/limits/)**: the separate controls for `ai.varity.app/v1`
 
 ---
 
@@ -5229,9 +5182,9 @@ varitykit app deploy --hosting dynamic
 ## Migrate from Vercel to Varity
 
 URL: https://docs.varity.so/deploy/vercel-migration/
-Description: Move your existing Vercel app to Varity in under 3 minutes. The CLI and MCP tools handle code transforms, dependency cleanup, and deployment automatically.
+Description: Move your existing Vercel app to Varity. The CLI and MCP tools handle code transforms, dependency cleanup, and deployment automatically.
 
-Move your existing Vercel app to Varity in under 3 minutes. The migration tool removes Vercel-specific code, installs Varity packages, and deploys your app automatically.
+Move your existing Vercel app to Varity. The migration tool removes Vercel-specific code, installs Varity packages, and deploys your app automatically.
 
 ## What gets migrated automatically
 
@@ -5356,7 +5309,7 @@ Varity serves three deployment categories:
 
 1. **Applications**: deploy from a Git repository, a prebuilt Docker image, or a static build.
 2. **CPU VMs**: dedicated virtual machines; you pick the exact machine from the marketplace.
-3. **GPU workloads**: GPU containers, GPU VMs, and GPU bare metal; you pick the exact GPU offer from the marketplace.
+3. **GPU workloads**: GPU VMs and GPU bare metal; you pick the exact GPU offer from the marketplace.
 
 ### Applications
 
@@ -5394,8 +5347,9 @@ See [CPU virtual machines](/machines/cpu-vms/) for live catalog and quote instru
 
 ### GPU workloads
 
-GPU compute comes in three forms: **GPU containers**, **GPU VMs**, and
-**GPU bare metal**. The GPU marketplace shows the exact cards on offer. You
+GPU compute comes in two forms: **GPU VMs** and **GPU bare metal**. GPU
+containers are not offered right now. The GPU marketplace shows the exact cards
+on offer. You
 choose the card, region, and price before you deploy.
 
 See [GPU machines](/machines/gpu/) for the available cards, or [Deployment categories](/machines/) to compare all three.
@@ -6431,7 +6385,7 @@ Here is a complete session from idea to live app, using only your AI editor:
    Build and deploy this to Varity
    ```
 
-   The AI calls `varity_build` and `varity_deploy`. Your app is live in about 60 seconds.
+   The AI calls `varity_build` and `varity_deploy`, then reports the live URL.
 
 6. **Share the link**
 
@@ -6782,23 +6736,26 @@ See [Troubleshooting Deploys](/deploy/deployment-troubleshooting) for the full l
 ## Machine Catalogs
 
 URL: https://docs.varity.so/machines/
-Description: How to read and quote Varity CPU VM, GPU container, GPU VM, and GPU bare-metal catalogs without relying on stale inventory.
+Description: How to read and quote Varity CPU VM, GPU VM, and GPU bare-metal catalogs without relying on stale inventory.
 
-Varity Cloud exposes four machine and accelerator catalog scopes. Capacity,
+Varity Cloud exposes three machine catalog scopes. Capacity,
 regions, configurations, and GPU prices can change independently of this page,
 so the authenticated catalog and a fresh quote are the only current sources.
 
-## The Four Catalogs
+## The Three Catalogs
 
 | Catalog | `workload` | `execution_class` | Create with | Access | Monthly cap |
 | --- | --- | --- | --- | --- | --- |
 | CPU VMs | `virtual_machine` | `cpu_virtual_machine` | `POST /api/machines` | SSH | When present in the quote |
-| GPU containers | `gpu` | `container` | `POST /api/deployments` | Container endpoint | No |
 | GPU VMs | `gpu` | `virtual_machine` | `POST /api/machines` | SSH | No |
 | GPU bare metal | `gpu` | `bare_metal` | `POST /api/machines` | SSH | No |
 
 Both query parameters are required. Treat `availability` as a snapshot, not a
 reservation.
+
+GPU containers are not offered right now. `GET /api/deployment-capabilities`
+reports them `temporarily_unavailable`, and a GPU container create or
+accelerator quote returns `409 capability_disabled`. Use a GPU VM instead.
 
 Applications are a managed Varity Cloud workload: you provide a supported repo
 or image and Varity returns an application URL. Choose a machine only when you
@@ -6816,23 +6773,13 @@ curl "https://varity.app/api/deployment-profiles?workload=gpu&execution_class=vi
   -H "Authorization: Bearer $VARITY_API_KEY"
 ```
 
-Use `execution_class=container` or `execution_class=bare_metal` for the other
-GPU scopes. Read the selected profile's identifier, resources, region, images,
+Use `execution_class=bare_metal` for the other GPU scope. Read the selected profile's identifier, resources, region, images,
 availability, and price fields from the response you receive. Do not copy a
 profile id or GPU rate from documentation into automation.
-
-## Different Catalog Shapes
-
-Machine profiles and GPU container profiles are different contracts. Machine
-profiles use `profile_id` and describe a host. GPU container profiles use `id`
-and describe accelerator capacity for a container deployment. Use the returned
-`schema_version` and the public [OpenAPI document](/openapi.yaml) rather than a
-single permissive parser for both shapes.
 
 ## Quote Before Create
 
 - CPU VMs and GPU machines use `POST /api/pricing/machine-quote`.
-- GPU containers use `POST /api/pricing/accelerator-quote`.
 - The quote binds the current price and configuration and carries a
   `valid_until` deadline.
 - If the quote expires or any workload input changes, request another quote.
@@ -6982,16 +6929,19 @@ Deletion is asynchronous, and acceptance is not proof of closure. Read the machi
 ## GPU Workloads
 
 URL: https://docs.varity.so/machines/gpu/
-Description: Discover, quote, create, and delete GPU containers, GPU VMs, and GPU bare-metal workloads without relying on stale prices.
+Description: Discover, quote, create, and delete GPU VMs and GPU bare-metal machines without relying on stale prices.
 
-Varity Cloud supports three GPU execution classes. Their inventory and prices
+Varity Cloud offers two GPU execution classes. Their inventory and prices
 are live supply, not a documentation rate card.
 
 | Execution class | You receive | Create with | Access |
 | --- | --- | --- | --- |
-| `container` | A container on the quoted accelerator capacity | `POST /api/deployments` | Application endpoint |
 | `virtual_machine` | A GPU virtual machine | `POST /api/machines` | SSH when ready |
 | `bare_metal` | A physical GPU host | `POST /api/machines` | SSH when ready |
+
+GPU containers are not offered right now. `GET /api/deployment-capabilities`
+reports them `temporarily_unavailable`, and a GPU container create or
+accelerator quote returns `409 capability_disabled`. Use a GPU VM instead.
 
 Read the authenticated catalog, choose the complete workload configuration,
 and request a fresh quote. The quote's price, resource fingerprint, and
@@ -7001,51 +6951,6 @@ the price is unavailable; do not fall back to a cached rate.
 GPU billing follows the accepted hourly quote. A continuous-use total is an
 estimate, not an enforced ceiling. Delete the workload to release the
 reservation and stop future supplier usage.
-
-## GPU Container
-
-1. **Read the current container catalog**
-
-   ```bash
-   curl "https://varity.app/api/deployment-profiles?workload=gpu&execution_class=container" \
-     -H "Authorization: Bearer $VARITY_API_KEY"
-   ```
-
-2. **Quote the selected profile**
-
-   ```bash
-   curl -X POST https://varity.app/api/pricing/accelerator-quote \
-     -H "Authorization: Bearer $VARITY_API_KEY" \
-     -H "Content-Type: application/json" \
-     -d '{
-       "execution_class": "container",
-       "profile_id": "<profile id from the current catalog>"
-     }'
-   ```
-
-   Preserve the returned `quote_token` without inspecting or logging it.
-
-3. **Create before the quote expires**
-
-   ```bash
-   curl -X POST https://varity.app/api/deployments \
-     -H "Authorization: Bearer $VARITY_API_KEY" \
-     -H "Idempotency-Key: gpu-container-001" \
-     -H "Content-Type: application/json" \
-     -d '{
-       "name": "my-inference",
-       "image": { "ref": "ghcr.io/acme/infer:1.0", "port": 8000 },
-       "accelerator": {
-         "profile_id": "<profile id from the current catalog>",
-         "count": 1,
-         "alternatives": [<copy from the selected profile>]
-       },
-       "accelerator_quote_token": "<quote token>"
-     }'
-   ```
-
-   Copy the accelerator alternatives from the selected catalog response.
-   `accelerator` and `accelerator_quote_token` must be supplied together.
 
 ## GPU VM or Bare-Metal Machine
 
@@ -7106,8 +7011,8 @@ are not independent assumptions.
 
 - The binding price is the quote accepted by the create request, not a catalog
   snapshot or a value copied from this page.
-- GPU machines and containers carry the documented minimum authorization shown
-  by the current quote flow.
+- GPU machines carry the documented minimum authorization shown by the current
+  quote flow.
 - Additional storage is not accepted for GPU machines.
 - Restart and soft reboot preserve the reservation and billing.
 
@@ -7118,8 +7023,7 @@ curl -X DELETE https://varity.app/api/machines/$MACHINE_ID \
 
 Machine deletion is asynchronous. Acceptance is not closure proof: read the
 machine until `lifecycle.cleanup_state` is `complete`. Deletion destroys the
-machine disk, so copy required data first. Delete a GPU container through the
-deployment lifecycle documented in the [API reference](/ai-tools/api-reference/).
+machine disk, so copy required data first.
 
 ## Related
 
@@ -7454,7 +7358,6 @@ Use the source that matches the workload:
 | Managed applications and static sites | `GET https://varity.app/api/pricing` or the [Developer Portal](https://developer.store.varity.so/?utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=pricing-portal) quote shown before deploy |
 | Pre-deploy application estimate | `GET https://varity.app/api/pricing/estimate` or `varity_cost_calculator` |
 | CPU VM or GPU machine | `POST https://varity.app/api/pricing/machine-quote` |
-| GPU container | `POST https://varity.app/api/pricing/accelerator-quote` |
 | AI Gateway request rates | `GET https://ai.varity.app/v1/models` |
 | AI Gateway funding terms | `GET https://ai.varity.app/v1/openapi.json`, field `x-varity-commercial-contract` |
 

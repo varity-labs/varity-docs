@@ -127,7 +127,8 @@ if (llmsFull.length <= llms.length) errors.push('public/llms-full.txt must conta
 // Public docs route pricing to executable/live owners. Until a generated,
 // expiring pricing projection exists, copied numeric prices fail closed.
 const pricingPage = read('src/content/docs/resources/pricing.mdx');
-for (const owner of ['/api/pricing', '/api/pricing/machine-quote', '/api/pricing/accelerator-quote', 'ai.varity.app/v1/models']) {
+// No accelerator-quote owner: GPU containers are withdrawn (gateway 409 capability_disabled).
+for (const owner of ['/api/pricing', '/api/pricing/machine-quote', 'ai.varity.app/v1/models']) {
   if (!pricingPage.includes(owner)) errors.push(`resources/pricing.mdx must route to ${owner}`);
 }
 const previouslyCopiedPrices = [
