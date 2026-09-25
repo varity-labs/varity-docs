@@ -1,6 +1,6 @@
 ---
 title: Machine Catalogs
-description: How to read and quote Varity CPU VM, GPU container, GPU VM, and GPU bare-metal catalogs without relying on stale inventory.
+description: How to read and quote Varity CPU VM, GPU VM, and GPU bare-metal catalogs without relying on stale inventory.
 ---
 
 import { Aside, LinkCard } from '@astrojs/starlight/components';
@@ -12,21 +12,24 @@ import PageMeta from '../../../components/PageMeta.astro';
   stability="beta"
 />
 
-Varity Cloud exposes four machine and accelerator catalog scopes. Capacity,
+Varity Cloud exposes three machine catalog scopes. Capacity,
 regions, configurations, and GPU prices can change independently of this page,
 so the authenticated catalog and a fresh quote are the only current sources.
 
-## The Four Catalogs
+## The Three Catalogs
 
 | Catalog | `workload` | `execution_class` | Create with | Access | Monthly cap |
 | --- | --- | --- | --- | --- | --- |
 | CPU VMs | `virtual_machine` | `cpu_virtual_machine` | `POST /api/machines` | SSH | When present in the quote |
-| GPU containers | `gpu` | `container` | `POST /api/deployments` | Container endpoint | No |
 | GPU VMs | `gpu` | `virtual_machine` | `POST /api/machines` | SSH | No |
 | GPU bare metal | `gpu` | `bare_metal` | `POST /api/machines` | SSH | No |
 
 Both query parameters are required. Treat `availability` as a snapshot, not a
 reservation.
+
+GPU containers are not offered right now. `GET /api/deployment-capabilities`
+reports them `temporarily_unavailable`, and a GPU container create or
+accelerator quote returns `409 capability_disabled`. Use a GPU VM instead.
 
 <Aside type="tip" icon="approve-check" title="You may not need a machine">
 Applications are a managed Varity Cloud workload: you provide a supported repo
@@ -46,23 +49,13 @@ curl "https://varity.app/api/deployment-profiles?workload=gpu&execution_class=vi
   -H "Authorization: Bearer $VARITY_API_KEY"
 ```
 
-Use `execution_class=container` or `execution_class=bare_metal` for the other
-GPU scopes. Read the selected profile's identifier, resources, region, images,
+Use `execution_class=bare_metal` for the other GPU scope. Read the selected profile's identifier, resources, region, images,
 availability, and price fields from the response you receive. Do not copy a
 profile id or GPU rate from documentation into automation.
-
-## Different Catalog Shapes
-
-Machine profiles and GPU container profiles are different contracts. Machine
-profiles use `profile_id` and describe a host. GPU container profiles use `id`
-and describe accelerator capacity for a container deployment. Use the returned
-`schema_version` and the public [OpenAPI document](/openapi.yaml) rather than a
-single permissive parser for both shapes.
 
 ## Quote Before Create
 
 - CPU VMs and GPU machines use `POST /api/pricing/machine-quote`.
-- GPU containers use `POST /api/pricing/accelerator-quote`.
 - The quote binds the current price and configuration and carries a
   `valid_until` deadline.
 - If the quote expires or any workload input changes, request another quote.
@@ -78,5 +71,5 @@ GPU price is available to publish or spend against.
 ## Next
 
 <LinkCard title="CPU Virtual Machines" href="/machines/cpu-vms/" description="CPU VM selection, quote, create, access, and lifecycle." />
-<LinkCard title="GPU Workloads" href="/machines/gpu/" description="GPU containers, VMs, and bare metal through fresh catalogs and quotes." />
+<LinkCard title="GPU Workloads" href="/machines/gpu/" description="GPU VMs and bare metal through fresh catalogs and quotes." />
 <LinkCard title="API Reference" href="/ai-tools/api-reference/" description="Authentication and the public resource interface." />

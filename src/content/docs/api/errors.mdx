@@ -108,6 +108,7 @@ Validation errors may carry a `field` naming the offending property.
 | <span id="webhook_not_found"></span>`webhook_not_found` | 404 | no | No such webhook. |
 | <span id="idempotency_key_reused"></span>`idempotency_key_reused` | 409 | no | The key was reused with a different request body. |
 | <span id="legacy_deployment_retired"></span>`legacy_deployment_retired` | 409 | no | The deployment predates the current runtime contract. |
+| <span id="capability_disabled"></span>`capability_disabled` | 409 | no | The requested capability is not offered right now (GPU containers). |
 | <span id="legacy_run_retired"></span>`legacy_run_retired` | 410 | no | The run record is retired and permanently gone. |
 | <span id="restart_unavailable"></span>`restart_unavailable` | 409/501/503 | varies | Restart is not possible for this deployment. `503` is retryable; `409` and `501` are not. |
 | <span id="template_not_certified"></span>`template_not_certified` | 409/503 | varies | The template is not certified, or certification could not be checked. `503` is retryable; `409` is not. |
@@ -147,13 +148,13 @@ All of these are `retryable: true`. They mean a Varity subsystem or a downstream
 | <span id="redeploy_failed"></span>`redeploy_failed` | 5xx (varies) | The redeploy did not start. |
 | <span id="deployment_delete_failed"></span>`deployment_delete_failed` | 5xx (varies) | The delete did not complete. |
 
-### Rate Limiting
+### Queue Backpressure
 
 | Code | HTTP | Retryable | Cause |
 |------|------|-----------|-------|
-| <span id="rate_limited"></span>`rate_limited` | 429 | yes | An account rate-limit budget is exhausted. |
+| <span id="queue_saturated"></span>`queue_saturated` | 429 | yes | The platform-wide deployment queue is full. Nothing was allocated or charged. |
 
-Read the `Retry-After` header and wait. See [Rate Limits](/api/limits/) for the budgets and headers.
+Wait a few seconds and retry with the same `Idempotency-Key`. A plain-text `429` without this envelope comes from the edge's abuse protection instead. See [Rate Limits](/api/limits/).
 
 ## Responses That Do Not Use The Standard Envelope
 

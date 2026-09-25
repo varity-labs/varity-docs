@@ -26,7 +26,7 @@ MCP clients must discover executable tool definitions from the installed server'
 - [AI Tools for Varity Deploys](https://docs.varity.so/ai-tools/overview/): Accelerate Varity development with AI tools. Copy-paste prompts, Cursor rules, MCP server integration, and LLM-optimized documentation.
 - [AI Prompts for Varity Deploys](https://docs.varity.so/ai-tools/prompts/): Ready-to-paste prompts for deploying to Varity from Claude Code, Cursor, Windsurf, or ChatGPT. No commands to memorize.
 - [API Errors](https://docs.varity.so/api/errors/): The Varity public API error envelope, the verified error codes, and which failures are safe to retry.
-- [Rate Limits](https://docs.varity.so/api/limits/): Varity public API rate-limit budgets, the response headers clients can program against, and how to retry correctly.
+- [Rate Limits](https://docs.varity.so/api/limits/): The two limits the Varity public API can answer with 429 (deployment queue backpressure and edge abuse protection) and how to retry creates safely.
 - [Command Line App Deploy with Varity CLI](https://docs.varity.so/cli/): Use the Varity CLI for command line app deploys, setup checks, and terminal workflows with varitykit.
 - [varitykit login and auth command](https://docs.varity.so/cli/commands/auth/): Log in to Varity from the CLI with varitykit login. Uses deploy keys from the developer portal for app deployment and domain management.
 - [varitykit app deploy command](https://docs.varity.so/cli/commands/deploy/): Deploy static sites and dynamic apps with varitykit app deploy. Supports static and dynamic hosting with automatic framework detection.
@@ -45,7 +45,7 @@ MCP clients must discover executable tool definitions from the installed server'
 - [Deployment Credentials on Varity](https://docs.varity.so/deploy/managed-credentials/): Distinguish application-owned secrets from runtime connection variables injected for an attached service.
 - [Recover a Previous Version](https://docs.varity.so/deploy/rollback/): Recover after a bad Varity deploy by redeploying a known-good version under the same app name.
 - [Supported Frameworks on Varity](https://docs.varity.so/deploy/supported-frameworks/): Which frameworks Varity supports today, what gets auto-detected, and how to request support for languages not yet available.
-- [Migrate from Vercel to Varity](https://docs.varity.so/deploy/vercel-migration/): Move your existing Vercel app to Varity in under 3 minutes. The CLI and MCP tools handle code transforms, dependency cleanup, and deployment automatically.
+- [Migrate from Vercel to Varity](https://docs.varity.so/deploy/vercel-migration/): Move your existing Vercel app to Varity. The CLI and MCP tools handle code transforms, dependency cleanup, and deployment automatically.
 - [Supported App Deployment Frameworks](https://docs.varity.so/deploy/what-you-can-deploy/): The three Varity deployment categories, Applications (repos, Docker images, static sites), CPU VMs, and GPU workloads, plus current beta limits.
 - [Getting Started with Varity](https://docs.varity.so/getting-started/): Get started with Varity. Deploy supported source apps, AI agents, and runnable Docker services.
 - [Getting Help with Varity](https://docs.varity.so/getting-started/getting-help/): Find Varity support through documentation, Discord, GitHub issues, and setup checks when deploys need attention.
@@ -58,9 +58,9 @@ MCP clients must discover executable tool definitions from the installed server'
 - [Why Developers Choose Varity Cloud](https://docs.varity.so/getting-started/why-varity/): Why Varity Cloud combines infrastructure orchestration with predictable reserved-resource billing.
 - [Deploy from Claude Code, Cursor, or Windsurf](https://docs.varity.so/guides/deploy-from-ai-ide/): Deploy supported apps and runnable Docker services from your AI editor with the Varity MCP server.
 - [Deploy a Next.js App on Varity](https://docs.varity.so/guides/deploy-nextjs/): Predictable cloud hosting for a Next.js app with a database, automatic service wiring, and a monthly maximum that does not grow with traffic.
-- [Machine Catalogs](https://docs.varity.so/machines/): How to read and quote Varity CPU VM, GPU container, GPU VM, and GPU bare-metal catalogs without relying on stale inventory.
+- [Machine Catalogs](https://docs.varity.so/machines/): How to read and quote Varity CPU VM, GPU VM, and GPU bare-metal catalogs without relying on stale inventory.
 - [CPU Virtual Machines](https://docs.varity.so/machines/cpu-vms/): Read the live CPU VM catalog, seal a quote, create a machine, and verify its lifecycle without relying on copied profiles or prices.
-- [GPU Workloads](https://docs.varity.so/machines/gpu/): Discover, quote, create, and delete GPU containers, GPU VMs, and GPU bare-metal workloads without relying on stale prices.
+- [GPU Workloads](https://docs.varity.so/machines/gpu/): Discover, quote, create, and delete GPU VMs and GPU bare-metal machines without relying on stale prices.
 - [Billing and Pricing on Varity](https://docs.varity.so/resources/billing/): How Varity billing works: a payment method for paid products, free static hosting with a verified account, and a monthly maximum per app that doesn't grow with traffic.
 - [Varity Deployment FAQ Guide](https://docs.varity.so/resources/faq/): Frequently asked questions about Varity: deployment workflow, supported frameworks, and pricing model.
 - [Varity Docs Glossary Guide](https://docs.varity.so/resources/glossary/): Definitions of key Varity terms: deploy keys, managed credentials, deployment IDs, static hosting, dynamic hosting, and MCP tools.

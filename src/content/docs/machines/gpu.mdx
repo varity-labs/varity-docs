@@ -1,6 +1,6 @@
 ---
 title: GPU Workloads
-description: Discover, quote, create, and delete GPU containers, GPU VMs, and GPU bare-metal workloads without relying on stale prices.
+description: Discover, quote, create, and delete GPU VMs and GPU bare-metal machines without relying on stale prices.
 ---
 
 import { Aside, Steps, LinkCard } from '@astrojs/starlight/components';
@@ -12,14 +12,19 @@ import PageMeta from '../../../components/PageMeta.astro';
   stability="beta"
 />
 
-Varity Cloud supports three GPU execution classes. Their inventory and prices
+Varity Cloud offers two GPU execution classes. Their inventory and prices
 are live supply, not a documentation rate card.
 
 | Execution class | You receive | Create with | Access |
 | --- | --- | --- | --- |
-| `container` | A container on the quoted accelerator capacity | `POST /api/deployments` | Application endpoint |
 | `virtual_machine` | A GPU virtual machine | `POST /api/machines` | SSH when ready |
 | `bare_metal` | A physical GPU host | `POST /api/machines` | SSH when ready |
+
+<Aside type="note" title="GPU containers are unavailable">
+GPU containers are not offered right now. `GET /api/deployment-capabilities`
+reports them `temporarily_unavailable`, and a GPU container create or
+accelerator quote returns `409 capability_disabled`. Use a GPU VM instead.
+</Aside>
 
 <Aside type="caution" title="No documentation price is current">
 Read the authenticated catalog, choose the complete workload configuration,
@@ -33,55 +38,6 @@ GPU billing follows the accepted hourly quote. A continuous-use total is an
 estimate, not an enforced ceiling. Delete the workload to release the
 reservation and stop future supplier usage.
 </Aside>
-
-## GPU Container
-
-<Steps>
-
-1. **Read the current container catalog**
-
-   ```bash
-   curl "https://varity.app/api/deployment-profiles?workload=gpu&execution_class=container" \
-     -H "Authorization: Bearer $VARITY_API_KEY"
-   ```
-
-2. **Quote the selected profile**
-
-   ```bash
-   curl -X POST https://varity.app/api/pricing/accelerator-quote \
-     -H "Authorization: Bearer $VARITY_API_KEY" \
-     -H "Content-Type: application/json" \
-     -d '{
-       "execution_class": "container",
-       "profile_id": "<profile id from the current catalog>"
-     }'
-   ```
-
-   Preserve the returned `quote_token` without inspecting or logging it.
-
-3. **Create before the quote expires**
-
-   ```bash
-   curl -X POST https://varity.app/api/deployments \
-     -H "Authorization: Bearer $VARITY_API_KEY" \
-     -H "Idempotency-Key: gpu-container-001" \
-     -H "Content-Type: application/json" \
-     -d '{
-       "name": "my-inference",
-       "image": { "ref": "ghcr.io/acme/infer:1.0", "port": 8000 },
-       "accelerator": {
-         "profile_id": "<profile id from the current catalog>",
-         "count": 1,
-         "alternatives": [<copy from the selected profile>]
-       },
-       "accelerator_quote_token": "<quote token>"
-     }'
-   ```
-
-   Copy the accelerator alternatives from the selected catalog response.
-   `accelerator` and `accelerator_quote_token` must be supplied together.
-
-</Steps>
 
 ## GPU VM or Bare-Metal Machine
 
@@ -146,8 +102,8 @@ are not independent assumptions.
 
 - The binding price is the quote accepted by the create request, not a catalog
   snapshot or a value copied from this page.
-- GPU machines and containers carry the documented minimum authorization shown
-  by the current quote flow.
+- GPU machines carry the documented minimum authorization shown by the current
+  quote flow.
 - Additional storage is not accepted for GPU machines.
 - Restart and soft reboot preserve the reservation and billing.
 
@@ -158,8 +114,7 @@ curl -X DELETE https://varity.app/api/machines/$MACHINE_ID \
 
 Machine deletion is asynchronous. Acceptance is not closure proof: read the
 machine until `lifecycle.cleanup_state` is `complete`. Deletion destroys the
-machine disk, so copy required data first. Delete a GPU container through the
-deployment lifecycle documented in the [API reference](/ai-tools/api-reference/).
+machine disk, so copy required data first.
 
 ## Related
 

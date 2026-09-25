@@ -320,24 +320,22 @@ Before deploying, discover what is actually available instead of assuming a cata
 `GET /api/deployment-profiles` returns normalized profiles, prices, and aggregate availability for a scope. Both `workload` and `execution_class` are required:
 
 ```bash
-curl "https://varity.app/api/deployment-profiles?workload=gpu&execution_class=container" \
+curl "https://varity.app/api/deployment-profiles?workload=gpu&execution_class=virtual_machine" \
   -H "Authorization: Bearer $VARITY_API_KEY"
 ```
 
 `workload` is one of `gpu`, `virtual_machine`, `cpu`. `execution_class` is one of `container`, `virtual_machine`, `bare_metal`, `cpu_virtual_machine`. An invalid combination returns `422 deployment_profile_scope_invalid`.
 
-For the resource-, location-, runtime-, and access-complete GPU container catalog, pass `contract_version=gpu-container-profiles-v2`. Omit it during the rolling v1 compatibility window.
+GPU containers (`execution_class=container`) are not offered right now: the capability reads `temporarily_unavailable`, and a GPU container create or accelerator quote returns `409 capability_disabled`.
 
 Profiles carry availability, not a price commitment. For an exact hourly figure, take a quote:
 
 ```bash
-curl -X POST https://varity.app/api/pricing/accelerator-quote \
+curl -X POST https://varity.app/api/pricing/machine-quote \
   -H "Authorization: Bearer $VARITY_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{ ... }'
 ```
-
-Quotes draw from a generous per-minute budget, not the hourly mutation budget. Comparing prices will not exhaust your ability to manage running resources.
 
 ## AI Gateway Attachments
 
@@ -381,10 +379,10 @@ Every platform-API error returns the same envelope:
 
 Branch on `code` and `retryable`, never on `message`. Send an `X-Request-Id` header and it comes back as `correlation_id`; include it in support requests.
 
-Rate limits are enforced per account and per class of request. Exhausting a
-budget returns `429 rate_limited` with a `Retry-After` header. Honor the
-returned `RateLimit-*` headers; documentation does not own a copied numeric
-budget.
+There are no per-route request budgets. A full deployment queue answers a
+create with `429 queue_saturated` (retry with the same `Idempotency-Key`), and
+the edge's per-client abuse limit answers a runaway client with a plain-text
+`429`.
 
 See **[API Errors](/api/errors/)** and **[Rate Limits](/api/limits/)** for the full reference.
 
@@ -424,7 +422,7 @@ The live OpenAPI document at `https://varity.app/api/openapi.json` defines **34 
 | `GET` | `/api/deployment-capabilities` | Provider-neutral deployment catalog |
 | `GET` | `/api/deployment-profiles` | Normalized profiles, prices, and availability |
 | `GET` | `/api/pricing/estimate` | Estimate fixed monthly cost |
-| `POST` | `/api/pricing/accelerator-quote` | Exact hourly GPU quote |
+| `POST` | `/api/pricing/accelerator-quote` | GPU container quote; returns `409 capability_disabled` while GPU containers are unavailable |
 | `POST` | `/api/pricing/machine-quote` | Exact machine quote |
 | `GET` | `/api/credits` | Read credit and deploy eligibility |
 

@@ -1,6 +1,6 @@
 ---
 title: Rate Limits
-description: Varity public API rate-limit budgets, the response headers clients can program against, and how to retry correctly.
+description: The two limits the Varity public API can answer with 429 (deployment queue backpressure and edge abuse protection) and how to retry creates safely.
 ---
 
 import { Aside } from '@astrojs/starlight/components';
@@ -12,70 +12,27 @@ import PageMeta from '../../../components/PageMeta.astro';
   stability="beta"
 />
 
-The Varity platform API (`https://varity.app/api`) enforces rate limits per account. When a budget is exhausted the request fails with `429` and the `rate_limited` error code.
+The Varity platform API (`https://varity.app/api`) has no per-route request budgets. Two limits can answer `429`, and they mean different things.
 
-## Budgets Are Per Account And Per Class
+## Deployment Queue Backpressure
 
-Limits are keyed to the **authenticated account**, not to the API key, the route, or the client IP. Two keys owned by the same account draw from the same budgets, and so does a Developer Portal session for that account.
-
-Requests are grouped into classes, and each class has its own budget. A budget is shared across **every route in that class**. Exhausting the read budget on `/api/deployments` also blocks `/api/credits`.
-
-| Class | Covers |
-|-------|--------|
-| Read | Listing and reading deployments, machines, templates, credits, profiles, capabilities, keys, attachments |
-| Quote | `/api/pricing/estimate`, `/api/pricing/accelerator-quote`, `/api/pricing/machine-quote` |
-| Logs | `/api/deployments/{id}/logs` and `/api/deployments/{id}/events` |
-| Stop | Deleting deployments and machines, revoking API keys |
-| Deploy create | `POST /api/deployments`, `POST /api/templates/{id}/deploy`, `POST /api/machines` |
-| Mutation | Redeploy, restart, env updates, webhooks, key creation, AI Gateway attachments |
-
-Two of these deserve explanation.
-
-**Quotes are cheap on purpose.** A price quote allocates nothing and changes nothing, so it draws from a generous per-minute budget rather than the hourly mutation budget. Comparing prices across profiles will not exhaust your ability to manage running resources.
-
-**Stopping is never throttled into unavailability.** Delete and credential revocation are safety controls. A resource you cannot turn off keeps billing, and a leaked key you cannot revoke stays live. These get their own generous per-minute budget and never draw from the hourly create budget.
-
-## Response Headers
-
-Limited routes return standard `RateLimit-*` headers. Program against them
-rather than copying a numeric budget from documentation. The headers are
-authoritative for your account at that moment.
-
-| Header | Meaning |
-|--------|---------|
-| `RateLimit-Limit` | Requests allowed in the current window for this class. |
-| `RateLimit-Remaining` | Requests left in the current window. |
-| `RateLimit-Reset` | Seconds until the window resets. |
-| `Retry-After` | On a `429` only: seconds to wait before retrying. |
-
-Legacy `X-RateLimit-*` headers are **not** emitted. Do not depend on them.
-
-<Aside type="note">
-Rate limiting runs **after** authentication. An unauthenticated request is rejected with `401` before it reaches a limiter, so `401` responses carry no `RateLimit-*` headers. You will only see these headers on requests that authenticated successfully.
-</Aside>
-
-Every response, limited or not, carries an `x-request-id` header. Send your own `X-Request-Id` and it is echoed back as `correlation_id` in any error body. See [API Errors](/api/errors/).
-
-## The 429 Response
+Creating a deployment or a machine is admitted into a platform-wide queue. When that queue is full, the create is refused before anything is allocated or charged:
 
 ```json
 {
-  "code": "rate_limited",
-  "message": "Too many deployment requests.",
-  "action": "This budget is shared across your whole account for this class of request. Wait for the window in the retry-after header.",
+  "code": "queue_saturated",
+  "message": "The deployment queue is full right now. Try again shortly.",
   "retryable": true,
-  "docs_url": "https://docs.varity.so/api/errors#rate_limited",
+  "docs_url": "https://docs.varity.so/api/errors#queue_saturated",
   "correlation_id": "..."
 }
 ```
 
-The `message` names the class that was exhausted: `Too many API requests.`, `Too many deployment requests.`, `Too many pricing requests.`, `Too many stop requests.`, `Too many mutation requests.`, or `Too many log requests.`
+`queue_saturated` is always `retryable: true`. Wait a few seconds and retry the same request with the same `Idempotency-Key` (below), so a retry can never create a second deployment or machine. Reads, logs, and deletes are not queued. Stopping a resource is never throttled: a resource you cannot turn off keeps billing.
 
-`rate_limited` is always `retryable: true`. Retrying a *different* route in the same class will not help; the budget is shared. Wait out the window.
+## Abuse Protection At The Edge
 
-## Retrying Correctly
-
-Honor `Retry-After`. It is the server's own statement of when the window opens, and it can be much longer than a naive backoff would guess. Hourly-window classes can return waits of many minutes.
+The edge in front of `varity.app` applies a per-client abuse limit. It is set far above what a portal session, the CLI, the MCP server, or an SDK loop sends, so a normal integration never meets it. A client that does is answered with a plain-text `429 Too Many Requests` from the edge, without the JSON error envelope. Slow down and retry with backoff and jitter.
 
 ```python
 import time, random, requests
@@ -85,18 +42,13 @@ def call(method, url, **kw):
         r = requests.request(method, url, **kw)
         if r.status_code != 429:
             return r
-
-        # The server knows when the window opens. Trust it.
-        wait = float(r.headers.get("Retry-After", 2 ** attempt))
-        time.sleep(wait + random.uniform(0, 1))  # jitter to avoid a thundering herd
-
-    raise RuntimeError("rate limit not cleared")
+        time.sleep(2 ** attempt + random.uniform(0, 1))  # backoff with jitter
+    raise RuntimeError("still limited")
 ```
 
-Two rules that matter in practice:
+Every response carries an `x-request-id` header. Send your own `X-Request-Id` and it is echoed back as `correlation_id` in any error body. See [API Errors](/api/errors/).
 
-1. **Add jitter.** Fleets that all read `Retry-After: 60` and wake together re-exhaust the budget instantly.
-2. **Pace proactively.** When `RateLimit-Remaining` approaches zero, slow down before you get a `429` rather than after.
+Per-plan account limits are planned. When they ship, they will be documented on this page.
 
 ## Retries And Duplicate Resources
 
@@ -127,13 +79,13 @@ Some limits are enforced by the resource contract rather than by a request budge
   parameter on the route you are calling. Records are retained for 24 hours.
 
 <Aside type="note">
-Account-level quotas on concurrent deployments and spend are governed by your billing state, not by these request budgets. A request that is refused for billing reasons returns `402 billing_or_credit_required`, not `429`.
+Spend is governed by your billing state, not by a request limit. A request that is refused for billing reasons returns `402 billing_or_credit_required`, not `429`.
 </Aside>
 
-The AI Gateway (`https://ai.varity.app/v1`) is a separate surface with its own independent rate-limit, concurrency, and budget admission controls. Limits documented here do not apply to it, and its headers differ. See [AI Gateway Rate Limits](/ai-gateway/limits/).
+The AI Gateway (`https://ai.varity.app/v1`) is a separate surface with its own independent rate-limit, concurrency, and budget admission controls. Limits documented here do not apply to it. See [AI Gateway Rate Limits](/ai-gateway/limits/).
 
 ## Next Steps
 
 - **[API Errors](/api/errors/)**: the error envelope and every verified error code
 - **[Public API Reference](/ai-tools/api-reference/)**: endpoints and examples
-- **[AI Gateway Rate Limits](/ai-gateway/limits/)**: the separate budgets for `ai.varity.app/v1`
+- **[AI Gateway Rate Limits](/ai-gateway/limits/)**: the separate controls for `ai.varity.app/v1`
