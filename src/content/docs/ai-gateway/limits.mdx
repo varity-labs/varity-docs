@@ -21,7 +21,7 @@ the one that covers the route you are calling.
 
 | Routes | Bound | Where it comes from |
 |--------|-------|---------------------|
-| Inference (`/v1/chat/completions`, `/v1/embeddings`, `/v1/images/*`, `/v1/audio/*`) | 120 requests per minute **and** 4 concurrent requests | Admission, per account |
+| Inference (`/v1/chat/completions`, `/v1/embeddings`, `/v1/images/*`, `/v1/audio/*`) | 120 requests per minute **and** 31 concurrent requests on the standard tier | Admission, per account |
 | Inference reads (`/v1/inference/policy`, `/requests`, `/usage`, `/performance`) | 120 requests per 60-second window | A request budget, per account |
 | `GET /v1/models`, `GET /v1/openapi.json` | No credential and no request budget | Public discovery |
 | Account routes (`/v1/keys*`, `/v1/billing/*`, `PUT /v1/inference/policy`) | See [Account routes](#account-routes) | A request budget, per account |
@@ -40,15 +40,17 @@ curl https://ai.varity.app/v1/inference/policy \
 {
   "object": "inference.tenant_policy",
   "privacy_floor": "anonymized",
+  "limit_tier": "standard",
   "requests_per_minute": 120,
-  "concurrency_limit": 4,
+  "concurrency_limit": 31,
   "limits_scope": "account"
 }
 ```
 
 | Field | Meaning |
 |-------|---------|
-| `requests_per_minute` | Inference requests admitted per fixed 60-second window. |
+| `limit_tier` | The named tier your account's bounds belong to. Self-service accounts are `standard`. Absent when the account's bounds do not match a named tier. |
+| `requests_per_minute` | Inference requests admitted in any sliding 60-second window. |
 | `concurrency_limit` | Inference requests that may be in flight at once. |
 | `limits_scope` | Always `account`. Both bounds are counted globally for the account. |
 | `credential_requests_per_minute` | Present only when you authenticate with a scoped key that carries its own lower rpm bound; `null` when it does not. |
@@ -58,12 +60,14 @@ curl https://ai.varity.app/v1/inference/policy \
 the account has no admission policy yet. Absent means "no bound to state", not
 "unlimited" — treat it as unknown and pace conservatively.
 
+Higher limits are available on an enterprise agreement.
+
 <Aside type="caution">
 `limits_scope: "account"` means the budget is shared. Every API key your account
-owns draws from the same 120 requests per minute and the same 4 concurrent
-slots, and so does the Developer Portal Playground. The gateway runs on more
-than one replica, and the bounds are counted across all of them — **do not
-multiply a limit by the number of replicas you think are running.**
+owns draws from the same per-minute budget and the same concurrent slots, and so
+does the Developer Portal Playground. The gateway runs on more than one replica,
+and the bounds are counted across all of them, so **do not multiply a limit by the
+number of replicas you think are running.**
 </Aside>
 
 A key can carry its own `requests_per_minute` or `concurrency_limit`. When it
@@ -72,44 +76,34 @@ is held to **the smaller of the two**. Neither number alone is the whole truth,
 which is why the policy route reports them side by side rather than merging
 them.
 
-## Inference: 120 Per Minute And 4 In Flight
+## Inference: 120 Per Minute And 31 In Flight
 
-The default self-service policy is 120 requests per minute over a fixed
-60-second interval, and 4 concurrent in-flight requests. A request that crosses
-either bound is refused at admission, before any model provider is called, so a
-refused request costs nothing.
+The standard tier is 120 requests per minute and 31 concurrent in-flight
+requests. A request that crosses either bound is refused at admission, before
+any model provider is called, so a refused request costs nothing.
 
-### Which Bound You Will Actually Meet
+The per-minute bound is counted over a **sliding** 60-second window. It never
+resets all at once: one request leaves the window when it turns 60 seconds old,
+and that frees one request.
 
-In practice, **the concurrency bound is the one that stops you**, and most
-callers will never see the per-minute refusal at all.
-
-The arithmetic is simple. With 4 slots, reaching 120 requests per minute means
-sustaining 2 requests per second, which means every response must come back in
-under 2 seconds. Real chat completions rarely do.
-
-Measured on 2026-09-17 against gateway `0.3.66`, on the cheapest chat model
-with `max_tokens: 1` — about as fast as a real request gets:
-
-| Client concurrency | Requests sent | Result | Elapsed | Effective rate |
-|--------------------|---------------|--------|---------|----------------|
-| 3 | 130 | 130 × `200`, zero `429` | 140.0 s | ≈ 56 / min |
-| 4 | 150 | 150 × `200`, zero `429` | 126.9 s | ≈ 71 / min |
-
-Each request took roughly 3.2 to 3.4 seconds end to end, so 4 slots cap
-throughput near 70 per minute — comfortably under the 120 bound, which is why
-neither run produced a single `rate_limit_exceeded`.
+The concurrency bound is sized from the per-minute one: 31 is the number of
+requests a client pacing at exactly 120 per minute has in flight when each
+request takes the gateway's measured 95th-percentile chat duration.
 
 The practical consequences:
 
-- **Size your worker pool to the concurrency limit, not the per-minute one.** A
-  pool of 4 is the account's real ceiling. Widening it past 4 buys no
-  throughput and converts the surplus workers into `429`s.
-- You can still reach the per-minute bound with unusually fast responses, or by
-  spreading work across many keys — but both bounds are **account-scoped**, so
-  extra keys on the same account share the same budget and buy nothing.
+- Both bounds are **account-scoped**, so extra keys on the same account share
+  the same budget and buy nothing.
 - Read both numbers from `GET /v1/inference/policy` rather than assuming the
   defaults; an account may be provisioned differently.
+
+### Pacing Headers
+
+An admitted inference request carries `RateLimit-Limit`, `RateLimit-Remaining`,
+`RateLimit-Reset`, and `RateLimit-Policy` before the first byte of the
+response, so you can pace yourself before you are refused. When a scoped key
+carries its own lower per-minute bound, the headers report whichever of the
+account and key bounds has fewer requests left.
 
 ### The Two Refusals
 
@@ -118,11 +112,16 @@ they are not the same kind of bound:
 
 | Header | `rate_limit_exceeded` | `concurrency_limit_exceeded` | `upstream_rate_limited` |
 |--------|----------------------|------------------------------|--------------------------|
-| `Retry-After` | yes — the window (`60`) | yes — the nearest in-flight deadline | only if the provider published its own reset |
+| `Retry-After` | yes: seconds until the oldest request leaves the window | yes: the expected wait for a slot | only if the provider published its own reset |
+| `retry-after-ms` | yes: the same wait in milliseconds | yes: the same wait in milliseconds | with `Retry-After` |
 | `RateLimit-Limit` | yes | yes | no |
 | `RateLimit-Remaining` | `0` | `0` | no |
 | `RateLimit-Reset` | yes — same value as `Retry-After` | yes — same value as `Retry-After` | no |
 | `RateLimit-Policy` | yes — `120;w=60` | **no** — the bound has no window | no |
+
+Every wait the gateway publishes is at most 60 seconds, inside the retry
+ceilings of the stock OpenAI SDKs, which read `retry-after-ms` first and
+`Retry-After` second.
 
 Each bound also exists at two scopes. The account's bound is reported with the
 message `The tenant request rate limit is exhausted.` /
@@ -155,40 +154,29 @@ Status `429`. It carries the full set of pacing headers, including the policy,
 because this bound *is* counted over a window:
 
 ```text
-retry-after: 60
+retry-after: <seconds until the oldest request leaves the window>
+retry-after-ms: <the same wait in milliseconds>
 ratelimit-limit: 120
 ratelimit-remaining: 0
-ratelimit-reset: 60
+ratelimit-reset: <same as retry-after>
 ratelimit-policy: 120;w=60
 ```
 
 The values track your account's own `requests_per_minute`, so a key with a
-lower override reports that lower number here.
-
-<Aside type="note">
-Unlike the concurrency refusal below, this header block is **derived from the
-gateway source** (`http.ts` `setRateLimitHeaders`, fed by `admission.ts`
-`rpmAdvice`) rather than captured from a live response. Two attempts to provoke
-it on 2026-09-17 could not — the concurrency bound refused the surplus requests
-first, as described above. Trust the header on the response you receive over
-this example.
-</Aside>
+lower override reports that lower number here. Because the window slides, the
+wait is the time until the oldest request in it turns 60 seconds old, not a
+fixed 60.
 
 ### `concurrency_limit_exceeded`
 
-This one is easy to reproduce: fire more requests at once than the bound
-allows. Twelve concurrent `POST /v1/chat/completions` against one account on
-2026-09-17 (gateway `0.3.66`) returned **4 × `200` and 8 × `429`**, which is
-the concurrency limit of 4 doing exactly what it says.
-
-The `429` below is a verbatim capture from that run, request id
-`32c59a29-5fff-4cf7-8730-f982829c6594`:
+Fire more requests at once than the bound allows and the surplus is refused:
 
 ```text
-ratelimit-limit: 4
+retry-after: <expected seconds until a slot frees>
+retry-after-ms: <the same wait in milliseconds>
+ratelimit-limit: 31
 ratelimit-remaining: 0
-ratelimit-reset: 120
-retry-after: 120
+ratelimit-reset: <same as retry-after>
 ```
 
 ```json
@@ -198,7 +186,7 @@ retry-after: 120
     "type": "rate_limit_error",
     "code": "concurrency_limit_exceeded",
     "param": null,
-    "request_id": "32c59a29-5fff-4cf7-8730-f982829c6594",
+    "request_id": "…",
     "diagnostic_code": "ai_gateway.concurrency_limit_exceeded",
     "failure_cause": "concurrency_limit_exceeded",
     "failure_domain": "varity_projection",
@@ -209,38 +197,26 @@ retry-after: 120
 }
 ```
 
-No `ratelimit-policy` was returned, as described above. The message is the
-account-scoped variant, so this account was held to its own bound rather than
-to a key override.
-
-<Aside type="caution">
-**`120` is not the limit, and it is not a constant.** It is the retry value
-*that one response* carried, because the nearest in-flight request at that
-instant was contracted to settle 120 seconds out. Another refusal seconds later
-will carry a different number, and a shorter-deadline workload will carry a much
-smaller one. Read the header every time; never hardcode what you saw once.
-</Aside>
-
-`Retry-After` and `RateLimit-Reset` name the same instant, and it is not a
-guess: every in-flight request carries the deadline it is contracted to settle
-by, the serving replica aborts at that deadline, and the refusal reports the
-**nearest** of them — the soonest moment a slot can free. Treat it as an upper
-bound on the wait: a slot usually frees earlier, when a request simply
-finishes.
+`Retry-After` and `RateLimit-Reset` name the same instant: the expected moment
+a slot frees. The gateway estimates it from the oldest request in flight and
+the typical chat duration, never reports less than 1 second, and never reports
+later than the nearest in-flight deadline: the instant the serving replica
+aborts that request and reclaims its slot. Read the header every time; the
+value changes from one refusal to the next.
 
 <Aside type="note">
 `RateLimit-Policy` is deliberately **absent** on a concurrency refusal, and it
 is the only pacing header that is. The header's `w` parameter is mandatory and
 names the window the limit is counted over — but a concurrency bound is not
-counted over a window at all. Four in flight is not four per anything. Emitting
-`4;w=37` would assert a throughput policy that does not exist, and a client
-would then pace itself by it. The per-minute refusal, which *is* windowed,
-carries `ratelimit-policy: 120;w=60`.
+counted over a window at all. Thirty-one in flight is not thirty-one per
+anything. Emitting a policy with a window would assert a throughput policy that
+does not exist, and a client would then pace itself by it. The per-minute
+refusal, which *is* windowed, carries `ratelimit-policy: 120;w=60`.
 </Aside>
 
-If no in-flight deadline could be read, `Retry-After` and `RateLimit-Reset` are
-both omitted rather than guessed. Fall back to your own backoff when they are
-not present.
+If no wait could be estimated, `Retry-After`, `retry-after-ms`, and
+`RateLimit-Reset` are omitted rather than guessed. Fall back to your own
+backoff when they are not present.
 
 ### `upstream_rate_limited`
 
@@ -349,10 +325,11 @@ def call(url, **kw):
         if r.status_code != 429:
             return r
 
-        # Every 429 states its own wait when it knows one: a window for the
-        # per-minute bound, the nearest in-flight deadline for the concurrency
-        # bound, the provider's reset for upstream_rate_limited. Fall back to
-        # local backoff only when the header is absent.
+        # Every 429 states its own wait when it knows one: the time until a
+        # request leaves the sliding window for the per-minute bound, the
+        # expected wait for a slot for the concurrency bound, the provider's
+        # reset for upstream_rate_limited. Fall back to local backoff only when
+        # the header is absent.
         wait = float(r.headers.get("Retry-After", 2 ** attempt))
         time.sleep(wait + random.uniform(0, 1))  # jitter
 
@@ -361,11 +338,11 @@ def call(url, **kw):
 
 Three rules that matter in practice:
 
-1. **Add jitter.** A fleet that all reads `Retry-After: 60` and wakes together
-   re-exhausts the budget instantly.
-2. **Bound your own concurrency.** The default is 4 in flight for the whole
-   account. A worker pool wider than that will spend most of its requests
-   collecting `concurrency_limit_exceeded`.
+1. **Add jitter.** A fleet that all reads the same `Retry-After` and wakes
+   together re-exhausts the budget instantly.
+2. **Bound your own concurrency.** The standard tier is 31 in flight for the
+   whole account. A worker pool wider than that will spend its surplus
+   requests collecting `concurrency_limit_exceeded`.
 3. **Branch on `error.code`, never on `message`.** Messages are written for
    people and can be reworded; `code`, `retryable`, and the HTTP status are the
    contract.

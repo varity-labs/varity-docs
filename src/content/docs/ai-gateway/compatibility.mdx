@@ -51,7 +51,7 @@ them, but they are public and stable.
 | `GET /v1/openapi.json` | **Supported.** Public, no key required. The machine-readable contract for this surface, including the data-handling block below. |
 | `GET /v1/inference/requests` | **Supported.** Requires a bearer API key. Per-request metadata. `created_after` and `created_before` take RFC 3339 timestamps; send them with fractional seconds, for example `2026-09-16T00:00:00.000Z`. |
 | `GET /v1/inference/usage` | **Supported.** Requires a bearer API key. |
-| `GET /v1/inference/policy` | **Supported.** Requires a bearer API key. Returns the privacy floor (`private` or `anonymized`) enforced for the account, and the account's `requests_per_minute`, `concurrency_limit` and `limits_scope`; with a scoped key the key's effective floor and its own limit overrides are reported beside them. |
+| `GET /v1/inference/policy` | **Supported.** Requires a bearer API key. Returns the privacy floor (`private` or `anonymized`) enforced for the account, and the account's `limit_tier`, `requests_per_minute`, `concurrency_limit` and `limits_scope`; with a scoped key the key's effective floor and its own limit overrides are reported beside them. |
 | `GET /v1/inference/performance` | **Supported.** Requires a bearer API key. Accepts `window` of `1h`, `24h`, `7d`, or `30d`. |
 
 ### Account routes
@@ -207,7 +207,7 @@ Ids are readable human slugs, for example `glm-5-1`, `glm-5-2`,
 
 - **`max_completion_tokens` is per-model and often small.** The ceiling is independent of the context window, so a very large context does not mean a long reply is allowed. Read both fields per model.
 - **Cached-input pricing is per model.** Some models price `cached_input` below `input` and others price them the same. Read `customer_pricing.cached_input` per model.
-- **There is a concurrency bound as well as a rate limit.** Inference is held to 120 requests per minute *and* 4 in-flight requests, both counted for the whole account rather than per key. `GET /v1/inference/policy` publishes your own numbers. See [Rate Limits](/ai-gateway/limits/).
+- **There is a concurrency bound as well as a rate limit.** On the standard tier, inference is held to 120 requests per minute *and* 31 in-flight requests, both counted for the whole account rather than per key. `GET /v1/inference/policy` publishes your own numbers. See [Rate Limits](/ai-gateway/limits/).
 - **`GET /v1/models` carries no request budget** and returns no `RateLimit-*` headers. The headers live on the inference and inference-read routes, not on catalog discovery.
 
 ## Errors
