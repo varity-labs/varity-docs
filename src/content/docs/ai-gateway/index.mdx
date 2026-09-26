@@ -299,9 +299,11 @@ request id; any other value is replaced by a UUID the gateway generates.
 
 ## Rate Limits
 
-Inference is bounded two ways at once: **120 requests per minute** and **4
-concurrent requests**, both counted across your whole account rather than per
-key. Crossing either returns `429`, before any model provider is called.
+Inference is bounded two ways at once. On the standard tier that is **120
+requests per minute** and **31 concurrent requests**, both counted across your
+whole account rather than per key. Crossing either returns `429`, before any
+model provider is called. Higher limits are available on an enterprise
+agreement.
 
 Read your own numbers instead of hardcoding these defaults:
 
@@ -314,8 +316,9 @@ curl https://ai.varity.app/v1/inference/policy \
 {
   "object": "inference.tenant_policy",
   "privacy_floor": "anonymized",
+  "limit_tier": "standard",
   "requests_per_minute": 120,
-  "concurrency_limit": 4,
+  "concurrency_limit": 31,
   "limits_scope": "account"
 }
 ```

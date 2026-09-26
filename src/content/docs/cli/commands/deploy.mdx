@@ -74,9 +74,6 @@ Dynamic hosting is powered by cloud compute. `--hosting` defaults to `auto`, whi
 | `--hosting` | `auto` | Hosting type: `auto`, `static`, or `dynamic` |
 | `--path` | `.` | Project directory |
 | `--name` | None | Custom app name. Static apps live at `https://varity.app/<name>/`; dynamic apps live at `https://<name>.varity.app/` |
-| `--mode` | `auto` | Deployment mode (advanced) |
-| `--target` | None | Deployment target |
-| `--tier` | None | Hardware tier to reserve: `free`, `starter`, `growth`, `enterprise`, or `scale` |
 | `--repo-url` | None | GitHub repo URL to build from. Auto-detected from `.git/config`; required for source deploys, since nothing is uploaded from your machine |
 | `--template` | None | Deploy a certified template by id (`varitykit app templates`). Mutually exclusive with `--repo-url` and `--image` |
 | `--env KEY=VALUE` | None | Set an environment variable on the deployment (repeatable) |
@@ -85,7 +82,6 @@ Dynamic hosting is powered by cloud compute. `--hosting` defaults to `auto`, whi
 | `--command` / `--arg` / `--health-path` | None | Advanced runtime overrides for image and Dockerfile deploys |
 | `--dockerfile-path` / `--docker-context-path` | None | Advanced build overrides for repo deploys |
 | `--memory-mb` / `--cpu-units` / `--storage-mb` | None | Advanced reserved-resource overrides for image and prebuilt deploys |
-| `--skip-build` | `false` | Skip the build step (deploy prebuilt output) |
 | `--image` | None | Deploy a prebuilt OCI image instead of building from source |
 | `--image-registry` | None | Registry host for a private `--image` |
 | `--image-username` | None | Username for a private `--image` |
