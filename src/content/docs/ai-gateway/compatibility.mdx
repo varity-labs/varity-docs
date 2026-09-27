@@ -18,8 +18,8 @@ reading it here is a documentation bug. If you hit one, report it.
 
 Everything below was checked against the live gateway at
 `https://ai.varity.app/v1`, its canonical host, and against the contract it
-publishes at `GET /v1/openapi.json`. `https://varity.app/v1` is a compatibility
-alias routed to the same service and serves the same surface.
+publishes at `GET /v1/openapi.json`. The older `varity.app/v1` alias serves the
+same surface; see [Endpoints](/ai-gateway/endpoints/#host).
 
 ## Endpoints
 
@@ -29,8 +29,8 @@ alias routed to the same service and serves the same surface.
 | `GET /v1/models` | **Supported.** Public, no key required. |
 | `POST /v1/embeddings` | **Supported.** Requires a bearer API key. Only a model whose `capabilities.output_modalities` includes `embedding` is routable. |
 | `POST /v1/images/generations` | **Supported.** Requires a bearer API key. Image-capable models only; results are returned inline as base64 and never stored. |
-| `POST /v1/images/edits` | **Supported.** Requires a bearer API key. JSON with base64 image data (`image/png`, `image/jpeg`, `image/webp`); a source image or mask at or above 25 MB is rejected. |
-| `POST /v1/audio/transcriptions` | **Supported.** Requires a bearer API key. JSON with the audio as a base64 typed part; the model must advertise `capabilities.transcription`. Returns JSON, or plain text when `response_format` is `text`. No streaming mode. |
+| `POST /v1/images/edits` | **Supported.** Requires a bearer API key. The OpenAI SDK's `multipart/form-data` upload, or JSON with base64 image data (`image/png`, `image/jpeg`, `image/webp`); a source image or mask at or above 25 MB is rejected. |
+| `POST /v1/audio/transcriptions` | **Supported.** Requires a bearer API key. The OpenAI SDK's `multipart/form-data` upload, or JSON with the audio as a base64 typed part; the model must advertise `capabilities.transcription`. Returns JSON, or plain text when `response_format` is `text`. No streaming mode. |
 | `POST /v1/audio/speech` | **Supported.** Requires a bearer API key. The model must advertise `capabilities.speech` and the format must be one of its `capabilities.speech_formats`. Returns audio bytes with a matching `audio/*` content type; `stream: true` gives a chunked binary response, not SSE. |
 | `GET /v1/models/{id}` | **Not implemented.** Returns `404`. Fetch the list and filter client-side. |
 | `POST /v1/completions` (legacy text completions) | **Not implemented.** Returns `404`. |
@@ -49,111 +49,27 @@ them, but they are public and stable.
 | Endpoint | Status |
 |----------|--------|
 | `GET /v1/openapi.json` | **Supported.** Public, no key required. The machine-readable contract for this surface, including the data-handling block below. |
-| `GET /v1/inference/requests` | **Supported.** Requires a bearer API key. Per-request metadata. `created_after` and `created_before` take RFC 3339 timestamps; send them with fractional seconds, for example `2026-09-16T00:00:00.000Z`. |
-| `GET /v1/inference/usage` | **Supported.** Requires a bearer API key. |
-| `GET /v1/inference/policy` | **Supported.** Requires a bearer API key. Returns the privacy floor (`private` or `anonymized`) enforced for the account, and the account's `limit_tier`, `requests_per_minute`, `concurrency_limit` and `limits_scope`; with a scoped key the key's effective floor and its own limit overrides are reported beside them. |
-| `GET /v1/inference/performance` | **Supported.** Requires a bearer API key. Accepts `window` of `1h`, `24h`, `7d`, or `30d`. |
+| `GET /v1/inference/*` | **Supported.** Requires a bearer API key. Policy, usage, per-request metadata, and latency; listed on [Endpoints](/ai-gateway/endpoints/#your-account-with-an-inference-key). |
 
-### Account routes
-
-The AI Gateway host also serves the account routes for its own keys, prepaid
-balance, and privacy entitlement. These require a Developer Portal session token
-as the bearer credential; an inference API key is refused on them.
-
-| Endpoint | Status |
-|----------|--------|
-| `GET /v1/keys` | **Supported.** Secret-free list of the account's inference keys. |
-| `POST /v1/keys` | **Supported.** Mints an inference-only key; the plaintext is returned exactly once. |
-| `GET /v1/keys/audit` | **Supported.** Secret-free key lifecycle events. Accepts `limit`. |
-| `POST /v1/keys/{id}/revoke` | **Supported.** Revokes one of the account's own keys. |
-| `PUT /v1/inference/policy` | **Supported.** Sets the account's privacy floor to `private` or `anonymized`. `anonymized` is the default for an account that never chose; choosing `anonymized` requires `acknowledge_anonymized_processing: true`. |
-| `GET /v1/billing/balance` | **Supported.** The prepaid Gateway balance. |
-| `GET /v1/billing/transactions` | **Supported.** Balance transactions. Accepts `limit` and `offset`. |
-| `PATCH /v1/billing/settings` | **Supported.** Monthly spending limit and auto-reload. |
-| `POST /v1/billing/top-up` | **Supported.** Starts a card checkout using the funding terms in the live OpenAPI commercial-contract block. See [Billing and Keys](/ai-gateway/billing-and-keys/). |
-
-`/v1/keys` on `https://ai.varity.app` is the only place AI Gateway keys are
-issued. Create them from the Developer Portal **Inference keys** tab, which calls
-these routes with your Portal session; see [Billing and Keys](/ai-gateway/billing-and-keys/#account-routes).
+The host also serves account routes for keys, the prepaid balance, and the
+privacy floor. They take a Developer Portal session, not an API key, and are
+listed on [Billing and Keys](/ai-gateway/billing-and-keys/#account-routes).
 
 Hosted tool execution, batch, files, assistants, fine-tuning, and moderation
 are not part of the surface. Unimplemented routes return `404` with the JSON
 error envelope below (`code: "invalid_request"`, message `Route not found.`).
 Branch on the HTTP status code, not on the message text.
 
-Unauthenticated health and readiness probes are available outside `/v1` on the
-canonical host:
-
-| Endpoint | Status |
-|----------|--------|
-| `GET /healthz` | **Supported.** Public. Returns `{"status":"ok","service":"varity-ai-gateway","version":"<deployed build>","source_commit":"<commit>"}` (re-probe for the current build rather than pinning it). |
-| `GET /readyz` | **Supported.** Public. Same fields plus `servable`, `published`, and `minimum_servable` model counts. |
+Unauthenticated `GET /healthz` and `GET /readyz` probes are available outside
+`/v1` on the canonical host; see [Endpoints](/ai-gateway/endpoints/#health).
 
 <Aside type="caution">
 Any OpenAI SDK helper that touches an unimplemented route will fail, including
 the Assistants and Responses APIs, file upload helpers, and batch. The
-`chat.completions`, `models`, `embeddings`, `images.generate`, and
-`audio.speech` namespaces work unchanged, on the models whose `capabilities`
-advertise them. `images.edit` and `audio.transcriptions` need a different call
-shape — see below.
+`chat.completions`, `models`, `embeddings`, `images.generate`, `images.edit`,
+`audio.speech`, and `audio.transcriptions` namespaces work unchanged, on the
+models whose `capabilities` advertise them.
 </Aside>
-
-## The Two SDK Exceptions
-
-"Point your OpenAI client at the base URL and change nothing else" is true for
-every route except two. `images.edit` and `audio.transcriptions` are the
-operations the OpenAI SDKs send as `multipart/form-data`, and these routes
-accept `application/json` only. A multipart request is refused with `415`:
-
-```json
-{
-  "error": {
-    "message": "This endpoint accepts application/json only: send the audio as audio.data (base64) with audio.media_type. multipart/form-data is not accepted.",
-    "type": "invalid_request_error",
-    "code": "invalid_request",
-    "param": null,
-    "retryable": false,
-    "request_id": "…"
-  }
-}
-```
-
-The refusal names the JSON shape rather than blaming a field you did send. Call
-these two with a plain HTTP client and inline base64:
-
-```bash
-curl https://ai.varity.app/v1/images/edits \
-  -H "Authorization: Bearer $VARITY_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "<an image-capable model id>",
-    "prompt": "Make the sky orange.",
-    "image": { "data": "<base64 bytes>", "mime_type": "image/png" }
-  }'
-```
-
-`image.mime_type` is one of `image/png`, `image/jpeg`, or `image/webp`. An
-optional `mask` takes the same `{ data, mime_type }` shape, and `size` is
-optional.
-
-```bash
-curl https://ai.varity.app/v1/audio/transcriptions \
-  -H "Authorization: Bearer $VARITY_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "<a transcription model id>",
-    "audio": { "data": "<base64 bytes>", "media_type": "audio/mpeg" }
-  }'
-```
-
-`audio.media_type` is one of `audio/wav`, `audio/wave`, `audio/x-wav`,
-`audio/flac`, `audio/x-flac`, `audio/mp4`, `audio/m4a`, `audio/x-m4a`,
-`audio/aac`, `audio/mpeg`, `audio/ogg`, `audio/oga`, or `audio/webm`. Optional
-fields are `audio.filename`, `response_format` (`json` or `text`), `language`,
-and `timestamps`. Decoded audio must be under 25 MB.
-
-Both shapes are on `GET /v1/openapi.json`, so you can generate a client from
-the contract rather than transcribing this page.
 
 ## Per-Model Capabilities
 
@@ -207,7 +123,7 @@ Ids are readable human slugs, for example `glm-5-1`, `glm-5-2`,
 
 - **`max_completion_tokens` is per-model and often small.** The ceiling is independent of the context window, so a very large context does not mean a long reply is allowed. Read both fields per model.
 - **Cached-input pricing is per model.** Some models price `cached_input` below `input` and others price them the same. Read `customer_pricing.cached_input` per model.
-- **There is a concurrency bound as well as a rate limit.** On the standard tier, inference is held to 120 requests per minute *and* 31 in-flight requests, both counted for the whole account rather than per key. `GET /v1/inference/policy` publishes your own numbers. See [Rate Limits](/ai-gateway/limits/).
+- **There is a concurrency bound as well as a rate limit.** Both are counted for the whole account rather than per key. See [Rate Limits](/ai-gateway/limits/).
 - **`GET /v1/models` carries no request budget** and returns no `RateLimit-*` headers. The headers live on the inference and inference-read routes, not on catalog discovery.
 
 ## Errors
@@ -251,7 +167,7 @@ that response; the column below is what the gateway publishes today.
 | Code | HTTP | Retryable | Cause |
 |------|------|-----------|-------|
 | `authentication_required` | `401` | no | No bearer credential, or one that is invalid, revoked, or expired. |
-| `invalid_request` | `400` | no | The body failed validation. Also `404` on an unimplemented route, `413` when the body exceeds the route ceiling, and `415` on `multipart/form-data`. |
+| `invalid_request` | `400` | no | The body failed validation. Also `404` on an unimplemented route, and `413` when the body exceeds the route ceiling. |
 | `input_modality_unsupported` | `400` | no | Every route for this model rejected the supplied image or document part. Distinct from `invalid_request` so you can tell "this model cannot see" from "this body is malformed". |
 | `too_many_tools` | `400` | no | The request carries more tools than the model's `capabilities.max_tools` on `/v1/models`. Send fewer tools. |
 | `too_many_documents` | `400` | no | A message carries more `document` parts than the model's `capabilities.max_documents_per_message`; `param` names the message (`$.messages[i].content`). Send the rest in a later message. |
@@ -333,7 +249,8 @@ model.
 Your account has a privacy floor. It is `anonymized` unless you choose
 otherwise, which lets requests use both `private` and `anonymized` models. Set it
 to `private` with `PUT /v1/inference/policy` (or on the portal's **Gateway
-settings** tab) and only `private` models are callable. A single chat request can
+settings** tab) and only `private` models are callable. Setting it back to
+`anonymized` requires `acknowledge_anonymized_processing: true`. A single chat request can
 tighten the floor, never loosen it, with
 `"varity_extensions": { "privacy_floor": "private" }`; asking for a weaker floor
 than the account's returns `403 privacy_policy_violation`.
