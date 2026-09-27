@@ -702,6 +702,8 @@ that response; the column below is what the gateway publishes today.
 | `authentication_required` | `401` | no | No bearer credential, or one that is invalid, revoked, or expired. |
 | `invalid_request` | `400` | no | The body failed validation. Also `404` on an unimplemented route, `413` when the body exceeds the route ceiling, and `415` on `multipart/form-data`. |
 | `input_modality_unsupported` | `400` | no | Every route for this model rejected the supplied image or document part. Distinct from `invalid_request` so you can tell "this model cannot see" from "this body is malformed". |
+| `too_many_tools` | `400` | no | The request carries more tools than the model's `capabilities.max_tools` on `/v1/models`. Send fewer tools. |
+| `too_many_documents` | `400` | no | A message carries more `document` parts than the model's `capabilities.max_documents_per_message`; `param` names the message (`$.messages[i].content`). Send the rest in a later message. |
 | `model_not_found` | `404` | no | The id is not in the live catalog. |
 | `model_not_allowed` | `403` | no | The model exists but this credential's model scope excludes it. |
 | `tenant_not_admitted` | `403` | no | Managed inference is not enabled for the account, or the key is expired. |
@@ -1267,7 +1269,7 @@ unavailability by the hourly creation budget.
 ## Size Ceilings Are Not Request Budgets
 
 These are enforced by the request contract, not by a budget, and they return
-`413` or `415` rather than `429`.
+`413`, `415`, or `400` rather than `429`.
 
 | Route | Body ceiling | Per-part ceiling |
 |-------|--------------|------------------|
@@ -1275,6 +1277,7 @@ These are enforced by the request contract, not by a budget, and they return
 | `/v1/images/generations`, `/v1/images/edits` | 68 MB JSON | Source image or mask must be under 25 MB decoded |
 | `/v1/audio/transcriptions` | ~34 MB JSON | Audio must be under 25 MB decoded |
 | `/v1/audio/speech` | 1 MB JSON | — |
+| `/v1/chat/completions` documents per message | — | `capabilities.max_documents_per_message` on `/v1/models` (refused with `400` `too_many_documents`) |
 
 The image and audio body ceilings are derived from the per-part ceiling rather
 than picked independently: base64 inflates by 4/3, and an image-edit request may
@@ -1282,6 +1285,11 @@ carry both a source image and a mask.
 
 - A body over the ceiling returns `413` with `code: "invalid_request"`.
 - A body that is not valid JSON returns `400` with `code: "invalid_request"`.
+- A message carrying more `document` parts than the model's
+  `capabilities.max_documents_per_message` returns `400` with
+  `code: "too_many_documents"` and `param: "$.messages[i].content"`. The bound is
+  per message, so send the rest in a later message. A model without the field
+  publishes no bound.
 - `multipart/form-data` on `/v1/images/edits` or `/v1/audio/transcriptions`
   returns `415` with `code: "invalid_request"`. These two routes take JSON with
   base64 parts; see [Compatibility](/ai-gateway/compatibility/#the-two-sdk-exceptions).
@@ -1390,6 +1398,8 @@ Each entry in `data` carries these Varity fields:
 | `capabilities.output_modalities` | array | What the model produces: `text`, `embedding`, `image`, `audio` |
 | `capabilities.chat_completions` | boolean | `true` on the chat models only; image, audio, and embedding models report `false`. Read it per model |
 | `capabilities.tool_calls` | boolean | `true` when the model accepts `tools` / `tool_choice`. Read it per model; a model reporting `false` rejects tools |
+| `capabilities.max_tools` | integer | The most tools one request may carry; above it the request is refused with `400 too_many_tools`. Absent means no bound is published |
+| `capabilities.max_documents_per_message` | integer | The most `document` parts one message may carry, counted per message (images do not count); above it the request is refused with `400 too_many_documents`. Absent means no bound is published |
 | `capabilities.streaming` | boolean | `true` when the model accepts `stream: true`; read it per model |
 | `capabilities.streaming_tool_calls` | boolean | `true` when the model streams tool-call deltas; read it per model. Like every proven flag, absent means unknown, not unsupported |
 | `capabilities.transcription` | boolean | `true` when `POST /v1/audio/transcriptions` accepts the model |
@@ -1519,6 +1529,11 @@ shown as unavailable, and its tooltip says why.
 **Add**
 
 - **Files** and **Folder**: attach files, or a whole folder, to your message.
+  A document stays on the message it was sent with, and each message holds up
+  to the selected model's per-message document limit
+  (`capabilities.max_documents_per_message`). The **×** on a sent document
+  removes it from that message. With Varity tools on, a dropped folder's PDFs
+  join the chat's files as text.
 - **Create image**: choose an image model and open its workspace.
 
 **Tools**
@@ -1574,6 +1589,12 @@ message, so you can copy it into your own app.
 - **History and projects**: conversations are grouped into projects and kept on
   your device, not on Varity's servers. The AI Gateway stores no prompt or
   response content.
+- **Project files**: open a project's settings and use **Add files** or
+  **Add folder**. A project holds text, code, and SVG files, and PDFs converted
+  to text; Word, PowerPoint, and Excel files are not added to projects. Every
+  chat in the project reads these files through Varity tools, with any model
+  that can use Varity tools. Each project holds up to 5 MB of files, stored on
+  your device.
 - **Memory**: notes you save on your device. While memory is on, they are sent
   with each message, and you can see them in View code.
 - **Incognito**: an incognito chat is not saved to history and does not use
@@ -8263,6 +8284,7 @@ Source: https://ai.varity.app/v1/openapi.json (Varity AI Gateway API 2026-09-17)
 - `streaming_tool_calls`: Present only when proven. Absent means the state is `unknown`, never unsupported.
 - `parallel_tool_calls`: no description in the contract
 - `max_tools`: The most tools one chat request may carry: the smallest bound known for any route of the model. A request above it is refused with 400 `too_many_tools` before any supplier call. Absent means no bound is known (none published, none measured), never unlimited.
+- `max_documents_per_message`: The most `document` parts one message may carry: the smallest bound known for any route of the model. Counted per message, not per request, and images are not counted. A message above it is refused with 400 `too_many_documents` before any supplier call. Absent means no bound is known (none published, none measured), never unlimited.
 - `structured_outputs`: Present only when proven. Absent means the state is `unknown`, never unsupported.
 - `json_schema`: Present only when proven. Absent means the state is `unknown`, never unsupported.
 - `reasoning_controls`: no description in the contract

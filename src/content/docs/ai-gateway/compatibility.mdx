@@ -253,6 +253,8 @@ that response; the column below is what the gateway publishes today.
 | `authentication_required` | `401` | no | No bearer credential, or one that is invalid, revoked, or expired. |
 | `invalid_request` | `400` | no | The body failed validation. Also `404` on an unimplemented route, `413` when the body exceeds the route ceiling, and `415` on `multipart/form-data`. |
 | `input_modality_unsupported` | `400` | no | Every route for this model rejected the supplied image or document part. Distinct from `invalid_request` so you can tell "this model cannot see" from "this body is malformed". |
+| `too_many_tools` | `400` | no | The request carries more tools than the model's `capabilities.max_tools` on `/v1/models`. Send fewer tools. |
+| `too_many_documents` | `400` | no | A message carries more `document` parts than the model's `capabilities.max_documents_per_message`; `param` names the message (`$.messages[i].content`). Send the rest in a later message. |
 | `model_not_found` | `404` | no | The id is not in the live catalog. |
 | `model_not_allowed` | `403` | no | The model exists but this credential's model scope excludes it. |
 | `tenant_not_admitted` | `403` | no | Managed inference is not enabled for the account, or the key is expired. |

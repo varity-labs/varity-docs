@@ -295,7 +295,7 @@ unavailability by the hourly creation budget.
 ## Size Ceilings Are Not Request Budgets
 
 These are enforced by the request contract, not by a budget, and they return
-`413` or `415` rather than `429`.
+`413`, `415`, or `400` rather than `429`.
 
 | Route | Body ceiling | Per-part ceiling |
 |-------|--------------|------------------|
@@ -303,6 +303,7 @@ These are enforced by the request contract, not by a budget, and they return
 | `/v1/images/generations`, `/v1/images/edits` | 68 MB JSON | Source image or mask must be under 25 MB decoded |
 | `/v1/audio/transcriptions` | ~34 MB JSON | Audio must be under 25 MB decoded |
 | `/v1/audio/speech` | 1 MB JSON | — |
+| `/v1/chat/completions` documents per message | — | `capabilities.max_documents_per_message` on `/v1/models` (refused with `400` `too_many_documents`) |
 
 The image and audio body ceilings are derived from the per-part ceiling rather
 than picked independently: base64 inflates by 4/3, and an image-edit request may
@@ -310,6 +311,11 @@ carry both a source image and a mask.
 
 - A body over the ceiling returns `413` with `code: "invalid_request"`.
 - A body that is not valid JSON returns `400` with `code: "invalid_request"`.
+- A message carrying more `document` parts than the model's
+  `capabilities.max_documents_per_message` returns `400` with
+  `code: "too_many_documents"` and `param: "$.messages[i].content"`. The bound is
+  per message, so send the rest in a later message. A model without the field
+  publishes no bound.
 - `multipart/form-data` on `/v1/images/edits` or `/v1/audio/transcriptions`
   returns `415` with `code: "invalid_request"`. These two routes take JSON with
   base64 parts; see [Compatibility](/ai-gateway/compatibility/#the-two-sdk-exceptions).
