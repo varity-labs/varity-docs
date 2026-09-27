@@ -28,22 +28,15 @@ Description: OpenAI-compatible inference on Varity. Point any OpenAI client at h
 The Varity AI Gateway is an OpenAI-compatible inference API. It speaks the same
 chat-completions wire format as the OpenAI API, so every OpenAI SDK, framework
 adapter, and agent runtime already knows how to talk to it. For chat,
-streaming, tool calls, embeddings, image generation, and speech, the
-integration is a one-line base-URL swap.
-
-Two SDK calls are **not** covered by that swap, because they send
-`multipart/form-data` and these routes take JSON: `images.edit` and
-`audio.transcriptions` both answer `415`. Send the bytes as base64 in the JSON
-body instead — the working shapes are in
-[Compatibility](/ai-gateway/compatibility/#the-two-sdk-exceptions).
+streaming, tool calls, embeddings, image generation and editing, speech, and
+transcription, the integration is a one-line base-URL swap.
 
 ```text
 https://ai.varity.app/v1
 ```
 
-`https://ai.varity.app` is the canonical AI Gateway host. `https://varity.app/v1`
-remains a compatibility alias that the edge routes to the same service, so
-existing clients keep working; new integrations should use `ai.varity.app`.
+`https://ai.varity.app` is the canonical AI Gateway host; the older
+`varity.app/v1` alias is described on [Endpoints](/ai-gateway/endpoints/#host).
 
 Chat completions are the core, and the same host serves OpenAI-compatible
 [embeddings, image generation and editing, transcription, and
@@ -167,20 +160,8 @@ and `cached_input` are numbers in the real response. Read prices from
 from this page.
 
 The gateway also exposes unauthenticated health and readiness probes on the
-canonical host:
-
-```bash
-curl https://ai.varity.app/healthz
-curl https://ai.varity.app/readyz
-```
-
-```text
-{ "status": "ok", "service": "varity-ai-gateway", "version": "<deployed build>", "source_commit": "<commit>" }
-```
-
-`/readyz` adds `servable` and `published` model counts. The `version` field
-reports the deployed gateway build; re-probe for the current one rather than
-pinning it in your own config.
+canonical host; their response shapes are on
+[Endpoints](/ai-gateway/endpoints/#health).
 
 ## Authentication
 
@@ -288,50 +269,16 @@ you combine `stream: true` with `tools`. See
 ## Errors
 
 Errors use the OpenAI error envelope, with two Varity additions: `retryable` and
-`request_id`.
-
-| Field | Meaning |
-|-------|---------|
-| `error.message` | Human-readable description |
-| `error.type` | Error class, for example `authentication_error` |
-| `error.code` | Stable machine code, for example `authentication_required` |
-| `error.param` | Offending request field, or `null` |
-| `error.retryable` | Whether retrying the same request can succeed |
-| `error.request_id` | Correlation id, also returned as the `x-request-id` response header |
-
-Quote `request_id` in any support request. It is present on both the response
-body and the `x-request-id` header on every response, including successful ones.
-A caller-supplied `x-request-id` that is a canonical UUID is echoed back as the
-request id; any other value is replaced by a UUID the gateway generates.
+`request_id`. Quote `request_id` in any support request. The envelope, the
+`x-request-id` header, and every error code are on
+[Compatibility](/ai-gateway/compatibility/#errors).
 
 ## Rate Limits
 
-Inference is bounded two ways at once. On the standard tier that is **120
-requests per minute** and **31 concurrent requests**, both counted across your
-whole account rather than per key. Crossing either returns `429`, before any
-model provider is called. Higher limits are available on an enterprise
-agreement.
-
-Read your own numbers instead of hardcoding these defaults:
-
-```bash
-curl https://ai.varity.app/v1/inference/policy \
-  -H "Authorization: Bearer $VARITY_API_KEY"
-```
-
-```json
-{
-  "object": "inference.tenant_policy",
-  "privacy_floor": "anonymized",
-  "limit_tier": "standard",
-  "requests_per_minute": 120,
-  "concurrency_limit": 31,
-  "limits_scope": "account"
-}
-```
-
-`GET /v1/models` is public and carries no request budget at all. The budgets,
-the exact headers each refusal returns, and the body-size ceilings are on
+Inference is bounded by a requests-per-minute budget and a concurrency bound,
+both counted across your whole account. Crossing either returns `429` before any
+model provider is called. The standard-tier numbers, how to read your own, the
+headers each refusal returns, and the body-size ceilings are on
 [AI Gateway Rate Limits](/ai-gateway/limits/).
 
 ## Next Steps
@@ -341,7 +288,7 @@ the exact headers each refusal returns, and the body-size ceilings are on
 - **[Playground](/ai-gateway/playground/)**: try models in the Developer Portal before writing code
 - **[Models](/ai-gateway/models/)**: the full live catalog with makers, context windows, limits, and prices
 - **[Rate Limits](/ai-gateway/limits/)**: budgets, concurrency, response headers, and the `429` bodies
-- **[Compatibility](/ai-gateway/compatibility/)**: exactly what the OpenAI surface includes and excludes, plus the key, billing, and privacy-policy routes
+- **[Compatibility](/ai-gateway/compatibility/)**: exactly what the OpenAI surface includes and excludes, errors, and privacy
 - **[Public API Reference](/ai-tools/api-reference/)**: the `/api` platform contract for deploys and operations
 
 ---
@@ -412,9 +359,9 @@ Authorization: Bearer $VARITY_API_KEY
 The portal tabs are built on these routes on `https://ai.varity.app`. They take
 a **Developer Portal session** as the bearer credential. An inference key is
 refused on them with `403 portal_session_required`, so a leaked inference key
-cannot mint more keys, move money, or change privacy settings. Because no API
-key can call them, they are deliberately not in `GET /v1/openapi.json`, which
-describes only the API-key surface; this table is their public reference.
+cannot mint more keys, move money, or change privacy settings. They are not in
+`GET /v1/openapi.json`; this table is their public reference, and the only
+place AI Gateway keys are issued is `POST /v1/keys` on this host.
 
 | Route | What it does |
 |-------|--------------|
@@ -425,7 +372,7 @@ describes only the API-key surface; this table is their public reference.
 | `GET /v1/billing/balance` | The balance: `availableBalanceUsd`, `reservedUsd`, `spendThisMonthUsd`, `monthlySpendingLimitUsd`, `autoReload`, and more. |
 | `GET /v1/billing/transactions` | Balance transactions. Accepts `limit` from 1 to 100 (default 50) and `offset` from 0 to 10,000. |
 | `PATCH /v1/billing/settings` | Sets `monthlySpendingLimitCents` (`null`, or 100 to 10,000,000) and `autoReload` `{ enabled, thresholdCents, amountCents }`. |
-| `POST /v1/billing/top-up` | Starts a card checkout. Body: `email` (must belong to your account) and `balanceCents` (2,000 to 100,000). Returns the checkout `url` plus `balanceCents`, `serviceFeeCents`, and `totalCents`. |
+| `POST /v1/billing/top-up` | Starts a card checkout. Body: `email` (must belong to your account) and `balanceCents` (within the refill bounds of the live commercial contract; see [How You Are Charged](#how-you-are-charged)). Returns the checkout `url` plus `balanceCents`, `serviceFeeCents`, and `totalCents`. |
 | `PUT /v1/inference/policy` | Sets the account privacy floor. See [Privacy Routing](/ai-gateway/compatibility/#privacy-routing). |
 
 The request budgets for these routes are on
@@ -433,20 +380,9 @@ The request budgets for these routes are on
 
 ## Usage And Request History
 
-These routes accept an **inference key**, so your own code can read what it has
-spent:
-
-```bash
-curl https://ai.varity.app/v1/inference/usage \
-  -H "Authorization: Bearer $VARITY_API_KEY"
-```
-
-| Route | What it returns |
-|-------|-----------------|
-| `GET /v1/inference/usage` | Requests, tokens, and `spend_usd` for the current period, with breakdowns. |
-| `GET /v1/inference/requests` | Per-request metadata. Filters: `limit` (1 to 100), `cursor`, `model`, `state`, `created_after`, `created_before`. |
-| `GET /v1/inference/performance` | Latency percentiles. `window` is `1h`, `24h`, `7d`, or `30d`. |
-| `GET /v1/inference/policy` | Your privacy floor and rate limits. |
+Your own code can read what it has spent with an inference key, through the
+`/v1/inference/*` routes listed on
+[Endpoints](/ai-gateway/endpoints/#your-account-with-an-inference-key).
 
 Request records hold metadata only, never prompt or response content, and are
 kept for 30 days. See
@@ -471,8 +407,8 @@ reading it here is a documentation bug. If you hit one, report it.
 
 Everything below was checked against the live gateway at
 `https://ai.varity.app/v1`, its canonical host, and against the contract it
-publishes at `GET /v1/openapi.json`. `https://varity.app/v1` is a compatibility
-alias routed to the same service and serves the same surface.
+publishes at `GET /v1/openapi.json`. The older `varity.app/v1` alias serves the
+same surface; see [Endpoints](/ai-gateway/endpoints/#host).
 
 ## Endpoints
 
@@ -482,8 +418,8 @@ alias routed to the same service and serves the same surface.
 | `GET /v1/models` | **Supported.** Public, no key required. |
 | `POST /v1/embeddings` | **Supported.** Requires a bearer API key. Only a model whose `capabilities.output_modalities` includes `embedding` is routable. |
 | `POST /v1/images/generations` | **Supported.** Requires a bearer API key. Image-capable models only; results are returned inline as base64 and never stored. |
-| `POST /v1/images/edits` | **Supported.** Requires a bearer API key. JSON with base64 image data (`image/png`, `image/jpeg`, `image/webp`); a source image or mask at or above 25 MB is rejected. |
-| `POST /v1/audio/transcriptions` | **Supported.** Requires a bearer API key. JSON with the audio as a base64 typed part; the model must advertise `capabilities.transcription`. Returns JSON, or plain text when `response_format` is `text`. No streaming mode. |
+| `POST /v1/images/edits` | **Supported.** Requires a bearer API key. The OpenAI SDK's `multipart/form-data` upload, or JSON with base64 image data (`image/png`, `image/jpeg`, `image/webp`); a source image or mask at or above 25 MB is rejected. |
+| `POST /v1/audio/transcriptions` | **Supported.** Requires a bearer API key. The OpenAI SDK's `multipart/form-data` upload, or JSON with the audio as a base64 typed part; the model must advertise `capabilities.transcription`. Returns JSON, or plain text when `response_format` is `text`. No streaming mode. |
 | `POST /v1/audio/speech` | **Supported.** Requires a bearer API key. The model must advertise `capabilities.speech` and the format must be one of its `capabilities.speech_formats`. Returns audio bytes with a matching `audio/*` content type; `stream: true` gives a chunked binary response, not SSE. |
 | `GET /v1/models/{id}` | **Not implemented.** Returns `404`. Fetch the list and filter client-side. |
 | `POST /v1/completions` (legacy text completions) | **Not implemented.** Returns `404`. |
@@ -502,109 +438,25 @@ them, but they are public and stable.
 | Endpoint | Status |
 |----------|--------|
 | `GET /v1/openapi.json` | **Supported.** Public, no key required. The machine-readable contract for this surface, including the data-handling block below. |
-| `GET /v1/inference/requests` | **Supported.** Requires a bearer API key. Per-request metadata. `created_after` and `created_before` take RFC 3339 timestamps; send them with fractional seconds, for example `2026-09-16T00:00:00.000Z`. |
-| `GET /v1/inference/usage` | **Supported.** Requires a bearer API key. |
-| `GET /v1/inference/policy` | **Supported.** Requires a bearer API key. Returns the privacy floor (`private` or `anonymized`) enforced for the account, and the account's `limit_tier`, `requests_per_minute`, `concurrency_limit` and `limits_scope`; with a scoped key the key's effective floor and its own limit overrides are reported beside them. |
-| `GET /v1/inference/performance` | **Supported.** Requires a bearer API key. Accepts `window` of `1h`, `24h`, `7d`, or `30d`. |
+| `GET /v1/inference/*` | **Supported.** Requires a bearer API key. Policy, usage, per-request metadata, and latency; listed on [Endpoints](/ai-gateway/endpoints/#your-account-with-an-inference-key). |
 
-### Account routes
-
-The AI Gateway host also serves the account routes for its own keys, prepaid
-balance, and privacy entitlement. These require a Developer Portal session token
-as the bearer credential; an inference API key is refused on them.
-
-| Endpoint | Status |
-|----------|--------|
-| `GET /v1/keys` | **Supported.** Secret-free list of the account's inference keys. |
-| `POST /v1/keys` | **Supported.** Mints an inference-only key; the plaintext is returned exactly once. |
-| `GET /v1/keys/audit` | **Supported.** Secret-free key lifecycle events. Accepts `limit`. |
-| `POST /v1/keys/{id}/revoke` | **Supported.** Revokes one of the account's own keys. |
-| `PUT /v1/inference/policy` | **Supported.** Sets the account's privacy floor to `private` or `anonymized`. `anonymized` is the default for an account that never chose; choosing `anonymized` requires `acknowledge_anonymized_processing: true`. |
-| `GET /v1/billing/balance` | **Supported.** The prepaid Gateway balance. |
-| `GET /v1/billing/transactions` | **Supported.** Balance transactions. Accepts `limit` and `offset`. |
-| `PATCH /v1/billing/settings` | **Supported.** Monthly spending limit and auto-reload. |
-| `POST /v1/billing/top-up` | **Supported.** Starts a card checkout using the funding terms in the live OpenAPI commercial-contract block. See [Billing and Keys](/ai-gateway/billing-and-keys/). |
-
-`/v1/keys` on `https://ai.varity.app` is the only place AI Gateway keys are
-issued. Create them from the Developer Portal **Inference keys** tab, which calls
-these routes with your Portal session; see [Billing and Keys](/ai-gateway/billing-and-keys/#account-routes).
+The host also serves account routes for keys, the prepaid balance, and the
+privacy floor. They take a Developer Portal session, not an API key, and are
+listed on [Billing and Keys](/ai-gateway/billing-and-keys/#account-routes).
 
 Hosted tool execution, batch, files, assistants, fine-tuning, and moderation
 are not part of the surface. Unimplemented routes return `404` with the JSON
 error envelope below (`code: "invalid_request"`, message `Route not found.`).
 Branch on the HTTP status code, not on the message text.
 
-Unauthenticated health and readiness probes are available outside `/v1` on the
-canonical host:
-
-| Endpoint | Status |
-|----------|--------|
-| `GET /healthz` | **Supported.** Public. Returns `{"status":"ok","service":"varity-ai-gateway","version":"<deployed build>","source_commit":"<commit>"}` (re-probe for the current build rather than pinning it). |
-| `GET /readyz` | **Supported.** Public. Same fields plus `servable`, `published`, and `minimum_servable` model counts. |
+Unauthenticated `GET /healthz` and `GET /readyz` probes are available outside
+`/v1` on the canonical host; see [Endpoints](/ai-gateway/endpoints/#health).
 
 Any OpenAI SDK helper that touches an unimplemented route will fail, including
 the Assistants and Responses APIs, file upload helpers, and batch. The
-`chat.completions`, `models`, `embeddings`, `images.generate`, and
-`audio.speech` namespaces work unchanged, on the models whose `capabilities`
-advertise them. `images.edit` and `audio.transcriptions` need a different call
-shape — see below.
-
-## The Two SDK Exceptions
-
-"Point your OpenAI client at the base URL and change nothing else" is true for
-every route except two. `images.edit` and `audio.transcriptions` are the
-operations the OpenAI SDKs send as `multipart/form-data`, and these routes
-accept `application/json` only. A multipart request is refused with `415`:
-
-```json
-{
-  "error": {
-    "message": "This endpoint accepts application/json only: send the audio as audio.data (base64) with audio.media_type. multipart/form-data is not accepted.",
-    "type": "invalid_request_error",
-    "code": "invalid_request",
-    "param": null,
-    "retryable": false,
-    "request_id": "…"
-  }
-}
-```
-
-The refusal names the JSON shape rather than blaming a field you did send. Call
-these two with a plain HTTP client and inline base64:
-
-```bash
-curl https://ai.varity.app/v1/images/edits \
-  -H "Authorization: Bearer $VARITY_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "<an image-capable model id>",
-    "prompt": "Make the sky orange.",
-    "image": { "data": "<base64 bytes>", "mime_type": "image/png" }
-  }'
-```
-
-`image.mime_type` is one of `image/png`, `image/jpeg`, or `image/webp`. An
-optional `mask` takes the same `{ data, mime_type }` shape, and `size` is
-optional.
-
-```bash
-curl https://ai.varity.app/v1/audio/transcriptions \
-  -H "Authorization: Bearer $VARITY_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "<a transcription model id>",
-    "audio": { "data": "<base64 bytes>", "media_type": "audio/mpeg" }
-  }'
-```
-
-`audio.media_type` is one of `audio/wav`, `audio/wave`, `audio/x-wav`,
-`audio/flac`, `audio/x-flac`, `audio/mp4`, `audio/m4a`, `audio/x-m4a`,
-`audio/aac`, `audio/mpeg`, `audio/ogg`, `audio/oga`, or `audio/webm`. Optional
-fields are `audio.filename`, `response_format` (`json` or `text`), `language`,
-and `timestamps`. Decoded audio must be under 25 MB.
-
-Both shapes are on `GET /v1/openapi.json`, so you can generate a client from
-the contract rather than transcribing this page.
+`chat.completions`, `models`, `embeddings`, `images.generate`, `images.edit`,
+`audio.speech`, and `audio.transcriptions` namespaces work unchanged, on the
+models whose `capabilities` advertise them.
 
 ## Per-Model Capabilities
 
@@ -656,7 +508,7 @@ Ids are readable human slugs, for example `glm-5-1`, `glm-5-2`,
 
 - **`max_completion_tokens` is per-model and often small.** The ceiling is independent of the context window, so a very large context does not mean a long reply is allowed. Read both fields per model.
 - **Cached-input pricing is per model.** Some models price `cached_input` below `input` and others price them the same. Read `customer_pricing.cached_input` per model.
-- **There is a concurrency bound as well as a rate limit.** On the standard tier, inference is held to 120 requests per minute *and* 31 in-flight requests, both counted for the whole account rather than per key. `GET /v1/inference/policy` publishes your own numbers. See [Rate Limits](/ai-gateway/limits/).
+- **There is a concurrency bound as well as a rate limit.** Both are counted for the whole account rather than per key. See [Rate Limits](/ai-gateway/limits/).
 - **`GET /v1/models` carries no request budget** and returns no `RateLimit-*` headers. The headers live on the inference and inference-read routes, not on catalog discovery.
 
 ## Errors
@@ -700,7 +552,7 @@ that response; the column below is what the gateway publishes today.
 | Code | HTTP | Retryable | Cause |
 |------|------|-----------|-------|
 | `authentication_required` | `401` | no | No bearer credential, or one that is invalid, revoked, or expired. |
-| `invalid_request` | `400` | no | The body failed validation. Also `404` on an unimplemented route, `413` when the body exceeds the route ceiling, and `415` on `multipart/form-data`. |
+| `invalid_request` | `400` | no | The body failed validation. Also `404` on an unimplemented route, and `413` when the body exceeds the route ceiling. |
 | `input_modality_unsupported` | `400` | no | Every route for this model rejected the supplied image or document part. Distinct from `invalid_request` so you can tell "this model cannot see" from "this body is malformed". |
 | `too_many_tools` | `400` | no | The request carries more tools than the model's `capabilities.max_tools` on `/v1/models`. Send fewer tools. |
 | `too_many_documents` | `400` | no | A message carries more `document` parts than the model's `capabilities.max_documents_per_message`; `param` names the message (`$.messages[i].content`). Send the rest in a later message. |
@@ -778,7 +630,8 @@ model.
 Your account has a privacy floor. It is `anonymized` unless you choose
 otherwise, which lets requests use both `private` and `anonymized` models. Set it
 to `private` with `PUT /v1/inference/policy` (or on the portal's **Gateway
-settings** tab) and only `private` models are callable. A single chat request can
+settings** tab) and only `private` models are callable. Setting it back to
+`anonymized` requires `acknowledge_anonymized_processing: true`. A single chat request can
 tighten the floor, never loosen it, with
 `"varity_extensions": { "privacy_floor": "private" }`; asking for a weaker floor
 than the account's returns `403 privacy_policy_violation`.
@@ -809,6 +662,12 @@ Replace `<… model id>` in the examples with an `id` from
 example, `output_modalities` containing `embedding` for embeddings, `image` for
 images, `capabilities.speech` for speech, and `capabilities.transcription` for
 transcription.
+
+## Host
+
+`https://ai.varity.app` is the canonical AI Gateway host. `https://varity.app/v1`
+is a compatibility alias that the edge routes to the same service, so existing
+clients keep working; use `https://ai.varity.app/v1` in new code.
 
 ## Discovery
 
@@ -895,7 +754,9 @@ Optional: `size` and `n`. Images come back inline as base64 in
 
 ### `POST /v1/images/edits`
 
-JSON with the image as base64, not `multipart/form-data`:
+The OpenAI SDK's `images.edit` upload (`multipart/form-data`, file fields
+`image` or `image[]` and optional `mask`) works unchanged. A JSON body with the
+image as base64 is also accepted:
 
 ```bash
 curl https://ai.varity.app/v1/images/edits \
@@ -908,7 +769,9 @@ curl https://ai.varity.app/v1/images/edits \
   }'
 ```
 
-See [The Two SDK Exceptions](/ai-gateway/compatibility/#the-two-sdk-exceptions).
+`image.mime_type` is one of `image/png`, `image/jpeg`, or `image/webp`. An
+optional `mask` takes the same `{ data, mime_type }` shape, and `size` is
+optional.
 
 ### `POST /v1/audio/speech`
 
@@ -926,7 +789,8 @@ audio bytes, not JSON.
 
 ### `POST /v1/audio/transcriptions`
 
-JSON with the audio as base64, not `multipart/form-data`:
+The OpenAI SDK's `audio.transcriptions` upload (`multipart/form-data`, file field
+`file`) works unchanged. A JSON body with the audio as base64 is also accepted:
 
 ```bash
 curl https://ai.varity.app/v1/audio/transcriptions \
@@ -938,7 +802,11 @@ curl https://ai.varity.app/v1/audio/transcriptions \
   }'
 ```
 
-Optional: `response_format` (`json` or `text`), `language`, and `timestamps`.
+`audio.media_type` is one of `audio/wav`, `audio/wave`, `audio/x-wav`,
+`audio/flac`, `audio/x-flac`, `audio/mp4`, `audio/m4a`, `audio/x-m4a`,
+`audio/aac`, `audio/mpeg`, `audio/ogg`, `audio/oga`, or `audio/webm`, and the
+decoded audio must be under 25 MB. Optional: `audio.filename`,
+`response_format` (`json` or `text`), `language`, and `timestamps`.
 
 ## Your Account, With An Inference Key
 
@@ -947,26 +815,23 @@ curl https://ai.varity.app/v1/inference/policy \
   -H "Authorization: Bearer $VARITY_API_KEY"
 ```
 
+These routes take an **inference key**, so your own code can read its policy
+and what it has spent:
+
 | Route | Returns |
 |-------|---------|
-| `GET /v1/inference/policy` | Privacy floor and rate limits |
-| `GET /v1/inference/usage` | Requests, tokens, and spend for the period |
-| `GET /v1/inference/requests` | Per-request metadata |
-| `GET /v1/inference/performance` | Latency percentiles for a `window` |
+| `GET /v1/inference/policy` | Your privacy floor and [rate limits](/ai-gateway/limits/). |
+| `GET /v1/inference/usage` | Requests, tokens, and `spend_usd` for the current period, with breakdowns. |
+| `GET /v1/inference/requests` | Per-request metadata. Filters: `limit` (1 to 100), `cursor`, `model`, `state`, `created_after`, `created_before`. The two timestamps are RFC 3339; send them with fractional seconds, for example `2026-09-16T00:00:00.000Z`. |
+| `GET /v1/inference/performance` | Latency percentiles. `window` is `1h`, `24h`, `7d`, or `30d`. |
 
 ## Your Account, With A Portal Session
 
 Keys, billing, and the privacy setting are managed from the Developer Portal.
-These routes refuse an inference key:
-
-`POST /v1/keys`, `GET /v1/keys`, `GET /v1/keys/audit`,
-`POST /v1/keys/{id}/revoke`, `PUT /v1/inference/policy`,
-`GET /v1/billing/balance`, `GET /v1/billing/transactions`,
-`PATCH /v1/billing/settings`, `POST /v1/billing/top-up`.
-
-They are Developer Portal session operations, so they are deliberately not in
-`GET /v1/openapi.json`, which describes only what an API key can call. Each is
-described on [Billing and Keys](/ai-gateway/billing-and-keys/#account-routes).
+The `/v1/keys*`, `/v1/billing/*`, and `PUT /v1/inference/policy` routes refuse an
+inference key. They are Developer Portal session operations and are not in
+`GET /v1/openapi.json`. Each is described on
+[Billing and Keys](/ai-gateway/billing-and-keys/#account-routes).
 
 ## Health
 
@@ -977,8 +842,14 @@ curl https://ai.varity.app/readyz
 
 Public, no key, outside `/v1`.
 
-`https://varity.app/v1` is an alias for the same service. Use
-`https://ai.varity.app/v1` in new code.
+```text
+{ "status": "ok", "service": "varity-ai-gateway", "version": "<deployed build>", "source_commit": "<commit>" }
+```
+
+`/readyz` returns the same fields with `status: "ready"`, plus model counts
+(`servable`, `servable_by_vertical`, `published`, `minimum_servable`) and a
+`components` object. `version` reports the deployed gateway build; re-probe
+for the current one rather than pinning it in your own config.
 
 ## Next Steps
 
@@ -1269,7 +1140,7 @@ unavailability by the hourly creation budget.
 ## Size Ceilings Are Not Request Budgets
 
 These are enforced by the request contract, not by a budget, and they return
-`413`, `415`, or `400` rather than `429`.
+`413` or `400` rather than `429`.
 
 | Route | Body ceiling | Per-part ceiling |
 |-------|--------------|------------------|
@@ -1290,9 +1161,6 @@ carry both a source image and a mask.
   `code: "too_many_documents"` and `param: "$.messages[i].content"`. The bound is
   per message, so send the rest in a later message. A model without the field
   publishes no bound.
-- `multipart/form-data` on `/v1/images/edits` or `/v1/audio/transcriptions`
-  returns `415` with `code: "invalid_request"`. These two routes take JSON with
-  base64 parts; see [Compatibility](/ai-gateway/compatibility/#the-two-sdk-exceptions).
 
 ## Retrying Correctly
 
@@ -1640,7 +1508,7 @@ https://varity.app/api
 https://ai.varity.app/v1
 ```
 
-`https://varity.app/v1` remains a compatibility alias routed to the same service.
+For the older `varity.app/v1` alias, see [AI Gateway Endpoints](/ai-gateway/endpoints/#host).
 
 These are two different products with two different contracts:
 
@@ -7978,7 +7846,7 @@ Varity automatically detects AI agent apps and configures the right hosting for 
 
 If your agent uses a local language model (via the `ollama` package), Varity detects it and auto-provisions a model server alongside your app. No extra setup required.
 
-The examples below point at `https://ai.varity.app/v1`, Varity's OpenAI-compatible endpoint, so the model call and the deployment are billed to the same account and use the same key. Any OpenAI-compatible client works by changing `base_url`. See [AI Gateway](/ai-gateway/) for the model catalog, or keep your own provider's key if you prefer.
+The examples below point at `https://ai.varity.app/v1`, Varity's OpenAI-compatible endpoint. Model calls use an AI Gateway inference key and are charged to your prepaid Gateway balance; that key is separate from the key your deployment tooling uses, because keys are scoped per product (see [API Reference](/ai-tools/api-reference/)). Any OpenAI-compatible client works by changing `base_url`. See [AI Gateway](/ai-gateway/) for the model catalog, or keep your own provider's key if you prefer.
 
 ## One-Click Agent Templates
 

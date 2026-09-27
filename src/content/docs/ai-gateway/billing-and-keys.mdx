@@ -72,9 +72,9 @@ Authorization: Bearer $VARITY_API_KEY
 The portal tabs are built on these routes on `https://ai.varity.app`. They take
 a **Developer Portal session** as the bearer credential. An inference key is
 refused on them with `403 portal_session_required`, so a leaked inference key
-cannot mint more keys, move money, or change privacy settings. Because no API
-key can call them, they are deliberately not in `GET /v1/openapi.json`, which
-describes only the API-key surface; this table is their public reference.
+cannot mint more keys, move money, or change privacy settings. They are not in
+`GET /v1/openapi.json`; this table is their public reference, and the only
+place AI Gateway keys are issued is `POST /v1/keys` on this host.
 
 | Route | What it does |
 |-------|--------------|
@@ -85,7 +85,7 @@ describes only the API-key surface; this table is their public reference.
 | `GET /v1/billing/balance` | The balance: `availableBalanceUsd`, `reservedUsd`, `spendThisMonthUsd`, `monthlySpendingLimitUsd`, `autoReload`, and more. |
 | `GET /v1/billing/transactions` | Balance transactions. Accepts `limit` from 1 to 100 (default 50) and `offset` from 0 to 10,000. |
 | `PATCH /v1/billing/settings` | Sets `monthlySpendingLimitCents` (`null`, or 100 to 10,000,000) and `autoReload` `{ enabled, thresholdCents, amountCents }`. |
-| `POST /v1/billing/top-up` | Starts a card checkout. Body: `email` (must belong to your account) and `balanceCents` (2,000 to 100,000). Returns the checkout `url` plus `balanceCents`, `serviceFeeCents`, and `totalCents`. |
+| `POST /v1/billing/top-up` | Starts a card checkout. Body: `email` (must belong to your account) and `balanceCents` (within the refill bounds of the live commercial contract; see [How You Are Charged](#how-you-are-charged)). Returns the checkout `url` plus `balanceCents`, `serviceFeeCents`, and `totalCents`. |
 | `PUT /v1/inference/policy` | Sets the account privacy floor. See [Privacy Routing](/ai-gateway/compatibility/#privacy-routing). |
 
 The request budgets for these routes are on
@@ -93,20 +93,9 @@ The request budgets for these routes are on
 
 ## Usage And Request History
 
-These routes accept an **inference key**, so your own code can read what it has
-spent:
-
-```bash
-curl https://ai.varity.app/v1/inference/usage \
-  -H "Authorization: Bearer $VARITY_API_KEY"
-```
-
-| Route | What it returns |
-|-------|-----------------|
-| `GET /v1/inference/usage` | Requests, tokens, and `spend_usd` for the current period, with breakdowns. |
-| `GET /v1/inference/requests` | Per-request metadata. Filters: `limit` (1 to 100), `cursor`, `model`, `state`, `created_after`, `created_before`. |
-| `GET /v1/inference/performance` | Latency percentiles. `window` is `1h`, `24h`, `7d`, or `30d`. |
-| `GET /v1/inference/policy` | Your privacy floor and rate limits. |
+Your own code can read what it has spent with an inference key, through the
+`/v1/inference/*` routes listed on
+[Endpoints](/ai-gateway/endpoints/#your-account-with-an-inference-key).
 
 Request records hold metadata only, never prompt or response content, and are
 kept for 30 days. See
