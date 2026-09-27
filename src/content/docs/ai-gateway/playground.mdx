@@ -27,6 +27,11 @@ shown as unavailable, and its tooltip says why.
 **Add**
 
 - **Files** and **Folder**: attach files, or a whole folder, to your message.
+  A document stays on the message it was sent with, and each message holds up
+  to the selected model's per-message document limit
+  (`capabilities.max_documents_per_message`). The **×** on a sent document
+  removes it from that message. With Varity tools on, a dropped folder's PDFs
+  join the chat's files as text.
 - **Create image**: choose an image model and open its workspace.
 
 **Tools**
@@ -82,6 +87,12 @@ message, so you can copy it into your own app.
 - **History and projects**: conversations are grouped into projects and kept on
   your device, not on Varity's servers. The AI Gateway stores no prompt or
   response content.
+- **Project files**: open a project's settings and use **Add files** or
+  **Add folder**. A project holds text, code, and SVG files, and PDFs converted
+  to text; Word, PowerPoint, and Excel files are not added to projects. Every
+  chat in the project reads these files through Varity tools, with any model
+  that can use Varity tools. Each project holds up to 5 MB of files, stored on
+  your device.
 - **Memory**: notes you save on your device. While memory is on, they are sent
   with each message, and you can see them in View code.
 - **Incognito**: an incognito chat is not saved to history and does not use

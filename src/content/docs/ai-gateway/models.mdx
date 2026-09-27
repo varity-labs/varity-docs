@@ -72,6 +72,8 @@ Each entry in `data` carries these Varity fields:
 | `capabilities.output_modalities` | array | What the model produces: `text`, `embedding`, `image`, `audio` |
 | `capabilities.chat_completions` | boolean | `true` on the chat models only; image, audio, and embedding models report `false`. Read it per model |
 | `capabilities.tool_calls` | boolean | `true` when the model accepts `tools` / `tool_choice`. Read it per model; a model reporting `false` rejects tools |
+| `capabilities.max_tools` | integer | The most tools one request may carry; above it the request is refused with `400 too_many_tools`. Absent means no bound is published |
+| `capabilities.max_documents_per_message` | integer | The most `document` parts one message may carry, counted per message (images do not count); above it the request is refused with `400 too_many_documents`. Absent means no bound is published |
 | `capabilities.streaming` | boolean | `true` when the model accepts `stream: true`; read it per model |
 | `capabilities.streaming_tool_calls` | boolean | `true` when the model streams tool-call deltas; read it per model. Like every proven flag, absent means unknown, not unsupported |
 | `capabilities.transcription` | boolean | `true` when `POST /v1/audio/transcriptions` accepts the model |

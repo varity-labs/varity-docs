@@ -3676,55 +3676,6 @@
             "deprecated": true,
             "description": "camelCase twin of `operation_deployment_id`. Read `operation_deployment_id`; this key is retained for existing clients and will be retired."
           },
-          "resourceProfile": {
-            "type": [
-              "object",
-              "null"
-            ],
-            "properties": {
-              "cpu_units": {
-                "type": [
-                  "number",
-                  "null"
-                ],
-                "minimum": 0.25,
-                "maximum": 4
-              },
-              "memory_mb": {
-                "type": [
-                  "integer",
-                  "null"
-                ],
-                "minimum": 256,
-                "maximum": 8192
-              },
-              "storage_mb": {
-                "type": [
-                  "integer",
-                  "null"
-                ],
-                "minimum": 512,
-                "maximum": 20480
-              },
-              "persistent_storage_gb": {
-                "type": [
-                  "integer",
-                  "null"
-                ]
-              },
-              "attached_resources": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/AttachedServiceVolume"
-                }
-              },
-              "accelerator": {
-                "$ref": "#/components/schemas/AcceleratorRequirement"
-              }
-            },
-            "deprecated": true,
-            "description": "camelCase twin of `resource_profile`."
-          },
           "url": {
             "type": [
               "string",
@@ -3750,57 +3701,6 @@
             "type": "string",
             "deprecated": true,
             "description": "camelCase twin of `execution_class`."
-          },
-          "deploymentType": {
-            "type": "string",
-            "description": "Registry storage codec, not the public category. Use `execution_class`."
-          },
-          "deploymentId": {
-            "type": "string",
-            "deprecated": true,
-            "description": "camelCase-era twin of `id` on GPU container rows."
-          },
-          "deploymentUrl": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "format": "uri",
-            "deprecated": true,
-            "description": "camelCase-era twin of `public_url` on GPU container rows."
-          },
-          "resources": {
-            "type": "object",
-            "description": "GPU container compute request.",
-            "properties": {
-              "cpu_units": {
-                "type": "number"
-              },
-              "memory_mb": {
-                "type": "integer"
-              },
-              "storage_mb": {
-                "type": "integer"
-              }
-            }
-          },
-          "accelerator": {
-            "type": "object",
-            "description": "GPU container accelerator request.",
-            "properties": {
-              "offer_id": {
-                "type": "string"
-              },
-              "count": {
-                "type": "integer"
-              },
-              "alternatives": {
-                "type": "array",
-                "items": {
-                  "type": "object"
-                }
-              }
-            }
           }
         }
       },
@@ -4205,9 +4105,6 @@
         ],
         "properties": {
           "fixed_monthly_cost_usd": {
-            "type": "number"
-          },
-          "fixed_monthly_usd": {
             "type": "number"
           },
           "accrued_this_month_usd": {
