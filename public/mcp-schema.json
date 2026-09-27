@@ -9,11 +9,11 @@
   "server": {
     "name": "varity",
     "package": "@varity-labs/mcp",
-    "version": "2.3.7",
+    "version": "2.3.21",
     "release": {
       "registry": "https://registry.npmjs.org/@varity-labs%2Fmcp/latest",
       "distTag": "latest",
-      "observedAt": "2026-09-21"
+      "observedAt": "2026-09-27"
     },
     "docs": "https://docs.varity.so/ai-tools/mcp-server-spec/",
     "install": {
@@ -35,12 +35,12 @@
       "http"
     ]
   },
-  "toolCount": 22,
+  "toolCount": 25,
   "tools": [
     {
       "name": "varity_search_docs",
       "title": "Search Varity Docs",
-      "description": "Search the live Varity documentation for how-to guides, getting-started tutorials, deployment, supported stacks, pricing, and troubleshooting. Always reflects the current docs.",
+      "description": "Search the live Varity documentation for how-to guides, getting-started tutorials, deployment, supported stacks, pricing, and troubleshooting. Content is fetched from the live docs with a five-minute cache.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -70,29 +70,20 @@
     {
       "name": "varity_cost_calculator",
       "title": "Cost Calculator",
-      "description": "Estimate the fixed monthly price for a deployment profile. Pricing is computed by the Varity pricing service, so this tool, the CLI, and the portal render identical numbers. Use whenever a developer asks what a Varity deployment costs. Pass `subdomain` for a specific live deployment's REAL cost, or `app_profile` for a pre-deploy estimate.",
+      "description": "Request a current deployment-price estimate from the Varity public pricing interface. Use whenever a developer asks what a Varity deployment costs. Pass `subdomain` for a live deployment's current billing projection, or `app_profile` for a pre-deploy estimate.",
       "inputSchema": {
         "type": "object",
         "properties": {
           "app_profile": {
             "type": "string",
-            "enum": [
-              "static-site",
-              "web-app",
-              "web-app-db",
-              "ai-agent-cpu",
-              "ai-agent-gpu"
-            ],
-            "default": "web-app",
-            "description": "Pre-deploy estimate preset. Accepted values: static-site, web-app, web-app-db, ai-agent-cpu, ai-agent-gpu. Estimates are computed by the live Varity pricing API."
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[a-z0-9][a-z0-9_-]*$",
+            "description": "Optional profile key understood by the live Varity pricing API. Omit to use the API's current default."
           },
           "subdomain": {
             "type": "string",
-            "description": "A live deployment's subdomain → returns THIS deployment's real cost (overrides app_profile)"
-          },
-          "has_database": {
-            "type": "boolean",
-            "description": "Whether the app uses a database (selects the database-inclusive estimate)"
+            "description": "A live deployment's subdomain; returns its current billing projection and overrides app_profile"
           }
         },
         "additionalProperties": false,
@@ -108,7 +99,7 @@
     {
       "name": "varity_doctor",
       "title": "Check Environment",
-      "description": "Check if the developer's environment is ready to build and deploy apps with Varity. Verifies Node.js, npm, varitykit CLI, and authentication are properly configured. Run this before varity_deploy to catch missing prerequisites early.",
+      "description": "Check local-development and CLI-deployment readiness independently. Node.js and npm qualify local JavaScript tools; varitykit and authentication qualify deployment. Run this before varity_deploy to catch missing prerequisites early.",
       "inputSchema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -123,18 +114,15 @@
     },
     {
       "name": "varity_login",
-      "title": "Log in to Varity",
-      "description": "Log in to Varity to enable deployments. Opens the developer portal where you get your deploy key after adding a payment method. If deploy_key is provided, saves it immediately and you can run varity_deploy right away. If omitted, the browser opens to the settings page so you can copy your key.",
+      "title": "Set Up Varity Login",
+      "description": "Check whether a deploy key is already configured and open the developer portal settings page when login is needed. Credentials are never accepted as MCP tool input; enter the deploy key only in the hidden prompt from `varitykit auth login` in a trusted terminal.",
       "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
-        "properties": {
-          "deploy_key": {
-            "type": "string",
-            "description": "Your deploy key from the Varity developer portal (developer.store.varity.so/dashboard/settings). If omitted, this tool opens the settings page in your browser, copy your key from there, then call varity_login again with the key."
-          }
-        },
-        "additionalProperties": false,
-        "$schema": "http://json-schema.org/draft-07/schema#"
+        "properties": {}
+      },
+      "annotations": {
+        "readOnlyHint": true
       },
       "execution": {
         "taskSupport": "forbidden"
@@ -253,7 +241,7 @@
     {
       "name": "varity_create_repo",
       "title": "Create GitHub Repository",
-      "description": "Create a new GitHub repository and push your local project to it. Pass the 'path' parameter with the local project directory. This creates an empty repo and pushes your actual code to GitHub. The GitHub URL is required for dynamic deployments, so call this before varity_deploy when you have code locally but no repo yet. Requires a GitHub personal access token (classic) with repo scope from https://github.com/settings/tokens.",
+      "description": "Create a new GitHub repository and push your local project to it. Pass the 'path' parameter with the local project directory. This creates an empty repo and pushes your actual code to GitHub. The GitHub URL is required for dynamic deployments, so call this before varity_deploy when you have code locally but no repo yet. Requires GitHub CLI authentication or a GITHUB_TOKEN/GH_TOKEN environment variable with repository access.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -278,12 +266,8 @@
               "public",
               "private"
             ],
-            "default": "public",
+            "default": "private",
             "description": "Repository visibility"
-          },
-          "github_token": {
-            "type": "string",
-            "description": "GitHub personal access token (optional if GITHUB_TOKEN env var is set). Needs 'repo' scope."
           }
         },
         "required": [
@@ -302,51 +286,29 @@
     {
       "name": "varity_deploy",
       "title": "Deploy to Production",
-      "description": "Deploy a local project, repository, or supported container image through the published Varity MCP package. The tool delegates deployment to varitykit and returns its result. Use varity_deploy_template for a certified template.",
+      "description": "Submit a Git repository or a prebuilt container image to Varity's deployment owner. The control plane detects the framework, selects hosting, builds, and manages lifecycle state. Use this when a developer wants to deploy, publish, ship, or make their app live. If the developer wants to deploy a certified template rather than their own code, use varity_deploy_template instead. To stop a deployment and its billing, use varity_delete_deployment.",
       "inputSchema": {
         "type": "object",
         "properties": {
           "path": {
             "type": "string",
-            "description": "Absolute path to the project directory (e.g. '/home/user/my-app'). IMPORTANT: always pass the full absolute path to the project root, the directory that contains package.json and varity.config.json. If omitted, the MCP server's working directory is used (which is rarely the correct project root). Pass the absolute path to the project root (the directory that contains package.json)."
+            "description": "Absolute path to the project directory (e.g. '/home/user/my-app'). Used only to read the Git `origin` remote when repo_url and image are omitted. If omitted, the MCP server's working directory is used (which is rarely the correct project root)."
           },
           "repo_url": {
             "type": "string",
-            "description": "GitHub repository URL for the app (e.g. 'https://github.com/user/my-app'). Required for dynamic deployments. If omitted, auto-detected from .git/config. Use the repo_url returned by varity_create_repo as the value here."
+            "description": "GitHub repository URL for the app (e.g. 'https://github.com/user/my-app'). If omitted, auto-detected from .git/config. Use the repo_url returned by varity_create_repo as the value here."
           },
           "app_name": {
             "type": "string",
-            "description": "Custom app name that controls the deployment URL: https://varity.app/{app_name}/. Must be URL-safe (lowercase letters, numbers, hyphens). If omitted, the project directory name is used. Use a different app_name than the directory to create named environments (staging, canary, etc.)."
+            "description": "Custom app name that controls the deployment URL: https://varity.app/{app_name}/. Must be URL-safe (lowercase letters, numbers, hyphens). If omitted, the repository or image name is used. Use a different app_name to create named environments (staging, canary, etc.)."
           },
           "image": {
             "type": "string",
             "description": "Deploy a prebuilt Docker/OCI image directly (e.g. 'ghcr.io/you/app:latest') instead of building from source. Use when the developer has a container image rather than a repo/project. Mutually exclusive with repo_url."
           },
-          "image_credentials": {
-            "type": "object",
-            "properties": {
-              "host": {
-                "type": "string",
-                "description": "registry host, e.g. ghcr.io or docker.io"
-              },
-              "username": {
-                "type": "string"
-              },
-              "password": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "host",
-              "username",
-              "password"
-            ],
-            "additionalProperties": false,
-            "description": "Pull credentials for a PRIVATE image registry. Omit for public images."
-          },
           "port": {
             "type": "integer",
-            "description": "Container listen port for an --image deploy (default 80)."
+            "description": "Container listen port for an image deploy (default 80)."
           },
           "volume_size": {
             "type": "integer",
@@ -370,7 +332,7 @@
     {
       "name": "varity_deploy_status",
       "title": "Deployment Status",
-      "description": "List deployments or get status of a specific deployment. Shows URL, status, framework, size, and creation time. Use this when a developer asks about their deployments, wants to check status, or needs to find a deployment URL.",
+      "description": "List deployments or get status of a specific deployment. Shows the owner-scoped fields returned by the Varity public interface, including URL, status, runtime when available, and creation time. A separate HTTP probe records reachability without overwriting the owner's lifecycle status; authenticated, POST-only, or transiently unavailable apps may return a non-2xx probe. Use this when a developer asks about their deployments, wants to check status, or needs to find a deployment URL.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -381,7 +343,7 @@
           },
           "path": {
             "type": "string",
-            "description": "Compatibility project-path hint accepted by the published package. Deployment state is account-scoped; do not treat this field as an ownership boundary."
+            "description": "Compatibility hint from older clients. Deployment state is now account-scoped through the Varity public API."
           },
           "limit": {
             "type": "integer",
@@ -404,14 +366,14 @@
     {
       "name": "varity_deploy_logs",
       "title": "Deployment Info & Logs",
-      "description": "Read the logs or summary that the published package can retrieve for one deployment. Availability depends on how the deployment was created; use varity_build for local compilation diagnostics.",
+      "description": "Get recent runtime logs for a deployment from the Varity public API. Use this when a developer asks for logs from a live app. For local build errors before deployment, use varity_build.",
       "inputSchema": {
         "type": "object",
         "properties": {
-          "deployment_id": {
+          "deployment": {
             "type": "string",
             "pattern": "^[a-zA-Z0-9_-]+$",
-            "description": "The deployment ID to get logs for"
+            "description": "The deployment id or app name to get logs for"
           },
           "limit": {
             "type": "number",
@@ -420,7 +382,7 @@
           }
         },
         "required": [
-          "deployment_id"
+          "deployment"
         ],
         "additionalProperties": false,
         "$schema": "http://json-schema.org/draft-07/schema#"
@@ -434,21 +396,25 @@
     },
     {
       "name": "varity_delete_deployment",
-      "title": "Request Deployment Deletion",
-      "description": "Request deletion of an existing Varity deployment by app name. Deletion acceptance is not proof that route removal, resource release, and billing closure have all completed; verify terminal state after the request.",
+      "title": "Delete a Deployment and Stop Its Billing",
+      "description": "Request deletion of an existing Varity deployment by id or app name and track it until billing stop is proven. Use this when a developer says 'stop my <name>', 'shut down my deployment', 'I'm done with <name>', 'delete <name>', or when they no longer need a running app or agent. The durable operation independently reconciles route removal, reserved hardware release, and billing stop. Use varity_deploy_status or list deployments at https://developer.store.varity.so/dashboard to confirm the deployment first if the developer is unsure.",
       "inputSchema": {
         "type": "object",
         "properties": {
-          "name": {
+          "deployment": {
             "type": "string",
-            "description": "The subdomain / app name of the deployment to delete. This is the slug in https://varity.app/<name>/. Example: 'worker-bot' or 'mvp-static-test'."
+            "pattern": "^[a-zA-Z0-9_-]+$",
+            "description": "The deployment id or app name (the slug in https://varity.app/<name>/), including a deployment that failed before it got a URL. Example: 'worker-bot'."
           }
         },
         "required": [
-          "name"
+          "deployment"
         ],
         "additionalProperties": false,
         "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "destructiveHint": true
       },
       "execution": {
         "taskSupport": "forbidden"
@@ -456,33 +422,15 @@
     },
     {
       "name": "varity_set_env",
-      "title": "Set Environment Variables on an Existing Deployment",
-      "description": "Set or update write-only environment variables on an existing app and request the package's redeploy flow. By default values merge over the current set; replace=true replaces it. Track the returned operation rather than assuming when the change is live.",
+      "title": "Route Environment Configuration Safely",
+      "description": "Compatibility route for environment configuration. It never accepts values and directs private configuration to an approved secret-safe interface.",
       "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "description": "The subdomain / app name of the existing deployment to update, the slug in https://varity.app/<name>/. Example: 'my-api'."
-          },
-          "env": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "string"
-            },
-            "description": "Environment variables to set as a map of NAME to value, e.g. { \"DATABASE_URL\": \"postgres://...\", \"FEATURE_X\": \"on\" }. Names must be UPPER_SNAKE_CASE."
-          },
-          "replace": {
-            "type": "boolean",
-            "description": "When true, replace the entire variable set with `env` instead of merging it over the current set. Default false (merge)."
-          }
-        },
-        "required": [
-          "name",
-          "env"
-        ],
-        "additionalProperties": false,
-        "$schema": "http://json-schema.org/draft-07/schema#"
+        "properties": {}
+      },
+      "annotations": {
+        "readOnlyHint": true
       },
       "execution": {
         "taskSupport": "forbidden"
@@ -490,13 +438,14 @@
     },
     {
       "name": "varity_redeploy",
-      "title": "Request an Existing Deployment Redeploy",
-      "description": "Request the published package's redeploy action for an existing app. The action reapplies saved deployment configuration and may be a no-op; do not present it as a verified container restart or image refresh without resulting runtime evidence.",
+      "title": "Reapply an Existing Deployment Configuration",
+      "description": "Reapply the saved configuration for an app that is ALREADY deployed. Use this when a developer explicitly asks to reapply or redeploy that saved configuration. The app keeps the same deployment and URL. An unchanged configuration may be a no-op, so this tool must not be presented as a verified restart for a stuck app. Configure secrets through an approved secret-safe interface. To create a NEW deployment instead, use varity_deploy.",
       "inputSchema": {
         "type": "object",
         "properties": {
           "name": {
             "type": "string",
+            "pattern": "^[a-zA-Z0-9_-]+$",
             "description": "The subdomain / app name of the existing deployment to redeploy, the slug in https://varity.app/<name>/. Example: 'my-api'."
           }
         },
@@ -505,6 +454,114 @@
         ],
         "additionalProperties": false,
         "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "destructiveHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "varity_machines_list",
+      "title": "List CPU Machines",
+      "description": "List the developer's Varity CPU virtual machines with their state, SSH access and billing. Set include_profiles to also get the CPU machine profiles and OS images (profile_id, os_image) that varity_machines_create accepts.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "include_profiles": {
+            "type": "boolean",
+            "description": "Also return the CPU machine profile catalog."
+          }
+        },
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "varity_machines_create",
+      "title": "Create a CPU Machine",
+      "description": "Create a Varity CPU virtual machine the developer can SSH into. Requires the developer's own SSH PUBLIC key (e.g. the contents of ~/.ssh/id_ed25519.pub); never pass a private key. Get profile_id and os_image from varity_machines_list with include_profiles. The machine bills hourly until varity_machines_delete.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 63,
+            "description": "Lowercase machine name, e.g. 'dev-box'."
+          },
+          "profile_id": {
+            "type": "string",
+            "minLength": 1,
+            "description": "CPU machine profile id (mp-...)."
+          },
+          "os_image": {
+            "type": "string",
+            "minLength": 1,
+            "description": "OS image id offered by that profile (os-...)."
+          },
+          "ssh_public_key": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The developer's SSH public key, e.g. 'ssh-ed25519 AAAA... user@host'."
+          },
+          "additional_storage_gb": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Extra disk in GB."
+          },
+          "idempotency_key": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9._:-]{8,128}$",
+            "description": "Reuse the same key to retry a create without creating a second machine."
+          }
+        },
+        "required": [
+          "name",
+          "profile_id",
+          "os_image",
+          "ssh_public_key"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "varity_machines_delete",
+      "title": "Delete a CPU Machine and Stop Its Billing",
+      "description": "Delete a Varity CPU virtual machine by id and wait (up to 10 minutes) until its billing reads stopped.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "machine_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The machine id from varity_machines_list."
+          },
+          "idempotency_key": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9._:-]{8,128}$",
+            "description": "Reuse the same key to retry a delete safely."
+          }
+        },
+        "required": [
+          "machine_id"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "destructiveHint": true
       },
       "execution": {
         "taskSupport": "forbidden"
@@ -554,7 +611,7 @@
     {
       "name": "varity_deploy_template",
       "title": "Deploy a Varity Template",
-      "description": "Deploy a certified Varity template through varitykit. Call varity_template_info first for required environment variables.",
+      "description": "Deploy a public certified Varity template that declares no required environment variables. Private or secret-bearing templates are refused; call varity_template_info first.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -565,13 +622,6 @@
           "name": {
             "type": "string",
             "description": "Memorable deployment name. Defaults to <template>-derived name if omitted."
-          },
-          "env": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "string"
-            },
-            "description": "Environment variables to pass to the template container as key-value strings."
           }
         },
         "required": [
@@ -631,7 +681,7 @@
     {
       "name": "varity_deploy_agent",
       "title": "Deploy an AI Agent Template",
-      "description": "Backward-compatible alias for varity_deploy_template. Deploys a certified Varity template by ID.",
+      "description": "Backward-compatible alias for varity_deploy_template. Deploys only public certified templates with no required environment variables; private or secret-bearing templates are refused.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -642,13 +692,6 @@
           "name": {
             "type": "string",
             "description": "Memorable deployment name. Defaults to <template>-derived name if omitted."
-          },
-          "env": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "string"
-            },
-            "description": "Environment variables to pass to the template container as key-value strings."
           }
         },
         "required": [
@@ -666,19 +709,19 @@
     },
     {
       "name": "varity_migrate",
-      "title": "Migrate from Vercel to Varity",
-      "description": "Migrate a Vercel project to Varity in one step: clones the GitHub repository, removes Vercel-specific artifacts (vercel.json, @vercel/* packages, image optimizer config, env var renames), and deploys the transformed app to Varity infrastructure. Returns a live deployment URL and a migration report. Works with Next.js projects. Use this when a developer wants to move their Vercel app to Varity.",
+      "title": "Preview a Vercel Migration",
+      "description": "Clone a GitHub repository into a disposable directory and preview the transformations the current varitykit migration owner would apply. This tool does not mutate the source repository or deploy. Applying a migration requires a user-controlled local checkout so the transformed source can be reviewed, committed, and pushed before deployment.",
       "inputSchema": {
         "type": "object",
         "properties": {
           "github_url": {
             "type": "string",
-            "description": "GitHub repository URL to migrate (e.g. 'https://github.com/user/my-vercel-app'). The repository will be cloned to a temporary directory, transformed, and deployed."
+            "description": "GitHub repository URL to inspect, for example https://github.com/user/app."
           },
           "dry_run": {
             "type": "boolean",
-            "default": false,
-            "description": "If true, show what would change without deploying. Useful for previewing migration impact."
+            "default": true,
+            "description": "Must remain true. URL-based migration is preview-only until transformed-source custody is explicit."
           }
         },
         "required": [
@@ -688,7 +731,7 @@
         "$schema": "http://json-schema.org/draft-07/schema#"
       },
       "annotations": {
-        "destructiveHint": true
+        "readOnlyHint": true
       },
       "execution": {
         "taskSupport": "forbidden"

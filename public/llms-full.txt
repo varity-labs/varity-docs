@@ -2160,10 +2160,12 @@ Important lifecycle semantics:
   billing closure are all complete.
 - A redeploy request reapplies saved configuration and can be a no-op. Do not
   describe it as a verified restart or image refresh without runtime evidence.
-- Deployment-log availability depends on how the deployment was created. Use
-  the local build tool for compilation diagnostics.
-- Environment-variable values are write-only. Do not expect read APIs or tool
-  results to echo secrets.
+- The deployment-log tool returns recent runtime logs of a live app. Use the
+  local build tool for compilation diagnostics.
+- The environment tool accepts no values. It directs private configuration to
+  a secret-safe interface, and no tool result echoes a secret.
+- The CPU machine tools list, create, and delete SSH-accessible machines. Create
+  takes your SSH public key, and a machine bills hourly until it is deleted.
 
 ## Typical Workflow
 
