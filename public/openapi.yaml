@@ -987,6 +987,49 @@
         }
       }
     },
+    "/deployments/{deployment_id}/metrics": {
+      "get": {
+        "operationId": "readDeploymentMetrics",
+        "summary": "Read deployment usage metrics",
+        "description": "CPU, memory, network, bandwidth, storage and build usage for any deployment type. A signal that was not observed is null with a status and reason, never 0.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeploymentId"
+          },
+          {
+            "name": "window",
+            "in": "query",
+            "description": "Lookback window. The bucket size is returned in window.step_seconds.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1h",
+                "24h",
+                "48h",
+                "7d",
+                "30d"
+              ],
+              "default": "24h"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deployment usage metrics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeploymentMetrics"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      }
+    },
     "/deployments/{deployment_id}/env": {
       "get": {
         "operationId": "listDeploymentEnv",
@@ -4506,6 +4549,398 @@
           },
           "retryable": {
             "type": "boolean"
+          }
+        }
+      },
+      "MeasurementStatus": {
+        "type": "string",
+        "enum": [
+          "measured",
+          "partial",
+          "not_measured",
+          "unavailable"
+        ]
+      },
+      "MetricsSignal": {
+        "type": "object",
+        "required": [
+          "status",
+          "reason"
+        ],
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/MeasurementStatus"
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Why the signal is not fully measured (e.g. no_varity_collector_in_image, no_guest_collector, no_samples_received); null when measured."
+          }
+        }
+      },
+      "DeploymentMetrics": {
+        "type": "object",
+        "required": [
+          "deployment_id",
+          "category",
+          "window",
+          "signals",
+          "totals",
+          "runs",
+          "series"
+        ],
+        "properties": {
+          "deployment_id": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "window": {
+            "type": "object",
+            "required": [
+              "from",
+              "to",
+              "step_seconds"
+            ],
+            "properties": {
+              "from": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "to": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "step_seconds": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "description": "Bucket size chosen by the server (300 for windows up to 48h, 3600 for 7d and 30d). null ONLY when series is empty (no durable deployment identity); read each signal reason instead."
+              }
+            }
+          },
+          "signals": {
+            "type": "object",
+            "required": [
+              "cpu",
+              "memory",
+              "network",
+              "bandwidth",
+              "storage",
+              "build"
+            ],
+            "properties": {
+              "cpu": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/MetricsSignal"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "allocated_cores": {
+                        "type": [
+                          "number",
+                          "null"
+                        ]
+                      }
+                    }
+                  }
+                ]
+              },
+              "memory": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/MetricsSignal"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "limit_bytes": {
+                        "type": [
+                          "integer",
+                          "null"
+                        ]
+                      }
+                    }
+                  }
+                ]
+              },
+              "network": {
+                "$ref": "#/components/schemas/MetricsSignal"
+              },
+              "bandwidth": {
+                "$ref": "#/components/schemas/MetricsSignal"
+              },
+              "storage": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/MetricsSignal"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "site_files_bytes": {
+                        "type": [
+                          "integer",
+                          "null"
+                        ]
+                      }
+                    }
+                  }
+                ]
+              },
+              "build": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/MetricsSignal"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "build_publish_seconds": {
+                        "type": [
+                          "number",
+                          "null"
+                        ]
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "totals": {
+            "type": "object",
+            "properties": {
+              "cpu_core_seconds": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "mem_peak_bytes": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "net_rx_bytes": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "net_tx_bytes": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "served_bytes": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "description": "Response body bytes served through varity.app."
+              },
+              "requests": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              }
+            }
+          },
+          "runs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "run_id",
+                "started_at",
+                "ended_at",
+                "status",
+                "reason"
+              ],
+              "properties": {
+                "run_id": {
+                  "type": "string"
+                },
+                "started_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "ended_at": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "format": "date-time",
+                  "description": "A superseded run ends when the next SUCCEEDED run was accepted; a failed replacement does not supersede it."
+                },
+                "cpu_core_seconds": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "mem_peak_bytes": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "net_rx_bytes": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "net_tx_bytes": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "served_bytes": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "requests": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "oom_events": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "vm_lifetime_seconds": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "status": {
+                  "$ref": "#/components/schemas/MeasurementStatus"
+                },
+                "reason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              }
+            }
+          },
+          "series": {
+            "type": "array",
+            "description": "Buckets of window.step_seconds that hold data, oldest first. A missing bucket is a gap (not measured), never a zero point.",
+            "items": {
+              "type": "object",
+              "required": [
+                "t",
+                "status"
+              ],
+              "properties": {
+                "t": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "Bucket start."
+                },
+                "cpu_cores": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "mem_working_set_bytes": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "net_rx_bytes": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "net_tx_bytes": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "served_bytes": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "requests": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "status_2xx": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "status_3xx": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "status_4xx": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "status_5xx": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "latency_avg_ms": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "latency_p95_ms": {
+                  "type": [
+                    "number",
+                    "null"
+                  ],
+                  "description": "p95 (bucketed): estimated from the gateway latency histogram, not an exact percentile."
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "measured",
+                    "partial"
+                  ],
+                  "description": "partial only when a signal that has rows in this bucket is incomplete; a bucket with no gateway row means no traffic."
+                }
+              }
+            }
           }
         }
       },
