@@ -17,10 +17,18 @@ Portal. It sends real requests through the AI Gateway, so they
 are charged to your gateway balance and count against the same account rate
 limits as your API keys.
 
-## Choosing A Model
+## Build And Chat
 
-Pick any model from the live catalog. A tool the selected model cannot use is
-shown as unavailable, and its tooltip says why.
+The composer has two modes:
+
+- **Build**: build and change your app. Build always runs on GLM 5.3 Flash, so
+  there is no model to choose.
+- **Chat**: ask, plan, and read with any model. Nothing is written or deployed.
+  The model picker lists your favorites, your recent models, and a short list,
+  then **All models** for the rest of the live catalog.
+
+A tool the selected model cannot use is shown as unavailable, and its tooltip
+says why.
 
 ## The "+" Menu
 
@@ -30,18 +38,16 @@ shown as unavailable, and its tooltip says why.
   A document stays on the message it was sent with, and each message holds up
   to the selected model's per-message document limit
   (`capabilities.max_documents_per_message`). The **×** on a sent document
-  removes it from that message. With Varity tools on, a dropped folder's PDFs
-  join the chat's files as text.
+  removes it from that message. On a model with Varity tools, a dropped
+  folder's PDFs join the chat's files as text.
 - **Create image**: choose an image model and open its workspace.
 
 **Tools**
 
 - **Web search**: search the web and cite sources.
 - **Read links**: read the pages linked in your message.
-- **Deep research**: several private web searches, then one cited answer.
-- **Compare models**: send one prompt to 2 or 3 models side by side.
-- **Varity tools**: let the assistant work with your deployments, repository,
-  and builds (see below).
+- **Deep research** (Chat): several private web searches, then one cited answer.
+- **Compare models** (Chat): send one prompt to 2 or 3 models side by side.
 
 **Connect**
 
@@ -51,7 +57,9 @@ shown as unavailable, and its tooltip says why.
 
 ## Varity Tools
 
-With Varity tools on, the assistant can:
+Varity tools let the assistant work with your deployments, repository, and
+builds. They are on whenever the selected model supports streamed tool calls;
+there is no switch. With them, the assistant can:
 
 - list your deployments and read their status and logs;
 - list, search, and read files in the connected repository;
@@ -63,10 +71,14 @@ With Varity tools on, the assistant can:
 - plan deploying a commit.
 
 Anything that changes your account is a plan first. You approve each step, such
-as the commit and then the deploy, before it runs.
+as the commit and then the deploy, before it runs. Chat keeps only the reading
+tools: it writes no files and proposes no deploy, commit, or merge.
 
-Varity tools are available only on models that support streamed tool calls, and
-they add input tokens to every message. The menu shows the approximate cost.
+Varity tools add input tokens to every message.
+
+After each Build reply, the chat lists the files the reply wrote, or says
+**No files changed in this reply**. When the preview shows an error, **Fix this error** sends
+it back to the chat; nothing is fixed automatically.
 
 ## Workspace Panel
 
@@ -87,14 +99,18 @@ message, so you can copy it into your own app.
 - **History and projects**: conversations are grouped into projects and kept on
   your device, not on Varity's servers. The AI Gateway stores no prompt or
   response content.
+- **Projects**: a new chat in a project shows the project's **Instructions**,
+  **Files**, and **Memory**. Deleting a project deletes its chats.
 - **Project files**: open a project's settings and use **Add files** or
   **Add folder**. A project holds text, code, and SVG files, and PDFs converted
   to text; Word, PowerPoint, and Excel files are not added to projects. Every
-  chat in the project reads these files through Varity tools, with any model
-  that can use Varity tools. Each project holds up to 5 MB of files, stored on
-  your device.
-- **Memory**: notes you save on your device. While memory is on, they are sent
-  with each message, and you can see them in View code.
+  chat in the project reads these files with any model that supports Varity
+  tools; in Chat, a model without them gets the files as context while they
+  fit. Each project holds up to 5 MB of files, stored on your device.
+- **Memory**: notes you save on your device. A note added inside a project
+  applies only to that project's chats; deleting the project deletes it. While
+  memory is on, notes are sent with each message, and you can see them in View
+  code.
 - **Incognito**: an incognito chat is not saved to history and does not use
   memory. It ends when you leave it.
 
