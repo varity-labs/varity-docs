@@ -126,6 +126,21 @@ Ids are readable human slugs, for example `glm-5-1`, `glm-5-2`,
 - **There is a concurrency bound as well as a rate limit.** Both are counted for the whole account rather than per key. See [Rate Limits](/ai-gateway/limits/).
 - **`GET /v1/models` carries no request budget** and returns no `RateLimit-*` headers. The headers live on the inference and inference-read routes, not on catalog discovery.
 
+## Request Fields
+
+`POST /v1/chat/completions` handles these OpenAI request fields as follows. A
+field it rejects returns `400` naming that field.
+
+| Field | Behavior |
+|-------|----------|
+| `user` | Accepted and dropped; end-user ids never leave Varity |
+| `developer` role | Treated as `system` |
+| `response_format.json_schema.description` | Accepted and forwarded |
+| `n` | `1` only; any other value returns `400` |
+| `frequency_penalty`, `presence_penalty` | `0` only; any other value returns `400` |
+| `logprobs` | `false` only; `true` returns `400` |
+| `top_logprobs` | Always returns `400` |
+
 ## Errors
 
 The error envelope matches OpenAI's shape and adds two fields:
@@ -236,7 +251,9 @@ inference records. What is retained for 30 days is request metadata: model id,
 token counts, latency, fallback count, error code, and timestamps. Read it back
 with `GET /v1/inference/requests`.
 
-This is the property usually searched for as zero data retention, or ZDR.
+This is zero data retention (ZDR) for Varity's own records. What the model
+provider does with a request depends on the model's privacy class; see
+[Privacy Routing](#privacy-routing).
 
 ## Privacy Routing
 
@@ -246,11 +263,11 @@ The live catalog reports two routing privacy classes: `privacy: "private"` with
 Varity-specific catalog metadata describing how each model is routed. Read it per
 model.
 
-Your account has a privacy floor. It is `anonymized` unless you choose
-otherwise, which lets requests use both `private` and `anonymized` models. Set it
-to `private` with `PUT /v1/inference/policy` (or on the portal's **Gateway
-settings** tab) and only `private` models are callable. Setting it back to
-`anonymized` requires `acknowledge_anonymized_processing: true`. A single chat request can
+Your account has a privacy floor. A new account starts at `anonymized`, with
+nothing to acknowledge, which lets requests use both `private` and `anonymized`
+models. Set it to `private` with `PUT /v1/inference/policy` (or on the portal's
+**Gateway settings** tab) and only `private` models are callable. A `PUT` that
+sets it to `anonymized` carries `acknowledge_anonymized_processing: true`. A single chat request can
 tighten the floor, never loosen it, with
 `"varity_extensions": { "privacy_floor": "private" }`; asking for a weaker floor
 than the account's returns `403 privacy_policy_violation`.

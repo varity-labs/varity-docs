@@ -177,7 +177,7 @@ Key plaintext is shown once
 at creation and is never returned again; the list identifies each key by its
 key id (`vki_…`). The same key format is used across the
 Varity [public API](/ai-tools/api-reference/). A revoked key stops working
-within 30 seconds. See [Billing and Keys](/ai-gateway/billing-and-keys/).
+within 60 seconds. See [Billing and Keys](/ai-gateway/billing-and-keys/).
 
 Inference is prepaid: add credits on the **Gateway billing** tab before your
 first request. Each request is charged according to the live model catalog;
@@ -346,7 +346,7 @@ Create, list, and revoke keys on the **Inference keys** tab.
 - A key can carry its own `requests_per_minute` and `concurrency_limit` (the
   smaller of the key's and the account's bound applies), a spending budget, and
   an expiry.
-- **A revoked key stops working within 30 seconds.**
+- **A revoked key stops working within 60 seconds.**
 
 Send the key as a bearer credential on every inference request:
 
@@ -511,6 +511,21 @@ Ids are readable human slugs, for example `glm-5-1`, `glm-5-2`,
 - **There is a concurrency bound as well as a rate limit.** Both are counted for the whole account rather than per key. See [Rate Limits](/ai-gateway/limits/).
 - **`GET /v1/models` carries no request budget** and returns no `RateLimit-*` headers. The headers live on the inference and inference-read routes, not on catalog discovery.
 
+## Request Fields
+
+`POST /v1/chat/completions` handles these OpenAI request fields as follows. A
+field it rejects returns `400` naming that field.
+
+| Field | Behavior |
+|-------|----------|
+| `user` | Accepted and dropped; end-user ids never leave Varity |
+| `developer` role | Treated as `system` |
+| `response_format.json_schema.description` | Accepted and forwarded |
+| `n` | `1` only; any other value returns `400` |
+| `frequency_penalty`, `presence_penalty` | `0` only; any other value returns `400` |
+| `logprobs` | `false` only; `true` returns `400` |
+| `top_logprobs` | Always returns `400` |
+
 ## Errors
 
 The error envelope matches OpenAI's shape and adds two fields:
@@ -617,7 +632,9 @@ inference records. What is retained for 30 days is request metadata: model id,
 token counts, latency, fallback count, error code, and timestamps. Read it back
 with `GET /v1/inference/requests`.
 
-This is the property usually searched for as zero data retention, or ZDR.
+This is zero data retention (ZDR) for Varity's own records. What the model
+provider does with a request depends on the model's privacy class; see
+[Privacy Routing](#privacy-routing).
 
 ## Privacy Routing
 
@@ -627,11 +644,11 @@ The live catalog reports two routing privacy classes: `privacy: "private"` with
 Varity-specific catalog metadata describing how each model is routed. Read it per
 model.
 
-Your account has a privacy floor. It is `anonymized` unless you choose
-otherwise, which lets requests use both `private` and `anonymized` models. Set it
-to `private` with `PUT /v1/inference/policy` (or on the portal's **Gateway
-settings** tab) and only `private` models are callable. Setting it back to
-`anonymized` requires `acknowledge_anonymized_processing: true`. A single chat request can
+Your account has a privacy floor. A new account starts at `anonymized`, with
+nothing to acknowledge, which lets requests use both `private` and `anonymized`
+models. Set it to `private` with `PUT /v1/inference/policy` (or on the portal's
+**Gateway settings** tab) and only `private` models are callable. A `PUT` that
+sets it to `anonymized` carries `acknowledge_anonymized_processing: true`. A single chat request can
 tighten the floor, never loosen it, with
 `"varity_extensions": { "privacy_floor": "private" }`; asking for a weaker floor
 than the account's returns `403 privacy_policy_violation`.
@@ -1387,10 +1404,18 @@ Portal. It sends real requests through the AI Gateway, so they
 are charged to your gateway balance and count against the same account rate
 limits as your API keys.
 
-## Choosing A Model
+## Build And Chat
 
-Pick any model from the live catalog. A tool the selected model cannot use is
-shown as unavailable, and its tooltip says why.
+The composer has two modes:
+
+- **Build**: build and change your app. Build always runs on GLM 5.3 Flash, so
+  there is no model to choose.
+- **Chat**: ask, plan, and read with any model. Nothing is written or deployed.
+  The model picker lists your favorites, your recent models, and a short list,
+  then **All models** for the rest of the live catalog.
+
+A tool the selected model cannot use is shown as unavailable, and its tooltip
+says why.
 
 ## The "+" Menu
 
@@ -1400,18 +1425,16 @@ shown as unavailable, and its tooltip says why.
   A document stays on the message it was sent with, and each message holds up
   to the selected model's per-message document limit
   (`capabilities.max_documents_per_message`). The **×** on a sent document
-  removes it from that message. With Varity tools on, a dropped folder's PDFs
-  join the chat's files as text.
+  removes it from that message. On a model with Varity tools, a dropped
+  folder's PDFs join the chat's files as text.
 - **Create image**: choose an image model and open its workspace.
 
 **Tools**
 
 - **Web search**: search the web and cite sources.
 - **Read links**: read the pages linked in your message.
-- **Deep research**: several private web searches, then one cited answer.
-- **Compare models**: send one prompt to 2 or 3 models side by side.
-- **Varity tools**: let the assistant work with your deployments, repository,
-  and builds (see below).
+- **Deep research** (Chat): several private web searches, then one cited answer.
+- **Compare models** (Chat): send one prompt to 2 or 3 models side by side.
 
 **Connect**
 
@@ -1421,7 +1444,9 @@ shown as unavailable, and its tooltip says why.
 
 ## Varity Tools
 
-With Varity tools on, the assistant can:
+Varity tools let the assistant work with your deployments, repository, and
+builds. They are on whenever the selected model supports streamed tool calls;
+there is no switch. With them, the assistant can:
 
 - list your deployments and read their status and logs;
 - list, search, and read files in the connected repository;
@@ -1433,10 +1458,14 @@ With Varity tools on, the assistant can:
 - plan deploying a commit.
 
 Anything that changes your account is a plan first. You approve each step, such
-as the commit and then the deploy, before it runs.
+as the commit and then the deploy, before it runs. Chat keeps only the reading
+tools: it writes no files and proposes no deploy, commit, or merge.
 
-Varity tools are available only on models that support streamed tool calls, and
-they add input tokens to every message. The menu shows the approximate cost.
+Varity tools add input tokens to every message.
+
+After each Build reply, the chat lists the files the reply wrote, or says
+**No files changed in this reply**. When the preview shows an error, **Fix this error** sends
+it back to the chat; nothing is fixed automatically.
 
 ## Workspace Panel
 
@@ -1457,14 +1486,18 @@ message, so you can copy it into your own app.
 - **History and projects**: conversations are grouped into projects and kept on
   your device, not on Varity's servers. The AI Gateway stores no prompt or
   response content.
+- **Projects**: a new chat in a project shows the project's **Instructions**,
+  **Files**, and **Memory**. Deleting a project deletes its chats.
 - **Project files**: open a project's settings and use **Add files** or
   **Add folder**. A project holds text, code, and SVG files, and PDFs converted
   to text; Word, PowerPoint, and Excel files are not added to projects. Every
-  chat in the project reads these files through Varity tools, with any model
-  that can use Varity tools. Each project holds up to 5 MB of files, stored on
-  your device.
-- **Memory**: notes you save on your device. While memory is on, they are sent
-  with each message, and you can see them in View code.
+  chat in the project reads these files with any model that supports Varity
+  tools; in Chat, a model without them gets the files as context while they
+  fit. Each project holds up to 5 MB of files, stored on your device.
+- **Memory**: notes you save on your device. A note added inside a project
+  applies only to that project's chats; deleting the project deletes it. While
+  memory is on, notes are sent with each message, and you can see them in View
+  code.
 - **Incognito**: an incognito chat is not saved to history and does not use
   memory. It ends when you leave it.
 
