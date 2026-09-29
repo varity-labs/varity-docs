@@ -2466,10 +2466,12 @@
               "type": "string",
               "enum": [
                 "system",
+                "developer",
                 "user",
                 "assistant",
                 "tool"
-              ]
+              ],
+              "description": "developer is treated as system."
             },
             "cache_control": {
               "$ref": "#/components/schemas/CacheControl",
@@ -2666,6 +2668,38 @@
                     }
                   }
                 }
+              ]
+            },
+            "user": {
+              "description": "Accepted for OpenAI compatibility and never forwarded to a supplier.",
+              "type": "string"
+            },
+            "n": {
+              "description": "Only 1 is supported; any other value is rejected.",
+              "type": "integer",
+              "enum": [
+                1
+              ]
+            },
+            "frequency_penalty": {
+              "description": "Only 0 is accepted; any other value is rejected.",
+              "type": "number",
+              "enum": [
+                0
+              ]
+            },
+            "presence_penalty": {
+              "description": "Only 0 is accepted; any other value is rejected.",
+              "type": "number",
+              "enum": [
+                0
+              ]
+            },
+            "logprobs": {
+              "description": "Only false is accepted; log probabilities are not returned.",
+              "type": "boolean",
+              "enum": [
+                false
               ]
             },
             "stream_options": {
@@ -4106,8 +4140,7 @@
         ],
         "chat_completions": true,
         "streaming_text": true,
-        "tool_calls": true,
-        "streaming_tool_calls": true,
+        "tool_calls": false,
         "structured_outputs": true,
         "json_schema": true,
         "streaming": true,
@@ -4160,8 +4193,7 @@
         ],
         "chat_completions": true,
         "streaming_text": true,
-        "tool_calls": true,
-        "streaming_tool_calls": true,
+        "tool_calls": false,
         "structured_outputs": true,
         "json_schema": true,
         "streaming": true,
@@ -4414,6 +4446,60 @@
       }
     },
     {
+      "id": "claude-opus-5-5-fast",
+      "privacy": "anonymized",
+      "context_window": 1000000,
+      "max_completion_tokens": 128000,
+      "capabilities": {
+        "version": 1,
+        "input_modalities": [
+          "text",
+          "document",
+          "image"
+        ],
+        "output_modalities": [
+          "text"
+        ],
+        "chat_completions": true,
+        "streaming_text": true,
+        "tool_calls": true,
+        "streaming_tool_calls": true,
+        "structured_outputs": true,
+        "json_schema": true,
+        "streaming": true,
+        "transcription": false,
+        "speech": false,
+        "speech_formats": [],
+        "parallel_tool_calls": true,
+        "max_documents_per_message": 5,
+        "reasoning_controls": true,
+        "reasoning_effort": true,
+        "web_search": true,
+        "x_search": false,
+        "optimized_for_code": true,
+        "log_probs": false,
+        "temperature": true,
+        "top_p": true,
+        "seed": true,
+        "stop": true,
+        "context_window": 1000000,
+        "max_completion_tokens": 128000,
+        "privacy": "anonymized",
+        "privacy_routes": [
+          "anonymized"
+        ]
+      },
+      "customer_pricing": {
+        "status": "configured",
+        "version": "2026-09-17.v4.45f869ede1943183",
+        "currency": "usd",
+        "unit": "per_million_tokens",
+        "input": 9.6,
+        "output": 48,
+        "cached_input": 0.48
+      }
+    },
+    {
       "id": "claude-opus-5-fast",
       "privacy": "anonymized",
       "context_window": 1000000,
@@ -4484,8 +4570,7 @@
         ],
         "chat_completions": true,
         "streaming_text": true,
-        "tool_calls": true,
-        "streaming_tool_calls": true,
+        "tool_calls": false,
         "structured_outputs": true,
         "json_schema": true,
         "streaming": true,
@@ -4538,8 +4623,7 @@
         ],
         "chat_completions": true,
         "streaming_text": true,
-        "tool_calls": true,
-        "streaming_tool_calls": true,
+        "tool_calls": false,
         "structured_outputs": true,
         "json_schema": true,
         "streaming": true,
@@ -4627,6 +4711,60 @@
         "input": 3,
         "output": 15,
         "cached_input": 0.3
+      }
+    },
+    {
+      "id": "claude-sonnet-5-5",
+      "privacy": "anonymized",
+      "context_window": 1000000,
+      "max_completion_tokens": 128000,
+      "capabilities": {
+        "version": 1,
+        "input_modalities": [
+          "text",
+          "document",
+          "image"
+        ],
+        "output_modalities": [
+          "text"
+        ],
+        "chat_completions": true,
+        "streaming_text": true,
+        "tool_calls": true,
+        "streaming_tool_calls": true,
+        "structured_outputs": true,
+        "json_schema": true,
+        "streaming": true,
+        "transcription": false,
+        "speech": false,
+        "speech_formats": [],
+        "parallel_tool_calls": true,
+        "max_documents_per_message": 5,
+        "reasoning_controls": true,
+        "reasoning_effort": true,
+        "web_search": true,
+        "x_search": false,
+        "optimized_for_code": true,
+        "log_probs": false,
+        "temperature": true,
+        "top_p": true,
+        "seed": true,
+        "stop": true,
+        "context_window": 1000000,
+        "max_completion_tokens": 128000,
+        "privacy": "anonymized",
+        "privacy_routes": [
+          "anonymized"
+        ]
+      },
+      "customer_pricing": {
+        "status": "configured",
+        "version": "2026-09-17.v4.659a3827b2163f81",
+        "currency": "usd",
+        "unit": "per_million_tokens",
+        "input": 3.75,
+        "output": 18.75,
+        "cached_input": 0.375
       }
     },
     {
@@ -5504,8 +5642,7 @@
         ],
         "chat_completions": true,
         "streaming_text": true,
-        "tool_calls": true,
-        "streaming_tool_calls": true,
+        "tool_calls": false,
         "structured_outputs": true,
         "json_schema": true,
         "streaming": true,
@@ -5616,8 +5753,7 @@
         ],
         "chat_completions": true,
         "streaming_text": true,
-        "tool_calls": true,
-        "streaming_tool_calls": true,
+        "tool_calls": false,
         "structured_outputs": true,
         "json_schema": true,
         "streaming": true,
@@ -6582,8 +6718,7 @@
         ],
         "chat_completions": true,
         "streaming_text": true,
-        "tool_calls": true,
-        "streaming_tool_calls": true,
+        "tool_calls": false,
         "structured_outputs": true,
         "json_schema": true,
         "streaming": true,
@@ -6636,8 +6771,7 @@
         ],
         "chat_completions": true,
         "streaming_text": true,
-        "tool_calls": true,
-        "streaming_tool_calls": true,
+        "tool_calls": false,
         "structured_outputs": true,
         "json_schema": true,
         "streaming": true,
@@ -6689,8 +6823,7 @@
         ],
         "chat_completions": true,
         "streaming_text": true,
-        "tool_calls": true,
-        "streaming_tool_calls": true,
+        "tool_calls": false,
         "structured_outputs": true,
         "json_schema": true,
         "streaming": true,
@@ -6797,8 +6930,7 @@
         ],
         "chat_completions": true,
         "streaming_text": true,
-        "tool_calls": true,
-        "streaming_tool_calls": true,
+        "tool_calls": false,
         "structured_outputs": true,
         "json_schema": true,
         "streaming": true,
@@ -6851,8 +6983,7 @@
         ],
         "chat_completions": true,
         "streaming_text": true,
-        "tool_calls": true,
-        "streaming_tool_calls": true,
+        "tool_calls": false,
         "structured_outputs": true,
         "json_schema": true,
         "streaming": true,
@@ -6959,8 +7090,7 @@
         ],
         "chat_completions": true,
         "streaming_text": true,
-        "tool_calls": true,
-        "streaming_tool_calls": true,
+        "tool_calls": false,
         "structured_outputs": true,
         "json_schema": true,
         "streaming": true,
@@ -7013,8 +7143,7 @@
         ],
         "chat_completions": true,
         "streaming_text": true,
-        "tool_calls": true,
-        "streaming_tool_calls": true,
+        "tool_calls": false,
         "structured_outputs": true,
         "json_schema": true,
         "streaming": true,
@@ -7067,8 +7196,7 @@
         ],
         "chat_completions": true,
         "streaming_text": true,
-        "tool_calls": true,
-        "streaming_tool_calls": true,
+        "tool_calls": false,
         "structured_outputs": true,
         "json_schema": true,
         "streaming": true,
@@ -7121,8 +7249,7 @@
         ],
         "chat_completions": true,
         "streaming_text": true,
-        "tool_calls": true,
-        "streaming_tool_calls": true,
+        "tool_calls": false,
         "structured_outputs": true,
         "json_schema": true,
         "streaming": true,
@@ -7175,8 +7302,7 @@
         ],
         "chat_completions": true,
         "streaming_text": true,
-        "tool_calls": true,
-        "streaming_tool_calls": true,
+        "tool_calls": false,
         "structured_outputs": true,
         "json_schema": true,
         "streaming": true,
@@ -7229,8 +7355,7 @@
         ],
         "chat_completions": true,
         "streaming_text": true,
-        "tool_calls": true,
-        "streaming_tool_calls": true,
+        "tool_calls": false,
         "structured_outputs": true,
         "json_schema": true,
         "streaming": true,
@@ -7283,8 +7408,7 @@
         ],
         "chat_completions": true,
         "streaming_text": true,
-        "tool_calls": true,
-        "streaming_tool_calls": true,
+        "tool_calls": false,
         "structured_outputs": true,
         "json_schema": true,
         "streaming": true,
@@ -7841,12 +7965,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.f791c257a4b57213",
+        "version": "2026-09-17.v4.c1859509a650eed7",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.03,
-        "output": 0.17,
-        "cached_input": 0.03
+        "input": 0.033,
+        "output": 0.187,
+        "cached_input": 0.033
       }
     },
     {
@@ -8134,8 +8258,7 @@
         ],
         "chat_completions": true,
         "streaming_text": true,
-        "tool_calls": true,
-        "streaming_tool_calls": true,
+        "tool_calls": false,
         "structured_outputs": true,
         "json_schema": true,
         "streaming": true,
@@ -9869,6 +9992,62 @@
         "input": 0.4,
         "output": 2,
         "cached_input": 0.08
+      }
+    },
+    {
+      "id": "mimo-v2-6-flash",
+      "privacy": "private",
+      "context_window": 1000000,
+      "max_completion_tokens": 131072,
+      "capabilities": {
+        "version": 1,
+        "input_modalities": [
+          "text",
+          "document",
+          "audio",
+          "image",
+          "video"
+        ],
+        "output_modalities": [
+          "text"
+        ],
+        "chat_completions": true,
+        "streaming_text": true,
+        "tool_calls": true,
+        "streaming_tool_calls": true,
+        "structured_outputs": true,
+        "json_schema": true,
+        "streaming": true,
+        "transcription": false,
+        "speech": false,
+        "speech_formats": [],
+        "parallel_tool_calls": true,
+        "max_documents_per_message": 5,
+        "reasoning_controls": true,
+        "reasoning_effort": true,
+        "web_search": true,
+        "x_search": false,
+        "optimized_for_code": true,
+        "log_probs": false,
+        "temperature": true,
+        "top_p": true,
+        "seed": true,
+        "stop": true,
+        "context_window": 1000000,
+        "max_completion_tokens": 131072,
+        "privacy": "private",
+        "privacy_routes": [
+          "private"
+        ]
+      },
+      "customer_pricing": {
+        "status": "configured",
+        "version": "2026-09-17.v4.55959b906b1013c9",
+        "currency": "usd",
+        "unit": "per_million_tokens",
+        "input": 0.175,
+        "output": 0.35,
+        "cached_input": 0.00375
       }
     },
     {
