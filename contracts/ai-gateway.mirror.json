@@ -216,7 +216,7 @@
                 "text/event-stream": {
                   "schema": {
                     "type": "string",
-                    "description": "OpenAI-compatible data frames ending in a usage-bearing chunk and data: [DONE]. Every chunk carries the same id (chatcmpl-{request_id}) and created as a non-streaming completion would."
+                    "description": "OpenAI-compatible data frames ending in data: [DONE], preceded by a usage chunk with empty choices when stream_options.include_usage is true. Every chunk carries the same id (chatcmpl-{request_id}) and created as a non-streaming completion would."
                   }
                 }
               }
@@ -2702,8 +2702,16 @@
                 false
               ]
             },
+            "logit_bias": {
+              "description": "Only an empty object or null is accepted; token biasing is not supported.",
+              "type": [
+                "object",
+                "null"
+              ],
+              "maxProperties": 0
+            },
             "stream_options": {
-              "description": "Accepted for OpenAI compatibility; it does not change the response. A stream always ends with a usage-bearing chunk: Varity always requests usage from the provider (openai-chat-wire.ts, venice.ts), and a stream the provider ends without usage accounting fails with stream_terminated rather than completing. include_usage false does not suppress it.",
+              "description": "OpenAI streaming options. With include_usage true, the stream ends with one usage chunk whose choices array is empty, before data: [DONE]. Without it, no empty-choices chunk is sent. Billing uses the provider-reported usage either way.",
               "type": "object",
               "additionalProperties": false,
               "properties": {
@@ -3439,6 +3447,59 @@
   },
   "models": [
     {
+      "id": "abliterated-large-v2",
+      "privacy": "anonymized",
+      "context_window": 1000000,
+      "max_completion_tokens": 32768,
+      "capabilities": {
+        "version": 1,
+        "input_modalities": [
+          "text",
+          "document"
+        ],
+        "output_modalities": [
+          "text"
+        ],
+        "chat_completions": true,
+        "streaming_text": true,
+        "tool_calls": true,
+        "streaming_tool_calls": true,
+        "structured_outputs": true,
+        "json_schema": true,
+        "streaming": true,
+        "transcription": false,
+        "speech": false,
+        "speech_formats": [],
+        "parallel_tool_calls": true,
+        "max_documents_per_message": 5,
+        "reasoning_controls": true,
+        "reasoning_effort": false,
+        "web_search": true,
+        "x_search": false,
+        "optimized_for_code": false,
+        "log_probs": false,
+        "temperature": true,
+        "top_p": true,
+        "seed": true,
+        "stop": true,
+        "context_window": 1000000,
+        "max_completion_tokens": 32768,
+        "privacy": "anonymized",
+        "privacy_routes": [
+          "anonymized"
+        ]
+      },
+      "customer_pricing": {
+        "status": "configured",
+        "version": "2026-09-17.v4.0a1d2996c25a551e",
+        "currency": "usd",
+        "unit": "per_million_tokens",
+        "input": 3,
+        "output": 5,
+        "cached_input": 0.3
+      }
+    },
+    {
       "id": "aion-3-0",
       "privacy": "anonymized",
       "context_window": 128000,
@@ -4140,7 +4201,8 @@
         ],
         "chat_completions": true,
         "streaming_text": true,
-        "tool_calls": false,
+        "tool_calls": true,
+        "streaming_tool_calls": true,
         "structured_outputs": true,
         "json_schema": true,
         "streaming": true,
@@ -4193,7 +4255,8 @@
         ],
         "chat_completions": true,
         "streaming_text": true,
-        "tool_calls": false,
+        "tool_calls": true,
+        "streaming_tool_calls": true,
         "structured_outputs": true,
         "json_schema": true,
         "streaming": true,
@@ -4554,59 +4617,6 @@
       }
     },
     {
-      "id": "claude-sonnet-4-5",
-      "privacy": "anonymized",
-      "context_window": 198000,
-      "max_completion_tokens": 64000,
-      "capabilities": {
-        "version": 1,
-        "input_modalities": [
-          "text",
-          "document",
-          "image"
-        ],
-        "output_modalities": [
-          "text"
-        ],
-        "chat_completions": true,
-        "streaming_text": true,
-        "tool_calls": false,
-        "structured_outputs": true,
-        "json_schema": true,
-        "streaming": true,
-        "transcription": false,
-        "speech": false,
-        "speech_formats": [],
-        "parallel_tool_calls": true,
-        "max_documents_per_message": 5,
-        "reasoning_controls": true,
-        "reasoning_effort": false,
-        "web_search": true,
-        "x_search": false,
-        "optimized_for_code": true,
-        "log_probs": false,
-        "temperature": true,
-        "top_p": true,
-        "seed": true,
-        "stop": true,
-        "context_window": 198000,
-        "max_completion_tokens": 64000,
-        "privacy": "anonymized",
-        "privacy_routes": [
-          "anonymized"
-        ]
-      },
-      "customer_pricing": {
-        "status": "configured",
-        "version": "2026-09-17.v4.659a3827b2163f81",
-        "currency": "usd",
-        "unit": "per_million_tokens",
-        "input": 3.75,
-        "output": 18.75,
-        "cached_input": 0.375
-      }
-    },
-    {
       "id": "claude-sonnet-4-6",
       "privacy": "anonymized",
       "context_window": 1000000,
@@ -4623,7 +4633,8 @@
         ],
         "chat_completions": true,
         "streaming_text": true,
-        "tool_calls": false,
+        "tool_calls": true,
+        "streaming_tool_calls": true,
         "structured_outputs": true,
         "json_schema": true,
         "streaming": true,
@@ -5401,6 +5412,58 @@
       }
     },
     {
+      "id": "flux-3",
+      "privacy": "anonymized",
+      "context_window": 0,
+      "max_completion_tokens": 0,
+      "capabilities": {
+        "version": 1,
+        "input_modalities": [
+          "text"
+        ],
+        "output_modalities": [
+          "image"
+        ],
+        "chat_completions": false,
+        "streaming_text": false,
+        "tool_calls": false,
+        "streaming_tool_calls": false,
+        "structured_outputs": false,
+        "json_schema": false,
+        "streaming": false,
+        "transcription": false,
+        "speech": false,
+        "speech_formats": [],
+        "parallel_tool_calls": false,
+        "reasoning_controls": false,
+        "reasoning_effort": false,
+        "web_search": false,
+        "x_search": false,
+        "optimized_for_code": false,
+        "log_probs": false,
+        "temperature": false,
+        "top_p": false,
+        "seed": false,
+        "stop": false,
+        "context_window": 0,
+        "max_completion_tokens": 0,
+        "privacy": "anonymized",
+        "privacy_routes": [
+          "anonymized"
+        ]
+      },
+      "customer_pricing": {
+        "status": "configured",
+        "version": "2026-09-17.v4.3e393754bb129bb9",
+        "currency": "usd",
+        "unit": "per_image",
+        "input": 0,
+        "output": 0,
+        "cached_input": 0,
+        "request": 0.06
+      }
+    },
+    {
       "id": "gemini-3-1-flash-tts",
       "privacy": "anonymized",
       "context_window": 0,
@@ -5642,7 +5705,8 @@
         ],
         "chat_completions": true,
         "streaming_text": true,
-        "tool_calls": false,
+        "tool_calls": true,
+        "streaming_tool_calls": true,
         "structured_outputs": true,
         "json_schema": true,
         "streaming": true,
@@ -5753,7 +5817,8 @@
         ],
         "chat_completions": true,
         "streaming_text": true,
-        "tool_calls": false,
+        "tool_calls": true,
+        "streaming_tool_calls": true,
         "structured_outputs": true,
         "json_schema": true,
         "streaming": true,
@@ -6718,7 +6783,8 @@
         ],
         "chat_completions": true,
         "streaming_text": true,
-        "tool_calls": false,
+        "tool_calls": true,
+        "streaming_tool_calls": true,
         "structured_outputs": true,
         "json_schema": true,
         "streaming": true,
@@ -6771,7 +6837,8 @@
         ],
         "chat_completions": true,
         "streaming_text": true,
-        "tool_calls": false,
+        "tool_calls": true,
+        "streaming_tool_calls": true,
         "structured_outputs": true,
         "json_schema": true,
         "streaming": true,
@@ -6823,7 +6890,8 @@
         ],
         "chat_completions": true,
         "streaming_text": true,
-        "tool_calls": false,
+        "tool_calls": true,
+        "streaming_tool_calls": true,
         "structured_outputs": true,
         "json_schema": true,
         "streaming": true,
@@ -6930,7 +6998,8 @@
         ],
         "chat_completions": true,
         "streaming_text": true,
-        "tool_calls": false,
+        "tool_calls": true,
+        "streaming_tool_calls": true,
         "structured_outputs": true,
         "json_schema": true,
         "streaming": true,
@@ -6983,7 +7052,8 @@
         ],
         "chat_completions": true,
         "streaming_text": true,
-        "tool_calls": false,
+        "tool_calls": true,
+        "streaming_tool_calls": true,
         "structured_outputs": true,
         "json_schema": true,
         "streaming": true,
@@ -7090,7 +7160,8 @@
         ],
         "chat_completions": true,
         "streaming_text": true,
-        "tool_calls": false,
+        "tool_calls": true,
+        "streaming_tool_calls": true,
         "structured_outputs": true,
         "json_schema": true,
         "streaming": true,
@@ -7143,7 +7214,8 @@
         ],
         "chat_completions": true,
         "streaming_text": true,
-        "tool_calls": false,
+        "tool_calls": true,
+        "streaming_tool_calls": true,
         "structured_outputs": true,
         "json_schema": true,
         "streaming": true,
@@ -7196,7 +7268,8 @@
         ],
         "chat_completions": true,
         "streaming_text": true,
-        "tool_calls": false,
+        "tool_calls": true,
+        "streaming_tool_calls": true,
         "structured_outputs": true,
         "json_schema": true,
         "streaming": true,
@@ -7249,7 +7322,8 @@
         ],
         "chat_completions": true,
         "streaming_text": true,
-        "tool_calls": false,
+        "tool_calls": true,
+        "streaming_tool_calls": true,
         "structured_outputs": true,
         "json_schema": true,
         "streaming": true,
@@ -7302,7 +7376,8 @@
         ],
         "chat_completions": true,
         "streaming_text": true,
-        "tool_calls": false,
+        "tool_calls": true,
+        "streaming_tool_calls": true,
         "structured_outputs": true,
         "json_schema": true,
         "streaming": true,
@@ -7355,7 +7430,8 @@
         ],
         "chat_completions": true,
         "streaming_text": true,
-        "tool_calls": false,
+        "tool_calls": true,
+        "streaming_tool_calls": true,
         "structured_outputs": true,
         "json_schema": true,
         "streaming": true,
@@ -7408,7 +7484,8 @@
         ],
         "chat_completions": true,
         "streaming_text": true,
-        "tool_calls": false,
+        "tool_calls": true,
+        "streaming_tool_calls": true,
         "structured_outputs": true,
         "json_schema": true,
         "streaming": true,
@@ -7496,6 +7573,60 @@
         "input": 2.5,
         "output": 15,
         "cached_input": 0.25
+      }
+    },
+    {
+      "id": "gpt-6-1-sol",
+      "privacy": "anonymized",
+      "context_window": 1050000,
+      "max_completion_tokens": 128000,
+      "capabilities": {
+        "version": 1,
+        "input_modalities": [
+          "text",
+          "document",
+          "image"
+        ],
+        "output_modalities": [
+          "text"
+        ],
+        "chat_completions": true,
+        "streaming_text": true,
+        "tool_calls": true,
+        "streaming_tool_calls": true,
+        "structured_outputs": true,
+        "json_schema": true,
+        "streaming": true,
+        "transcription": false,
+        "speech": false,
+        "speech_formats": [],
+        "parallel_tool_calls": true,
+        "max_documents_per_message": 5,
+        "reasoning_controls": true,
+        "reasoning_effort": true,
+        "web_search": true,
+        "x_search": false,
+        "optimized_for_code": false,
+        "log_probs": false,
+        "temperature": true,
+        "top_p": true,
+        "seed": true,
+        "stop": true,
+        "context_window": 1050000,
+        "max_completion_tokens": 128000,
+        "privacy": "anonymized",
+        "privacy_routes": [
+          "anonymized"
+        ]
+      },
+      "customer_pricing": {
+        "status": "configured",
+        "version": "2026-09-17.v4.e6d7725d9d91306f",
+        "currency": "usd",
+        "unit": "per_million_tokens",
+        "input": 2.5,
+        "output": 12.5,
+        "cached_input": 0.125
       }
     },
     {
@@ -7965,12 +8096,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.c1859509a650eed7",
+        "version": "2026-09-17.v4.6ade1eaea61bccf4",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.033,
+        "input": 0.037,
         "output": 0.187,
-        "cached_input": 0.033
+        "cached_input": 0.037
       }
     },
     {
@@ -8258,7 +8389,8 @@
         ],
         "chat_completions": true,
         "streaming_text": true,
-        "tool_calls": false,
+        "tool_calls": true,
+        "streaming_tool_calls": true,
         "structured_outputs": true,
         "json_schema": true,
         "streaming": true,
@@ -8820,6 +8952,58 @@
         "output": 0,
         "cached_input": 0,
         "request": 0.06
+      }
+    },
+    {
+      "id": "ideogram-v4-5",
+      "privacy": "anonymized",
+      "context_window": 0,
+      "max_completion_tokens": 0,
+      "capabilities": {
+        "version": 1,
+        "input_modalities": [
+          "text"
+        ],
+        "output_modalities": [
+          "image"
+        ],
+        "chat_completions": false,
+        "streaming_text": false,
+        "tool_calls": false,
+        "streaming_tool_calls": false,
+        "structured_outputs": false,
+        "json_schema": false,
+        "streaming": false,
+        "transcription": false,
+        "speech": false,
+        "speech_formats": [],
+        "parallel_tool_calls": false,
+        "reasoning_controls": false,
+        "reasoning_effort": false,
+        "web_search": false,
+        "x_search": false,
+        "optimized_for_code": false,
+        "log_probs": false,
+        "temperature": false,
+        "top_p": false,
+        "seed": false,
+        "stop": false,
+        "context_window": 0,
+        "max_completion_tokens": 0,
+        "privacy": "anonymized",
+        "privacy_routes": [
+          "anonymized"
+        ]
+      },
+      "customer_pricing": {
+        "status": "configured",
+        "version": "2026-09-17.v4.89fb318e0c236674",
+        "currency": "usd",
+        "unit": "per_image",
+        "input": 0,
+        "output": 0,
+        "cached_input": 0,
+        "request": 0.26
       }
     },
     {
@@ -9930,12 +10114,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.4ae8ff3df9c72b39",
+        "version": "2026-09-17.v4.761dc0b1fd04aa85",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.05,
-        "output": 0.1875,
-        "cached_input": 0.005
+        "input": 0.25,
+        "output": 0.9375,
+        "cached_input": 0.025
       }
     },
     {
@@ -12223,11 +12407,11 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.1d30c460fe7852ff",
+        "version": "2026-09-17.v4.50c1599cdcd30aae",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.25,
-        "output": 2.2,
+        "input": 0.225,
+        "output": 1.98,
         "cached_input": 0.05
       }
     },
