@@ -6,9 +6,8 @@ a static Astro/Starlight surface, not a control-plane runtime.
 ## Read first
 
 Start at `/home/macoding/varity-v2/varity-engineering/CLAUDE.md`. Its
-`architecture/CHANGE-IMPACT.md` routes product facts to their executable owners;
-its `.opencode-plan.md` is the only current workspace finish board. Then read
-`ARCHITECTURE.md` here for this repository's stable interfaces and artifact
+`architecture/CHANGE-IMPACT.md` routes product facts to their executable owners.
+Then read `ARCHITECTURE.md` here for this repository's stable interfaces and artifact
 provenance.
 
 Authority rules:
