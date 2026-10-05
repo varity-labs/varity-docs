@@ -91,7 +91,6 @@ function routeForSource(file) {
     ['hn', 'social'],
     ['linkedin', 'social'],
     ['newsletter', 'email'],
-    ['portal', 'referral'],
     ['producthunt', 'social'],
     ['reddit', 'social'],
     ['x', 'reply'],
@@ -100,6 +99,48 @@ function routeForSource(file) {
   for (const [source, medium] of standardPairs) {
     const tuple = `?utm_source=${source}&utm_medium=${medium}&utm_campaign=docs-acquisition&utm_content=header`;
     assert.equal(sanitizedUtm(tuple), tuple, `canonical ${source}/${medium} tuple must be accepted`);
+  }
+  const marketingDocsPlacements = [
+    'about-find-us',
+    'ai-gateway-model-catalog',
+    'ai-gateway-sdk',
+    'contact-support',
+    'footer-api-reference',
+    'footer-cli',
+    'footer-docs',
+    'footer-mcp',
+    'gpu-guide',
+    'header-docs',
+    'homepage-quickstart-cli',
+    'homepage-quickstart-mcp',
+    'platform-api-reference',
+    'vm-guide',
+  ];
+  for (const placement of marketingDocsPlacements) {
+    const tuple = `?utm_source=marketing-site&utm_medium=content&utm_campaign=website-to-docs&utm_content=${placement}`;
+    assert.equal(sanitizedUtm(tuple), tuple, `canonical Marketing-to-Docs placement must be accepted: ${placement}`);
+  }
+  const portalDocsPlacements = [
+    'account-events-api-reference',
+    'ai-gateway-header',
+    'ai-gateway-quickstart',
+    'dashboard-sidebar',
+    'home-final-cta',
+    'home-hero',
+    'home-migration',
+    'login-footer',
+    'public-footer-documentation',
+    'public-footer-help-center',
+    'public-header',
+    'support-api-reference',
+    'support-cli-mcp',
+    'support-documentation',
+    'support-integration-guides',
+    'support-signed-webhooks',
+  ];
+  for (const placement of portalDocsPlacements) {
+    const tuple = `?utm_source=portal&utm_medium=referral&utm_campaign=product-docs&utm_content=${placement}`;
+    assert.equal(sanitizedUtm(tuple), tuple, `canonical Portal-to-Docs placement must be accepted: ${placement}`);
   }
   const templateTuple = '?utm_source=templates&utm_medium=seo&utm_campaign=public-template-gallery&utm_content=docs';
   assert.equal(sanitizedUtm(templateTuple), templateTuple);
@@ -110,6 +151,11 @@ function routeForSource(file) {
     '?utm_source=producthunt&utm_medium=seo&utm_campaign=docs-acquisition&utm_content=header',
     '?utm_source=templates&utm_medium=seo&utm_campaign=docs-acquisition&utm_content=header',
     '?utm_source=templates&utm_medium=content&utm_campaign=public-template-gallery&utm_content=docs',
+    '?utm_source=marketing-site&utm_medium=content&utm_campaign=docs-acquisition&utm_content=header',
+    '?utm_source=marketing-site&utm_medium=content&utm_campaign=website-to-docs&utm_content=unknown-placement',
+    '?utm_source=marketing-site&utm_medium=referral&utm_campaign=website-to-docs&utm_content=header-docs',
+    '?utm_source=portal&utm_medium=referral&utm_campaign=docs-acquisition&utm_content=header',
+    '?utm_source=portal&utm_medium=referral&utm_campaign=product-docs&utm_content=unknown-placement',
     '?utm_source=x&utm_source=docs&utm_medium=social&utm_campaign=docs-acquisition&utm_content=header',
     '?utm_source=unreviewed&utm_medium=social&utm_campaign=docs-acquisition&utm_content=header',
   ]) assert.equal(sanitizedUtm(invalidTuple), '', `invalid or partial tuple must be dropped atomically: ${invalidTuple}`);

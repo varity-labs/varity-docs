@@ -56,7 +56,7 @@ would corrupt Umami's bounce definition.
 Capture occurs only when all of these conditions hold:
 
 - `window.location.hostname` is exactly `docs.varity.so`;
-- the pathname is in the checked-in 52-route catalog;
+- the pathname is in the checked-in route catalog;
 - Do Not Track is not enabled; and
 - the outbound payload passes the final closed schema.
 
@@ -71,9 +71,25 @@ always discarded.
 The source/medium policies follow the conversion-funnel taxonomy: `blog/content`,
 `docs/content`, `x/social`, `x/reply`, `linkedin/social`, `reddit/social`,
 `hn/social`, `producthunt/social`, `discord/social`, `github/referral`,
-`portal/referral`, `newsletter/email`, and `google/organic`. `templates/seo` is
-accepted only as `public-template-gallery` with the bounded generic Docs
-placement; arbitrary template slugs do not enter this Docs-owned catalog.
+`newsletter/email`, and `google/organic`. `templates/seo` is accepted only as
+`public-template-gallery` with the bounded generic Docs placement; arbitrary
+template slugs do not enter this Docs-owned catalog.
+
+Two public-product handoffs use narrower source-specific policies. Marketing
+arrivals use `marketing-site/content/website-to-docs` with exactly these
+placements: `about-find-us`, `ai-gateway-model-catalog`, `ai-gateway-sdk`,
+`contact-support`, `footer-api-reference`, `footer-cli`, `footer-docs`,
+`footer-mcp`, `gpu-guide`, `header-docs`, `homepage-quickstart-cli`,
+`homepage-quickstart-mcp`, `platform-api-reference`, and `vm-guide`. Portal
+arrivals use `portal/referral/product-docs` with exactly these placements:
+`account-events-api-reference`, `ai-gateway-header`, `ai-gateway-quickstart`,
+`dashboard-sidebar`, `home-final-cta`, `home-hero`, `home-migration`,
+`login-footer`, `public-footer-documentation`, `public-footer-help-center`,
+`public-header`, `support-api-reference`, `support-cli-mcp`,
+`support-documentation`, `support-integration-guides`, and
+`support-signed-webhooks`. The producer repositories enumerate every authored
+clickable caller; this repository enumerates both accepted catalogs and rejects
+any other campaign or placement at the final sanitizer.
 
 The closed custom events are:
 
@@ -81,7 +97,7 @@ The closed custom events are:
 |---|---|---|
 | `docs_search_results_presented` | `page`, `category` | `count_bucket`: `0`, `1`, `2-5`, `6-10`, or `11+` |
 | `docs_cta_click` | `page`, `category` | one checked-in CTA key |
-| `docs_portal_handoff` | `page`, `category` | `home`, `settings`, or `deploy` |
+| `docs_portal_handoff` | `page`, `category` | `home`, `settings`, `deploy`, or `ai-gateway` |
 
 Search input values are never read. A bounded MutationObserver adapter waits for
 Pagefind's loading render and subsequent completed result-list render, then

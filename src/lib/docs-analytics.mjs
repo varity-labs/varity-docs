@@ -82,6 +82,40 @@ const EVENT_DETAILS = Object.freeze({
 
 const STANDARD_UTM_CAMPAIGNS = new Set(['docs', 'docs-acquisition', 'docs-navigation', 'product-docs']);
 const STANDARD_UTM_CONTENT = new Set(['docs', 'footer', 'header', 'homepage', 'readme', 'release-notes']);
+const MARKETING_DOCS_CONTENT = new Set([
+  'about-find-us',
+  'ai-gateway-model-catalog',
+  'ai-gateway-sdk',
+  'contact-support',
+  'footer-api-reference',
+  'footer-cli',
+  'footer-docs',
+  'footer-mcp',
+  'gpu-guide',
+  'header-docs',
+  'homepage-quickstart-cli',
+  'homepage-quickstart-mcp',
+  'platform-api-reference',
+  'vm-guide',
+]);
+const PORTAL_DOCS_CONTENT = new Set([
+  'account-events-api-reference',
+  'ai-gateway-header',
+  'ai-gateway-quickstart',
+  'dashboard-sidebar',
+  'home-final-cta',
+  'home-hero',
+  'home-migration',
+  'login-footer',
+  'public-footer-documentation',
+  'public-footer-help-center',
+  'public-header',
+  'support-api-reference',
+  'support-cli-mcp',
+  'support-documentation',
+  'support-integration-guides',
+  'support-signed-webhooks',
+]);
 const INBOUND_UTM_POLICIES = Object.freeze([
   ['blog', 'content', STANDARD_UTM_CAMPAIGNS, STANDARD_UTM_CONTENT],
   ['discord', 'social', STANDARD_UTM_CAMPAIGNS, STANDARD_UTM_CONTENT],
@@ -90,8 +124,9 @@ const INBOUND_UTM_POLICIES = Object.freeze([
   ['google', 'organic', STANDARD_UTM_CAMPAIGNS, STANDARD_UTM_CONTENT],
   ['hn', 'social', STANDARD_UTM_CAMPAIGNS, STANDARD_UTM_CONTENT],
   ['linkedin', 'social', STANDARD_UTM_CAMPAIGNS, STANDARD_UTM_CONTENT],
+  ['marketing-site', 'content', new Set(['website-to-docs']), MARKETING_DOCS_CONTENT],
   ['newsletter', 'email', STANDARD_UTM_CAMPAIGNS, STANDARD_UTM_CONTENT],
-  ['portal', 'referral', STANDARD_UTM_CAMPAIGNS, STANDARD_UTM_CONTENT],
+  ['portal', 'referral', new Set(['product-docs']), PORTAL_DOCS_CONTENT],
   ['producthunt', 'social', STANDARD_UTM_CAMPAIGNS, STANDARD_UTM_CONTENT],
   ['reddit', 'social', STANDARD_UTM_CAMPAIGNS, STANDARD_UTM_CONTENT],
   ['templates', 'seo', new Set(['public-template-gallery']), new Set(['docs'])],
