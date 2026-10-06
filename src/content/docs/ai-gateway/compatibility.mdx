@@ -123,7 +123,7 @@ Ids are readable human slugs, for example `glm-5-1`, `glm-5-2`,
 
 - **`max_completion_tokens` is per-model and often small.** The ceiling is independent of the context window, so a very large context does not mean a long reply is allowed. Read both fields per model.
 - **Cached-input pricing is per model.** Some models price `cached_input` below `input` and others price them the same. Read `customer_pricing.cached_input` per model.
-- **There is a concurrency bound as well as a rate limit.** Both are counted for the whole account rather than per key. See [Rate Limits](/ai-gateway/limits/).
+- **There is a concurrency bound as well as a rate limit.** Both are per-account tier limits, and a key can carry its own `requests_per_minute`, `concurrency_limit`, and spending budget (the smaller of the key's and the account's bound applies). See [Rate Limits](/ai-gateway/limits/) and [Billing and Keys](/ai-gateway/billing-and-keys/).
 - **`GET /v1/models` carries no request budget** and returns no `RateLimit-*` headers. The headers live on the inference and inference-read routes, not on catalog discovery.
 
 ## Request Fields
@@ -192,10 +192,10 @@ that response; the column below is what the gateway publishes today.
 | `privacy_policy_violation` | `403` | no | The request asked for a privacy floor weaker than the account's. |
 | `duplicate_request` | `409` | no | The idempotency identity was already admitted. |
 | `request_cancelled` | `499`, `408` | no | `499`: the caller closed the connection before the response finished. `408`: the request's deadline had already passed when the gateway admitted it. |
-| `deadline_exceeded` | `504` | no | The request's deadline (120 seconds, or a shorter `X-Varity-Deadline-Ms`) ended it while it was still running and the caller was still connected. Once a stream has started, the status is already `200` and the error arrives as the final `data:` event before `[DONE]`. |
-| `rate_limit_exceeded` | `429` | yes | The account's requests-per-minute budget is exhausted. See [Rate Limits](/ai-gateway/limits/). |
-| `concurrency_limit_exceeded` | `429` | yes | The account's in-flight bound is exhausted. |
-| `budget_exceeded` | `429` | yes | The account's inference budget for the period is exhausted. |
+| `deadline_exceeded` | `504` | no | With the optional `X-Varity-Deadline-Ms` header, a request still running at that instant ends `504 deadline_exceeded`. Varity has no total response-time limit: without this header a request runs until the model finishes or the client disconnects. Once a stream has started, the status is already `200` and the error arrives as the final `data:` event before `[DONE]`. |
+| `rate_limit_exceeded` | `429` | yes | The account's requests-per-minute budget, or the key's own `requests_per_minute`, is exhausted. See [Rate Limits](/ai-gateway/limits/). |
+| `concurrency_limit_exceeded` | `429` | yes | The account's in-flight bound, or the key's own `concurrency_limit`, is exhausted. See [Rate Limits](/ai-gateway/limits/). |
+| `budget_exceeded` | `429` | yes | The account's inference budget, or the key's own spending budget, is exhausted. See [Billing and Keys](/ai-gateway/billing-and-keys/). |
 | `payment_method_required` | `402` | no | No active payment method. |
 | `insufficient_gateway_balance` | `402` | no | The prepaid AI Gateway balance cannot cover the request. |
 | `gateway_balance_frozen` | `402` | no | The balance is frozen pending billing review. |
