@@ -157,6 +157,9 @@
             },
             {
               "$ref": "#/components/parameters/Deadline"
+            },
+            {
+              "$ref": "#/components/parameters/Job"
             }
           ],
           "requestBody": {
@@ -245,6 +248,9 @@
             },
             {
               "$ref": "#/components/parameters/Deadline"
+            },
+            {
+              "$ref": "#/components/parameters/Job"
             }
           ],
           "requestBody": {
@@ -402,6 +408,9 @@
             },
             {
               "$ref": "#/components/parameters/Deadline"
+            },
+            {
+              "$ref": "#/components/parameters/Job"
             }
           ],
           "requestBody": {
@@ -539,6 +548,9 @@
             },
             {
               "$ref": "#/components/parameters/Deadline"
+            },
+            {
+              "$ref": "#/components/parameters/Job"
             }
           ],
           "requestBody": {
@@ -697,6 +709,9 @@
             },
             {
               "$ref": "#/components/parameters/Deadline"
+            },
+            {
+              "$ref": "#/components/parameters/Job"
             }
           ],
           "requestBody": {
@@ -797,6 +812,9 @@
             },
             {
               "$ref": "#/components/parameters/Deadline"
+            },
+            {
+              "$ref": "#/components/parameters/Job"
             }
           ],
           "requestBody": {
@@ -1155,7 +1173,21 @@
             "type": "integer",
             "minimum": 1
           },
-          "description": "Absolute Unix-epoch deadline in milliseconds. Omitted, past, or malformed values are replaced by the server maximum (120000 ms from receipt); a later value is capped to that maximum."
+          "description": "Optional absolute Unix-epoch deadline in milliseconds, chosen by the caller. Varity has no total response-time limit: without this header a request runs until the model finishes or the client disconnects. A provider that sends nothing for 300 seconds fails the request 504 upstream_timeout (every chat request except a web_search one, whose answer the provider returns only whole). With it, a request still running at that instant ends 504 deadline_exceeded. A malformed or already-past value is refused 400 invalid_request before any provider effect or charge."
+        },
+        "Job": {
+          "name": "X-Varity-Job",
+          "in": "header",
+          "required": false,
+          "schema": {
+            "type": "string",
+            "enum": [
+              "build",
+              "chat",
+              "api"
+            ]
+          },
+          "description": "Optional label for which job the request serves: build (vibe coding), chat (Private Chat), or api (your own API call). Used only to group Varity's request telemetry; it changes no routing, limit, price, or permission. An absent or unlisted value is recorded as api for an API-key request and unknown otherwise; it is never refused."
         },
         "RequestLogLimit": {
           "name": "limit",
@@ -4716,12 +4748,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.2a30972b7a064dac",
+        "version": "2026-09-17.v4.cedee259fa213f3a",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 3,
-        "output": 15,
-        "cached_input": 0.3
+        "input": 2.5,
+        "output": 12.5,
+        "cached_input": 0.25
       }
     },
     {
@@ -4770,12 +4802,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.659a3827b2163f81",
+        "version": "2026-09-17.v4.cedee259fa213f3a",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 3.75,
-        "output": 18.75,
-        "cached_input": 0.375
+        "input": 2.5,
+        "output": 12.5,
+        "cached_input": 0.25
       }
     },
     {
@@ -4877,11 +4909,11 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.a56a8f750893f82b",
+        "version": "2026-09-17.v4.c105e464633e1afd",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.375,
-        "output": 1.5,
+        "input": 0.3,
+        "output": 1.2,
         "cached_input": 0.0075
       }
     },
@@ -6469,7 +6501,7 @@
         "parallel_tool_calls": true,
         "max_documents_per_message": 5,
         "reasoning_controls": true,
-        "reasoning_effort": true,
+        "reasoning_effort": false,
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,
@@ -9194,7 +9226,7 @@
         "parallel_tool_calls": true,
         "max_documents_per_message": 5,
         "reasoning_controls": true,
-        "reasoning_effort": false,
+        "reasoning_effort": true,
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,

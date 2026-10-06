@@ -49,7 +49,11 @@ terms. Public, no key.
 ## Inference
 
 All inference routes take an inference key as `Authorization: Bearer …` and a
-JSON body. Each request may run for at most 120 seconds.
+JSON body. Varity has no total response-time limit: without an
+`X-Varity-Deadline-Ms` header a request runs until the model finishes or the
+client disconnects. A provider that sends nothing for 300 seconds fails the
+request `504 upstream_timeout` (every chat request except a `web_search` one,
+whose answer the provider returns only whole).
 
 ### `POST /v1/chat/completions`
 
@@ -86,7 +90,7 @@ Two optional headers:
 | Header | Effect |
 |--------|--------|
 | `Idempotency-Key` | Send the same key when retrying. Reuse returns `409 duplicate_request` instead of charging twice. |
-| `X-Varity-Deadline-Ms` | Absolute Unix-epoch deadline in milliseconds, capped at 120 seconds from receipt. |
+| `X-Varity-Deadline-Ms` | Optional absolute Unix-epoch deadline in milliseconds, chosen by the caller. With it, a request still running at that instant ends `504 deadline_exceeded`. A malformed or already-past value is refused `400 invalid_request` before any provider effect or charge. |
 
 Streaming is covered on the [overview](/ai-gateway/#streaming).
 

@@ -508,7 +508,7 @@ Ids are readable human slugs, for example `glm-5-1`, `glm-5-2`,
 
 - **`max_completion_tokens` is per-model and often small.** The ceiling is independent of the context window, so a very large context does not mean a long reply is allowed. Read both fields per model.
 - **Cached-input pricing is per model.** Some models price `cached_input` below `input` and others price them the same. Read `customer_pricing.cached_input` per model.
-- **There is a concurrency bound as well as a rate limit.** Both are counted for the whole account rather than per key. See [Rate Limits](/ai-gateway/limits/).
+- **There is a concurrency bound as well as a rate limit.** Both are per-account tier limits, and a key can carry its own `requests_per_minute`, `concurrency_limit`, and spending budget (the smaller of the key's and the account's bound applies). See [Rate Limits](/ai-gateway/limits/) and [Billing and Keys](/ai-gateway/billing-and-keys/).
 - **`GET /v1/models` carries no request budget** and returns no `RateLimit-*` headers. The headers live on the inference and inference-read routes, not on catalog discovery.
 
 ## Request Fields
@@ -577,10 +577,10 @@ that response; the column below is what the gateway publishes today.
 | `privacy_policy_violation` | `403` | no | The request asked for a privacy floor weaker than the account's. |
 | `duplicate_request` | `409` | no | The idempotency identity was already admitted. |
 | `request_cancelled` | `499`, `408` | no | `499`: the caller closed the connection before the response finished. `408`: the request's deadline had already passed when the gateway admitted it. |
-| `deadline_exceeded` | `504` | no | The request's deadline (120 seconds, or a shorter `X-Varity-Deadline-Ms`) ended it while it was still running and the caller was still connected. Once a stream has started, the status is already `200` and the error arrives as the final `data:` event before `[DONE]`. |
+| `deadline_exceeded` | `504` | no | With the optional `X-Varity-Deadline-Ms` header, a request still running at that instant ends `504 deadline_exceeded`. Varity has no total response-time limit: without this header a request runs until the model finishes or the client disconnects. Once a stream has started, the status is already `200` and the error arrives as the final `data:` event before `[DONE]`. |
 | `rate_limit_exceeded` | `429` | yes | The account's requests-per-minute budget is exhausted. See [Rate Limits](/ai-gateway/limits/). |
 | `concurrency_limit_exceeded` | `429` | yes | The account's in-flight bound is exhausted. |
-| `budget_exceeded` | `429` | yes | The account's inference budget for the period is exhausted. |
+| `budget_exceeded` | `429` | yes | The account's inference budget, or the key's own spending budget, is exhausted. See [Billing and Keys](/ai-gateway/billing-and-keys/). |
 | `payment_method_required` | `402` | no | No active payment method. |
 | `insufficient_gateway_balance` | `402` | no | The prepaid AI Gateway balance cannot cover the request. |
 | `gateway_balance_frozen` | `402` | no | The balance is frozen pending billing review. |
@@ -705,7 +705,11 @@ terms. Public, no key.
 ## Inference
 
 All inference routes take an inference key as `Authorization: Bearer …` and a
-JSON body. Each request may run for at most 120 seconds.
+JSON body. Varity has no total response-time limit: without an
+`X-Varity-Deadline-Ms` header a request runs until the model finishes or the
+client disconnects. A provider that sends nothing for 300 seconds fails the
+request `504 upstream_timeout` (every chat request except a `web_search` one,
+whose answer the provider returns only whole).
 
 ### `POST /v1/chat/completions`
 
@@ -742,7 +746,7 @@ Two optional headers:
 | Header | Effect |
 |--------|--------|
 | `Idempotency-Key` | Send the same key when retrying. Reuse returns `409 duplicate_request` instead of charging twice. |
-| `X-Varity-Deadline-Ms` | Absolute Unix-epoch deadline in milliseconds, capped at 120 seconds from receipt. |
+| `X-Varity-Deadline-Ms` | Optional absolute Unix-epoch deadline in milliseconds, chosen by the caller. With it, a request still running at that instant ends `504 deadline_exceeded`. A malformed or already-past value is refused `400 invalid_request` before any provider effect or charge. |
 
 Streaming is covered on the [overview](/ai-gateway/#streaming).
 
@@ -8234,10 +8238,10 @@ Source: https://ai.varity.app/v1/openapi.json (Varity AI Gateway API 2026-09-17)
 - `claude-opus-5-5-fast`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 9.6 output 48 cached_input 0.48 (price set 2026-09-17.v4.45f869ede1943183)
 - `claude-opus-5-fast`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 12 output 60 cached_input 1.2 (price set 2026-09-17.v4.795a701c83bb0ac0)
 - `claude-sonnet-4-6`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 64000; usd per_million_tokens input 3.6 output 18 cached_input 0.36 (price set 2026-09-17.v4.edbfebda73d6cc5d)
-- `claude-sonnet-5`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 64000; usd per_million_tokens input 3 output 15 cached_input 0.3 (price set 2026-09-17.v4.2a30972b7a064dac)
-- `claude-sonnet-5-5`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 3.75 output 18.75 cached_input 0.375 (price set 2026-09-17.v4.659a3827b2163f81)
+- `claude-sonnet-5`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 64000; usd per_million_tokens input 2.5 output 12.5 cached_input 0.25 (price set 2026-09-17.v4.cedee259fa213f3a)
+- `claude-sonnet-5-5`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 2.5 output 12.5 cached_input 0.25 (price set 2026-09-17.v4.cedee259fa213f3a)
 - `deepseek-v3-2`: privacy private; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 160000; max completion 32768; usd per_million_tokens input 0.33 output 0.48 cached_input 0.16 (price set 2026-09-17.v4.e8fbc8d2dea999ae)
-- `deepseek-v4-1-flash`: privacy private; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 131072; usd per_million_tokens input 0.375 output 1.5 cached_input 0.0075 (price set 2026-09-17.v4.a56a8f750893f82b)
+- `deepseek-v4-1-flash`: privacy private; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 131072; usd per_million_tokens input 0.3 output 1.2 cached_input 0.0075 (price set 2026-09-17.v4.c105e464633e1afd)
 - `deepseek-v4-flash`: privacy private; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 32768; usd per_million_tokens input 0.138 output 0.275 cached_input 0.028 (price set 2026-09-17.v4.a0ae8fe2294bb09c)
 - `deepseek-v4-flash-0731`: privacy private; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 32768; usd per_million_tokens input 0.175 output 0.35 cached_input 0.035 (price set 2026-09-17.v4.7788247c04882fd0)
 - `deepseek-v4-flash-0731-fast`: privacy private; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 32768; usd per_million_tokens input 0.35 output 0.7 cached_input 0.0875 (price set 2026-09-17.v4.136c279c9b5500d2)
