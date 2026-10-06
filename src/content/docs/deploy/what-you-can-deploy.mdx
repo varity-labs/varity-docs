@@ -81,7 +81,7 @@ These aren't available in the current beta. Don't plan around them yet:
 - Cron jobs and scheduled tasks
 - Preview deployments
 - Multi-region and edge runtime
-- A fully managed database product (see the durability note below)
+- A managed database product (see [Databases & Data](/deploy/databases/))
 
 ## Beta Expectations
 
@@ -89,7 +89,7 @@ These aren't available in the current beta. Don't plan around them yet:
 Varity is in guided beta. For demos, side projects, and apps that tolerate beta, deploy freely. For **business-critical workloads or important customer data**, treat it as beta: bring your own external database for data you can't lose, and reach out so we can help size and monitor the deployment.
 </Aside>
 
-- **Databases are real but beta.** Auto-wired databases work and data survives container restarts within a deployment, but this is not yet a managed database product with automated backups, high availability, or point-in-time recovery. See [Databases & Data](/deploy/databases/).
+- **Attached databases reset on every redeploy.** See [Databases & Data](/deploy/databases/).
 - **Private repos:** the safest path for a private or unsupported app today is a prebuilt Docker image.
 - **Heavy or unusual workloads** (browser automation, large file/video processing, long-running jobs) may need a hand. Reach out via [Getting Help](/getting-started/getting-help/).
 

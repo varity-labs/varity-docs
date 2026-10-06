@@ -1699,7 +1699,7 @@ curl https://varity.app/api/deployments/$DEPLOYMENT_ID/env \
   -H "Authorization: Bearer $VARITY_API_KEY"
 ```
 
-Update environment variables and redeploy in place:
+Update environment variables and redeploy on the same URL:
 
 ```bash
 curl -X PATCH https://varity.app/api/deployments/$DEPLOYMENT_ID/env \
@@ -3201,7 +3201,7 @@ VarityKit is a Python-based CLI that helps you deploy and manage applications. I
 | `varitykit app delete --yes` | Delete a deployment |
 | `varitykit app status [RUN_ID]` | Show one deployment operation or your most recent deployment |
 | `varitykit app templates` | List certified templates (`--json` for the raw catalog) |
-| `varitykit app env NAME KEY=VALUE...` | Set environment variables on a live app, then redeploy in place (`--replace` overwrites the set) |
+| `varitykit app env NAME KEY=VALUE...` | Set environment variables on a live app, then redeploy on the same URL (`--replace` overwrites the set) |
 | `varitykit app redeploy NAME` | Reapply the saved configuration on the same URL |
 | `varitykit app restart NAME` | Restart with a verified replacement on the same URL |
 | `varitykit app rollback DEPLOYMENT_ID` | Redeploy an earlier configuration (`--confirm` skips the prompt) |
@@ -3445,7 +3445,7 @@ If your project includes a `prisma/schema.prisma` file, Varity reads the `dataso
     Your app receives `MINIO_URL`, `MINIO_ACCESS_KEY`, and `MINIO_SECRET_KEY` automatically.
   
 
-Auto-provisioned databases are in beta. They are great for getting an app running end-to-end without standing up a separate database service; bring your own managed database (via [environment variables](/deploy/env-variables)) for workloads that need durability guarantees.
+Attached databases reset on every redeploy; see [Databases & Data](/deploy/databases/) before you store data you need to keep.
 
 The services start automatically when you deploy. No configuration needed.
 
@@ -3771,12 +3771,12 @@ const db = process.env.DATABASE_URL;
 
 ## Durability in Beta: Read This
 
-Auto-wired databases are real and your data survives container restarts within a deployment. They are **not** yet a managed database product: there are no automated backups, no high availability, and no point-in-time recovery. Do not store data you cannot afford to lose without your own backups.
+Attached databases and object storage run inside your app's deployment. A redeploy, restart, environment-variable change, re-publish, or AI Gateway attach replaces that deployment, and its attached databases and object storage start empty. They are not a managed database product: there are no automated backups, no high availability, and no point-in-time recovery.
 
 What this means in practice:
 
-- **Good for:** demos, prototypes, side projects, and apps that tolerate beta.
-- **For business-critical data:** bring your own external managed database (point your app at it via an environment variable) until Varity's managed-database durability ships. Your app deploys exactly the same way. It connects to your database instead of an auto-wired one.
+- **Good for:** demos, prototypes, and data you can recreate.
+- **For data you need to keep:** use your own external database for now (see [Bring Your Own Database](#bring-your-own-database)). Your app deploys exactly the same way. It connects to your database instead of an attached one.
 
 ## Bring Your Own Database
 
@@ -5275,13 +5275,13 @@ These aren't available in the current beta. Don't plan around them yet:
 - Cron jobs and scheduled tasks
 - Preview deployments
 - Multi-region and edge runtime
-- A fully managed database product (see the durability note below)
+- A managed database product (see [Databases & Data](/deploy/databases/))
 
 ## Beta Expectations
 
 Varity is in guided beta. For demos, side projects, and apps that tolerate beta, deploy freely. For **business-critical workloads or important customer data**, treat it as beta: bring your own external database for data you can't lose, and reach out so we can help size and monitor the deployment.
 
-- **Databases are real but beta.** Auto-wired databases work and data survives container restarts within a deployment, but this is not yet a managed database product with automated backups, high availability, or point-in-time recovery. See [Databases & Data](/deploy/databases/).
+- **Attached databases reset on every redeploy.** See [Databases & Data](/deploy/databases/).
 - **Private repos:** the safest path for a private or unsupported app today is a prebuilt Docker image.
 - **Heavy or unusual workloads** (browser automation, large file/video processing, long-running jobs) may need a hand. Reach out via [Getting Help](/getting-started/getting-help/).
 
@@ -5446,7 +5446,7 @@ Varity chooses the default based on the app type. You can force the mode with `-
 
 ## Current Product Boundary
 
-Varity is in guided beta. Use it freely for demos, side projects, AI agent apps, and apps that tolerate beta limits. Bring your own external database for business critical data until managed database durability, backups, and restore are shipped.
+Varity is in guided beta. Use it freely for demos, side projects, AI agent apps, and apps that tolerate beta limits. Attached databases reset on every redeploy; see [Databases & Data](/deploy/databases/).
 
 Varity serves three deployment categories: applications (Node, Python, Go, static projects, and Docker or OCI HTTP service images), [CPU VMs](/machines/cpu-vms/), and [GPU workloads](/machines/gpu/) (containers, VMs, and bare metal). Varity also runs an [OpenAI-compatible AI Gateway](/ai-gateway/) you can call without deploying anything. Cron jobs, preview deployments, and one click rollback are not shipped yet.
 
@@ -5664,7 +5664,7 @@ Source deployments support Node, Python, Go, and static projects. Docker image d
 
 **Supported services:** Postgres with vector extension support, Redis, MongoDB, MySQL, object storage, and model runtime services when detected from your app.
 
-**Not shipped yet:** cron jobs, preview deployments, one click rollback, and managed database backups and restore.
+**Not shipped yet:** cron jobs, preview deployments, and one click rollback. Attached databases reset on every redeploy; see [Databases & Data](/deploy/databases/).
 
 ## Where to Go Next
 
@@ -6049,7 +6049,7 @@ Use [Pricing and Costs](/resources/pricing/) for the current pricing workflow an
 
 ## When to Pause
 
-Varity is in guided beta. Bring your own external managed database for business critical data until managed database durability, backups, and restore are shipped.
+Varity is in guided beta. Attached databases reset on every redeploy; see [Databases & Data](/deploy/databases/).
 
 Varity may not be the right fit yet if you need cron jobs, preview deployments, one click rollback, or a source build for Rust, Ruby, Elixir, Java, Deno, PHP, or .NET.
 

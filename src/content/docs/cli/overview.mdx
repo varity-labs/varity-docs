@@ -60,7 +60,7 @@ VarityKit is a Python-based CLI that helps you deploy and manage applications. I
 | `varitykit app delete --yes` | Delete a deployment |
 | `varitykit app status [RUN_ID]` | Show one deployment operation or your most recent deployment |
 | `varitykit app templates` | List certified templates (`--json` for the raw catalog) |
-| `varitykit app env NAME KEY=VALUE...` | Set environment variables on a live app, then redeploy in place (`--replace` overwrites the set) |
+| `varitykit app env NAME KEY=VALUE...` | Set environment variables on a live app, then redeploy on the same URL (`--replace` overwrites the set) |
 | `varitykit app redeploy NAME` | Reapply the saved configuration on the same URL |
 | `varitykit app restart NAME` | Restart with a verified replacement on the same URL |
 | `varitykit app rollback DEPLOYMENT_ID` | Redeploy an earlier configuration (`--confirm` skips the prompt) |
