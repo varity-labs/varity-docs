@@ -193,8 +193,8 @@ that response; the column below is what the gateway publishes today.
 | `duplicate_request` | `409` | no | The idempotency identity was already admitted. |
 | `request_cancelled` | `499`, `408` | no | `499`: the caller closed the connection before the response finished. `408`: the request's deadline had already passed when the gateway admitted it. |
 | `deadline_exceeded` | `504` | no | With the optional `X-Varity-Deadline-Ms` header, a request still running at that instant ends `504 deadline_exceeded`. Varity has no total response-time limit: without this header a request runs until the model finishes or the client disconnects. Once a stream has started, the status is already `200` and the error arrives as the final `data:` event before `[DONE]`. |
-| `rate_limit_exceeded` | `429` | yes | The account's requests-per-minute budget is exhausted. See [Rate Limits](/ai-gateway/limits/). |
-| `concurrency_limit_exceeded` | `429` | yes | The account's in-flight bound is exhausted. |
+| `rate_limit_exceeded` | `429` | yes | The account's requests-per-minute budget, or the key's own `requests_per_minute`, is exhausted. See [Rate Limits](/ai-gateway/limits/). |
+| `concurrency_limit_exceeded` | `429` | yes | The account's in-flight bound, or the key's own `concurrency_limit`, is exhausted. See [Rate Limits](/ai-gateway/limits/). |
 | `budget_exceeded` | `429` | yes | The account's inference budget, or the key's own spending budget, is exhausted. See [Billing and Keys](/ai-gateway/billing-and-keys/). |
 | `payment_method_required` | `402` | no | No active payment method. |
 | `insufficient_gateway_balance` | `402` | no | The prepaid AI Gateway balance cannot cover the request. |
