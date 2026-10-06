@@ -76,7 +76,7 @@ if (openapi) {
   const expectedResourceBounds = {
     cpu_units: [0.25, 4],
     memory_mb: [256, 8192],
-    storage_mb: [512, 20480],
+    storage_mb: [512, 51200],
   };
   for (const [field, [minimum, maximum]] of Object.entries(expectedResourceBounds)) {
     if (resources?.[field]?.minimum !== minimum || resources?.[field]?.maximum !== maximum) {
