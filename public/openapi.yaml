@@ -4060,7 +4060,7 @@
               "null"
             ],
             "minimum": 512,
-            "maximum": 20480
+            "maximum": 51200
           },
           "persistent_storage_gb": {
             "type": [
