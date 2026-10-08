@@ -827,6 +827,108 @@
         }
       }
     },
+    "/deployments/{deployment_id}/source-revision": {
+      "post": {
+        "operationId": "deploySourceRevision",
+        "summary": "Deploy an exact commit in place",
+        "description": "Deploys one commit of the repository a web service (dynamic deployment) was built from, keeping its id, URL and saved environment. Requires an Idempotency-Key and, in the X-Varity-Approval-Id header, a pending approval with kind deploy_revision, target deployment:{deployment_id} and fingerprint equal to the commit. A static site answers 422 source_revision_unsupported (deploy again with the same name to update it in place); another update still running answers 409 deployment_update_in_progress; a private repository Varity holds no clone credential for answers 403 repository_credential_required before the approval is consumed.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeploymentId"
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Varity-Approval-Id",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "commit"
+                ],
+                "properties": {
+                  "commit": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{40}$"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Commit accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "status",
+                    "commit_sha",
+                    "run_id",
+                    "status_url"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "app_name": {
+                      "type": "string"
+                    },
+                    "subdomain": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "const": "redeploying"
+                    },
+                    "commit_sha": {
+                      "type": "string"
+                    },
+                    "run_id": {
+                      "type": "string"
+                    },
+                    "status_url": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/PublicError"
+          },
+          "409": {
+            "$ref": "#/components/responses/PublicError"
+          },
+          "422": {
+            "$ref": "#/components/responses/PublicError"
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      }
+    },
     "/deployments/{deployment_id}/restart": {
       "post": {
         "operationId": "restartDeployment",
@@ -972,7 +1074,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Durable health history",
+            "description": "Durable health history. An owned deployment with nothing observed yet answers null states and an empty observations list, never a 404.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3644,7 +3746,7 @@
             "$ref": "#/components/schemas/DeploymentSource"
           },
           "resource_profile": {
-            "$ref": "#/components/schemas/ResourceProfile"
+            "$ref": "#/components/schemas/DeploymentResourceProfile"
           },
           "access": {
             "$ref": "#/components/schemas/DeploymentAccess"
@@ -3986,6 +4088,15 @@
                 "type": "string",
                 "description": "GitHub owner login of the deployed repository, when the repository is on github.com.",
                 "pattern": "^[A-Za-z0-9][A-Za-z0-9-]{0,38}$"
+              },
+              "repository_url": {
+                "type": "string",
+                "description": "The repository the live release was built from, when observed."
+              },
+              "commit_sha": {
+                "type": "string",
+                "description": "The exact commit the live release serves, when observed.",
+                "pattern": "^[0-9a-f]{40}$"
               }
             }
           },
@@ -4061,6 +4172,50 @@
             ],
             "minimum": 512,
             "maximum": 51200
+          },
+          "persistent_storage_gb": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "attached_resources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AttachedServiceVolume"
+            }
+          },
+          "accelerator": {
+            "$ref": "#/components/schemas/AcceleratorRequirement"
+          }
+        }
+      },
+      "DeploymentResourceProfile": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "properties": {
+          "cpu_units": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "memory_mb": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "storage_mb": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
           },
           "persistent_storage_gb": {
             "type": [
@@ -5438,7 +5593,8 @@
                 "minio",
                 "ollama"
               ]
-            }
+            },
+            "description": "Databases run inside the selected plan (the plan is the total CPU, memory and ephemeral disk) and add only their persistent GB to the price. A plan that cannot hold them is refused with plan_too_small_for_services and the next plan offered; it is never upgraded silently."
           },
           "service_volumes": {
             "type": "array",
@@ -5459,7 +5615,11 @@
           },
           "dedicated_ip": {
             "type": "boolean",
-            "default": false
+            "enum": [
+              false
+            ],
+            "deprecated": true,
+            "description": "Dedicated IPs are not offered; true is rejected with 422 dedicated_ip_unsupported."
           },
           "tee": {
             "type": "string",
@@ -5696,7 +5856,9 @@
             "type": "string"
           },
           "verified": {
-            "type": "boolean"
+            "type": "string",
+            "format": "date",
+            "description": "Date the supplier prices behind this estimate were last verified."
           },
           "currency": {
             "type": "string"
