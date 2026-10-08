@@ -59,6 +59,12 @@
         "playground_conversations"
       ],
       "generated_image_retention": "inline_only",
+      "end_user_identifier": {
+        "stored": "request_metadata",
+        "retention_days": 30,
+        "sent_to_suppliers": false,
+        "telemetry": "keyed_hash"
+      },
       "financial_and_security_records": "separate_retention_classes"
     },
     "servers": [
@@ -146,6 +152,164 @@
           }
         }
       },
+      "/v1/models/{model}": {
+        "get": {
+          "security": [],
+          "operationId": "retrieveInferenceModel",
+          "summary": "Retrieve one admitted model",
+          "description": "One entry of the anonymous /v1/models catalog, by its Varity model id (OpenAI SDK models.retrieve). An id the catalog does not list answers 404 model_not_found.",
+          "parameters": [
+            {
+              "name": "model",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "The admitted model",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Model"
+                  }
+                }
+              }
+            },
+            "default": {
+              "description": "Normalized error envelope",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorEnvelope"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/v1/responses": {
+        "post": {
+          "operationId": "createResponse",
+          "summary": "Create a model response (OpenAI Responses contract)",
+          "description": "The OpenAI Responses request translated onto the chat route for every model chat serves: same routing, limits and billing. input is a string or message, function_call, function_call_output and reasoning items; function tools only. Varity stores no responses, so previous_response_id, store:true and background:true are refused by name. Streaming answers Responses SSE events (response.created ... response.completed); reasoning text arrives as a reasoning item where the supplier returns it.",
+          "parameters": [
+            {
+              "$ref": "#/components/parameters/IdempotencyKey"
+            },
+            {
+              "$ref": "#/components/parameters/Deadline"
+            },
+            {
+              "$ref": "#/components/parameters/Job"
+            },
+            {
+              "$ref": "#/components/parameters/EndUser"
+            },
+            {
+              "$ref": "#/components/parameters/EndUserBudget"
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "model",
+                    "input"
+                  ],
+                  "properties": {
+                    "model": {
+                      "type": "string"
+                    },
+                    "input": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "object"
+                          }
+                        }
+                      ]
+                    },
+                    "instructions": {
+                      "type": "string"
+                    },
+                    "max_output_tokens": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "stream": {
+                      "type": "boolean"
+                    },
+                    "tools": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    },
+                    "reasoning": {
+                      "type": "object",
+                      "properties": {
+                        "effort": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Response JSON, or Responses SSE events when stream is true",
+              "headers": {
+                "X-Request-Id": {
+                  "$ref": "#/components/headers/RequestId"
+                }
+              },
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "required": [
+                      "id",
+                      "object",
+                      "status",
+                      "output"
+                    ]
+                  }
+                },
+                "text/event-stream": {
+                  "schema": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "default": {
+              "description": "Normalized error envelope",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorEnvelope"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
       "/v1/chat/completions": {
         "post": {
           "operationId": "createChatCompletion",
@@ -160,6 +324,12 @@
             },
             {
               "$ref": "#/components/parameters/Job"
+            },
+            {
+              "$ref": "#/components/parameters/EndUser"
+            },
+            {
+              "$ref": "#/components/parameters/EndUserBudget"
             }
           ],
           "requestBody": {
@@ -251,6 +421,12 @@
             },
             {
               "$ref": "#/components/parameters/Job"
+            },
+            {
+              "$ref": "#/components/parameters/EndUser"
+            },
+            {
+              "$ref": "#/components/parameters/EndUserBudget"
             }
           ],
           "requestBody": {
@@ -411,6 +587,12 @@
             },
             {
               "$ref": "#/components/parameters/Job"
+            },
+            {
+              "$ref": "#/components/parameters/EndUser"
+            },
+            {
+              "$ref": "#/components/parameters/EndUserBudget"
             }
           ],
           "requestBody": {
@@ -441,6 +623,13 @@
                       "minimum": 1,
                       "maximum": 4,
                       "default": 1
+                    },
+                    "response_format": {
+                      "type": "string",
+                      "enum": [
+                        "b64_json"
+                      ],
+                      "description": "Accepted for OpenAI SDK parity. Images are always returned inline as b64_json; Varity hosts no image URLs, so url is refused."
                     }
                   }
                 },
@@ -551,6 +740,12 @@
             },
             {
               "$ref": "#/components/parameters/Job"
+            },
+            {
+              "$ref": "#/components/parameters/EndUser"
+            },
+            {
+              "$ref": "#/components/parameters/EndUserBudget"
             }
           ],
           "requestBody": {
@@ -712,6 +907,12 @@
             },
             {
               "$ref": "#/components/parameters/Job"
+            },
+            {
+              "$ref": "#/components/parameters/EndUser"
+            },
+            {
+              "$ref": "#/components/parameters/EndUserBudget"
             }
           ],
           "requestBody": {
@@ -815,6 +1016,12 @@
             },
             {
               "$ref": "#/components/parameters/Job"
+            },
+            {
+              "$ref": "#/components/parameters/EndUser"
+            },
+            {
+              "$ref": "#/components/parameters/EndUserBudget"
             }
           ],
           "requestBody": {
@@ -940,6 +1147,9 @@
             },
             {
               "$ref": "#/components/parameters/RequestEnvironment"
+            },
+            {
+              "$ref": "#/components/parameters/RequestEndUser"
             }
           ],
           "responses": {
@@ -1085,54 +1295,6 @@
             }
           }
         }
-      },
-      "/v1/billing/stripe/webhook": {
-        "post": {
-          "security": [],
-          "operationId": "receiveStripeWebhook",
-          "summary": "Signed Stripe webhook for Gateway balance funding",
-          "description": "Authenticated by the Stripe-Signature header over the exact request bytes. Events for other Varity products are acknowledged and ignored. Funding is idempotent by Stripe object id.",
-          "parameters": [
-            {
-              "name": "Stripe-Signature",
-              "in": "header",
-              "required": true,
-              "schema": {
-                "type": "string"
-              }
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "Acknowledged",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "required": [
-                      "received"
-                    ],
-                    "properties": {
-                      "received": {
-                        "const": true
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "default": {
-              "description": "Normalized error envelope",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/ErrorEnvelope"
-                  }
-                }
-              }
-            }
-          }
-        }
       }
     },
     "components": {
@@ -1188,6 +1350,39 @@
             ]
           },
           "description": "Optional label for which job the request serves: build (vibe coding), chat (Private Chat), or api (your own API call). Used only to group Varity's request telemetry; it changes no routing, limit, price, or permission. An absent or unlisted value is recorded as api for an API-key request and unknown otherwise; it is never refused."
+        },
+        "EndUser": {
+          "name": "X-Varity-End-User",
+          "in": "header",
+          "required": false,
+          "schema": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[\\x20-\\x7e]{1,64}$"
+          },
+          "description": "Your own end user for this request (1-64 printable ASCII characters; send a stable pseudonym, not an email). Overrides the body fields `safety_identifier` and then `user`. Used to attribute usage (`end_user` on /v1/inference/requests) and to apply X-Varity-End-User-Budget-Usd. Never forwarded to a supplier. A malformed value is refused 400 invalid_request."
+        },
+        "EndUserBudget": {
+          "name": "X-Varity-End-User-Budget-Usd",
+          "in": "header",
+          "required": false,
+          "schema": {
+            "type": "string",
+            "pattern": "^\\d{1,5}(\\.\\d{1,8})?$"
+          },
+          "description": "Optional cap, in USD from 0 to 10000, on this end user's spend in the current policy period. The spend counted is the same as the account budget: the supplier cost of each settled request plus the reservation of each open one, over every request this end user made in the period (with or without this header). A request that would exceed it is refused 429 budget_exceeded, \"The end-user inference budget is exhausted.\", before any provider effect. Requires an end user (X-Varity-End-User, safety_identifier or user); without one, or malformed, it is refused 400 invalid_request. Set it from your server: it is not sent by browsers cross-origin."
+        },
+        "RequestEndUser": {
+          "name": "end_user",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "description": "Only requests made for this end user (as sent in X-Varity-End-User, safety_identifier or user)."
         },
         "RequestLogLimit": {
           "name": "limit",
@@ -1542,6 +1737,20 @@
                   "description": "Prompt tokens served from a provider cache and included in prompt_tokens."
                 }
               }
+            },
+            "completion_tokens_details": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "reasoning_tokens"
+              ],
+              "properties": {
+                "reasoning_tokens": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Completion tokens the model spent reasoning, as the provider reported them; included in completion_tokens. Absent when the provider did not report it."
+                }
+              }
             }
           }
         },
@@ -1847,6 +2056,7 @@
             "deployment_id",
             "environment",
             "attachment_id",
+            "end_user",
             "privacy_floor",
             "privacy_class",
             "customer_charge"
@@ -1981,6 +2191,13 @@
                 "string",
                 "null"
               ]
+            },
+            "end_user": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "The end user this request was made for, as sent; null when none was sent. A `user` value outside 1-64 printable characters is shown as its digest."
             },
             "privacy_floor": {
               "type": "string",
@@ -2490,8 +2707,7 @@
           "type": "object",
           "additionalProperties": false,
           "required": [
-            "role",
-            "content"
+            "role"
           ],
           "properties": {
             "role": {
@@ -2510,7 +2726,7 @@
               "description": "Accepted for client compatibility and normalized away; only a content part marker is forwarded."
             },
             "content": {
-              "description": "Plain text, or — for a user message — a typed parts array carrying images or documents.",
+              "description": "Plain text, or — for a user message — a typed parts array carrying images or documents. Required, except on an assistant message that carries tool_calls, where omitting it is the same as null (OpenAI).",
               "oneOf": [
                 {
                   "type": "string"
@@ -2541,6 +2757,10 @@
               "items": {
                 "$ref": "#/components/schemas/ToolCall"
               }
+            },
+            "reasoning_content": {
+              "type": "string",
+              "description": "Assistant output only: the model's reasoning text, present when the supplier returned it (streamed as delta.reasoning_content). Relayed, never stored. Accepted and dropped when a client replays the assistant message."
             }
           }
         },
@@ -2703,8 +2923,28 @@
               ]
             },
             "user": {
-              "description": "Accepted for OpenAI compatibility and never forwarded to a supplier.",
-              "type": "string"
+              "description": "OpenAI's end-user field. Any string is accepted; it identifies the end user when neither X-Varity-End-User nor safety_identifier is sent (a value outside 1-64 printable characters is replaced by its digest). Never forwarded to a supplier. null is the same as absent.",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "safety_identifier": {
+              "description": "OpenAI's stable end-user identifier: 1-64 printable characters, else 400. Identifies the end user unless X-Varity-End-User is sent. Never forwarded to a supplier. null is the same as absent.",
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 64
+            },
+            "prompt_cache_key": {
+              "description": "Groups requests that share a prompt prefix so a supplier that routes on it can reuse its cache (see customer_pricing.cached_input). Varity replaces it with a key scoped to your account before forwarding, and forwards it only to routes that support prompt caching. null is the same as absent.",
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1,
+              "maxLength": 256
             },
             "n": {
               "description": "Only 1 is supported; any other value is rejected.",
@@ -2753,18 +2993,22 @@
               }
             },
             "reasoning_effort": {
-              "description": "Portable reasoning control, honoured on models whose capabilities.reasoning_effort is supported. Omitting it means the model default.",
+              "description": "Portable reasoning control, honoured on models whose capabilities.reasoning_effort is supported. Which values a model accepts is per model; a value the model does not list is refused before any upstream call. Omitting it means the model default.",
               "type": "string",
               "enum": [
+                "none",
+                "minimal",
                 "low",
                 "medium",
-                "high"
+                "high",
+                "xhigh",
+                "max"
               ]
             },
             "tools": {
               "type": "array",
               "minItems": 1,
-              "maxItems": 128,
+              "maxItems": 512,
               "items": {
                 "$ref": "#/components/schemas/Tool"
               }
@@ -3109,6 +3353,7 @@
                 "web_search",
                 "x_search",
                 "optimized_for_code",
+                "uncensored",
                 "log_probs",
                 "temperature",
                 "top_p",
@@ -3235,6 +3480,10 @@
                 "optimized_for_code": {
                   "type": "boolean"
                 },
+                "uncensored": {
+                  "type": "boolean",
+                  "description": "True when at least one published route of this model is classified uncensored by its supplier (for example Venice `model_spec.uncensored`). A client that must avoid such models filters on this field; it is never inferred from a model name."
+                },
                 "log_probs": {
                   "type": "boolean"
                 },
@@ -3316,7 +3565,7 @@
                   "anonymized"
                 ]
               },
-              "description": "Provider-hidden route-level privacy classes currently available for this exact Varity model identity. Fallback is restricted to the requested privacy class or stronger and never silently downgrades privacy."
+              "description": "Routing tries every route whose privacy class satisfies the effective floor, strongest class first. A weaker class the floor allows serves only when a stronger route is out of capacity, held or failing; a `private` floor is never served by an `anonymized` route. `privacy_routes` lists every class that can serve under the caller's floor; `customer_pricing` is the strongest class's price, and a fallback route that would cost more than it is not used."
             },
             "availability": {
               "$ref": "#/components/schemas/Availability"
@@ -3509,6 +3758,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": true,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -3562,6 +3812,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": true,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -3615,6 +3866,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": true,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -3668,6 +3920,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": true,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -3721,6 +3974,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": true,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -3772,6 +4026,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": true,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -3793,58 +4048,6 @@
         "output": 0,
         "cached_input": 0,
         "request": 0.01
-      }
-    },
-    {
-      "id": "background-remover",
-      "privacy": "anonymized",
-      "context_window": 0,
-      "max_completion_tokens": 0,
-      "capabilities": {
-        "version": 1,
-        "input_modalities": [
-          "text"
-        ],
-        "output_modalities": [
-          "image"
-        ],
-        "chat_completions": false,
-        "streaming_text": false,
-        "tool_calls": false,
-        "streaming_tool_calls": false,
-        "structured_outputs": false,
-        "json_schema": false,
-        "streaming": false,
-        "transcription": false,
-        "speech": false,
-        "speech_formats": [],
-        "parallel_tool_calls": false,
-        "reasoning_controls": false,
-        "reasoning_effort": false,
-        "web_search": false,
-        "x_search": false,
-        "optimized_for_code": false,
-        "log_probs": false,
-        "temperature": false,
-        "top_p": false,
-        "seed": false,
-        "stop": false,
-        "context_window": 0,
-        "max_completion_tokens": 0,
-        "privacy": "anonymized",
-        "privacy_routes": [
-          "anonymized"
-        ]
-      },
-      "customer_pricing": {
-        "status": "configured",
-        "version": "2026-09-17.v4.ee3eeaa3f34bc9b4",
-        "currency": "usd",
-        "unit": "per_image",
-        "input": 0,
-        "output": 0,
-        "cached_input": 0,
-        "request": 0.03
       }
     },
     {
@@ -3876,6 +4079,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -3927,6 +4131,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -3980,6 +4185,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -4031,6 +4237,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": true,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -4086,6 +4293,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -4140,6 +4348,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -4160,6 +4369,61 @@
         "input": 12,
         "output": 60,
         "cached_input": 0.3
+      }
+    },
+    {
+      "id": "claude-haiku-5-5",
+      "privacy": "anonymized",
+      "context_window": 1000000,
+      "max_completion_tokens": 128000,
+      "capabilities": {
+        "version": 1,
+        "input_modalities": [
+          "text",
+          "document",
+          "image"
+        ],
+        "output_modalities": [
+          "text"
+        ],
+        "chat_completions": true,
+        "streaming_text": true,
+        "tool_calls": true,
+        "streaming_tool_calls": true,
+        "structured_outputs": true,
+        "json_schema": true,
+        "streaming": true,
+        "transcription": false,
+        "speech": false,
+        "speech_formats": [],
+        "parallel_tool_calls": true,
+        "max_documents_per_message": 5,
+        "reasoning_controls": true,
+        "reasoning_effort": true,
+        "web_search": true,
+        "x_search": false,
+        "optimized_for_code": true,
+        "uncensored": false,
+        "log_probs": false,
+        "temperature": true,
+        "top_p": true,
+        "seed": true,
+        "stop": true,
+        "context_window": 1000000,
+        "max_completion_tokens": 128000,
+        "privacy": "anonymized",
+        "privacy_routes": [
+          "anonymized"
+        ]
+      },
+      "customer_pricing": {
+        "status": "configured",
+        "version": "2026-09-17.v4.9a0abaae96c1b1c3",
+        "currency": "usd",
+        "unit": "per_million_tokens",
+        "input": 0.125,
+        "output": 0.625,
+        "cached_input": 0.0125
       }
     },
     {
@@ -4194,6 +4458,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -4248,6 +4513,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -4302,6 +4568,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -4356,6 +4623,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -4410,6 +4678,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -4464,6 +4733,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -4518,6 +4788,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -4572,6 +4843,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -4626,6 +4898,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -4680,6 +4953,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -4734,6 +5008,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -4788,6 +5063,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -4802,65 +5078,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.cedee259fa213f3a",
+        "version": "2026-09-17.v4.e6d7725d9d91306f",
         "currency": "usd",
         "unit": "per_million_tokens",
         "input": 2.5,
         "output": 12.5,
-        "cached_input": 0.25
-      }
-    },
-    {
-      "id": "deepseek-v3-2",
-      "privacy": "private",
-      "context_window": 160000,
-      "max_completion_tokens": 32768,
-      "capabilities": {
-        "version": 1,
-        "input_modalities": [
-          "text",
-          "document"
-        ],
-        "output_modalities": [
-          "text"
-        ],
-        "chat_completions": true,
-        "streaming_text": true,
-        "tool_calls": true,
-        "streaming_tool_calls": true,
-        "structured_outputs": true,
-        "json_schema": true,
-        "streaming": true,
-        "transcription": false,
-        "speech": false,
-        "speech_formats": [],
-        "parallel_tool_calls": true,
-        "max_documents_per_message": 5,
-        "reasoning_controls": true,
-        "reasoning_effort": true,
-        "web_search": true,
-        "x_search": false,
-        "optimized_for_code": false,
-        "log_probs": false,
-        "temperature": true,
-        "top_p": true,
-        "seed": true,
-        "stop": true,
-        "context_window": 160000,
-        "max_completion_tokens": 32768,
-        "privacy": "private",
-        "privacy_routes": [
-          "private"
-        ]
-      },
-      "customer_pricing": {
-        "status": "configured",
-        "version": "2026-09-17.v4.e8fbc8d2dea999ae",
-        "currency": "usd",
-        "unit": "per_million_tokens",
-        "input": 0.33,
-        "output": 0.48,
-        "cached_input": 0.16
+        "cached_input": 0.125
       }
     },
     {
@@ -4895,6 +5118,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -4948,6 +5172,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -5001,6 +5226,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -5015,12 +5241,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.7788247c04882fd0",
+        "version": "2026-09-17.v4.3e4042167666328a",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.175,
-        "output": 0.35,
-        "cached_input": 0.035
+        "input": 0.13,
+        "output": 0.26,
+        "cached_input": 0.028
       }
     },
     {
@@ -5054,6 +5280,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -5107,6 +5334,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -5160,6 +5388,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -5211,6 +5440,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -5264,6 +5494,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -5316,6 +5547,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -5368,6 +5600,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -5420,6 +5653,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -5472,6 +5706,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -5486,13 +5721,13 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.3e393754bb129bb9",
+        "version": "2026-09-17.v4.3f5e1605690a8667",
         "currency": "usd",
         "unit": "per_image",
         "input": 0,
         "output": 0,
         "cached_input": 0,
-        "request": 0.06
+        "request": 0.12
       }
     },
     {
@@ -5528,6 +5763,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -5584,6 +5820,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -5640,6 +5877,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -5696,6 +5934,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -5752,6 +5991,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -5808,6 +6048,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -5864,6 +6105,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -5920,6 +6162,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -5971,6 +6214,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -6026,6 +6270,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": true,
         "log_probs": true,
         "temperature": true,
         "top_p": true,
@@ -6079,6 +6324,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -6132,6 +6378,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -6185,6 +6432,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -6238,6 +6486,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": true,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -6291,6 +6540,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -6344,6 +6594,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -6397,6 +6648,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -6427,8 +6679,7 @@
       "capabilities": {
         "version": 1,
         "input_modalities": [
-          "text",
-          "document"
+          "text"
         ],
         "output_modalities": [
           "text"
@@ -6438,7 +6689,6 @@
         "tool_calls": true,
         "streaming_tool_calls": true,
         "structured_outputs": true,
-        "json_schema": true,
         "streaming": true,
         "transcription": false,
         "speech": false,
@@ -6447,9 +6697,10 @@
         "max_documents_per_message": 5,
         "reasoning_controls": true,
         "reasoning_effort": false,
-        "web_search": true,
+        "web_search": false,
         "x_search": false,
-        "optimized_for_code": true,
+        "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -6459,7 +6710,8 @@
         "max_completion_tokens": 131072,
         "privacy": "private",
         "privacy_routes": [
-          "private"
+          "private",
+          "anonymized"
         ]
       },
       "customer_pricing": {
@@ -6505,6 +6757,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -6558,6 +6811,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -6612,6 +6866,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -6666,6 +6921,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -6721,6 +6977,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": true,
         "temperature": true,
         "top_p": true,
@@ -6776,6 +7033,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": true,
         "temperature": true,
         "top_p": true,
@@ -6830,6 +7088,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": true,
         "temperature": true,
         "top_p": true,
@@ -6884,6 +7143,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": true,
         "temperature": true,
         "top_p": true,
@@ -6937,6 +7197,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -6991,6 +7252,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -7045,6 +7307,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -7099,6 +7362,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -7153,6 +7417,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -7207,6 +7472,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -7261,6 +7527,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -7315,6 +7582,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -7369,6 +7637,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -7423,6 +7692,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -7477,6 +7747,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -7531,6 +7802,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -7585,6 +7857,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -7639,6 +7912,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -7693,6 +7967,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -7747,6 +8022,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -7801,6 +8077,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -7855,6 +8132,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -7906,6 +8184,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -7958,6 +8237,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -8010,6 +8290,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -8062,6 +8343,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -8114,6 +8396,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -8165,6 +8448,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -8220,6 +8504,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -8274,6 +8559,7 @@
         "web_search": true,
         "x_search": true,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -8328,6 +8614,7 @@
         "web_search": true,
         "x_search": true,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -8382,6 +8669,7 @@
         "web_search": true,
         "x_search": true,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -8436,6 +8724,7 @@
         "web_search": true,
         "x_search": true,
         "optimized_for_code": true,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -8490,6 +8779,7 @@
         "web_search": true,
         "x_search": true,
         "optimized_for_code": true,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -8544,6 +8834,7 @@
         "web_search": true,
         "x_search": true,
         "optimized_for_code": true,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -8598,6 +8889,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -8649,6 +8941,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -8701,6 +8994,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -8754,6 +9048,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -8806,6 +9101,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -8860,6 +9156,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -8911,6 +9208,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -8963,6 +9261,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -9015,6 +9314,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -9067,6 +9367,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -9123,6 +9424,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -9176,6 +9478,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -9230,6 +9533,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,
+        "uncensored": false,
         "log_probs": true,
         "temperature": true,
         "top_p": true,
@@ -9284,6 +9588,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -9338,6 +9643,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -9368,9 +9674,7 @@
       "capabilities": {
         "version": 1,
         "input_modalities": [
-          "text",
-          "document",
-          "image"
+          "text"
         ],
         "output_modalities": [
           "text"
@@ -9380,7 +9684,6 @@
         "tool_calls": true,
         "streaming_tool_calls": true,
         "structured_outputs": true,
-        "json_schema": true,
         "streaming": true,
         "transcription": false,
         "speech": false,
@@ -9388,10 +9691,11 @@
         "parallel_tool_calls": true,
         "max_documents_per_message": 5,
         "reasoning_controls": true,
-        "reasoning_effort": true,
-        "web_search": true,
+        "reasoning_effort": false,
+        "web_search": false,
         "x_search": false,
-        "optimized_for_code": true,
+        "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -9401,7 +9705,8 @@
         "max_completion_tokens": 131072,
         "privacy": "private",
         "privacy_routes": [
-          "private"
+          "private",
+          "anonymized"
         ]
       },
       "customer_pricing": {
@@ -9446,6 +9751,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -9504,6 +9810,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -9555,6 +9862,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": true,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -9607,6 +9915,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -9659,6 +9968,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -9713,6 +10023,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -9743,8 +10054,7 @@
       "capabilities": {
         "version": 1,
         "input_modalities": [
-          "text",
-          "document"
+          "text"
         ],
         "output_modalities": [
           "text"
@@ -9753,7 +10063,6 @@
         "streaming_text": true,
         "tool_calls": true,
         "streaming_tool_calls": true,
-        "structured_outputs": false,
         "json_schema": false,
         "streaming": true,
         "transcription": false,
@@ -9763,9 +10072,10 @@
         "max_documents_per_message": 5,
         "reasoning_controls": false,
         "reasoning_effort": false,
-        "web_search": true,
+        "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -9775,7 +10085,8 @@
         "max_completion_tokens": 4096,
         "privacy": "private",
         "privacy_routes": [
-          "private"
+          "private",
+          "anonymized"
         ]
       },
       "customer_pricing": {
@@ -9817,6 +10128,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -9869,6 +10181,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -9921,6 +10234,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": true,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -9973,6 +10287,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": true,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -10025,6 +10340,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": true,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -10079,6 +10395,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -10132,6 +10449,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -10188,6 +10506,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -10244,6 +10563,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -10297,6 +10617,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -10350,6 +10671,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -10405,6 +10727,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -10460,6 +10783,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -10514,6 +10838,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -10565,6 +10890,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -10616,6 +10942,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -10668,6 +10995,60 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
+        "log_probs": false,
+        "temperature": false,
+        "top_p": false,
+        "seed": false,
+        "stop": false,
+        "context_window": 0,
+        "max_completion_tokens": 0,
+        "privacy": "anonymized",
+        "privacy_routes": [
+          "anonymized"
+        ]
+      },
+      "customer_pricing": {
+        "status": "configured",
+        "version": "2026-09-17.v4.2ddd0aa325ef5d2a",
+        "currency": "usd",
+        "unit": "per_image",
+        "input": 0,
+        "output": 0,
+        "cached_input": 0,
+        "request": 0.1
+      }
+    },
+    {
+      "id": "nano-banana-2-1",
+      "privacy": "anonymized",
+      "context_window": 0,
+      "max_completion_tokens": 0,
+      "capabilities": {
+        "version": 1,
+        "input_modalities": [
+          "text"
+        ],
+        "output_modalities": [
+          "image"
+        ],
+        "chat_completions": false,
+        "streaming_text": false,
+        "tool_calls": false,
+        "streaming_tool_calls": false,
+        "structured_outputs": false,
+        "json_schema": false,
+        "streaming": false,
+        "transcription": false,
+        "speech": false,
+        "speech_formats": [],
+        "parallel_tool_calls": false,
+        "reasoning_controls": false,
+        "reasoning_effort": false,
+        "web_search": false,
+        "x_search": false,
+        "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -10720,6 +11101,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -10772,6 +11154,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -10824,6 +11207,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -10877,6 +11261,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -10930,6 +11315,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -10983,6 +11369,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -11036,6 +11423,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -11087,6 +11475,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -11140,6 +11529,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -11193,6 +11583,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -11248,6 +11639,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,
+        "uncensored": false,
         "log_probs": true,
         "temperature": true,
         "top_p": true,
@@ -11303,6 +11695,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,
+        "uncensored": false,
         "log_probs": true,
         "temperature": true,
         "top_p": true,
@@ -11323,60 +11716,6 @@
         "input": 0.75,
         "output": 4.5,
         "cached_input": 0.75
-      }
-    },
-    {
-      "id": "qwen-3-5-9b",
-      "privacy": "private",
-      "context_window": 256000,
-      "max_completion_tokens": 32768,
-      "capabilities": {
-        "version": 1,
-        "input_modalities": [
-          "text",
-          "document",
-          "image"
-        ],
-        "output_modalities": [
-          "text"
-        ],
-        "chat_completions": true,
-        "streaming_text": true,
-        "tool_calls": true,
-        "streaming_tool_calls": true,
-        "structured_outputs": true,
-        "json_schema": true,
-        "streaming": true,
-        "transcription": false,
-        "speech": false,
-        "speech_formats": [],
-        "parallel_tool_calls": true,
-        "max_documents_per_message": 5,
-        "reasoning_controls": true,
-        "reasoning_effort": true,
-        "web_search": true,
-        "x_search": false,
-        "optimized_for_code": false,
-        "log_probs": true,
-        "temperature": true,
-        "top_p": true,
-        "seed": true,
-        "stop": true,
-        "context_window": 256000,
-        "max_completion_tokens": 32768,
-        "privacy": "private",
-        "privacy_routes": [
-          "private"
-        ]
-      },
-      "customer_pricing": {
-        "status": "configured",
-        "version": "2026-09-17.v4.0b3b49c9122d2310",
-        "currency": "usd",
-        "unit": "per_million_tokens",
-        "input": 0.1,
-        "output": 0.15,
-        "cached_input": 0.1
       }
     },
     {
@@ -11412,6 +11751,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -11442,9 +11782,7 @@
       "capabilities": {
         "version": 1,
         "input_modalities": [
-          "text",
-          "document",
-          "image"
+          "text"
         ],
         "output_modalities": [
           "text"
@@ -11454,7 +11792,6 @@
         "tool_calls": true,
         "streaming_tool_calls": true,
         "structured_outputs": true,
-        "json_schema": true,
         "streaming": true,
         "transcription": false,
         "speech": false,
@@ -11463,9 +11800,10 @@
         "max_documents_per_message": 5,
         "reasoning_controls": true,
         "reasoning_effort": false,
-        "web_search": true,
+        "web_search": false,
         "x_search": false,
-        "optimized_for_code": true,
+        "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -11475,7 +11813,8 @@
         "max_completion_tokens": 65536,
         "privacy": "private",
         "privacy_routes": [
-          "private"
+          "private",
+          "anonymized"
         ]
       },
       "customer_pricing": {
@@ -11521,6 +11860,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,
+        "uncensored": true,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -11576,6 +11916,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -11631,6 +11972,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -11684,6 +12026,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -11739,6 +12082,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,
+        "uncensored": true,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -11794,6 +12138,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -11849,6 +12194,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -11902,6 +12248,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,
+        "uncensored": false,
         "log_probs": true,
         "temperature": true,
         "top_p": true,
@@ -11955,6 +12302,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -12008,6 +12356,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -12061,6 +12410,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -12113,6 +12463,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": true,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -12165,6 +12516,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -12217,6 +12569,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -12269,6 +12622,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -12321,6 +12675,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": true,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -12373,6 +12728,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": true,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -12425,6 +12781,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -12476,6 +12833,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -12527,6 +12885,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -12581,6 +12940,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -12632,6 +12992,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -12684,6 +13045,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -12739,6 +13101,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": true,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -12790,6 +13153,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -12846,6 +13210,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -12897,6 +13262,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": true,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -12949,6 +13315,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": true,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -13001,6 +13368,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": true,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -13053,6 +13421,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -13104,6 +13473,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -13158,6 +13528,7 @@
         "web_search": true,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": true,
         "log_probs": false,
         "temperature": true,
         "top_p": true,
@@ -13209,6 +13580,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -13261,6 +13633,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -13313,6 +13686,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -13364,6 +13738,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -13415,6 +13790,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -13470,6 +13846,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
@@ -13521,6 +13898,7 @@
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
+        "uncensored": false,
         "log_probs": false,
         "temperature": false,
         "top_p": false,
