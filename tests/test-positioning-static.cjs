@@ -122,6 +122,33 @@ if (/auto-wir(?:e|ed|ing)[^.]*ollama/i.test(normalizedReadme)) {
   totalViolations++;
 }
 
+// The Playground page is also the docs_search source used inside AI Gateway.
+// Keep its public product map aligned with the Portal's current pane and
+// deployment-support projection instead of letting retired labels survive.
+const PLAYGROUND_PATH = path.join(DOCS_SRC, 'ai-gateway/playground.mdx');
+const playground = fs.readFileSync(PLAYGROUND_PATH, 'utf8').replace(/\s+/g, ' ');
+const playgroundRequirements = [
+  [/\*\*Build\*\*[^.]*DeepSeek V4\.1 Flash[^.]*model picker/i, 'the current Build default and model picker'],
+  [/\*\*Preview\*\*/, 'the Preview pane'],
+  [/\*\*Code\*\*/, 'the Code pane'],
+  [/\*\*Logs\*\*/, 'the Logs pane'],
+  [/\*\*Terminal\*\*/, 'the Terminal pane'],
+  [/in-progress app/i, 'the in-progress app preview'],
+  [/\*\*Live site\*\*/i, 'the deployed live-site toggle'],
+  [/dynamic and GPU applications/i, 'the application terminal support boundary'],
+  [/CPU and GPU virtual machines/i, 'the machine terminal limitation'],
+];
+for (const [pattern, requirement] of playgroundRequirements) {
+  if (!pattern.test(playground)) {
+    console.error(`FAIL [ai-gateway/playground.mdx] must document ${requirement}`);
+    totalViolations++;
+  }
+}
+if (/Terminal\*\*:\s+follow a deployment's runtime logs/i.test(playground)) {
+  console.error('FAIL [ai-gateway/playground.mdx] must not describe the interactive Terminal as runtime logs');
+  totalViolations++;
+}
+
 if (totalViolations === 0) {
   console.log(`PASS — all ${files.length} docs files clean of high-severity positioning violations`);
   process.exit(0);
