@@ -4308,12 +4308,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.795a701c83bb0ac0",
+        "version": "2026-09-17.v4.380edf7deefe65b8",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 12,
-        "output": 60,
-        "cached_input": 1.2
+        "input": 10,
+        "output": 50,
+        "cached_input": 1
       }
     },
     {
@@ -4363,12 +4363,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.707577305481b7d5",
+        "version": "2026-09-17.v4.68d3a7b8b5bde536",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 12,
-        "output": 60,
-        "cached_input": 0.3
+        "input": 10,
+        "output": 50,
+        "cached_input": 0.25
       }
     },
     {
@@ -4418,12 +4418,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.9a0abaae96c1b1c3",
+        "version": "2026-09-17.v4.3c420cc1263e184e",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.125,
-        "output": 0.625,
-        "cached_input": 0.0125
+        "input": 0.1,
+        "output": 0.5,
+        "cached_input": 0.01
       }
     },
     {
@@ -4473,12 +4473,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.6b3334b7e44c59b4",
+        "version": "2026-09-17.v4.927fb8bd1cbad40a",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 6,
-        "output": 30,
-        "cached_input": 0.6
+        "input": 5,
+        "output": 25,
+        "cached_input": 0.5
       }
     },
     {
@@ -4528,12 +4528,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.6b3334b7e44c59b4",
+        "version": "2026-09-17.v4.927fb8bd1cbad40a",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 6,
-        "output": 30,
-        "cached_input": 0.6
+        "input": 5,
+        "output": 25,
+        "cached_input": 0.5
       }
     },
     {
@@ -4583,12 +4583,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.6b3334b7e44c59b4",
+        "version": "2026-09-17.v4.927fb8bd1cbad40a",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 6,
-        "output": 30,
-        "cached_input": 0.6
+        "input": 5,
+        "output": 25,
+        "cached_input": 0.5
       }
     },
     {
@@ -4638,12 +4638,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.6b3334b7e44c59b4",
+        "version": "2026-09-17.v4.927fb8bd1cbad40a",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 6,
-        "output": 30,
-        "cached_input": 0.6
+        "input": 5,
+        "output": 25,
+        "cached_input": 0.5
       }
     },
     {
@@ -4693,12 +4693,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.795a701c83bb0ac0",
+        "version": "2026-09-17.v4.380edf7deefe65b8",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 12,
-        "output": 60,
-        "cached_input": 1.2
+        "input": 10,
+        "output": 50,
+        "cached_input": 1
       }
     },
     {
@@ -4748,12 +4748,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.6b3334b7e44c59b4",
+        "version": "2026-09-17.v4.927fb8bd1cbad40a",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 6,
-        "output": 30,
-        "cached_input": 0.6
+        "input": 5,
+        "output": 25,
+        "cached_input": 0.5
       }
     },
     {
@@ -4803,12 +4803,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.7feb926fa8fd3e9f",
+        "version": "2026-09-17.v4.20d06f85f51de127",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 4.8,
-        "output": 24,
-        "cached_input": 0.24
+        "input": 4,
+        "output": 20,
+        "cached_input": 0.2
       }
     },
     {
@@ -4858,12 +4858,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.45f869ede1943183",
+        "version": "2026-09-17.v4.509e15f42672d2f2",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 9.6,
-        "output": 48,
-        "cached_input": 0.48
+        "input": 8,
+        "output": 40,
+        "cached_input": 0.4
       }
     },
     {
@@ -4913,12 +4913,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.795a701c83bb0ac0",
+        "version": "2026-09-17.v4.380edf7deefe65b8",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 12,
-        "output": 60,
-        "cached_input": 1.2
+        "input": 10,
+        "output": 50,
+        "cached_input": 1
       }
     },
     {
@@ -4968,12 +4968,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.edbfebda73d6cc5d",
+        "version": "2026-09-17.v4.2a30972b7a064dac",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 3.6,
-        "output": 18,
-        "cached_input": 0.36
+        "input": 3,
+        "output": 15,
+        "cached_input": 0.3
       }
     },
     {
@@ -5023,12 +5023,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.cedee259fa213f3a",
+        "version": "2026-09-17.v4.00095fa37c44ca6c",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 2.5,
-        "output": 12.5,
-        "cached_input": 0.25
+        "input": 2,
+        "output": 10,
+        "cached_input": 0.2
       }
     },
     {
@@ -5078,16 +5078,71 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.e6d7725d9d91306f",
+        "version": "2026-09-17.v4.95009d3825a03638",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 2.5,
-        "output": 12.5,
-        "cached_input": 0.125
+        "input": 2,
+        "output": 10,
+        "cached_input": 0.1
       }
     },
     {
       "id": "deepseek-v4-1-flash",
+      "privacy": "private",
+      "context_window": 1000000,
+      "max_completion_tokens": 131072,
+      "capabilities": {
+        "version": 1,
+        "input_modalities": [
+          "text",
+          "document",
+          "image"
+        ],
+        "output_modalities": [
+          "text"
+        ],
+        "chat_completions": true,
+        "streaming_text": true,
+        "tool_calls": true,
+        "streaming_tool_calls": true,
+        "structured_outputs": true,
+        "json_schema": true,
+        "streaming": true,
+        "transcription": false,
+        "speech": false,
+        "speech_formats": [],
+        "parallel_tool_calls": true,
+        "max_documents_per_message": 5,
+        "reasoning_controls": true,
+        "reasoning_effort": true,
+        "web_search": true,
+        "x_search": false,
+        "optimized_for_code": true,
+        "uncensored": false,
+        "log_probs": false,
+        "temperature": true,
+        "top_p": true,
+        "seed": true,
+        "stop": true,
+        "context_window": 1000000,
+        "max_completion_tokens": 131072,
+        "privacy": "private",
+        "privacy_routes": [
+          "private"
+        ]
+      },
+      "customer_pricing": {
+        "status": "configured",
+        "version": "2026-09-17.v4.c105e464633e1afd",
+        "currency": "usd",
+        "unit": "per_million_tokens",
+        "input": 0.3,
+        "output": 1.2,
+        "cached_input": 0.0075
+      }
+    },
+    {
+      "id": "deepseek-v4-1-flash-1017",
       "privacy": "private",
       "context_window": 1000000,
       "max_completion_tokens": 131072,
@@ -6186,6 +6241,63 @@
       }
     },
     {
+      "id": "gemini-4-argon",
+      "privacy": "anonymized",
+      "context_window": 1000000,
+      "max_completion_tokens": 65536,
+      "capabilities": {
+        "version": 1,
+        "input_modalities": [
+          "text",
+          "document",
+          "audio",
+          "image",
+          "video"
+        ],
+        "output_modalities": [
+          "text"
+        ],
+        "chat_completions": true,
+        "streaming_text": true,
+        "tool_calls": true,
+        "streaming_tool_calls": true,
+        "structured_outputs": true,
+        "json_schema": true,
+        "streaming": true,
+        "transcription": false,
+        "speech": false,
+        "speech_formats": [],
+        "parallel_tool_calls": true,
+        "max_documents_per_message": 5,
+        "reasoning_controls": true,
+        "reasoning_effort": false,
+        "web_search": true,
+        "x_search": false,
+        "optimized_for_code": false,
+        "uncensored": false,
+        "log_probs": false,
+        "temperature": true,
+        "top_p": true,
+        "seed": true,
+        "stop": true,
+        "context_window": 1000000,
+        "max_completion_tokens": 65536,
+        "privacy": "anonymized",
+        "privacy_routes": [
+          "anonymized"
+        ]
+      },
+      "customer_pricing": {
+        "status": "configured",
+        "version": "2026-09-17.v4.e6d7725d9d91306f",
+        "currency": "usd",
+        "unit": "per_million_tokens",
+        "input": 2.5,
+        "output": 12.5,
+        "cached_input": 0.125
+      }
+    },
+    {
       "id": "gemini-embedding-2-preview",
       "privacy": "anonymized",
       "context_window": 2048,
@@ -6399,60 +6511,6 @@
         "input": 0.55,
         "output": 2.65,
         "cached_input": 0.11
-      }
-    },
-    {
-      "id": "glm-4-7-flash",
-      "privacy": "private",
-      "context_window": 128000,
-      "max_completion_tokens": 16384,
-      "capabilities": {
-        "version": 1,
-        "input_modalities": [
-          "text",
-          "document"
-        ],
-        "output_modalities": [
-          "text"
-        ],
-        "chat_completions": true,
-        "streaming_text": true,
-        "tool_calls": true,
-        "streaming_tool_calls": true,
-        "structured_outputs": true,
-        "json_schema": true,
-        "streaming": true,
-        "transcription": false,
-        "speech": false,
-        "speech_formats": [],
-        "parallel_tool_calls": true,
-        "max_documents_per_message": 5,
-        "reasoning_controls": true,
-        "reasoning_effort": true,
-        "web_search": true,
-        "x_search": false,
-        "optimized_for_code": false,
-        "uncensored": false,
-        "log_probs": false,
-        "temperature": true,
-        "top_p": true,
-        "seed": true,
-        "stop": true,
-        "context_window": 128000,
-        "max_completion_tokens": 16384,
-        "privacy": "private",
-        "privacy_routes": [
-          "private"
-        ]
-      },
-      "customer_pricing": {
-        "status": "configured",
-        "version": "2026-09-17.v4.edec2f6fcad286da",
-        "currency": "usd",
-        "unit": "per_million_tokens",
-        "input": 0.06,
-        "output": 0.4,
-        "cached_input": 0.01
       }
     },
     {
@@ -7103,12 +7161,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.e7a1604f56bf005e",
+        "version": "2026-09-17.v4.f8836876ff170dc0",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 3.125,
-        "output": 12.5,
-        "cached_input": 3.125
+        "input": 2.5,
+        "output": 10,
+        "cached_input": 1.25
       }
     },
     {
@@ -7158,12 +7216,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.b4c7b8a11df97265",
+        "version": "2026-09-17.v4.de885a2cc5123b13",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.1875,
-        "output": 0.75,
-        "cached_input": 0.09375
+        "input": 0.15,
+        "output": 0.6,
+        "cached_input": 0.075
       }
     },
     {
@@ -7212,12 +7270,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.89a4ed66aa3bca45",
+        "version": "2026-09-17.v4.8d505bcb3de5edc0",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 2.19,
-        "output": 17.5,
-        "cached_input": 0.219
+        "input": 1.75,
+        "output": 14,
+        "cached_input": 0.175
       }
     },
     {
@@ -7267,12 +7325,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.89a4ed66aa3bca45",
+        "version": "2026-09-17.v4.8d505bcb3de5edc0",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 2.19,
-        "output": 17.5,
-        "cached_input": 0.219
+        "input": 1.75,
+        "output": 14,
+        "cached_input": 0.175
       }
     },
     {
@@ -7322,12 +7380,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.90c1ef770d5b9e4a",
+        "version": "2026-09-17.v4.8b7cb4f7caddc879",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 3.13,
-        "output": 18.8,
-        "cached_input": 0.313
+        "input": 2.5,
+        "output": 15,
+        "cached_input": 0.25
       }
     },
     {
@@ -7377,12 +7435,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.13eb5fd5a86d0037",
+        "version": "2026-09-17.v4.31da7f6a52e84d05",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.9375,
-        "output": 5.625,
-        "cached_input": 0.09375
+        "input": 0.75,
+        "output": 4.5,
+        "cached_input": 0.075
       }
     },
     {
@@ -7432,12 +7490,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.d244dffcf9e7e064",
+        "version": "2026-09-17.v4.f17783906930ae66",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 37.5,
-        "output": 225,
-        "cached_input": 37.5
+        "input": 30,
+        "output": 180,
+        "cached_input": 30
       }
     },
     {
@@ -7487,12 +7545,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.6880d5ea7d2a589c",
+        "version": "2026-09-17.v4.a66ff160a0d51b20",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 6.25,
-        "output": 37.5,
-        "cached_input": 0.625
+        "input": 5,
+        "output": 30,
+        "cached_input": 0.5
       }
     },
     {
@@ -7542,12 +7600,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.d244dffcf9e7e064",
+        "version": "2026-09-17.v4.f17783906930ae66",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 37.5,
-        "output": 225,
-        "cached_input": 37.5
+        "input": 30,
+        "output": 180,
+        "cached_input": 30
       }
     },
     {
@@ -7597,12 +7655,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.8a5b329064ba16c4",
+        "version": "2026-09-17.v4.feafe03b29ff9479",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.25,
-        "output": 1.5,
-        "cached_input": 0.025
+        "input": 0.2,
+        "output": 1.2,
+        "cached_input": 0.02
       }
     },
     {
@@ -7652,12 +7710,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.8a5b329064ba16c4",
+        "version": "2026-09-17.v4.feafe03b29ff9479",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.25,
-        "output": 1.5,
-        "cached_input": 0.025
+        "input": 0.2,
+        "output": 1.2,
+        "cached_input": 0.02
       }
     },
     {
@@ -7707,12 +7765,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.927fb8bd1cbad40a",
+        "version": "2026-09-17.v4.51addf24c1610e4f",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 5,
-        "output": 25,
-        "cached_input": 0.5
+        "input": 4,
+        "output": 20,
+        "cached_input": 0.4
       }
     },
     {
@@ -7762,12 +7820,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.927fb8bd1cbad40a",
+        "version": "2026-09-17.v4.51addf24c1610e4f",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 5,
-        "output": 25,
-        "cached_input": 0.5
+        "input": 4,
+        "output": 20,
+        "cached_input": 0.4
       }
     },
     {
@@ -7817,12 +7875,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.8b7cb4f7caddc879",
+        "version": "2026-09-17.v4.37613c4a4ed53831",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 2.5,
-        "output": 15,
-        "cached_input": 0.25
+        "input": 2,
+        "output": 12,
+        "cached_input": 0.2
       }
     },
     {
@@ -7872,12 +7930,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.8b7cb4f7caddc879",
+        "version": "2026-09-17.v4.37613c4a4ed53831",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 2.5,
-        "output": 15,
-        "cached_input": 0.25
+        "input": 2,
+        "output": 12,
+        "cached_input": 0.2
       }
     },
     {
@@ -7927,12 +7985,67 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.e6d7725d9d91306f",
+        "version": "2026-09-17.v4.95009d3825a03638",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 2.5,
-        "output": 12.5,
-        "cached_input": 0.125
+        "input": 2,
+        "output": 10,
+        "cached_input": 0.1
+      }
+    },
+    {
+      "id": "gpt-6-1-sol-ultrafast",
+      "privacy": "anonymized",
+      "context_window": 1050000,
+      "max_completion_tokens": 128000,
+      "capabilities": {
+        "version": 1,
+        "input_modalities": [
+          "text",
+          "document",
+          "image"
+        ],
+        "output_modalities": [
+          "text"
+        ],
+        "chat_completions": true,
+        "streaming_text": true,
+        "tool_calls": true,
+        "streaming_tool_calls": true,
+        "structured_outputs": true,
+        "json_schema": true,
+        "streaming": true,
+        "transcription": false,
+        "speech": false,
+        "speech_formats": [],
+        "parallel_tool_calls": true,
+        "max_documents_per_message": 5,
+        "reasoning_controls": true,
+        "reasoning_effort": true,
+        "web_search": true,
+        "x_search": false,
+        "optimized_for_code": false,
+        "uncensored": false,
+        "log_probs": false,
+        "temperature": true,
+        "top_p": true,
+        "seed": true,
+        "stop": true,
+        "context_window": 1050000,
+        "max_completion_tokens": 128000,
+        "privacy": "anonymized",
+        "privacy_routes": [
+          "anonymized"
+        ]
+      },
+      "customer_pricing": {
+        "status": "configured",
+        "version": "2026-09-17.v4.7f39577baae9e121",
+        "currency": "usd",
+        "unit": "per_million_tokens",
+        "input": 12,
+        "output": 60,
+        "cached_input": 0.6
       }
     },
     {
@@ -8037,12 +8150,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.a26adae70a0ba7d1",
+        "version": "2026-09-17.v4.380edf7deefe65b8",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 12.5,
-        "output": 62.5,
-        "cached_input": 1.25
+        "input": 10,
+        "output": 50,
+        "cached_input": 1
       }
     },
     {
@@ -8092,12 +8205,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.9a0abaae96c1b1c3",
+        "version": "2026-09-17.v4.3c420cc1263e184e",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.125,
-        "output": 0.625,
-        "cached_input": 0.0125
+        "input": 0.1,
+        "output": 0.5,
+        "cached_input": 0.01
       }
     },
     {
@@ -8147,12 +8260,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.cedee259fa213f3a",
+        "version": "2026-09-17.v4.00095fa37c44ca6c",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 2.5,
-        "output": 12.5,
-        "cached_input": 0.25
+        "input": 2,
+        "output": 10,
+        "cached_input": 0.2
       }
     },
     {
@@ -9230,6 +9343,60 @@
         "output": 0,
         "cached_input": 0,
         "request": 0.09
+      }
+    },
+    {
+      "id": "hy4-preview",
+      "privacy": "private",
+      "context_window": 1048576,
+      "max_completion_tokens": 64000,
+      "capabilities": {
+        "version": 1,
+        "input_modalities": [
+          "text",
+          "document"
+        ],
+        "output_modalities": [
+          "text"
+        ],
+        "chat_completions": true,
+        "streaming_text": true,
+        "tool_calls": true,
+        "streaming_tool_calls": true,
+        "structured_outputs": true,
+        "json_schema": true,
+        "streaming": true,
+        "transcription": false,
+        "speech": false,
+        "speech_formats": [],
+        "parallel_tool_calls": true,
+        "max_documents_per_message": 5,
+        "reasoning_controls": true,
+        "reasoning_effort": true,
+        "web_search": true,
+        "x_search": false,
+        "optimized_for_code": true,
+        "uncensored": false,
+        "log_probs": false,
+        "temperature": true,
+        "top_p": true,
+        "seed": true,
+        "stop": true,
+        "context_window": 1048576,
+        "max_completion_tokens": 64000,
+        "privacy": "private",
+        "privacy_routes": [
+          "private"
+        ]
+      },
+      "customer_pricing": {
+        "status": "configured",
+        "version": "2026-09-17.v4.a1f5bb73b64f2ce0",
+        "currency": "usd",
+        "unit": "per_million_tokens",
+        "input": 1.0425,
+        "output": 3.12625,
+        "cached_input": 0.0525
       }
     },
     {
@@ -10967,6 +11134,61 @@
       }
     },
     {
+      "id": "muse-spark-open",
+      "privacy": "private",
+      "context_window": 1048576,
+      "max_completion_tokens": 131072,
+      "capabilities": {
+        "version": 1,
+        "input_modalities": [
+          "text",
+          "document",
+          "image"
+        ],
+        "output_modalities": [
+          "text"
+        ],
+        "chat_completions": true,
+        "streaming_text": true,
+        "tool_calls": true,
+        "streaming_tool_calls": true,
+        "structured_outputs": true,
+        "json_schema": true,
+        "streaming": true,
+        "transcription": false,
+        "speech": false,
+        "speech_formats": [],
+        "parallel_tool_calls": true,
+        "max_documents_per_message": 5,
+        "reasoning_controls": true,
+        "reasoning_effort": true,
+        "web_search": true,
+        "x_search": false,
+        "optimized_for_code": true,
+        "uncensored": false,
+        "log_probs": false,
+        "temperature": true,
+        "top_p": true,
+        "seed": true,
+        "stop": true,
+        "context_window": 1048576,
+        "max_completion_tokens": 131072,
+        "privacy": "private",
+        "privacy_routes": [
+          "private"
+        ]
+      },
+      "customer_pricing": {
+        "status": "configured",
+        "version": "2026-09-17.v4.b2b7e12c64b9eac3",
+        "currency": "usd",
+        "unit": "per_million_tokens",
+        "input": 1.5625,
+        "output": 5.3125,
+        "cached_input": 0.1875
+      }
+    },
+    {
       "id": "nano-banana-2",
       "privacy": "anonymized",
       "context_window": 0,
@@ -11228,6 +11450,62 @@
         "input": 0.0125,
         "output": 0.0125,
         "cached_input": 0.0125
+      }
+    },
+    {
+      "id": "nvidia-nemotron-3-5-super-vl-120b",
+      "privacy": "private",
+      "context_window": 262144,
+      "max_completion_tokens": 32768,
+      "capabilities": {
+        "version": 1,
+        "input_modalities": [
+          "text",
+          "document",
+          "image",
+          "video"
+        ],
+        "output_modalities": [
+          "text"
+        ],
+        "chat_completions": true,
+        "streaming_text": true,
+        "tool_calls": true,
+        "streaming_tool_calls": true,
+        "structured_outputs": true,
+        "json_schema": true,
+        "streaming": true,
+        "transcription": false,
+        "speech": false,
+        "speech_formats": [],
+        "parallel_tool_calls": true,
+        "max_documents_per_message": 5,
+        "reasoning_controls": true,
+        "reasoning_effort": true,
+        "web_search": true,
+        "x_search": false,
+        "optimized_for_code": true,
+        "uncensored": false,
+        "log_probs": false,
+        "temperature": true,
+        "top_p": true,
+        "seed": true,
+        "stop": true,
+        "context_window": 262144,
+        "max_completion_tokens": 32768,
+        "privacy": "private",
+        "privacy_routes": [
+          "private"
+        ]
+      },
+      "customer_pricing": {
+        "status": "configured",
+        "version": "2026-09-17.v4.456be98eee440d60",
+        "currency": "usd",
+        "unit": "per_million_tokens",
+        "input": 0.25,
+        "output": 1.25,
+        "cached_input": 0.125
       }
     },
     {
@@ -11654,12 +11932,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.a4546b480fd875a9",
+        "version": "2026-09-17.v4.44c628c9cb7eacb7",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.3125,
-        "output": 1.25,
-        "cached_input": 0.15625
+        "input": 0.15,
+        "output": 1,
+        "cached_input": 0.05
       }
     },
     {
@@ -12591,6 +12869,112 @@
         "output": 0,
         "cached_input": 0,
         "request": 0.05
+      }
+    },
+    {
+      "id": "qwen-image-2-1-pro",
+      "privacy": "anonymized",
+      "context_window": 0,
+      "max_completion_tokens": 0,
+      "capabilities": {
+        "version": 1,
+        "input_modalities": [
+          "text"
+        ],
+        "output_modalities": [
+          "image"
+        ],
+        "chat_completions": false,
+        "streaming_text": false,
+        "tool_calls": false,
+        "streaming_tool_calls": false,
+        "structured_outputs": false,
+        "json_schema": false,
+        "streaming": false,
+        "transcription": false,
+        "speech": false,
+        "speech_formats": [],
+        "parallel_tool_calls": false,
+        "reasoning_controls": false,
+        "reasoning_effort": false,
+        "web_search": false,
+        "x_search": false,
+        "optimized_for_code": false,
+        "uncensored": true,
+        "log_probs": false,
+        "temperature": false,
+        "top_p": false,
+        "seed": false,
+        "stop": false,
+        "context_window": 0,
+        "max_completion_tokens": 0,
+        "privacy": "anonymized",
+        "privacy_routes": [
+          "anonymized"
+        ]
+      },
+      "customer_pricing": {
+        "status": "configured",
+        "version": "2026-09-17.v4.a19f3e18d98d2be6",
+        "currency": "usd",
+        "unit": "per_image",
+        "input": 0,
+        "output": 0,
+        "cached_input": 0,
+        "request": 0.05
+      }
+    },
+    {
+      "id": "qwen-image-2-1-turbo",
+      "privacy": "anonymized",
+      "context_window": 0,
+      "max_completion_tokens": 0,
+      "capabilities": {
+        "version": 1,
+        "input_modalities": [
+          "text"
+        ],
+        "output_modalities": [
+          "image"
+        ],
+        "chat_completions": false,
+        "streaming_text": false,
+        "tool_calls": false,
+        "streaming_tool_calls": false,
+        "structured_outputs": false,
+        "json_schema": false,
+        "streaming": false,
+        "transcription": false,
+        "speech": false,
+        "speech_formats": [],
+        "parallel_tool_calls": false,
+        "reasoning_controls": false,
+        "reasoning_effort": false,
+        "web_search": false,
+        "x_search": false,
+        "optimized_for_code": false,
+        "uncensored": true,
+        "log_probs": false,
+        "temperature": false,
+        "top_p": false,
+        "seed": false,
+        "stop": false,
+        "context_window": 0,
+        "max_completion_tokens": 0,
+        "privacy": "anonymized",
+        "privacy_routes": [
+          "anonymized"
+        ]
+      },
+      "customer_pricing": {
+        "status": "configured",
+        "version": "2026-09-17.v4.616b1ef05f9fc93c",
+        "currency": "usd",
+        "unit": "per_image",
+        "input": 0,
+        "output": 0,
+        "cached_input": 0,
+        "request": 0.02
       }
     },
     {

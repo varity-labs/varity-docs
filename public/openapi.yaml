@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Varity Public Platform API",
-    "version": "2026-09-16",
+    "version": "2026-10-08",
     "description": "Gateway-owned resource API for deploying and operating Varity apps."
   },
   "servers": [
@@ -259,6 +259,17 @@
               "maxLength": 128,
               "pattern": "^[A-Za-z0-9._:-]+$"
             }
+          },
+          {
+            "name": "X-Varity-Approval-Id",
+            "in": "header",
+            "required": true,
+            "description": "A pending owner-scoped approval for the exact machine mutation. Create binds the normalized request and Idempotency-Key; actions and delete bind the machine id and exact effect.",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
           }
         ],
         "requestBody": {
@@ -288,6 +299,52 @@
         }
       }
     },
+    "/machines/approvals": {
+      "post": {
+        "operationId": "createMachineApproval",
+        "summary": "Prepare a server-derived approval for an exact machine mutation",
+        "description": "The server validates and normalizes the intended machine mutation, then derives the canonical approval kind, target, and fingerprint. Clients never compute approval fingerprints.",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9._:-]+$"
+            },
+            "description": "Required for create and delete intent, and must be reused unchanged on the resulting machine mutation. Omit for restart/soft-reboot."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MachineApprovalRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Pending owner-scoped single-use approval",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MachineApproval"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      }
+    },
     "/machines/{machine_id}/actions": {
       "post": {
         "operationId": "runMachineAction",
@@ -301,6 +358,17 @@
             "schema": {
               "type": "string",
               "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "X-Varity-Approval-Id",
+            "in": "header",
+            "required": true,
+            "description": "A pending owner-scoped approval for the exact machine mutation. Create binds the normalized request and Idempotency-Key; actions and delete bind the machine id and exact effect.",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
             }
           }
         ],
@@ -385,6 +453,17 @@
               "minLength": 8,
               "maxLength": 128,
               "pattern": "^[A-Za-z0-9._:-]+$"
+            }
+          },
+          {
+            "name": "X-Varity-Approval-Id",
+            "in": "header",
+            "required": true,
+            "description": "A pending owner-scoped approval for the exact machine mutation. Create binds the normalized request and Idempotency-Key; actions and delete bind the machine id and exact effect.",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
             }
           }
         ],
@@ -978,6 +1057,56 @@
         }
       }
     },
+    "/deployments/{deployment_id}/terminal-sessions": {
+      "post": {
+        "operationId": "createDeploymentTerminalSession",
+        "summary": "Create a single-use browser-terminal session",
+        "description": "Returns the websocket path and the deploy-api-owned expiry and maximum client-frame size. Capacity refusals are retryable 429 responses; clients must not invent local replacements for either server limit.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeploymentId"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Terminal session ticket issued",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "expires_in_seconds",
+                    "max_client_frame_bytes",
+                    "websocket_path"
+                  ],
+                  "properties": {
+                    "expires_in_seconds": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "max_client_frame_bytes": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "websocket_path": {
+                      "type": "string",
+                      "pattern": "^/api/terminal/[A-Za-z0-9_-]{43}$"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/PublicError"
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      }
+    },
     "/deployments/{deployment_id}/logs": {
       "get": {
         "operationId": "listDeploymentLogs",
@@ -1379,8 +1508,7 @@
                   "mysql",
                   "redis",
                   "mongodb",
-                  "minio",
-                  "ollama"
+                  "minio"
                 ]
               }
             }
@@ -2598,6 +2726,96 @@
               "object",
               "null"
             ]
+          }
+        }
+      },
+      "MachineApprovalRequest": {
+        "oneOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "mutation",
+              "request"
+            ],
+            "properties": {
+              "mutation": {
+                "type": "string",
+                "enum": [
+                  "create"
+                ]
+              },
+              "request": {
+                "$ref": "#/components/schemas/CreateMachineRequest"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "mutation",
+              "machine_id",
+              "action"
+            ],
+            "properties": {
+              "mutation": {
+                "type": "string",
+                "enum": [
+                  "action"
+                ]
+              },
+              "machine_id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+              },
+              "action": {
+                "type": "string",
+                "enum": [
+                  "restart",
+                  "soft_reboot"
+                ]
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "mutation",
+              "machine_id"
+            ],
+            "properties": {
+              "mutation": {
+                "type": "string",
+                "enum": [
+                  "delete"
+                ]
+              },
+              "machine_id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+              }
+            }
+          }
+        ]
+      },
+      "MachineApproval": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "approval_id",
+          "expires_at"
+        ],
+        "properties": {
+          "approval_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
@@ -4267,6 +4485,38 @@
           }
         }
       },
+      "AttachedServiceInputVolume": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "service",
+          "size_gb",
+          "mount_path"
+        ],
+        "properties": {
+          "service": {
+            "type": "string",
+            "enum": [
+              "postgres",
+              "mysql",
+              "redis",
+              "mongodb",
+              "minio"
+            ]
+          },
+          "size_gb": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "mount_path": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
       "DeploymentAccess": {
         "type": [
           "object",
@@ -5590,8 +5840,7 @@
                 "mysql",
                 "redis",
                 "mongodb",
-                "minio",
-                "ollama"
+                "minio"
               ]
             },
             "description": "Databases run inside the selected plan (the plan is the total CPU, memory and ephemeral disk) and add only their persistent GB to the price. A plan that cannot hold them is refused with plan_too_small_for_services and the next plan offered; it is never upgraded silently."
@@ -5600,7 +5849,7 @@
             "type": "array",
             "maxItems": 8,
             "items": {
-              "$ref": "#/components/schemas/AttachedServiceVolume"
+              "$ref": "#/components/schemas/AttachedServiceInputVolume"
             }
           },
           "ingress": {
