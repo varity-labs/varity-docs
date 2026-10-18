@@ -1413,7 +1413,7 @@ limits as your API keys.
 
 The composer has two modes:
 
-- **Build**: build and change your app with a verified Build model; new Build
+- **Build (Beta)**: build and change your app with a verified Build model; new Build
   chats start on DeepSeek V4.1 Flash, and the model picker lets you choose
   another available Build model.
 - **Chat**: ask, plan, and read with any model. Nothing is written or deployed.
@@ -1475,7 +1475,7 @@ it back to the chat; nothing is fixed automatically.
 
 ## Workspace Panel
 
-Open the side panel for four views:
+Open the side panel for three views:
 
 - **Preview**: run the in-progress app as its files change. After a deployment,
   **Live site** switches between that preview and the deployed app. A new
@@ -1484,9 +1484,6 @@ Open the side panel for four views:
 - **Code**: browse the chat's workspace and connected repository, then open a
   file in the editor.
 - **Logs**: follow a deployment's runtime logs.
-- **Terminal**: open an interactive browser shell for supported dynamic and GPU
-  applications. CPU and GPU virtual machines use SSH and do not yet have
-  browser Terminal support.
 
 ## View Code
 
@@ -2724,7 +2721,7 @@ Remove your saved credentials from this machine.
 varitykit auth logout
 ```
 
-This removes the deploy key, gateway key, and database credentials from your local config file. You will need to run `varitykit login` again to deploy or manage domains.
+This removes the deploy key from your local config file. You will need to run `varitykit login` again to deploy.
 
 ### status
 
@@ -2737,7 +2734,7 @@ varitykit auth status
 Example output when logged in:
 
 ```
-  Logged in (key: dk_live_...7f2a)
+  Logged in (key: vk_...7f2a)
 ```
 
 Example output when not logged in:
@@ -2756,22 +2753,18 @@ Credentials are saved to `~/.varitykit/config.json` with restricted file permiss
 | `~/.varitykit/` | `700` (owner-only access) |
 | `~/.varitykit/config.json` | `600` (owner-only read/write) |
 
-The config file may contain:
+The config file holds one credential:
 
 | Key | Description |
 |-----|-------------|
 | `deploy_key` | Your developer portal deploy key |
-| `gateway_api_key` | API key for the Varity gateway (auto-configured) |
-| `jwt_secret` | Database credentials (auto-configured) |
-
-Deploy keys can bundle multiple credentials. When you paste a key from the developer portal, the CLI automatically extracts and saves all associated credentials (gateway key, database credentials) in one step.
 
 ## When Is Authentication Required?
 
 | Command | Requires Login |
 |---------|---------------|
 | `varitykit app deploy` | Yes |
-| `varitykit domains list` | Yes |
+| `varitykit app list` | Yes |
 | `varitykit migrate` | Yes |
 | `varitykit doctor` | No |
 
@@ -3212,12 +3205,6 @@ VarityKit is a Python-based CLI that helps you deploy and manage applications. I
 | `varitykit app redeploy NAME` | Reapply the saved configuration on the same URL |
 | `varitykit app restart NAME` | Restart with a verified replacement on the same URL |
 | `varitykit app rollback DEPLOYMENT_ID` | Redeploy an earlier configuration (`--confirm` skips the prompt) |
-
-### Domains
-
-| Command | Description |
-|---------|-------------|
-| `varitykit domains list` | List all domains you own on `varity.app` |
 
 ### Migration (Vercel → Varity)
 
@@ -3692,27 +3679,13 @@ curl -X DELETE https://varity.app/api/deployments/$DEPLOYMENT_ID/domain \
 
 Your app stays reachable at its `varity.app` URL.
 
-## View Your Registered Names
+## List Your Apps
 
-List the `varity.app` names registered to your account:
+List your deployments with their status and URLs:
 
 ```bash
-varitykit domains list
+varitykit app list
 ```
-
-Output:
-
-```
-Your Domains (2)
-┌─────────────┬──────────────────────────────────┬──────────────────┐
-│ Subdomain   │ App URL                          │ App Name         │
-├─────────────┼──────────────────────────────────┼──────────────────┤
-│ my-app      │ https://varity.app/my-app        │ my-app           │
-│ my-other    │ https://varity.app/my-other      │ my-other-project │
-└─────────────┴──────────────────────────────────┴──────────────────┘
-```
-
-You must be logged in to list your names. Run `varitykit login` first if you see a "Not logged in" message.
 
 ## Redeploy Under the Same Name
 
