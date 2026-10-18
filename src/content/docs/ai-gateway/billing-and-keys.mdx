@@ -1,9 +1,10 @@
 ---
 title: AI Gateway Billing and Keys
-description: How Varity AI Gateway requests spend credits from your Varity balance, and how inference keys and usage reporting work.
+description: How Varity AI Gateway requests spend credits from your credit balance, and how inference keys and usage reporting work.
 ---
 
 import PageMeta from '../../../components/PageMeta.astro';
+import CreditPolicy from '../../../components/CreditPolicy.astro';
 
 <PageMeta
   author="Varity Team"
@@ -11,21 +12,19 @@ import PageMeta from '../../../components/PageMeta.astro';
   stability="beta"
 />
 
-The AI Gateway spends credits from your Varity balance, the same prepaid
-balance Varity Cloud uses (**100 credits = $1**). Credits come from your plan,
-from top-ups, or from the Free plan; see
+The AI Gateway spends credits from your credit balance, the same prepaid
+credit balance Varity Cloud uses, at **<CreditPolicy field="credits-per-usd" />**.
+Credits come from your plan, from top-ups, or from the Free plan; see
 [Billing and Pricing](/resources/billing/). An inference key is what your code
 sends to spend them.
 
 ## How You Are Charged
 
-- **API key requests** cost the provider cost of the request, including cache
-  discounts, plus 5%. They need paid credits from a subscription or top-up;
-  Free plan credits do not cover them.
-- **Chat and Build** in the portal are charged from a versioned per-model
-  credit rate card.
-- **The Free plan** includes up to 50 credits of AI usage per day, on the
-  cheapest suitable model. Any subscription or top-up removes the daily limit.
+- **Free plan credits** cover only <CreditPolicy field="free-promo-categories" />,
+  up to <CreditPolicy field="free-daily-ai-credits" /> credits of AI usage per
+  day on the cheapest suitable model. Any subscription or top-up removes the
+  daily limit.
+- **API key requests** need paid credits from a subscription or top-up.
 - You cannot bring your own provider key.
 
 Per-model rates are in `customer_pricing` on
@@ -33,26 +32,16 @@ Per-model rates are in `customer_pricing` on
 portal's AI Gateway page. This page lists no prices, because the catalog changes
 without a docs release.
 
-When a request cannot be paid for, it is refused with a `402` before any
-model is called:
-
-| Code | Meaning |
-|------|---------|
-| `insufficient_credits` | Your balance cannot cover the request. |
-| `daily_free_limit_reached` | The Free plan's daily AI allowance is used up. |
-| `subscription_required` | The request needs paid credits, for example an API key request on Free plan credits only. |
-| `wallet_frozen` | Paid usage is paused on this account. |
-
-The full list of billing codes is on [API Errors](/api/errors/#capacity-and-billing).
-The older `insufficient_gateway_balance` code means the same as
-`insufficient_credits` and is being retired; handle both.
+When a request cannot be paid for, it is refused with a `402` before any model
+is called. The codes and what each one means are listed once, in
+[API Errors](/api/errors/#capacity-and-billing).
 
 ## Adding Credits
 
 Subscribe to a plan or buy a top-up on the billing page of the Developer
-Portal. Top-ups have no fee, and top-up credits expire 12 months after
-purchase. Optional auto top-up refills your balance when it falls below a
-threshold you set, up to a monthly cap you choose.
+Portal; see [Top-Ups](/resources/billing/#top-ups). Optional auto top-up
+refills your credit balance when it falls below a threshold you set, up to a
+monthly cap you choose.
 
 ## Inference Keys
 
@@ -94,11 +83,8 @@ place AI Gateway keys are issued is `POST /v1/keys` on this host.
 | `GET /v1/billing/balance` | The balance: `availableBalanceUsd`, `reservedUsd`, `spendThisMonthUsd`, `monthlySpendingLimitUsd`, `autoReload`, and more. |
 | `GET /v1/billing/transactions` | Balance transactions. Accepts `limit` from 1 to 100 (default 50) and `offset` from 0 to 10,000. |
 | `PATCH /v1/billing/settings` | Sets `monthlySpendingLimitCents` (`null`, or 100 to 10,000,000) and `autoReload` `{ enabled, thresholdCents, amountCents }`. |
-| `POST /v1/billing/top-up` | Starts a card checkout. Body: `email` (must belong to your account) and `balanceCents` (within the refill bounds of the live commercial contract; see [How You Are Charged](#how-you-are-charged)). Returns the checkout `url` plus `balanceCents`, `serviceFeeCents`, and `totalCents`. |
+| `POST /v1/billing/top-up` | Starts a card checkout. Body: `email` (must belong to your account) and `balanceCents` (within the top-up bounds; see [Top-Ups](/resources/billing/#top-ups)). Returns the checkout `url` plus `balanceCents`, `serviceFeeCents`, and `totalCents`. |
 | `PUT /v1/inference/policy` | Sets the account privacy floor. See [Privacy Routing](/ai-gateway/compatibility/#privacy-routing). |
-
-Under credit pricing, top-ups carry no fee, so `serviceFeeCents` is `0` and
-`totalCents` equals `balanceCents`.
 
 The request budgets for these routes are on
 [Rate Limits](/ai-gateway/limits/#account-routes).

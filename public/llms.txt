@@ -15,7 +15,7 @@ MCP clients must discover executable tool definitions from the installed server'
 
 - [Varity Documentation Home](https://docs.varity.so/): Documentation for The Orchestration Cloud: Varity Cloud deployments and the Varity AI Gateway.
 - [Varity AI Gateway](https://docs.varity.so/ai-gateway/): OpenAI-compatible inference on Varity. Point any OpenAI client at https://ai.varity.app/v1 and change nothing else.
-- [AI Gateway Billing and Keys](https://docs.varity.so/ai-gateway/billing-and-keys/): How Varity AI Gateway requests spend credits from your Varity balance, and how inference keys and usage reporting work.
+- [AI Gateway Billing and Keys](https://docs.varity.so/ai-gateway/billing-and-keys/): How Varity AI Gateway requests spend credits from your credit balance, and how inference keys and usage reporting work.
 - [AI Gateway OpenAI Compatibility](https://docs.varity.so/ai-gateway/compatibility/): Exactly which parts of the OpenAI API surface the Varity AI Gateway implements, and which parts it does not.
 - [AI Gateway Endpoints](https://docs.varity.so/ai-gateway/endpoints/): One minimal request for every Varity AI Gateway route, with the full schema at /v1/openapi.json.
 - [AI Gateway Rate Limits](https://docs.varity.so/ai-gateway/limits/): The request budgets, concurrency bound, and body-size ceilings the Varity AI Gateway enforces, the headers it actually returns, and what each 429 body looks like.

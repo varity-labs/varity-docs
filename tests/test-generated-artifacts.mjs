@@ -7,9 +7,10 @@
 //   node tools/generate-ai-gateway-artifacts.mjs --update
 //
 // Check name: generated AI gateway artifacts match their sources
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { check, projectModel } from '../tools/generate-ai-gateway-artifacts.mjs';
+import { CREDIT_POLICY_FIELDS, creditPolicyMarkdown, creditPolicyField } from '../src/lib/credit-policy.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const { ok, errors } = check(root);
@@ -28,9 +29,34 @@ if (!Array.isArray(mirror.models) || mirror.models.length === 0) {
 for (const model of mirror.models ?? []) {
   if (!full.includes(`\n- \`${model.id}\`: `)) errors.push(`llms-full.txt is missing model ${model.id}`);
 }
-const fee = mirror.openapi?.['x-varity-commercial-contract']?.funding_service_fee_percent;
-if (fee === undefined || !full.includes(`\n- funding_service_fee_percent: ${fee}\n`)) {
-  errors.push('llms-full.txt is missing the funding service fee from x-varity-commercial-contract');
+// Funding terms come from credit_policy, rendered from its mirror into both the
+// pages (<CreditPolicy field=... />) and llms-full.txt; the AI Gateway's old
+// commercial-contract block must not reappear as a second, conflicting owner.
+const creditPolicy = JSON.parse(readFileSync(new URL('../contracts/credit-policy.mirror.json', import.meta.url), 'utf8'));
+for (const field of CREDIT_POLICY_FIELDS) {
+  if (!full.includes(creditPolicyMarkdown(creditPolicy, field))) errors.push(`llms-full.txt is missing credit policy field ${field}`);
+}
+if (full.includes('funding_service_fee_percent')) errors.push('llms-full.txt renders the superseded AI Gateway funding fee');
+const failsClosed = (mutate, label) => {
+  const broken = structuredClone(creditPolicy);
+  mutate(broken.credit_policy);
+  try {
+    for (const field of CREDIT_POLICY_FIELDS) creditPolicyField(broken, field);
+    errors.push(`credit policy rendering must fail closed on ${label}`);
+  } catch { /* expected */ }
+};
+failsClosed((p) => { p.errorCodes.push('new_billing_code'); }, 'a billing code without a meaning');
+failsClosed((p) => { p.errorCodes.pop(); }, 'a meaning whose code left the contract');
+failsClosed((p) => { delete p.free.dailyAiCredits; }, 'a missing field');
+failsClosed((p) => { p.free.promoCategories.push('new_category'); }, 'an unnamed spend category');
+// Pages name fields; they never copy the code list or the credit rate.
+const docsDir = new URL('../src/content/docs/', import.meta.url);
+for (const page of readdirSync(docsDir, { recursive: true }).filter((name) => /\.mdx?$/.test(name))) {
+  const source = readFileSync(new URL(page, docsDir), 'utf8');
+  for (const code of creditPolicy.credit_policy.errorCodes) {
+    if (source.includes(code)) errors.push(`${page} copies billing code ${code}; use <CreditPolicy field="billing-codes" /> or link /api/errors/#capacity-and-billing`);
+  }
+  if (/credits\s*=\s*\$1/.test(source)) errors.push(`${page} copies the credit rate; use <CreditPolicy field="credits-per-usd" />`);
 }
 // Per-replica health and timestamps must never enter the mirror, or the daily
 // live check would fail on every read instead of on a real catalog change.

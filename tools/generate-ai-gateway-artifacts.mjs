@@ -8,6 +8,7 @@
  *
  *   public/llms.txt        compact page index     <- src/content/docs/** + public/mcp-schema.json
  *   public/llms-full.txt   full retrieval corpus  <- src/content/docs/** + contracts/ai-gateway.mirror.json
+ *                                                   + contracts/credit-policy.mirror.json
  *   public/openapi.yaml    platform API contract  <- contracts/openapi.platform.mirror.json
  *
  * `contracts/openapi.platform.mirror.json` is the exact upstream body of
@@ -25,7 +26,14 @@
  * their price-set version; `--check-live` (daily, check-live-contracts.yml)
  * fails when the live catalog moves, and PR CI stays hermetic.
  *
- * Both mirrors are refreshed by `--refresh-mirror`.
+ * `contracts/credit-policy.mirror.json` holds `credit_policy` from
+ * https://varity.app/api/pricing: plans, Free allowance, top-ups and the closed
+ * billing codes. Pages render it through <CreditPolicy field=... /> and this
+ * generator renders the same fields as text (src/lib/credit-policy.mjs). Until
+ * the producer serves the field the file is a marked `pending_fixture`, which
+ * `--refresh-mirror` keeps and `--check-live` accepts.
+ *
+ * All three mirrors are refreshed by `--refresh-mirror`.
  *
  * Usage:
  *   node tools/generate-ai-gateway-artifacts.mjs                 # hermetic drift check (default)
@@ -40,6 +48,7 @@
 import { readFileSync, writeFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { CREDIT_POLICY_FIELDS, creditPolicyMarkdown } from '../src/lib/credit-policy.mjs';
 
 const SITE = 'https://docs.varity.so';
 
@@ -47,9 +56,11 @@ const DOCS_DIR = 'src/content/docs';
 const MCP_SCHEMA_PATH = 'public/mcp-schema.json';
 const OPENAPI_MIRROR_PATH = 'contracts/openapi.platform.mirror.json';
 const AI_GATEWAY_MIRROR_PATH = 'contracts/ai-gateway.mirror.json';
+const CREDIT_POLICY_MIRROR_PATH = 'contracts/credit-policy.mirror.json';
 
 /** The live platform OpenAPI document that public/openapi.yaml mirrors. */
 const CANONICAL_OPENAPI_URL = 'https://varity.app/api/openapi.json';
+const PRICING_URL = 'https://varity.app/api/pricing';
 const MCP_PACKAGE_URL = 'https://registry.npmjs.org/@varity-labs%2Fmcp/latest';
 const AI_GATEWAY_OPENAPI_URL = 'https://ai.varity.app/v1/openapi.json';
 const AI_GATEWAY_MODELS_URL = 'https://ai.varity.app/v1/models';
@@ -133,13 +144,20 @@ function importedComponentNames(body) {
 /**
  * Turn an MDX page into retrieval text: drop ESM imports and JSX component
  * wrappers/self-closing components, keep their children and all prose, code,
- * tables and links. Mirrors are left as relative links.
+ * tables and links. A self-closing component with a text renderer (for
+ * example `<CreditPolicy field="plans" />`) is replaced by that text instead.
+ * Mirrors are left as relative links.
  */
-function mdxToText(body) {
+function mdxToText(body, componentText) {
   let text = body.replace(/^import\s+.+?\s+from\s+['"][^'"]+['"];?[ \t]*$/gm, '');
   text = text.replace(/\{\/\*[\s\S]*?\*\/\}/g, '');
   for (const name of importedComponentNames(body)) {
     const tag = escapeRegExp(name);
+    const render = componentText[name];
+    if (render) {
+      text = text.replace(new RegExp(`<${tag}\\b([^>]*)\\/>`, 'g'), (_, attrs) =>
+        render(Object.fromEntries([...attrs.matchAll(/(\w+)="([^"]*)"/g)].map((m) => [m[1], m[2]]))));
+    }
     text = text.replace(new RegExp(`<${tag}\\b[^>]*\\/>`, 'g'), '');
     text = text.replace(new RegExp(`<${tag}\\b[^>]*>`, 'g'), '');
     text = text.replace(new RegExp(`</${tag}\\s*>`, 'g'), '');
@@ -148,8 +166,9 @@ function mdxToText(body) {
 }
 
 /** Ordered, deterministic page list derived entirely from the checked-in docs. */
-function loadPages(root) {
+function loadPages(root, creditPolicyMirror) {
   const docsRoot = join(root, DOCS_DIR);
+  const componentText = { CreditPolicy: ({ field }) => creditPolicyMarkdown(creditPolicyMirror, field) };
   const pages = collectPageFiles(docsRoot).map((absolute) => {
     const { fields, body } = parseFrontmatter(readText(absolute));
     const slug = slugFor(absolute, docsRoot);
@@ -158,7 +177,7 @@ function loadPages(root) {
       url: slug ? `${SITE}/${slug}/` : `${SITE}/`,
       title: fields.title || slug || 'Varity Docs',
       description: fields.description || '',
-      body: mdxToText(body),
+      body: mdxToText(body, componentText),
     };
   });
   return pages.sort((a, b) => (a.url < b.url ? -1 : a.url > b.url ? 1 : 0));
@@ -235,7 +254,6 @@ function modelLine(model) {
 
 /** The AI Gateway section of llms-full.txt, rendered only from the checked-in mirror. */
 function renderAiGatewayCatalog(mirror) {
-  const terms = mirror.openapi['x-varity-commercial-contract'] ?? {};
   const fields = mirror.openapi.components?.schemas?.Model?.properties?.capabilities?.properties ?? {};
   const matrix = mirror.openapi['x-varity-capability-matrix'] ?? {};
   const operations = Object.entries(mirror.openapi.paths ?? {}).flatMap(([route, ops]) => Object.entries(ops)
@@ -245,10 +263,6 @@ function renderAiGatewayCatalog(mirror) {
     '## AI Gateway live contract snapshot',
     '',
     `Source: ${AI_GATEWAY_OPENAPI_URL} (${mirror.openapi.info?.title} ${mirror.openapi.info?.version}) and ${AI_GATEWAY_MODELS_URL}, snapshotted in varity-docs ${AI_GATEWAY_MIRROR_PATH}. The live endpoints are authoritative; read them at runtime.`,
-    '',
-    '### Funding terms (x-varity-commercial-contract)',
-    '',
-    ...Object.entries(terms).map(([key, value]) => `- ${key}: ${value}`),
     '',
     '### Capability matrix (x-varity-capability-matrix)',
     '',
@@ -269,12 +283,27 @@ function renderAiGatewayCatalog(mirror) {
   ].join('\n');
 }
 
-function renderLlmsFull(pages, schema, aiGatewayMirror) {
+/**
+ * Funding terms for AI Gateway and Varity Cloud alike: the credit policy
+ * replaces the AI Gateway's own commercial-contract block as the funding owner.
+ */
+function renderCreditPolicy(mirror) {
+  return [
+    '## Credit policy snapshot',
+    '',
+    `Source: ${mirror.source}, snapshotted in varity-docs ${CREDIT_POLICY_MIRROR_PATH} `
+      + `(status ${mirror.status}, version ${mirror.credit_policy.version}). The live endpoint is authoritative; read it at runtime.`,
+    '',
+    ...CREDIT_POLICY_FIELDS.flatMap((field) => [`### ${field}`, '', creditPolicyMarkdown(mirror, field), '']),
+  ].join('\n').trimEnd();
+}
+
+function renderLlmsFull(pages, schema, aiGatewayMirror, creditPolicyMirror) {
   const sections = pages.map(
     (page) =>
       `## ${page.title}\n\nURL: ${page.url}\nDescription: ${page.description}\n\n${page.body}`
   );
-  sections.push(renderAiGatewayCatalog(aiGatewayMirror));
+  sections.push(renderCreditPolicy(creditPolicyMirror), renderAiGatewayCatalog(aiGatewayMirror));
   return `${renderHeader(pages, schema)}\n\n${sections.join('\n\n---\n\n')}\n`;
 }
 
@@ -285,13 +314,14 @@ function renderOpenApi(mirrorText) {
 
 /** Compute every generated artifact in memory from sources checked into `root`. */
 export function generate(root) {
-  const pages = loadPages(root);
+  const creditPolicyMirror = JSON.parse(readText(join(root, CREDIT_POLICY_MIRROR_PATH)));
+  const pages = loadPages(root, creditPolicyMirror);
   const schema = JSON.parse(readText(join(root, MCP_SCHEMA_PATH)));
   const mirror = readText(join(root, OPENAPI_MIRROR_PATH));
   const aiGatewayMirror = JSON.parse(readText(join(root, AI_GATEWAY_MIRROR_PATH)));
   return {
     'public/llms.txt': renderLlmsIndex(pages, schema),
-    'public/llms-full.txt': renderLlmsFull(pages, schema, aiGatewayMirror),
+    'public/llms-full.txt': renderLlmsFull(pages, schema, aiGatewayMirror, creditPolicyMirror),
     'public/openapi.yaml': renderOpenApi(mirror),
   };
 }
@@ -355,6 +385,18 @@ async function checkLive(root, fetchImpl = fetch) {
     ];
   }
 
+  let creditPolicyLive;
+  try {
+    creditPolicyLive = await fetchCreditPolicyMirror(fetchImpl);
+  } catch (error) {
+    return [error.message];
+  }
+  const creditPolicyStored = readText(join(root, CREDIT_POLICY_MIRROR_PATH));
+  const pending = JSON.parse(creditPolicyStored).status === 'pending_fixture';
+  if (creditPolicyLive === null ? !pending : creditPolicyLive !== creditPolicyStored) {
+    return [`${CREDIT_POLICY_MIRROR_PATH} is stale vs ${PRICING_URL} credit_policy (refresh with --refresh-mirror)`];
+  }
+
   let packageResponse;
   try {
     packageResponse = await fetchImpl(MCP_PACKAGE_URL, {
@@ -409,6 +451,14 @@ export async function refreshAiGatewayMirror(root, fetchImpl = fetch) {
   writeFileSync(join(root, AI_GATEWAY_MIRROR_PATH), await fetchAiGatewayMirror(fetchImpl));
 }
 
+/** The credit-policy mirror body live pricing would produce now, or null while it serves no credit_policy. */
+async function fetchCreditPolicyMirror(fetchImpl) {
+  const pricing = await fetchJson(PRICING_URL, fetchImpl);
+  if (pricing.credit_policy === undefined) return null;
+  const mirror = { status: 'live', source: `${PRICING_URL} (field credit_policy)`, credit_policy: pricing.credit_policy };
+  return `${JSON.stringify(mirror, null, 2)}\n`;
+}
+
 async function refreshMirror(root, fetchImpl = fetch) {
   const response = await fetchImpl(CANONICAL_OPENAPI_URL, {
     headers: { accept: 'application/json' },
@@ -416,9 +466,12 @@ async function refreshMirror(root, fetchImpl = fetch) {
   if (!response.ok) throw new Error(`${CANONICAL_OPENAPI_URL} returned HTTP ${response.status}`);
   const body = await response.text();
   JSON.parse(body); // fail before writing anything that is not valid JSON
-  const aiGatewayMirror = await fetchAiGatewayMirror(fetchImpl); // both fetched before either is written
+  // Every mirror is fetched before any is written.
+  const aiGatewayMirror = await fetchAiGatewayMirror(fetchImpl);
+  const creditPolicyMirror = await fetchCreditPolicyMirror(fetchImpl);
   writeFileSync(join(root, OPENAPI_MIRROR_PATH), body);
   writeFileSync(join(root, AI_GATEWAY_MIRROR_PATH), aiGatewayMirror);
+  if (creditPolicyMirror !== null) writeFileSync(join(root, CREDIT_POLICY_MIRROR_PATH), creditPolicyMirror);
 }
 
 function rootDir() {

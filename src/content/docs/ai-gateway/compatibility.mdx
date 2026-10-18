@@ -196,12 +196,10 @@ that response; the column below is what the gateway publishes today.
 | `rate_limit_exceeded` | `429` | yes | The account's requests-per-minute budget, or the key's own `requests_per_minute`, is exhausted. See [Rate Limits](/ai-gateway/limits/). |
 | `concurrency_limit_exceeded` | `429` | yes | The account's in-flight bound, or the key's own `concurrency_limit`, is exhausted. See [Rate Limits](/ai-gateway/limits/). |
 | `budget_exceeded` | `429` | yes | The account's inference budget, or the key's own spending budget, is exhausted. See [Billing and Keys](/ai-gateway/billing-and-keys/). |
-| `insufficient_credits` | `402` | no | Your credit balance cannot cover the request. The older `insufficient_gateway_balance` code means the same and is being retired; handle both. |
-| `daily_free_limit_reached` | `402` | no | The Free plan's daily AI allowance is used up. Any subscription or top-up removes the limit. |
-| `subscription_required` | `402` | no | The request needs paid credits, for example an API key request on Free plan credits only. |
-| `wallet_frozen` | `402` | no | Paid usage on this account is paused pending billing review. |
-| `billing_unavailable` | `503` | yes | The isolated billing ledger could not answer. Not your request's fault. |
 | `internal_error` | `500` | no | An unclassified gateway failure. Quote `request_id`. |
+
+Billing refusals (`402`) and billing outages (`503`) use the codes listed in
+[API Errors](/api/errors/#capacity-and-billing).
 
 **A model provider decided it** (`failure_domain: "supplier_observed"`):
 

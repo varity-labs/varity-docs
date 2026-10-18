@@ -1,0 +1,20 @@
+{
+  "status": "pending_fixture",
+  "source": "https://varity.app/api/pricing (field credit_policy)",
+  "note": "PENDING FIXTURE, not a live snapshot: the credit_policy block frozen in varity-engineering#225 on 2026-10-18. No producer serves it yet. Replace with `node tools/generate-ai-gateway-artifacts.mjs --refresh-mirror` once GET https://varity.app/api/pricing returns credit_policy; never hand-edit the values.",
+  "credit_policy": {
+    "version": "2026-10-18",
+    "creditsPerUsd": 100,
+    "plans": [
+      { "id": "free", "priceUsd": 0, "monthlyCredits": 500 },
+      { "id": "core", "priceUsd": 20, "monthlyCredits": 2000 },
+      { "id": "pro", "priceUsd": 100, "monthlyCredits": 10000 },
+      { "id": "business", "priceUsd": 500, "monthlyCredits": 50000 }
+    ],
+    "free": { "monthlyCredits": 500, "dailyAiCredits": 50, "promoCategories": ["ai_chat", "ai_build", "static"] },
+    "rollover": { "subscriptionCycles": 1 },
+    "topUp": { "minimumUsd": 20, "presetsUsd": [20, 100, 500], "expiresAfterMonths": null },
+    "spendCategories": ["ai_chat", "ai_build", "ai_api", "static", "app", "cpu", "gpu"],
+    "errorCodes": ["insufficient_credits", "daily_free_limit_reached", "spending_limit_reached", "subscription_required", "wallet_frozen", "payment_method_shared", "quote_expired", "billing_unavailable"]
+  }
+}
