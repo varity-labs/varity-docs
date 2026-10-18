@@ -74,11 +74,17 @@ const FIELDS = {
   },
   plans: (p) => ({
     headers: ['Plan', 'Price', 'Credits each month'],
-    rows: required(p.plans, 'plans').map((plan) => [
-      capitalize(plan.id),
-      plan.priceUsd === 0 ? '$0' : `${usd(plan.priceUsd)}/month`,
-      count(plan.monthlyCredits),
-    ]),
+    rows: required(p.plans, 'plans').map((plan) => plan.contactSales === true
+      ? [
+        capitalize(plan.id),
+        `Contact sales, ${usd(required(plan.minimumMonthlySpendUsd, `plans.${plan.id}.minimumMonthlySpendUsd`))} minimum monthly spend`,
+        'Set by contract',
+      ]
+      : [
+        capitalize(plan.id),
+        plan.priceUsd === 0 ? '$0' : `${usd(required(plan.priceUsd, `plans.${plan.id}.priceUsd`))}/month`,
+        count(required(plan.monthlyCredits, `plans.${plan.id}.monthlyCredits`)),
+      ]),
     anchors: [],
   }),
   'billing-codes': (p) => {
