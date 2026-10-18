@@ -451,10 +451,14 @@ export async function refreshAiGatewayMirror(root, fetchImpl = fetch) {
   writeFileSync(join(root, AI_GATEWAY_MIRROR_PATH), await fetchAiGatewayMirror(fetchImpl));
 }
 
-/** The credit-policy mirror body live pricing would produce now, or null while it serves no credit_policy. */
-async function fetchCreditPolicyMirror(fetchImpl) {
+/**
+ * The credit-policy mirror body live pricing would produce now, or null while it
+ * serves no readable credit_policy (absent, or null when the producer could not
+ * read it) so an unreadable policy is never written into the mirror.
+ */
+export async function fetchCreditPolicyMirror(fetchImpl) {
   const pricing = await fetchJson(PRICING_URL, fetchImpl);
-  if (pricing.credit_policy === undefined) return null;
+  if (pricing.credit_policy == null) return null;
   const mirror = { status: 'live', source: `${PRICING_URL} (field credit_policy)`, credit_policy: pricing.credit_policy };
   return `${JSON.stringify(mirror, null, 2)}\n`;
 }

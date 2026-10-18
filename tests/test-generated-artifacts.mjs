@@ -9,7 +9,7 @@
 // Check name: generated AI gateway artifacts match their sources
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { check, projectModel } from '../tools/generate-ai-gateway-artifacts.mjs';
+import { check, fetchCreditPolicyMirror, projectModel } from '../tools/generate-ai-gateway-artifacts.mjs';
 import { CREDIT_POLICY_FIELDS, creditPolicyMarkdown, creditPolicyField } from '../src/lib/credit-policy.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
@@ -49,6 +49,13 @@ failsClosed((p) => { p.errorCodes.push('new_billing_code'); }, 'a billing code w
 failsClosed((p) => { p.errorCodes.pop(); }, 'a meaning whose code left the contract');
 failsClosed((p) => { delete p.free.dailyAiCredits; }, 'a missing field');
 failsClosed((p) => { p.free.promoCategories.push('new_category'); }, 'an unnamed spend category');
+// An absent or unreadable (null) live credit_policy must never be mirrored.
+for (const body of [{}, { credit_policy: null }]) {
+  const fakeFetch = async () => new Response(JSON.stringify(body), { status: 200 });
+  if ((await fetchCreditPolicyMirror(fakeFetch)) !== null) {
+    errors.push(`fetchCreditPolicyMirror must return null for ${JSON.stringify(body)}`);
+  }
+}
 // Pages name fields; they never copy the code list or the credit rate.
 const docsDir = new URL('../src/content/docs/', import.meta.url);
 for (const page of readdirSync(docsDir, { recursive: true }).filter((name) => /\.mdx?$/.test(name))) {
