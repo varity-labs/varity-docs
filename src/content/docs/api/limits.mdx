@@ -79,7 +79,7 @@ Some limits are enforced by the resource contract rather than by a request budge
   parameter on the route you are calling. Records are retained for 24 hours.
 
 <Aside type="note">
-Spend is governed by your billing state, not by a request limit. A request that is refused for billing reasons returns a `402` billing code such as `insufficient_credits`, not `429`. See [API Errors](/api/errors/#capacity-and-billing) for the full set.
+Spend is governed by your billing state, not by a request limit. A request that is refused for billing reasons returns a `402` billing code such as `insufficient_credits`, not `429`. Reaching the monthly spending limit you set returns `402 spending_limit_reached` (formerly `gateway_monthly_limit_exceeded`), not `429`. See [API Errors](/api/errors/#capacity-and-billing) for the full set.
 </Aside>
 
 The AI Gateway (`https://ai.varity.app/v1`) is a separate surface with its own independent rate-limit, concurrency, and budget admission controls. Limits documented here do not apply to it. See [AI Gateway Rate Limits](/ai-gateway/limits/).

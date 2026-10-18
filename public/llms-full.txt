@@ -2434,6 +2434,7 @@ Validation errors may carry a `field` naming the offending property.
 |------|------|-----------|-------|
 | <span id="insufficient_credits"></span>`insufficient_credits` | 402 | no | Your credit balance cannot cover the action. Add credits or change plan. |
 | <span id="daily_free_limit_reached"></span>`daily_free_limit_reached` | 402 | no | The Free plan's daily AI allowance is used up. It resets the next UTC day; any subscription or top-up removes the limit. |
+| <span id="spending_limit_reached"></span>`spending_limit_reached` | 402 | no | The monthly spending limit you set is reached. Raise the limit or wait for the next month. |
 | <span id="subscription_required"></span>`subscription_required` | 402 | no | The action needs a paid plan or a top-up. |
 | <span id="wallet_frozen"></span>`wallet_frozen` | 402 | no | Paid usage on this account is paused, for example while a refund or dispute leaves a balance owed. New funding repays it first. |
 | <span id="payment_method_shared"></span>`payment_method_shared` | 402 | no | This card already backs another account's free app. Use a different card. |
@@ -2441,7 +2442,7 @@ Validation errors may carry a `field` naming the offending property.
 | <span id="billing_unavailable"></span>`billing_unavailable` | 503 | yes | Billing state could not be read. |
 | <span id="gpu_capacity_unavailable"></span>`gpu_capacity_unavailable` | 409 | yes | No accelerator capacity right now for the requested profile. |
 
-The `402` codes above are the complete set every Varity service uses for billing refusals. A refused action starts nothing and charges nothing. The older AI Gateway code `insufficient_gateway_balance` means the same as `insufficient_credits` and is being retired; handle both.
+The `402` codes above are the complete set every Varity service uses for billing refusals. A refused action starts nothing and charges nothing. The older AI Gateway code `insufficient_gateway_balance` means the same as `insufficient_credits` and is being retired; handle both. Likewise, the older `gateway_monthly_limit_exceeded` means the same as `spending_limit_reached`.
 
 `billing_unavailable` is never reported as a zero balance. Retry it with backoff. Its body can be the short form `{"error": "billing_unavailable"}`, so read the code from `error` when `code` is absent.
 
@@ -2640,7 +2641,7 @@ Some limits are enforced by the resource contract rather than by a request budge
 - **Idempotency keys**: constraints differ by operation; use the OpenAPI
   parameter on the route you are calling. Records are retained for 24 hours.
 
-Spend is governed by your billing state, not by a request limit. A request that is refused for billing reasons returns a `402` billing code such as `insufficient_credits`, not `429`. See [API Errors](/api/errors/#capacity-and-billing) for the full set.
+Spend is governed by your billing state, not by a request limit. A request that is refused for billing reasons returns a `402` billing code such as `insufficient_credits`, not `429`. Reaching the monthly spending limit you set returns `402 spending_limit_reached` (formerly `gateway_monthly_limit_exceeded`), not `429`. See [API Errors](/api/errors/#capacity-and-billing) for the full set.
 
 The AI Gateway (`https://ai.varity.app/v1`) is a separate surface with its own independent rate-limit, concurrency, and budget admission controls. Limits documented here do not apply to it. See [AI Gateway Rate Limits](/ai-gateway/limits/).
 
