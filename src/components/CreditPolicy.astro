@@ -1,0 +1,41 @@
+---
+// Renders one credit-policy field from the contract mirror. See src/lib/credit-policy.mjs.
+import mirror from '../../contracts/credit-policy.mirror.json';
+import { creditPolicyField } from '../lib/credit-policy.mjs';
+
+interface Props {
+  field: string;
+}
+
+const value = creditPolicyField(mirror, Astro.props.field);
+
+const escape = (text: string) =>
+  text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+// Cells may carry inline `code`; nothing else is markup.
+const cell = (text: string) => escape(text).replace(/`([^`]+)`/g, '<code>$1</code>');
+---
+
+{typeof value === 'string' ? (
+  <Fragment set:html={cell(value)} />
+) : (
+  // Same scroll region rehype-table-scroll gives markdown tables.
+  <div class="table-scroll" tabindex="0" role="region" aria-label="Scrollable table">
+    <table>
+      <thead>
+        <tr>{value.headers.map((header) => <th>{header}</th>)}</tr>
+      </thead>
+      <tbody>
+        {value.rows.map((row, index) => (
+          <tr>
+            {row.map((text, column) => (
+              <td>
+                {column === 0 && value.anchors[index] && <span id={value.anchors[index]} />}
+                <Fragment set:html={cell(text)} />
+              </td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+)}

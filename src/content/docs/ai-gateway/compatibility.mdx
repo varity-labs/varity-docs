@@ -196,11 +196,10 @@ that response; the column below is what the gateway publishes today.
 | `rate_limit_exceeded` | `429` | yes | The account's requests-per-minute budget, or the key's own `requests_per_minute`, is exhausted. See [Rate Limits](/ai-gateway/limits/). |
 | `concurrency_limit_exceeded` | `429` | yes | The account's in-flight bound, or the key's own `concurrency_limit`, is exhausted. See [Rate Limits](/ai-gateway/limits/). |
 | `budget_exceeded` | `429` | yes | The account's inference budget, or the key's own spending budget, is exhausted. See [Billing and Keys](/ai-gateway/billing-and-keys/). |
-| `payment_method_required` | `402` | no | No active payment method. |
-| `insufficient_gateway_balance` | `402` | no | The prepaid AI Gateway balance cannot cover the request. |
-| `gateway_balance_frozen` | `402` | no | The balance is frozen pending billing review. |
-| `billing_unavailable` | `503` | yes | The isolated billing ledger could not answer. Not your request's fault. |
 | `internal_error` | `500` | no | An unclassified gateway failure. Quote `request_id`. |
+
+Billing refusals (`402`) and billing outages (`503`) use the codes listed in
+[API Errors](/api/errors/#capacity-and-billing).
 
 **A model provider decided it** (`failure_domain: "supplier_observed"`):
 

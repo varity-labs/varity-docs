@@ -15,7 +15,7 @@ MCP clients must discover executable tool definitions from the installed server'
 
 - [Varity Documentation Home](https://docs.varity.so/): Documentation for The Orchestration Cloud: Varity Cloud deployments and the Varity AI Gateway.
 - [Varity AI Gateway](https://docs.varity.so/ai-gateway/): OpenAI-compatible inference on Varity. Point any OpenAI client at https://ai.varity.app/v1 and change nothing else.
-- [AI Gateway Billing and Keys](https://docs.varity.so/ai-gateway/billing-and-keys/): How Varity AI Gateway credits, live funding terms, inference keys, and usage reporting work.
+- [AI Gateway Billing and Keys](https://docs.varity.so/ai-gateway/billing-and-keys/): How Varity AI Gateway requests spend credits from your credit balance, and how inference keys and usage reporting work.
 - [AI Gateway OpenAI Compatibility](https://docs.varity.so/ai-gateway/compatibility/): Exactly which parts of the OpenAI API surface the Varity AI Gateway implements, and which parts it does not.
 - [AI Gateway Endpoints](https://docs.varity.so/ai-gateway/endpoints/): One minimal request for every Varity AI Gateway route, with the full schema at /v1/openapi.json.
 - [AI Gateway Rate Limits](https://docs.varity.so/ai-gateway/limits/): The request budgets, concurrency bound, and body-size ceilings the Varity AI Gateway enforces, the headers it actually returns, and what each 429 body looks like.
@@ -61,7 +61,7 @@ MCP clients must discover executable tool definitions from the installed server'
 - [Machine Catalogs](https://docs.varity.so/machines/): How to read and quote Varity CPU VM, GPU VM, and GPU bare-metal catalogs without relying on stale inventory.
 - [CPU Virtual Machines](https://docs.varity.so/machines/cpu-vms/): Read the live CPU VM catalog, seal a quote, create a machine, and verify its lifecycle without relying on copied profiles or prices.
 - [GPU Workloads](https://docs.varity.so/machines/gpu/): Discover, quote, create, and delete GPU VMs and GPU bare-metal machines without relying on stale prices.
-- [Billing and Pricing on Varity](https://docs.varity.so/resources/billing/): How Varity billing works: a payment method for paid products, free static hosting with a verified account, and a monthly maximum per app that doesn't grow with traffic.
+- [Billing and Pricing on Varity](https://docs.varity.so/resources/billing/): How Varity billing works: one prepaid credit balance for AI Gateway and Varity Cloud, monthly plans, top-ups, a Free plan, and a monthly maximum per app that doesn't grow with traffic.
 - [Varity Deployment FAQ Guide](https://docs.varity.so/resources/faq/): Frequently asked questions about Varity: deployment workflow, supported frameworks, and pricing model.
 - [Varity Docs Glossary Guide](https://docs.varity.so/resources/glossary/): Definitions of key Varity terms: deploy keys, managed credentials, deployment IDs, static hosting, dynamic hosting, and MCP tools.
 - [Pricing and Costs on Varity](https://docs.varity.so/resources/pricing/): How to obtain a current Varity price from the live pricing service or a sealed workload quote without relying on copied documentation values.

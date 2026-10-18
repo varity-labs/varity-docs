@@ -5,6 +5,7 @@ description: The Varity public API error envelope, the verified error codes, and
 
 import { Aside } from '@astrojs/starlight/components';
 import PageMeta from '../../../components/PageMeta.astro';
+import CreditPolicy from '../../../components/CreditPolicy.astro';
 
 <PageMeta
   author="Varity Team"
@@ -119,9 +120,12 @@ Validation errors may carry a `field` naming the offending property.
 
 ### Capacity And Billing
 
+Billing refusals are `402` and a billing outage is `503`. These codes are the complete set every Varity service uses, rendered from the billing contract. A refused action starts nothing and charges nothing.
+
+<CreditPolicy field="billing-codes" />
+
 | Code | HTTP | Retryable | Cause |
 |------|------|-----------|-------|
-| <span id="billing_or_credit_required"></span>`billing_or_credit_required` | 402 | no | No payment method and no active starter credit. |
 | <span id="gpu_capacity_unavailable"></span>`gpu_capacity_unavailable` | 409 | yes | No accelerator capacity right now for the requested profile. |
 
 `gpu_capacity_unavailable` is the one common `409` you should retry. Capacity is a moving target; back off and retry, or quote a different profile.
