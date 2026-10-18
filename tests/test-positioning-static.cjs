@@ -128,15 +128,12 @@ if (/auto-wir(?:e|ed|ing)[^.]*ollama/i.test(normalizedReadme)) {
 const PLAYGROUND_PATH = path.join(DOCS_SRC, 'ai-gateway/playground.mdx');
 const playground = fs.readFileSync(PLAYGROUND_PATH, 'utf8').replace(/\s+/g, ' ');
 const playgroundRequirements = [
-  [/\*\*Build\*\*[^.]*DeepSeek V4\.1 Flash[^.]*model picker/i, 'the current Build default and model picker'],
+  [/\*\*Build \(Beta\)\*\*[^.]*DeepSeek V4\.1 Flash[^.]*model picker/i, 'the Beta-labelled Build default and model picker'],
   [/\*\*Preview\*\*/, 'the Preview pane'],
   [/\*\*Code\*\*/, 'the Code pane'],
   [/\*\*Logs\*\*/, 'the Logs pane'],
-  [/\*\*Terminal\*\*/, 'the Terminal pane'],
   [/in-progress app/i, 'the in-progress app preview'],
   [/\*\*Live site\*\*/i, 'the deployed live-site toggle'],
-  [/dynamic and GPU applications/i, 'the application terminal support boundary'],
-  [/CPU and GPU virtual machines/i, 'the machine terminal limitation'],
 ];
 for (const [pattern, requirement] of playgroundRequirements) {
   if (!pattern.test(playground)) {

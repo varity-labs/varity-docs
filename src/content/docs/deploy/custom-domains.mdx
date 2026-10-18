@@ -182,29 +182,13 @@ curl -X DELETE https://varity.app/api/deployments/$DEPLOYMENT_ID/domain \
 
 Your app stays reachable at its `varity.app` URL.
 
-## View Your Registered Names
+## List Your Apps
 
-List the `varity.app` names registered to your account:
+List your deployments with their status and URLs:
 
 ```bash
-varitykit domains list
+varitykit app list
 ```
-
-Output:
-
-```
-Your Domains (2)
-┌─────────────┬──────────────────────────────────┬──────────────────┐
-│ Subdomain   │ App URL                          │ App Name         │
-├─────────────┼──────────────────────────────────┼──────────────────┤
-│ my-app      │ https://varity.app/my-app        │ my-app           │
-│ my-other    │ https://varity.app/my-other      │ my-other-project │
-└─────────────┴──────────────────────────────────┴──────────────────┘
-```
-
-<Aside type="tip" icon="approve-check">
-You must be logged in to list your names. Run `varitykit login` first if you see a "Not logged in" message.
-</Aside>
 
 ## Redeploy Under the Same Name
 
