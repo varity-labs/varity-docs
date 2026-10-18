@@ -307,7 +307,8 @@ sends to spend them.
 ## How You Are Charged
 
 - **API key requests** cost the provider cost of the request, including cache
-  discounts, plus 5%.
+  discounts, plus 5%. They need paid credits from a subscription or top-up;
+  Free plan credits do not cover them.
 - **Chat and Build** in the portal are charged from a versioned per-model
   credit rate card.
 - **The Free plan** includes up to 50 credits of AI usage per day, on the
@@ -326,6 +327,7 @@ model is called:
 |------|---------|
 | `insufficient_credits` | Your balance cannot cover the request. |
 | `daily_free_limit_reached` | The Free plan's daily AI allowance is used up. |
+| `subscription_required` | The request needs paid credits, for example an API key request on Free plan credits only. |
 | `wallet_frozen` | Paid usage is paused on this account. |
 
 The full list of billing codes is on [API Errors](/api/errors/#capacity-and-billing).
@@ -381,6 +383,9 @@ place AI Gateway keys are issued is `POST /v1/keys` on this host.
 | `PATCH /v1/billing/settings` | Sets `monthlySpendingLimitCents` (`null`, or 100 to 10,000,000) and `autoReload` `{ enabled, thresholdCents, amountCents }`. |
 | `POST /v1/billing/top-up` | Starts a card checkout. Body: `email` (must belong to your account) and `balanceCents` (within the refill bounds of the live commercial contract; see [How You Are Charged](#how-you-are-charged)). Returns the checkout `url` plus `balanceCents`, `serviceFeeCents`, and `totalCents`. |
 | `PUT /v1/inference/policy` | Sets the account privacy floor. See [Privacy Routing](/ai-gateway/compatibility/#privacy-routing). |
+
+Under credit pricing, top-ups carry no fee, so `serviceFeeCents` is `0` and
+`totalCents` equals `balanceCents`.
 
 The request budgets for these routes are on
 [Rate Limits](/ai-gateway/limits/#account-routes).
@@ -588,9 +593,10 @@ that response; the column below is what the gateway publishes today.
 | `rate_limit_exceeded` | `429` | yes | The account's requests-per-minute budget, or the key's own `requests_per_minute`, is exhausted. See [Rate Limits](/ai-gateway/limits/). |
 | `concurrency_limit_exceeded` | `429` | yes | The account's in-flight bound, or the key's own `concurrency_limit`, is exhausted. See [Rate Limits](/ai-gateway/limits/). |
 | `budget_exceeded` | `429` | yes | The account's inference budget, or the key's own spending budget, is exhausted. See [Billing and Keys](/ai-gateway/billing-and-keys/). |
-| `payment_method_required` | `402` | no | No active payment method. |
-| `insufficient_gateway_balance` | `402` | no | The prepaid AI Gateway balance cannot cover the request. |
-| `gateway_balance_frozen` | `402` | no | The balance is frozen pending billing review. |
+| `insufficient_credits` | `402` | no | Your credit balance cannot cover the request. The older `insufficient_gateway_balance` code means the same and is being retired; handle both. |
+| `daily_free_limit_reached` | `402` | no | The Free plan's daily AI allowance is used up. Any subscription or top-up removes the limit. |
+| `subscription_required` | `402` | no | The request needs paid credits, for example an API key request on Free plan credits only. |
+| `wallet_frozen` | `402` | no | Paid usage on this account is paused pending billing review. |
 | `billing_unavailable` | `503` | yes | The isolated billing ledger could not answer. Not your request's fault. |
 | `internal_error` | `500` | no | An unclassified gateway failure. Quote `request_id`. |
 
@@ -1737,7 +1743,7 @@ curl -X DELETE https://varity.app/api/deployments/$DEPLOYMENT_ID \
 
 ## Templates, Pricing, And Credits
 
-Templates are deployable app starters. Pricing is estimated from the live API, not a hardcoded table, and returns fixed monthly hardware-reservation cost for the requested profile. Credits show whether the caller can deploy with a payment method or active starter credit.
+Templates are deployable app starters. Pricing is estimated from the live API, not a hardcoded table, and returns fixed monthly hardware-reservation cost for the requested profile. Credits show the caller's available credit balance; see [Billing and Pricing](/resources/billing/).
 
 ```bash
 curl https://varity.app/api/templates \
@@ -2634,7 +2640,7 @@ Some limits are enforced by the resource contract rather than by a request budge
 - **Idempotency keys**: constraints differ by operation; use the OpenAPI
   parameter on the route you are calling. Records are retained for 24 hours.
 
-Spend is governed by your billing state, not by a request limit. A request that is refused for billing reasons returns `402 billing_or_credit_required`, not `429`.
+Spend is governed by your billing state, not by a request limit. A request that is refused for billing reasons returns a `402` billing code such as `insufficient_credits`, not `429`. See [API Errors](/api/errors/#capacity-and-billing) for the full set.
 
 The AI Gateway (`https://ai.varity.app/v1`) is a separate surface with its own independent rate-limit, concurrency, and budget admission controls. Limits documented here do not apply to it. See [AI Gateway Rate Limits](/ai-gateway/limits/).
 
@@ -2684,7 +2690,7 @@ You need a deploy key from the Varity developer portal:
 
 2. **Copy your deploy key**
 
-   Open the **API keys** tab and click **Create API key** (a payment method or active starter credit is required), then copy the key. The portal calls it an API key; the CLI stores it as your deploy key. Either `varitykit login` or the `VARITY_DEPLOY_KEY` environment variable supplies it.
+   Open the **API keys** tab and click **Create API key**, then copy the key. The portal calls it an API key; the CLI stores it as your deploy key. Either `varitykit login` or the `VARITY_DEPLOY_KEY` environment variable supplies it.
 
 3. **Run the login command**
 
@@ -5975,7 +5981,7 @@ If you are using Claude Code or Cursor, the Varity MCP server lets your AI tool 
    https://varity.app/your-app-name/
    ```
 
-The first deploy needs an API key. Create one in the developer portal under **Settings > API keys** (a payment method or starter credit is required), then ask your AI tool to "Log in to Varity with key `<your key>`", or set `VARITY_API_KEY` in the MCP server's environment.
+The first deploy needs an API key. Create one in the developer portal under **Settings > API keys**, then ask your AI tool to "Log in to Varity with key `<your key>`", or set `VARITY_API_KEY` in the MCP server's environment.
 
 ---
 
@@ -6998,7 +7004,8 @@ page of the Developer Portal.
 - **Up to 50 credits per day of AI usage**, on the cheapest suitable model.
   Any subscription or top-up removes the daily limit.
 - **Static apps** are included.
-- Free credits pay only for usage the Free plan includes.
+- Free credits pay only for Chat, Build, and static apps. AI Gateway API key
+  requests need paid credits from a subscription or top-up.
 
 ### One Free Starter App
 
@@ -7375,6 +7382,8 @@ number copied from this page, a screenshot, or an earlier quote.
 - AI Gateway request rates come from the live model catalog. Requests made
   with an API key cost the provider cost, including cache discounts, plus 5%.
   Chat and Build are charged from a versioned per-model credit rate card.
+  Free plan credits cover Chat and Build only; API key requests need paid
+  credits from a subscription or top-up.
 - Top-ups add credits at face value, with no fee.
 - A price shown when a billable action is confirmed is the transactional price
   for that action. Documentation never authorizes a charge.
