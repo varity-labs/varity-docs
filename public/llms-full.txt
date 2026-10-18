@@ -296,41 +296,48 @@ headers each refusal returns, and the body-size ceilings are on
 ## AI Gateway Billing and Keys
 
 URL: https://docs.varity.so/ai-gateway/billing-and-keys/
-Description: How Varity AI Gateway credits, live funding terms, inference keys, and usage reporting work.
+Description: How Varity AI Gateway requests spend credits from your Varity balance, and how inference keys and usage reporting work.
 
-The AI Gateway is prepaid. You add credits, each request is charged from that
-balance, and an inference key is what your code sends to spend it.
+The AI Gateway spends credits from your Varity balance, the same prepaid
+balance Varity Cloud uses (**100 credits = $1**). Credits come from your plan,
+from top-ups, or from the Free plan; see
+[Billing and Pricing](/resources/billing/). An inference key is what your code
+sends to spend them.
 
 ## How You Are Charged
 
-- **Each request is charged exactly its provider cost.** No markup is added per
-  request.
-- **Funding terms are published by the live OpenAPI contract.** Read the fee
-  and refill bounds before opening checkout; this page does not retain a copy.
-- **A payment method is required.** There is no automatic sign-up credit, and you
-  cannot bring your own provider key.
-
-These terms are machine-readable in the `x-varity-commercial-contract` block of
-`GET https://ai.varity.app/v1/openapi.json`. Treat a missing block or field as
-unavailable; do not fall back to an earlier value.
+- **API key requests** cost the provider cost of the request, including cache
+  discounts, plus 5%.
+- **Chat and Build** in the portal are charged from a versioned per-model
+  credit rate card.
+- **The Free plan** includes up to 50 credits of AI usage per day, on the
+  cheapest suitable model. Any subscription or top-up removes the daily limit.
+- You cannot bring your own provider key.
 
 Per-model rates are in `customer_pricing` on
 [`GET /v1/models`](/ai-gateway/models/#pricing) and on the **Models** tab of the
 portal's AI Gateway page. This page lists no prices, because the catalog changes
 without a docs release.
 
-When the balance cannot cover a request, or your monthly spending limit is
-reached, the request is refused with `402 insufficient_gateway_balance` before
-any model is called.
+When a request cannot be paid for, it is refused with a `402` before any
+model is called:
+
+| Code | Meaning |
+|------|---------|
+| `insufficient_credits` | Your balance cannot cover the request. |
+| `daily_free_limit_reached` | The Free plan's daily AI allowance is used up. |
+| `wallet_frozen` | Paid usage is paused on this account. |
+
+The full list of billing codes is on [API Errors](/api/errors/#capacity-and-billing).
+The older `insufficient_gateway_balance` code means the same as
+`insufficient_credits` and is being retired; handle both.
 
 ## Adding Credits
 
-Add credits on the **Gateway billing** tab of the AI Gateway page in the
-Developer Portal. The same tab sets a monthly spending limit and auto-reload.
-
-Auto-reload tops the balance up when it falls below a threshold. Its amount and
-fee use the live commercial contract, and the threshold must be lower than the
-amount.
+Subscribe to a plan or buy a top-up on the billing page of the Developer
+Portal. Top-ups have no fee, and top-up credits expire 12 months after
+purchase. Optional auto top-up refills your balance when it falls below a
+threshold you set, up to a monthly cap you choose.
 
 ## Inference Keys
 
@@ -2419,8 +2426,18 @@ Validation errors may carry a `field` naming the offending property.
 
 | Code | HTTP | Retryable | Cause |
 |------|------|-----------|-------|
-| <span id="billing_or_credit_required"></span>`billing_or_credit_required` | 402 | no | No payment method and no active starter credit. |
+| <span id="insufficient_credits"></span>`insufficient_credits` | 402 | no | Your credit balance cannot cover the action. Add credits or change plan. |
+| <span id="daily_free_limit_reached"></span>`daily_free_limit_reached` | 402 | no | The Free plan's daily AI allowance is used up. It resets the next UTC day; any subscription or top-up removes the limit. |
+| <span id="subscription_required"></span>`subscription_required` | 402 | no | The action needs a paid plan or a top-up. |
+| <span id="wallet_frozen"></span>`wallet_frozen` | 402 | no | Paid usage on this account is paused, for example while a refund or dispute leaves a balance owed. New funding repays it first. |
+| <span id="payment_method_shared"></span>`payment_method_shared` | 402 | no | This card already backs another account's free app. Use a different card. |
+| <span id="quote_expired"></span>`quote_expired` | 402 | no | The price quote expired. Request a new quote and confirm again. |
+| <span id="billing_unavailable"></span>`billing_unavailable` | 503 | yes | Billing state could not be read. |
 | <span id="gpu_capacity_unavailable"></span>`gpu_capacity_unavailable` | 409 | yes | No accelerator capacity right now for the requested profile. |
+
+The `402` codes above are the complete set every Varity service uses for billing refusals. A refused action starts nothing and charges nothing. The older AI Gateway code `insufficient_gateway_balance` means the same as `insufficient_credits` and is being retired; handle both.
+
+`billing_unavailable` is never reported as a zero balance. Retry it with backoff. Its body can be the short form `{"error": "billing_unavailable"}`, so read the code from `error` when `code` is absent.
 
 `gpu_capacity_unavailable` is the one common `409` you should retry. Capacity is a moving target; back off and retry, or quote a different profile.
 
@@ -6946,21 +6963,74 @@ machine disk, so copy required data first.
 ## Billing and Pricing on Varity
 
 URL: https://docs.varity.so/resources/billing/
-Description: How Varity billing works: a payment method for paid products, free static hosting with a verified account, and a monthly maximum per app that doesn't grow with traffic.
+Description: How Varity billing works: one prepaid credit balance for AI Gateway and Varity Cloud, monthly plans, top-ups, a Free plan, and a monthly maximum per app that doesn't grow with traffic.
 
-Varity billing is built around the profile and resources an app reserves. This
-page explains the billing shape; the live pricing service and the quote you
-confirm own current numeric values, eligibility, and credits.
+Every Varity account has one prepaid credit balance. AI Gateway (Chat, Build,
+and API keys) and Varity Cloud (apps, CPU VMs, and GPUs) all spend from it.
+**100 credits = $1.**
 
-## A Card on File
+This page explains the billing shape. The live pricing service and the quote
+you confirm own current per-resource prices.
 
-The Developer Portal shows whether the selected workload requires a payment
-method before confirmation. Account eligibility and credits come from the live
-billing response, not from a rule copied into this page.
+## Plans
+
+| Plan | Price | Credits each month |
+| --- | --- | --- |
+| Free | $0 | 500 |
+| Core | $20 | 2,000 |
+| Pro | $100 | 10,000 |
+| Business | $500 | 50,000 |
+| Enterprise | Contract | Contract |
+
+- Each paid renewal adds the plan's credits to your balance.
+- Unused plan credits roll over for **one** billing cycle while your
+  subscription stays active. They are lost when you cancel.
+- Upgrades take effect immediately and add the difference in credits.
+  Downgrades and cancellation take effect at the next billing cycle.
+- Paid plans do not also receive the Free plan's 500 credits.
+
+Manage your card, invoices, plan changes, and cancellation from the billing
+page of the Developer Portal.
+
+## Free Plan
+
+- **500 credits per month** (UTC calendar month). They do not roll over.
+- **Up to 50 credits per day of AI usage**, on the cheapest suitable model.
+  Any subscription or top-up removes the daily limit.
+- **Static apps** are included.
+- Free credits pay only for usage the Free plan includes.
+
+### One Free Starter App
+
+Free accounts can run one **Starter** app at no charge after saving a card
+that passes verification. Each card can back only one free app.
+
+- The free app does not spend your 500 credits. Paid plans keep it too.
+- It keeps running while you sign in at least once every 30 days. If you do
+  not, you get a notice first, and after 30 days without a sign-in the app is
+  stopped. Its source is kept, so you can redeploy it in one click.
+- It runs on a Varity subdomain.
+
+## Top-Ups
+
+You can buy credits at any time, on any plan.
+
+- Top-ups start at $20, with $100 and $500 packs. You get face value: $20 buys
+  2,000 credits. There is no fee and no discount.
+- Top-up credits expire 12 months after purchase.
+- Auto top-up is optional and off by default. When it is on, you choose the
+  threshold, the amount, and a monthly spending cap.
+
+Credits are spent oldest first: plan credits before top-up credits.
+
+A paid action that your balance cannot cover is refused with
+`402 insufficient_credits` before anything is started or charged. See
+[API Errors](/api/errors/#capacity-and-billing) for every billing code.
 
 ## What You're Charged For
 
-Each paid app bills **up to a fixed monthly maximum**, based on the resources that app reserves, prorated by the time it runs. That's it.
+Each paid app bills **up to a fixed monthly maximum** in credits, based on the
+resources that app reserves, prorated by the time it runs.
 
 Your bill does **not** change with:
 
@@ -6970,13 +7040,23 @@ Your bill does **not** change with:
 
 This is the core difference from usage-metered hosting, where billing follows usage meters. With Varity, an unchanged profile keeps the same monthly maximum no matter how much traffic it serves. For the full model, see [How Pricing Works](/resources/pricing/).
 
+CPU VMs and GPUs are priced by the quote you confirm, shown in credits. AI
+Gateway requests are charged per request; see
+[AI Gateway Billing and Keys](/ai-gateway/billing-and-keys/).
+
 Use the cost calculator in the dashboard (or `varity_cost_calculator` in an AI
 editor) for a current estimate before you deploy. The quote shown at
 confirmation is the transactional price for that deployment.
 
-## Seeing Your Costs
+## Seeing Your Credits
 
-Your dashboard shows the monthly maximum for each app and your overall bill. Because pricing is tied to the reserved profile, there is no end-of-month surprise from a traffic spike.
+The billing page of the Developer Portal shows your plan, available credits,
+credits that expire soon, the Free plan's daily AI allowance, and your free app
+status. Every subscription credit, top-up, charge, refund, and expiry appears
+in your billing history.
+
+If billing state cannot be read, the portal and API say it is unavailable
+(`503 billing_unavailable`) rather than showing a zero balance.
 
 ## Deleting an App
 
@@ -6987,6 +7067,7 @@ proof that resource release and billing closure are complete.
 ## Related
 
 - [How Pricing Works](/resources/pricing/): the predictable-pricing model in full.
+- [AI Gateway Billing and Keys](/ai-gateway/billing-and-keys/): how AI requests spend credits.
 - [What You Can Deploy Today](/deploy/what-you-can-deploy/): what your bill covers in beta.
 
 ---
@@ -7259,9 +7340,14 @@ Not sure which hosting type your app needs? Run `varitykit app deploy`. Varity d
 URL: https://docs.varity.so/resources/pricing/
 Description: How to obtain a current Varity price from the live pricing service or a sealed workload quote without relying on copied documentation values.
 
-Varity documentation does not maintain a price book. Prices, credits, fees,
-catalog availability, and resource profiles can change independently of this
-site. A copied value would become a second, discrepancy-causing owner.
+Varity documentation does not maintain a price book. Per-resource prices,
+per-model AI rates, catalog availability, and resource profiles can change
+independently of this site. A copied value would become a second,
+discrepancy-causing owner.
+
+Every price is charged in credits from one prepaid balance (**100 credits =
+$1**). Plans, top-ups, and the Free plan are described in
+[Billing and Pricing](/resources/billing/).
 
 ## Current Price Sources
 
@@ -7273,7 +7359,7 @@ Use the source that matches the workload:
 | Pre-deploy application estimate | `GET https://varity.app/api/pricing/estimate` or `varity_cost_calculator` |
 | CPU VM or GPU machine | `POST https://varity.app/api/pricing/machine-quote` |
 | AI Gateway request rates | `GET https://ai.varity.app/v1/models` |
-| AI Gateway funding terms | `GET https://ai.varity.app/v1/openapi.json`, field `x-varity-commercial-contract` |
+| Your plan, credits, and free allowance | The billing page of the Developer Portal (`GET https://varity.app/api/billing/account`) |
 
 If the live pricing response or workload-bound quote is unavailable, no current
 numeric price is available to publish or spend against. Do not fall back to a
@@ -7286,8 +7372,10 @@ number copied from this page, a screenshot, or an earlier quote.
   policy.
 - Machine and accelerator prices are bound by a time-limited quote. If the
   quote expires or the requested workload changes, request a new one.
-- AI Gateway request rates come from the live model catalog. Funding terms are
-  separately published in its OpenAPI commercial-contract block.
+- AI Gateway request rates come from the live model catalog. Requests made
+  with an API key cost the provider cost, including cache discounts, plus 5%.
+  Chat and Build are charged from a versioned per-model credit rate card.
+- Top-ups add credits at face value, with no fee.
 - A price shown when a billable action is confirmed is the transactional price
   for that action. Documentation never authorizes a charge.
 

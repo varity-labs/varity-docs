@@ -1,6 +1,6 @@
 ---
 title: AI Gateway Billing and Keys
-description: How Varity AI Gateway credits, live funding terms, inference keys, and usage reporting work.
+description: How Varity AI Gateway requests spend credits from your Varity balance, and how inference keys and usage reporting work.
 ---
 
 import PageMeta from '../../../components/PageMeta.astro';
@@ -11,39 +11,46 @@ import PageMeta from '../../../components/PageMeta.astro';
   stability="beta"
 />
 
-The AI Gateway is prepaid. You add credits, each request is charged from that
-balance, and an inference key is what your code sends to spend it.
+The AI Gateway spends credits from your Varity balance, the same prepaid
+balance Varity Cloud uses (**100 credits = $1**). Credits come from your plan,
+from top-ups, or from the Free plan; see
+[Billing and Pricing](/resources/billing/). An inference key is what your code
+sends to spend them.
 
 ## How You Are Charged
 
-- **Each request is charged exactly its provider cost.** No markup is added per
-  request.
-- **Funding terms are published by the live OpenAPI contract.** Read the fee
-  and refill bounds before opening checkout; this page does not retain a copy.
-- **A payment method is required.** There is no automatic sign-up credit, and you
-  cannot bring your own provider key.
-
-These terms are machine-readable in the `x-varity-commercial-contract` block of
-`GET https://ai.varity.app/v1/openapi.json`. Treat a missing block or field as
-unavailable; do not fall back to an earlier value.
+- **API key requests** cost the provider cost of the request, including cache
+  discounts, plus 5%.
+- **Chat and Build** in the portal are charged from a versioned per-model
+  credit rate card.
+- **The Free plan** includes up to 50 credits of AI usage per day, on the
+  cheapest suitable model. Any subscription or top-up removes the daily limit.
+- You cannot bring your own provider key.
 
 Per-model rates are in `customer_pricing` on
 [`GET /v1/models`](/ai-gateway/models/#pricing) and on the **Models** tab of the
 portal's AI Gateway page. This page lists no prices, because the catalog changes
 without a docs release.
 
-When the balance cannot cover a request, or your monthly spending limit is
-reached, the request is refused with `402 insufficient_gateway_balance` before
-any model is called.
+When a request cannot be paid for, it is refused with a `402` before any
+model is called:
+
+| Code | Meaning |
+|------|---------|
+| `insufficient_credits` | Your balance cannot cover the request. |
+| `daily_free_limit_reached` | The Free plan's daily AI allowance is used up. |
+| `wallet_frozen` | Paid usage is paused on this account. |
+
+The full list of billing codes is on [API Errors](/api/errors/#capacity-and-billing).
+The older `insufficient_gateway_balance` code means the same as
+`insufficient_credits` and is being retired; handle both.
 
 ## Adding Credits
 
-Add credits on the **Gateway billing** tab of the AI Gateway page in the
-Developer Portal. The same tab sets a monthly spending limit and auto-reload.
-
-Auto-reload tops the balance up when it falls below a threshold. Its amount and
-fee use the live commercial contract, and the threshold must be lower than the
-amount.
+Subscribe to a plan or buy a top-up on the billing page of the Developer
+Portal. Top-ups have no fee, and top-up credits expire 12 months after
+purchase. Optional auto top-up refills your balance when it falls below a
+threshold you set, up to a monthly cap you choose.
 
 ## Inference Keys
 

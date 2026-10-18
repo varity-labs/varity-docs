@@ -1,6 +1,6 @@
 ---
 title: Billing and Pricing on Varity
-description: "How Varity billing works: a payment method for paid products, free static hosting with a verified account, and a monthly maximum per app that doesn't grow with traffic."
+description: "How Varity billing works: one prepaid credit balance for AI Gateway and Varity Cloud, monthly plans, top-ups, a Free plan, and a monthly maximum per app that doesn't grow with traffic."
 ---
 
 import { Aside } from '@astrojs/starlight/components';
@@ -12,19 +12,74 @@ import PageMeta from '../../../components/PageMeta.astro';
   stability="stable"
 />
 
-Varity billing is built around the profile and resources an app reserves. This
-page explains the billing shape; the live pricing service and the quote you
-confirm own current numeric values, eligibility, and credits.
+Every Varity account has one prepaid credit balance. AI Gateway (Chat, Build,
+and API keys) and Varity Cloud (apps, CPU VMs, and GPUs) all spend from it.
+**100 credits = $1.**
 
-## A Card on File
+This page explains the billing shape. The live pricing service and the quote
+you confirm own current per-resource prices.
 
-The Developer Portal shows whether the selected workload requires a payment
-method before confirmation. Account eligibility and credits come from the live
-billing response, not from a rule copied into this page.
+## Plans
+
+| Plan | Price | Credits each month |
+| --- | --- | --- |
+| Free | $0 | 500 |
+| Core | $20 | 2,000 |
+| Pro | $100 | 10,000 |
+| Business | $500 | 50,000 |
+| Enterprise | Contract | Contract |
+
+- Each paid renewal adds the plan's credits to your balance.
+- Unused plan credits roll over for **one** billing cycle while your
+  subscription stays active. They are lost when you cancel.
+- Upgrades take effect immediately and add the difference in credits.
+  Downgrades and cancellation take effect at the next billing cycle.
+- Paid plans do not also receive the Free plan's 500 credits.
+
+Manage your card, invoices, plan changes, and cancellation from the billing
+page of the Developer Portal.
+
+## Free Plan
+
+- **500 credits per month** (UTC calendar month). They do not roll over.
+- **Up to 50 credits per day of AI usage**, on the cheapest suitable model.
+  Any subscription or top-up removes the daily limit.
+- **Static apps** are included.
+- Free credits pay only for usage the Free plan includes.
+
+### One Free Starter App
+
+Free accounts can run one **Starter** app at no charge after saving a card
+that passes verification. Each card can back only one free app.
+
+- The free app does not spend your 500 credits. Paid plans keep it too.
+- It keeps running while you sign in at least once every 30 days. If you do
+  not, you get a notice first, and after 30 days without a sign-in the app is
+  stopped. Its source is kept, so you can redeploy it in one click.
+- It runs on a Varity subdomain.
+
+## Top-Ups
+
+You can buy credits at any time, on any plan.
+
+- Top-ups start at $20, with $100 and $500 packs. You get face value: $20 buys
+  2,000 credits. There is no fee and no discount.
+- Top-up credits expire 12 months after purchase.
+- Auto top-up is optional and off by default. When it is on, you choose the
+  threshold, the amount, and a monthly spending cap.
+
+Credits are spent oldest first: plan credits before top-up credits.
+
+<Aside type="caution" title="When credits run out">
+A paid action that your balance cannot cover is refused with
+`402 insufficient_credits` before anything is started or charged. See
+[API Errors](/api/errors/#capacity-and-billing) for every billing code.
+</Aside>
 
 ## What You're Charged For
 
-Each paid app bills **up to a fixed monthly maximum**, based on the resources that app reserves, prorated by the time it runs. That's it.
+Each paid app bills **up to a fixed monthly maximum** in credits, based on the
+resources that app reserves, prorated by the time it runs.
 
 Your bill does **not** change with:
 
@@ -34,15 +89,25 @@ Your bill does **not** change with:
 
 This is the core difference from usage-metered hosting, where billing follows usage meters. With Varity, an unchanged profile keeps the same monthly maximum no matter how much traffic it serves. For the full model, see [How Pricing Works](/resources/pricing/).
 
+CPU VMs and GPUs are priced by the quote you confirm, shown in credits. AI
+Gateway requests are charged per request; see
+[AI Gateway Billing and Keys](/ai-gateway/billing-and-keys/).
+
 <Aside type="note">
 Use the cost calculator in the dashboard (or `varity_cost_calculator` in an AI
 editor) for a current estimate before you deploy. The quote shown at
 confirmation is the transactional price for that deployment.
 </Aside>
 
-## Seeing Your Costs
+## Seeing Your Credits
 
-Your dashboard shows the monthly maximum for each app and your overall bill. Because pricing is tied to the reserved profile, there is no end-of-month surprise from a traffic spike.
+The billing page of the Developer Portal shows your plan, available credits,
+credits that expire soon, the Free plan's daily AI allowance, and your free app
+status. Every subscription credit, top-up, charge, refund, and expiry appears
+in your billing history.
+
+If billing state cannot be read, the portal and API say it is unavailable
+(`503 billing_unavailable`) rather than showing a zero balance.
 
 ## Deleting an App
 
@@ -53,4 +118,5 @@ proof that resource release and billing closure are complete.
 ## Related
 
 - [How Pricing Works](/resources/pricing/): the predictable-pricing model in full.
+- [AI Gateway Billing and Keys](/ai-gateway/billing-and-keys/): how AI requests spend credits.
 - [What You Can Deploy Today](/deploy/what-you-can-deploy/): what your bill covers in beta.

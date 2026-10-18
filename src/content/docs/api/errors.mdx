@@ -121,8 +121,18 @@ Validation errors may carry a `field` naming the offending property.
 
 | Code | HTTP | Retryable | Cause |
 |------|------|-----------|-------|
-| <span id="billing_or_credit_required"></span>`billing_or_credit_required` | 402 | no | No payment method and no active starter credit. |
+| <span id="insufficient_credits"></span>`insufficient_credits` | 402 | no | Your credit balance cannot cover the action. Add credits or change plan. |
+| <span id="daily_free_limit_reached"></span>`daily_free_limit_reached` | 402 | no | The Free plan's daily AI allowance is used up. It resets the next UTC day; any subscription or top-up removes the limit. |
+| <span id="subscription_required"></span>`subscription_required` | 402 | no | The action needs a paid plan or a top-up. |
+| <span id="wallet_frozen"></span>`wallet_frozen` | 402 | no | Paid usage on this account is paused, for example while a refund or dispute leaves a balance owed. New funding repays it first. |
+| <span id="payment_method_shared"></span>`payment_method_shared` | 402 | no | This card already backs another account's free app. Use a different card. |
+| <span id="quote_expired"></span>`quote_expired` | 402 | no | The price quote expired. Request a new quote and confirm again. |
+| <span id="billing_unavailable"></span>`billing_unavailable` | 503 | yes | Billing state could not be read. |
 | <span id="gpu_capacity_unavailable"></span>`gpu_capacity_unavailable` | 409 | yes | No accelerator capacity right now for the requested profile. |
+
+The `402` codes above are the complete set every Varity service uses for billing refusals. A refused action starts nothing and charges nothing. The older AI Gateway code `insufficient_gateway_balance` means the same as `insufficient_credits` and is being retired; handle both.
+
+`billing_unavailable` is never reported as a zero balance. Retry it with backoff. Its body can be the short form `{"error": "billing_unavailable"}`, so read the code from `error` when `code` is absent.
 
 `gpu_capacity_unavailable` is the one common `409` you should retry. Capacity is a moving target; back off and retry, or quote a different profile.
 
