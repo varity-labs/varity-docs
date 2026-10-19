@@ -58,10 +58,6 @@
       "freeSites": 3,
       "extraSiteMonthlyCredits": 100
     },
-    "aiPricing": {
-      "apiMultiplier": 1.05,
-      "chatBuildDivisor": 0.7
-    },
     "spendCategories": [
       "ai_chat",
       "ai_build",
