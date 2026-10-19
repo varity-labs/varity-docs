@@ -27,9 +27,9 @@ sends to spend them.
 - **API key requests** need paid credits from a subscription or top-up.
 - You cannot bring your own provider key.
 
-Inference key requests are charged the provider's cost plus 5%. Per-model
-rates are in `customer_pricing` on
-[`GET /v1/models`](/ai-gateway/models/#pricing) and on the **Models** tab of the
+Inference key requests are charged per model at the rate in `customer_pricing`
+on [`GET /v1/models`](/ai-gateway/models/#pricing), which also says how that
+rate is set. The same rates are on the **Models** tab of the
 portal's AI Gateway page. This page lists no prices, because the catalog changes
 without a docs release.
 
@@ -95,8 +95,6 @@ The request budgets for these routes are on
 Your own code can read what it has spent with an inference key, through the
 `/v1/inference/*` routes listed on
 [Endpoints](/ai-gateway/endpoints/#your-account-with-an-inference-key).
-These routes report spend for inference key requests only. Chat and Build
-usage appears in credits in your billing history on the Developer Portal.
 
 Request records hold metadata only, never prompt or response content, and are
 kept for 30 days. See
