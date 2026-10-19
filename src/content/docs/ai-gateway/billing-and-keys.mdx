@@ -1,6 +1,6 @@
 ---
 title: AI Gateway Billing and Keys
-description: How Varity AI Gateway requests spend credits from your credit balance, and how inference keys and usage reporting work.
+description: How Varity AI Gateway requests are charged to your prepaid balance, and how inference keys and usage reporting work.
 ---
 
 import PageMeta from '../../../components/PageMeta.astro';
@@ -12,19 +12,18 @@ import CreditPolicy from '../../../components/CreditPolicy.astro';
   stability="beta"
 />
 
-The AI Gateway spends credits from your credit balance, the same prepaid
-credit balance Varity Cloud uses, at **<CreditPolicy field="credits-per-usd" />**.
-Credits come from your plan, from top-ups, or from the Free plan; see
+The AI Gateway charges your prepaid balance in USD, the same balance Varity
+Cloud uses. It is funded by your plan, by top-ups, or by the Free plan; see
 [Billing and Pricing](/resources/billing/). An inference key is what your code
-sends to spend them.
+sends to spend it.
 
 ## How You Are Charged
 
-- **Free plan credits** cover only <CreditPolicy field="free-promo-categories" />,
-  up to <CreditPolicy field="free-daily-ai-credits" /> credits of AI usage per
-  day on the cheapest suitable model. Any subscription or top-up removes the
+- **Free plan usage** covers only <CreditPolicy field="free-promo-categories" />,
+  up to <CreditPolicy field="free-daily-ai-usage" /> of AI usage per day on the
+  cheapest suitable model. Any subscription or top-up removes the
   daily limit.
-- **API key requests** need paid credits from a subscription or top-up.
+- **API key requests** need a paid balance from a subscription or top-up.
 - You cannot bring your own provider key.
 
 Inference key requests are charged per model at the rate in `customer_pricing`
@@ -37,11 +36,11 @@ When a request cannot be paid for, it is refused with a `402` before any model
 is called. The codes and what each one means are listed once, in
 [API Errors](/api/errors/#capacity-and-billing).
 
-## Adding Credits
+## Adding Funds
 
 Subscribe to a plan or buy a top-up on the billing page of the Developer
 Portal; see [Top-Ups](/resources/billing/#top-ups). Optional auto top-up
-refills your credit balance when it falls below a threshold you set, up to a
+refills your balance when it falls below a threshold you set, up to a
 monthly cap you choose.
 
 ## Inference Keys
@@ -95,8 +94,8 @@ The request budgets for these routes are on
 Your own code can read what it has spent with an inference key, through the
 `/v1/inference/*` routes listed on
 [Endpoints](/ai-gateway/endpoints/#your-account-with-an-inference-key).
-They report spend for inference key requests only. Chat and Build usage
-appears in credits in your billing history on the Developer Portal.
+They report spend for inference key requests only. Chat and Build have no
+per-action price.
 
 Request records hold metadata only, never prompt or response content, and are
 kept for 30 days. See

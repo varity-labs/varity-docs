@@ -12,7 +12,7 @@ import PageMeta from '../../../components/PageMeta.astro';
   stability="beta"
 />
 
-Varity's public API is a resource API for deployments, self-managed machines, templates, pricing and quotes, credits, API keys, AI Gateway attachments, and webhooks. Use it for direct integrations, custom agents, launchpads, internal tools, and backend services that need to deploy or operate Varity apps without the dashboard.
+Varity's public API is a resource API for deployments, self-managed machines, templates, pricing and quotes, balance, API keys, AI Gateway attachments, and webhooks. Use it for direct integrations, custom agents, launchpads, internal tools, and backend services that need to deploy or operate Varity apps without the dashboard.
 
 The machine-readable source is:
 
@@ -27,7 +27,7 @@ Older thin-client compatibility routes are not the public resource contract. New
 
 Varity exposes two public base URLs:
 
-**Platform APIs** cover apps, deployments, templates, pricing, credits, API keys, and webhooks. That is everything on this page:
+**Platform APIs** cover apps, deployments, templates, pricing, balance, API keys, and webhooks. That is everything on this page:
 
 ```text
 https://varity.app/api
@@ -43,7 +43,7 @@ For the older `varity.app/v1` alias, see [AI Gateway Endpoints](/ai-gateway/endp
 
 These are two different products with two different contracts:
 
-- **`/api/*` is the platform surface.** Resource CRUD for deployments, machines, templates, pricing, credits, keys, and webhooks. Everything on this page. Errors use the [Varity error envelope](/api/errors/).
+- **`/api/*` is the platform surface.** Resource CRUD for deployments, machines, templates, pricing, balance, keys, and webhooks. Everything on this page. Errors use the [Varity error envelope](/api/errors/).
 - **`/v1/*` is the OpenAI-compatible inference surface.** Chat completions, embeddings, images, audio, and model listing. Point any OpenAI client at it by setting the base URL. It has its own error shape and its own rate limits, documented in the [AI Gateway](/ai-gateway/) docs. Nothing on this page applies to it.
 
 A single Varity API key does not automatically work on both surfaces: keys are scoped per product, and using one out of scope returns `403 credential_scope_violation`. Create AI Gateway keys from the Developer Portal **Inference keys** tab, which calls `POST /v1/keys` on `https://ai.varity.app` with your Portal session; that is the only AI Gateway key issuer (see [Billing and Keys](/ai-gateway/billing-and-keys/#account-routes)).
@@ -216,7 +216,7 @@ curl -X DELETE https://varity.app/api/deployments/$DEPLOYMENT_ID \
   -H "Authorization: Bearer $VARITY_API_KEY"
 ```
 
-## Templates, Pricing, And Credits
+## Templates, Pricing, And Balance
 
 Templates are deployable app starters. Pricing is estimated from the live API, not a hardcoded table, and returns fixed monthly hardware-reservation cost for the requested profile.
 
@@ -424,7 +424,7 @@ The live OpenAPI document at `https://varity.app/api/openapi.json` defines **34 
 | `GET` | `/api/pricing/estimate` | Estimate fixed monthly cost |
 | `POST` | `/api/pricing/accelerator-quote` | GPU container quote; returns `409 capability_disabled` while GPU containers are unavailable |
 | `POST` | `/api/pricing/machine-quote` | Exact machine quote |
-| `GET` | `/api/credits` | Read credit and deploy eligibility |
+| `GET` | `/api/credits` | Read balance and deploy eligibility |
 
 ### Templates
 

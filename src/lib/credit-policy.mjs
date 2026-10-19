@@ -4,6 +4,8 @@
  * a field, and both renderers (the CreditPolicy Astro component for HTML and the
  * llms generator for text) fill it from `contracts/credit-policy.mirror.json`,
  * the snapshot of `credit_policy` in GET https://varity.app/api/pricing.
+ * Customers see USD only (founder 2026-10-19): the producer counts in credits,
+ * and every amount is converted here with its `creditsPerUsd`.
  *
  * Interface: `creditPolicyField(mirror, field)` returns a string (inline value)
  * or `{ headers, rows, anchors }` (table). It throws on a missing field, an
@@ -27,10 +29,10 @@ const CATEGORY_NAMES = {
  * contract's; this map only says what each code means to a caller.
  */
 const BILLING_CODE_MEANINGS = {
-  insufficient_credits: [402, 'Your credit balance cannot cover the action. Add credits or change plan. Replaces the AI Gateway code `insufficient_gateway_balance`; handle both while it is retired.'],
+  insufficient_credits: [402, 'Your balance cannot cover the action. Add funds or change plan. Replaces the AI Gateway code `insufficient_gateway_balance`; handle both while it is retired.'],
   daily_free_limit_reached: [402, "The Free plan's daily AI allowance is used up. It resets the next UTC day; any subscription or top-up removes the limit."],
   spending_limit_reached: [402, 'The monthly spending limit you set is reached. Raise the limit or wait for the next month. Replaces the AI Gateway code `gateway_monthly_limit_exceeded`; handle both while it is retired.'],
-  subscription_required: [402, 'The action needs paid credits from a subscription or top-up, for example an AI Gateway API key request on Free plan credits only.'],
+  subscription_required: [402, 'The action needs a paid balance from a subscription or top-up, for example an AI Gateway API key request on Free plan usage only.'],
   wallet_frozen: [402, 'Paid usage on this account is paused, for example while a refund or dispute leaves a balance owed. New funding repays it first.'],
   payment_method_shared: [402, "This card already backs another account's free app. Use a different card."],
   quote_expired: [402, 'The price quote expired. Request a new quote and confirm again.'],
@@ -38,7 +40,7 @@ const BILLING_CODE_MEANINGS = {
 };
 
 const capitalize = (word) => word.charAt(0).toUpperCase() + word.slice(1);
-const usd = (amount) => `$${amount.toLocaleString('en-US')}`;
+const usd = (amount) => `$${amount.toLocaleString('en-US', Number.isInteger(amount) ? {} : { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const count = (amount) => amount.toLocaleString('en-US');
 
 function list(items) {
@@ -51,14 +53,18 @@ function required(value, path) {
   return value;
 }
 
+/** A producer credit amount as customer-facing USD. */
+function creditsAsUsd(p, credits, path) {
+  return usd(required(credits, path) / required(p.creditsPerUsd, 'creditsPerUsd'));
+}
+
 function categoryName(category) {
   return required(CATEGORY_NAMES[category], `a customer name for spend category ${category}`);
 }
 
 const FIELDS = {
-  'credits-per-usd': (p) => `${count(required(p.creditsPerUsd, 'creditsPerUsd'))} credits = $1`,
-  'free-monthly-credits': (p) => count(required(p.free?.monthlyCredits, 'free.monthlyCredits')),
-  'free-daily-ai-credits': (p) => count(required(p.free?.dailyAiCredits, 'free.dailyAiCredits')),
+  'free-monthly-usage': (p) => creditsAsUsd(p, p.free?.monthlyCredits, 'free.monthlyCredits'),
+  'free-daily-ai-usage': (p) => creditsAsUsd(p, p.free?.dailyAiCredits, 'free.dailyAiCredits'),
   'free-promo-categories': (p) => list(required(p.free?.promoCategories, 'free.promoCategories').map(categoryName)),
   'rollover-cycles': (p) => {
     const cycles = required(p.rollover?.subscriptionCycles, 'rollover.subscriptionCycles');
@@ -69,11 +75,11 @@ const FIELDS = {
   'top-up-expiry': (p) => {
     const months = required(p.topUp?.expiresAfterMonths, 'topUp.expiresAfterMonths');
     return months === null
-      ? 'Top-up credits do not expire.'
-      : `Top-up credits expire ${count(months)} months after purchase.`;
+      ? 'Top-ups do not expire.'
+      : `Top-ups expire ${count(months)} months after purchase.`;
   },
   plans: (p) => ({
-    headers: ['Plan', 'Price', 'Credits each month'],
+    headers: ['Plan', 'Price', 'Usage included each month'],
     rows: required(p.plans, 'plans').map((plan) => plan.contactSales === true
       ? [
         capitalize(plan.id),
@@ -83,7 +89,7 @@ const FIELDS = {
       : [
         capitalize(plan.id),
         plan.priceUsd === 0 ? '$0' : `${usd(required(plan.priceUsd, `plans.${plan.id}.priceUsd`))}/month`,
-        count(required(plan.monthlyCredits, `plans.${plan.id}.monthlyCredits`)),
+        creditsAsUsd(p, plan.monthlyCredits, `plans.${plan.id}.monthlyCredits`),
       ]),
     anchors: [],
   }),

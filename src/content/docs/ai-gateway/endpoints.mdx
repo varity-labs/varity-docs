@@ -187,7 +187,7 @@ and what it has spent:
 | Route | Returns |
 |-------|---------|
 | `GET /v1/inference/policy` | Your privacy floor and [rate limits](/ai-gateway/limits/). |
-| `GET /v1/inference/usage` | Requests, tokens, and `spend_usd` from inference key requests for the current period, with breakdowns. Chat and Build requests are billed in credits and are not included. |
+| `GET /v1/inference/usage` | Requests, tokens, and `spend_usd` from inference key requests for the current period, with breakdowns. Chat and Build requests are not included. |
 | `GET /v1/inference/requests` | Per-request metadata. Rows for Chat and Build requests carry `customer_charge` and `usage` as `null`. Filters: `limit` (1 to 100), `cursor`, `model`, `state`, `created_after`, `created_before`. The two timestamps are RFC 3339; send them with fractional seconds, for example `2026-09-16T00:00:00.000Z`. |
 | `GET /v1/inference/performance` | Latency percentiles. `window` is `1h`, `24h`, `7d`, or `30d`. |
 

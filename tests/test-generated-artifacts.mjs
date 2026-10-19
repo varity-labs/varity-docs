@@ -34,7 +34,9 @@ for (const model of mirror.models ?? []) {
 // commercial-contract block must not reappear as a second, conflicting owner.
 const creditPolicy = JSON.parse(readFileSync(new URL('../contracts/credit-policy.mirror.json', import.meta.url), 'utf8'));
 for (const field of CREDIT_POLICY_FIELDS) {
-  if (!full.includes(creditPolicyMarkdown(creditPolicy, field))) errors.push(`llms-full.txt is missing credit policy field ${field}`);
+  const rendered = creditPolicyMarkdown(creditPolicy, field);
+  if (!full.includes(rendered)) errors.push(`llms-full.txt is missing credit policy field ${field}`);
+  if (/\bcredits?\b/i.test(rendered.replace(/`[^`]*`/g, ''))) errors.push(`credit policy field ${field} renders credits; render USD`);
 }
 if (full.includes('funding_service_fee_percent')) errors.push('llms-full.txt renders the superseded AI Gateway funding fee');
 const failsClosed = (mutate, label) => {
@@ -62,14 +64,18 @@ const rate = /^provider_cost_times_(\d+)_(\d+)$/.exec(mirror.openapi?.['x-varity
 if (!rate) errors.push('contracts/ai-gateway.mirror.json managed_rate is not provider_cost_times_<multiplier>');
 const percent = rate ? Math.round((Number(`${rate[1]}.${rate[2]}`) - 1) * 100) : null;
 const RATE_OWNER = 'ai-gateway/models.mdx';
-// Pages name fields; they never copy the code list or the credit rate.
+// Pages name fields; they never copy the code list.
 const docsDir = new URL('../src/content/docs/', import.meta.url);
 for (const page of readdirSync(docsDir, { recursive: true }).filter((name) => /\.mdx?$/.test(name))) {
   const source = readFileSync(new URL(page, docsDir), 'utf8');
   for (const code of creditPolicy.credit_policy.errorCodes) {
     if (source.includes(code)) errors.push(`${page} copies billing code ${code}; use <CreditPolicy field="billing-codes" /> or link /api/errors/#capacity-and-billing`);
   }
-  if (/credits\s*=\s*\$1/.test(source)) errors.push(`${page} copies the credit rate; use <CreditPolicy field="credits-per-usd" />`);
+  // Founder 2026-10-19: customers see USD only, never credits. Code literals
+  // (`insufficient_credits`, `/api/credits`) are interface names and stay.
+  const prose = source.replace(/`[^`]*`/g, '').replace(/credit card/gi, '');
+  const word = /\bcredits?\b/i.exec(prose);
+  if (word) errors.push(`${page} says "${word[0]}" to customers; state the amount in USD`);
   const stated = [...source.matchAll(/cost plus (\d+)%/g)].map((m) => Number(m[1]));
   if (page.replaceAll('\\', '/') !== RATE_OWNER) {
     if (stated.length) errors.push(`${page} states the API key percentage; link /ai-gateway/models/#pricing instead`);
