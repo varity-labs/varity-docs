@@ -22,6 +22,7 @@ export default defineConfig({
         ![
           "https://docs.varity.so/build/deploy/",
           "https://docs.varity.so/introduction/",
+          "https://docs.varity.so/pricing/",
         ].includes(page),
     }),
     starlight({
