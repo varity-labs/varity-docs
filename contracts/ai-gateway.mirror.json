@@ -28,8 +28,8 @@
       "batch": "unsupported"
     },
     "x-varity-commercial-contract": {
-      "managed_rate": "actual_provider_cost",
-      "funding_service_fee_percent": 5,
+      "managed_rate": "provider_cost_times_1_05",
+      "funding_service_fee_percent": 0,
       "minimum_refill_usd": 20,
       "maximum_refill_usd": 1000,
       "payment_method_required": true,
@@ -1840,7 +1840,7 @@
               }
             }
           ],
-          "description": "Versioned customer charge state. A request is charged exactly its provider cost, which may exceed the reserved maximum. A request that failed or was cancelled before provider effect is released without a charge; an interrupted request is charged only the usage observed before the interruption."
+          "description": "Versioned customer charge state. A request is charged its provider cost on its rate card and never more than the reserved maximum. A request that failed or was cancelled before provider effect is released without a charge; an interrupted request is charged only the usage observed before the interruption."
         },
         "CustomerBilling": {
           "oneOf": [
@@ -2030,7 +2030,7 @@
               }
             }
           ],
-          "description": "Current managed customer rates for the preferred qualified route, observed at the stated time and identified by an immutable price version. Rates are the actual provider cost with no markup; the Varity 5% service fee is charged when balance is added. They describe the current catalog observation, not a permanent guarantee; each admitted request snapshots its own route and price evidence before provider effect."
+          "description": "Current managed customer rates for the preferred qualified route, observed at the stated time and identified by an immutable price version. The rates are the API-key card (provider cost x 1.05, cache-read discount included). Top-ups carry no funding fee."
         },
         "InferenceRequest": {
           "type": "object",
@@ -3773,12 +3773,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.0a1d2996c25a551e",
+        "version": "2026-10-18.ai-api.v5.01822ec28ea991ab",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 3,
-        "output": 5,
-        "cached_input": 0.3
+        "input": 3.15,
+        "output": 5.25,
+        "cached_input": 0.315
       }
     },
     {
@@ -3827,12 +3827,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.3395bb4e50eed133",
+        "version": "2026-10-18.ai-api.v5.35914f9bc861f0aa",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 3.75,
-        "output": 7.5,
-        "cached_input": 0.9375
+        "input": 3.9375,
+        "output": 7.875,
+        "cached_input": 0.984375
       }
     },
     {
@@ -3881,12 +3881,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.6b578cc434765e75",
+        "version": "2026-10-18.ai-api.v5.e92e904345a76802",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.875,
-        "output": 1.75,
-        "cached_input": 0.225
+        "input": 0.91875,
+        "output": 1.8375,
+        "cached_input": 0.23625
       }
     },
     {
@@ -3935,12 +3935,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.3395bb4e50eed133",
+        "version": "2026-10-18.ai-api.v5.35914f9bc861f0aa",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 3.75,
-        "output": 7.5,
-        "cached_input": 0.9375
+        "input": 3.9375,
+        "output": 7.875,
+        "cached_input": 0.984375
       }
     },
     {
@@ -3989,12 +3989,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.6b578cc434765e75",
+        "version": "2026-10-18.ai-api.v5.e92e904345a76802",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.875,
-        "output": 1.75,
-        "cached_input": 0.225
+        "input": 0.91875,
+        "output": 1.8375,
+        "cached_input": 0.23625
       }
     },
     {
@@ -4041,13 +4041,13 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.fed65a03ede592bf",
+        "version": "2026-10-18.ai-api.v5.6e6ca6d2f98e1d62",
         "currency": "usd",
         "unit": "per_image",
         "input": 0,
         "output": 0,
         "cached_input": 0,
-        "request": 0.01
+        "request": 0.0105
       }
     },
     {
@@ -4094,12 +4094,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.8674aa414807717c",
+        "version": "2026-10-18.ai-api.v5.2a1fb046663a92ff",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.0125,
-        "output": 0.0125,
-        "cached_input": 0.0125
+        "input": 0.013125,
+        "output": 0.013125,
+        "cached_input": 0.013125
       }
     },
     {
@@ -4146,12 +4146,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.43d477baf8d6ab45",
+        "version": "2026-10-18.ai-api.v5.327a8d35ac94da9f",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.15,
-        "output": 0.6,
-        "cached_input": 0.15
+        "input": 0.1575,
+        "output": 0.63,
+        "cached_input": 0.1575
       }
     },
     {
@@ -4200,10 +4200,10 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.audio.57bd2cb598c116a3",
+        "version": "2026-10-18.ai-api.v5.audio.e653ee80065bca50",
         "currency": "usd",
         "unit": "per_million_characters",
-        "input": 50,
+        "input": 52.5,
         "output": 0,
         "cached_input": 0
       }
@@ -4252,13 +4252,13 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.fed65a03ede592bf",
+        "version": "2026-10-18.ai-api.v5.6e6ca6d2f98e1d62",
         "currency": "usd",
         "unit": "per_image",
         "input": 0,
         "output": 0,
         "cached_input": 0,
-        "request": 0.01
+        "request": 0.0105
       }
     },
     {
@@ -4308,12 +4308,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.380edf7deefe65b8",
+        "version": "2026-10-18.ai-api.v5.d926b248b94dc542",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 10,
-        "output": 50,
-        "cached_input": 1
+        "input": 10.5,
+        "output": 52.5,
+        "cached_input": 1.05
       }
     },
     {
@@ -4363,12 +4363,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.68d3a7b8b5bde536",
+        "version": "2026-10-18.ai-api.v5.561a9c8fabb9e667",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 10,
-        "output": 50,
-        "cached_input": 0.25
+        "input": 10.5,
+        "output": 52.5,
+        "cached_input": 0.2625
       }
     },
     {
@@ -4418,12 +4418,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.3c420cc1263e184e",
+        "version": "2026-10-18.ai-api.v5.5a7b2cb5497016a5",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.1,
-        "output": 0.5,
-        "cached_input": 0.01
+        "input": 0.105,
+        "output": 0.525,
+        "cached_input": 0.0105
       }
     },
     {
@@ -4473,12 +4473,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.927fb8bd1cbad40a",
+        "version": "2026-10-18.ai-api.v5.d5bfe0981376551a",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 5,
-        "output": 25,
-        "cached_input": 0.5
+        "input": 5.25,
+        "output": 26.25,
+        "cached_input": 0.525
       }
     },
     {
@@ -4528,12 +4528,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.927fb8bd1cbad40a",
+        "version": "2026-10-18.ai-api.v5.d5bfe0981376551a",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 5,
-        "output": 25,
-        "cached_input": 0.5
+        "input": 5.25,
+        "output": 26.25,
+        "cached_input": 0.525
       }
     },
     {
@@ -4583,12 +4583,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.927fb8bd1cbad40a",
+        "version": "2026-10-18.ai-api.v5.d5bfe0981376551a",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 5,
-        "output": 25,
-        "cached_input": 0.5
+        "input": 5.25,
+        "output": 26.25,
+        "cached_input": 0.525
       }
     },
     {
@@ -4638,12 +4638,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.927fb8bd1cbad40a",
+        "version": "2026-10-18.ai-api.v5.d5bfe0981376551a",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 5,
-        "output": 25,
-        "cached_input": 0.5
+        "input": 5.25,
+        "output": 26.25,
+        "cached_input": 0.525
       }
     },
     {
@@ -4693,12 +4693,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.380edf7deefe65b8",
+        "version": "2026-10-18.ai-api.v5.d926b248b94dc542",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 10,
-        "output": 50,
-        "cached_input": 1
+        "input": 10.5,
+        "output": 52.5,
+        "cached_input": 1.05
       }
     },
     {
@@ -4748,12 +4748,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.927fb8bd1cbad40a",
+        "version": "2026-10-18.ai-api.v5.d5bfe0981376551a",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 5,
-        "output": 25,
-        "cached_input": 0.5
+        "input": 5.25,
+        "output": 26.25,
+        "cached_input": 0.525
       }
     },
     {
@@ -4803,12 +4803,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.20d06f85f51de127",
+        "version": "2026-10-18.ai-api.v5.baf016340c475b5e",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 4,
-        "output": 20,
-        "cached_input": 0.2
+        "input": 4.2,
+        "output": 21,
+        "cached_input": 0.21
       }
     },
     {
@@ -4858,12 +4858,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.509e15f42672d2f2",
+        "version": "2026-10-18.ai-api.v5.2b867ca80218c90a",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 8,
-        "output": 40,
-        "cached_input": 0.4
+        "input": 8.4,
+        "output": 42,
+        "cached_input": 0.42
       }
     },
     {
@@ -4913,12 +4913,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.380edf7deefe65b8",
+        "version": "2026-10-18.ai-api.v5.d926b248b94dc542",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 10,
-        "output": 50,
-        "cached_input": 1
+        "input": 10.5,
+        "output": 52.5,
+        "cached_input": 1.05
       }
     },
     {
@@ -4968,12 +4968,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.2a30972b7a064dac",
+        "version": "2026-10-18.ai-api.v5.9aaac01007a2df01",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 3,
-        "output": 15,
-        "cached_input": 0.3
+        "input": 3.15,
+        "output": 15.75,
+        "cached_input": 0.315
       }
     },
     {
@@ -5023,12 +5023,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.00095fa37c44ca6c",
+        "version": "2026-10-18.ai-api.v5.19daeab245314f4f",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 2,
-        "output": 10,
-        "cached_input": 0.2
+        "input": 2.1,
+        "output": 10.5,
+        "cached_input": 0.21
       }
     },
     {
@@ -5078,12 +5078,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.95009d3825a03638",
+        "version": "2026-10-18.ai-api.v5.fd2c41d792e4da57",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 2,
-        "output": 10,
-        "cached_input": 0.1
+        "input": 2.1,
+        "output": 10.5,
+        "cached_input": 0.105
       }
     },
     {
@@ -5133,12 +5133,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.c105e464633e1afd",
+        "version": "2026-10-18.ai-api.v5.4a6b651daf4948d9",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.3,
-        "output": 1.2,
-        "cached_input": 0.0075
+        "input": 0.315,
+        "output": 1.26,
+        "cached_input": 0.007875
       }
     },
     {
@@ -5188,12 +5188,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.c105e464633e1afd",
+        "version": "2026-10-18.ai-api.v5.4a6b651daf4948d9",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.3,
-        "output": 1.2,
-        "cached_input": 0.0075
+        "input": 0.315,
+        "output": 1.26,
+        "cached_input": 0.007875
       }
     },
     {
@@ -5242,12 +5242,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.a0ae8fe2294bb09c",
+        "version": "2026-10-18.ai-api.v5.e6be115b6531e668",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.138,
-        "output": 0.275,
-        "cached_input": 0.028
+        "input": 0.1449,
+        "output": 0.28875,
+        "cached_input": 0.0294
       }
     },
     {
@@ -5296,12 +5296,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.3e4042167666328a",
+        "version": "2026-10-18.ai-api.v5.95776f6a5957fcca",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.13,
-        "output": 0.26,
-        "cached_input": 0.028
+        "input": 0.1365,
+        "output": 0.273,
+        "cached_input": 0.0294
       }
     },
     {
@@ -5350,12 +5350,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.136c279c9b5500d2",
+        "version": "2026-10-18.ai-api.v5.5d39b99ca17dad89",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.35,
-        "output": 0.7,
-        "cached_input": 0.0875
+        "input": 0.3675,
+        "output": 0.735,
+        "cached_input": 0.091875
       }
     },
     {
@@ -5404,12 +5404,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.ae6445dcf989a264",
+        "version": "2026-10-18.ai-api.v5.cbdefe4da2e7916b",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 1.65,
-        "output": 3.301,
-        "cached_input": 0.33
+        "input": 1.7325,
+        "output": 3.46605,
+        "cached_input": 0.3465
       }
     },
     {
@@ -5458,12 +5458,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.a6ca50ef7de8205f",
+        "version": "2026-10-18.ai-api.v5.69fce2aa72518c5e",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 1.65,
-        "output": 4.95,
-        "cached_input": 0.165
+        "input": 1.7325,
+        "output": 5.1975,
+        "cached_input": 0.17325
       }
     },
     {
@@ -5510,10 +5510,10 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.audio.6b8e29b77108a07e",
+        "version": "2026-10-18.ai-api.v5.audio.7b0c6a1c21ad31b4",
         "currency": "usd",
         "unit": "per_audio_second",
-        "input": 0.000167,
+        "input": 0.00017535,
         "output": 0,
         "cached_input": 0
       }
@@ -5564,10 +5564,10 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.audio.81a8d366669a4a04",
+        "version": "2026-10-18.ai-api.v5.audio.64f11c98cc6b274c",
         "currency": "usd",
         "unit": "per_million_characters",
-        "input": 62.5,
+        "input": 65.625,
         "output": 0,
         "cached_input": 0
       }
@@ -5617,13 +5617,13 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.3844ebbaf023291b",
+        "version": "2026-10-18.ai-api.v5.7a010657a70fec6a",
         "currency": "usd",
         "unit": "per_image",
         "input": 0,
         "output": 0,
         "cached_input": 0,
-        "request": 0.04
+        "request": 0.042
       }
     },
     {
@@ -5670,13 +5670,13 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.bd79fb9384cd79f7",
+        "version": "2026-10-18.ai-api.v5.771c1f5d419ed0f9",
         "currency": "usd",
         "unit": "per_image",
         "input": 0,
         "output": 0,
         "cached_input": 0,
-        "request": 0.09
+        "request": 0.0945
       }
     },
     {
@@ -5723,13 +5723,13 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.ee3eeaa3f34bc9b4",
+        "version": "2026-10-18.ai-api.v5.35cc4c3cb8d4a1df",
         "currency": "usd",
         "unit": "per_image",
         "input": 0,
         "output": 0,
         "cached_input": 0,
-        "request": 0.03
+        "request": 0.0315
       }
     },
     {
@@ -5776,13 +5776,13 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.3f5e1605690a8667",
+        "version": "2026-10-18.ai-api.v5.69e07a73156e4dc3",
         "currency": "usd",
         "unit": "per_image",
         "input": 0,
         "output": 0,
         "cached_input": 0,
-        "request": 0.12
+        "request": 0.126
       }
     },
     {
@@ -5833,10 +5833,10 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.audio.308e0cac19a8cbed",
+        "version": "2026-10-18.ai-api.v5.audio.3787cdf7b7dfc8bb",
         "currency": "usd",
         "unit": "per_million_characters",
-        "input": 187.5,
+        "input": 196.875,
         "output": 0,
         "cached_input": 0
       }
@@ -5890,12 +5890,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.d449ea54f5c9c2a5",
+        "version": "2026-10-18.ai-api.v5.332a1efeab9787de",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 2.5,
-        "output": 15,
-        "cached_input": 0.5
+        "input": 2.625,
+        "output": 15.75,
+        "cached_input": 0.525
       }
     },
     {
@@ -5947,12 +5947,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.4be46891cf618273",
+        "version": "2026-10-18.ai-api.v5.2a2d2b6b621d9b6f",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 1.55,
-        "output": 9.45,
-        "cached_input": 0.155
+        "input": 1.6275,
+        "output": 9.9225,
+        "cached_input": 0.16275
       }
     },
     {
@@ -6004,12 +6004,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.0efc5d733dad1e9e",
+        "version": "2026-10-18.ai-api.v5.f93908f1b23cb22a",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.375,
-        "output": 3.125,
-        "cached_input": 0.0375
+        "input": 0.39375,
+        "output": 3.28125,
+        "cached_input": 0.039375
       }
     },
     {
@@ -6061,12 +6061,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.7b9e90de8892bb4b",
+        "version": "2026-10-18.ai-api.v5.5e4b79ead8753b67",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.9375,
-        "output": 4.6875,
-        "cached_input": 0.09375
+        "input": 0.984375,
+        "output": 4.921875,
+        "cached_input": 0.0984375
       }
     },
     {
@@ -6118,12 +6118,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.7b9e90de8892bb4b",
+        "version": "2026-10-18.ai-api.v5.5e4b79ead8753b67",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.9375,
-        "output": 4.6875,
-        "cached_input": 0.09375
+        "input": 0.984375,
+        "output": 4.921875,
+        "cached_input": 0.0984375
       }
     },
     {
@@ -6175,12 +6175,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.7b9e90de8892bb4b",
+        "version": "2026-10-18.ai-api.v5.5e4b79ead8753b67",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.9375,
-        "output": 4.6875,
-        "cached_input": 0.09375
+        "input": 0.984375,
+        "output": 4.921875,
+        "cached_input": 0.0984375
       }
     },
     {
@@ -6232,12 +6232,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.7ec9a96197b4e517",
+        "version": "2026-10-18.ai-api.v5.6e117fab71fc6973",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.7,
-        "output": 3.75,
-        "cached_input": 0.07
+        "input": 0.735,
+        "output": 3.9375,
+        "cached_input": 0.0735
       }
     },
     {
@@ -6289,12 +6289,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.e6d7725d9d91306f",
+        "version": "2026-10-18.ai-api.v5.dc92acc7b7ec7350",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 2.5,
-        "output": 12.5,
-        "cached_input": 0.125
+        "input": 2.625,
+        "output": 13.125,
+        "cached_input": 0.13125
       }
     },
     {
@@ -6341,12 +6341,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.bf6cc883a6959315",
+        "version": "2026-10-18.ai-api.v5.a1bdf831fb0d3abf",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.25,
-        "output": 0.25,
-        "cached_input": 0.25
+        "input": 0.2625,
+        "output": 0.2625,
+        "cached_input": 0.2625
       }
     },
     {
@@ -6397,12 +6397,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.2819da9c60d7d0b3",
+        "version": "2026-10-18.ai-api.v5.736c40f5faad41ee",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.1625,
-        "output": 0.5,
-        "cached_input": 0.1625
+        "input": 0.170625,
+        "output": 0.525,
+        "cached_input": 0.170625
       }
     },
     {
@@ -6451,12 +6451,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.968045786a86ac2e",
+        "version": "2026-10-18.ai-api.v5.c085e92bdab9d7ca",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.43,
-        "output": 1.75,
-        "cached_input": 0.08
+        "input": 0.4515,
+        "output": 1.8375,
+        "cached_input": 0.084
       }
     },
     {
@@ -6505,12 +6505,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.098796ec1c55f49d",
+        "version": "2026-10-18.ai-api.v5.3a7b32648540c57f",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.55,
-        "output": 2.65,
-        "cached_input": 0.11
+        "input": 0.5775,
+        "output": 2.7825,
+        "cached_input": 0.1155
       }
     },
     {
@@ -6559,12 +6559,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.9a397f197ae27fab",
+        "version": "2026-10-18.ai-api.v5.7164c11b5aee0796",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.07,
-        "output": 0.4,
-        "cached_input": 0.035
+        "input": 0.0735,
+        "output": 0.42,
+        "cached_input": 0.03675
       }
     },
     {
@@ -6613,12 +6613,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.3e386f8a8adc270a",
+        "version": "2026-10-18.ai-api.v5.314f76c561108f29",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 1,
-        "output": 3.2,
-        "cached_input": 0.2
+        "input": 1.05,
+        "output": 3.36,
+        "cached_input": 0.21
       }
     },
     {
@@ -6667,12 +6667,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.319337e451e23b9c",
+        "version": "2026-10-18.ai-api.v5.7327900995f0811e",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 1.54,
-        "output": 4.84,
-        "cached_input": 0.286
+        "input": 1.617,
+        "output": 5.082,
+        "cached_input": 0.3003
       }
     },
     {
@@ -6721,12 +6721,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.d700d5eddc298269",
+        "version": "2026-10-18.ai-api.v5.eafce4b346016198",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 1.4,
-        "output": 4.4,
-        "cached_input": 0.26
+        "input": 1.47,
+        "output": 4.62,
+        "cached_input": 0.273
       }
     },
     {
@@ -6774,12 +6774,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.b1dc126986cfcd8a",
+        "version": "2026-10-18.ai-api.v5.9788b9ed03083e97",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 1.75,
-        "output": 5.5,
-        "cached_input": 0.325
+        "input": 1.8375,
+        "output": 5.775,
+        "cached_input": 0.34125
       }
     },
     {
@@ -6830,12 +6830,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.96387ea950625351",
+        "version": "2026-10-18.ai-api.v5.63329c6aee89fa37",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.15,
-        "output": 0.5,
-        "cached_input": 0.03
+        "input": 0.1575,
+        "output": 0.525,
+        "cached_input": 0.0315
       }
     },
     {
@@ -6884,12 +6884,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.ee2d09271dec37d7",
+        "version": "2026-10-18.ai-api.v5.84a73d5bffe1c002",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 1.2,
-        "output": 4,
-        "cached_input": 0.24
+        "input": 1.26,
+        "output": 4.2,
+        "cached_input": 0.252
       }
     },
     {
@@ -6939,12 +6939,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.fc3422549a1ba48b",
+        "version": "2026-10-18.ai-api.v5.839003934ef3e88c",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 1.5,
-        "output": 5,
-        "cached_input": 0.3
+        "input": 1.575,
+        "output": 5.25,
+        "cached_input": 0.315
       }
     },
     {
@@ -6994,12 +6994,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.5663da284529546d",
+        "version": "2026-10-18.ai-api.v5.6b989734988462ba",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.12,
-        "output": 0.2,
-        "cached_input": 0.12
+        "input": 0.126,
+        "output": 0.21,
+        "cached_input": 0.126
       }
     },
     {
@@ -7050,12 +7050,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.aa7f3deb3fbdb5a6",
+        "version": "2026-10-18.ai-api.v5.b6070510c5a710fc",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.13,
-        "output": 0.4,
-        "cached_input": 0.05
+        "input": 0.1365,
+        "output": 0.42,
+        "cached_input": 0.0525
       }
     },
     {
@@ -7106,12 +7106,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.45054af417645c94",
+        "version": "2026-10-18.ai-api.v5.cffcaae511d5b1b3",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.12,
-        "output": 0.36,
-        "cached_input": 0.09
+        "input": 0.126,
+        "output": 0.378,
+        "cached_input": 0.0945
       }
     },
     {
@@ -7161,12 +7161,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.f8836876ff170dc0",
+        "version": "2026-10-18.ai-api.v5.5d37c55f9746e67d",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 2.5,
-        "output": 10,
-        "cached_input": 1.25
+        "input": 2.625,
+        "output": 10.5,
+        "cached_input": 1.3125
       }
     },
     {
@@ -7216,12 +7216,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.de885a2cc5123b13",
+        "version": "2026-10-18.ai-api.v5.784c5b6d704759b5",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.15,
-        "output": 0.6,
-        "cached_input": 0.075
+        "input": 0.1575,
+        "output": 0.63,
+        "cached_input": 0.07875
       }
     },
     {
@@ -7270,12 +7270,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.8d505bcb3de5edc0",
+        "version": "2026-10-18.ai-api.v5.0598e3bbec5b5539",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 1.75,
-        "output": 14,
-        "cached_input": 0.175
+        "input": 1.8375,
+        "output": 14.7,
+        "cached_input": 0.18375
       }
     },
     {
@@ -7325,12 +7325,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.8d505bcb3de5edc0",
+        "version": "2026-10-18.ai-api.v5.0598e3bbec5b5539",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 1.75,
-        "output": 14,
-        "cached_input": 0.175
+        "input": 1.8375,
+        "output": 14.7,
+        "cached_input": 0.18375
       }
     },
     {
@@ -7380,12 +7380,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.8b7cb4f7caddc879",
+        "version": "2026-10-18.ai-api.v5.0aaf9f96c500430d",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 2.5,
-        "output": 15,
-        "cached_input": 0.25
+        "input": 2.625,
+        "output": 15.75,
+        "cached_input": 0.2625
       }
     },
     {
@@ -7435,12 +7435,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.31da7f6a52e84d05",
+        "version": "2026-10-18.ai-api.v5.7a7648dbd2043f62",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.75,
-        "output": 4.5,
-        "cached_input": 0.075
+        "input": 0.7875,
+        "output": 4.725,
+        "cached_input": 0.07875
       }
     },
     {
@@ -7490,12 +7490,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.f17783906930ae66",
+        "version": "2026-10-18.ai-api.v5.1a51be037fc98309",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 30,
-        "output": 180,
-        "cached_input": 30
+        "input": 31.5,
+        "output": 189,
+        "cached_input": 31.5
       }
     },
     {
@@ -7545,12 +7545,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.a66ff160a0d51b20",
+        "version": "2026-10-18.ai-api.v5.3cc0d57ac2d2b47d",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 5,
-        "output": 30,
-        "cached_input": 0.5
+        "input": 5.25,
+        "output": 31.5,
+        "cached_input": 0.525
       }
     },
     {
@@ -7600,12 +7600,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.f17783906930ae66",
+        "version": "2026-10-18.ai-api.v5.1a51be037fc98309",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 30,
-        "output": 180,
-        "cached_input": 30
+        "input": 31.5,
+        "output": 189,
+        "cached_input": 31.5
       }
     },
     {
@@ -7655,12 +7655,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.feafe03b29ff9479",
+        "version": "2026-10-18.ai-api.v5.eb48fd77e81f21ef",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.2,
-        "output": 1.2,
-        "cached_input": 0.02
+        "input": 0.21,
+        "output": 1.26,
+        "cached_input": 0.021
       }
     },
     {
@@ -7710,12 +7710,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.feafe03b29ff9479",
+        "version": "2026-10-18.ai-api.v5.eb48fd77e81f21ef",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.2,
-        "output": 1.2,
-        "cached_input": 0.02
+        "input": 0.21,
+        "output": 1.26,
+        "cached_input": 0.021
       }
     },
     {
@@ -7765,12 +7765,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.51addf24c1610e4f",
+        "version": "2026-10-18.ai-api.v5.3f4290b0cbb8a9a9",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 4,
-        "output": 20,
-        "cached_input": 0.4
+        "input": 4.2,
+        "output": 21,
+        "cached_input": 0.42
       }
     },
     {
@@ -7820,12 +7820,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.51addf24c1610e4f",
+        "version": "2026-10-18.ai-api.v5.3f4290b0cbb8a9a9",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 4,
-        "output": 20,
-        "cached_input": 0.4
+        "input": 4.2,
+        "output": 21,
+        "cached_input": 0.42
       }
     },
     {
@@ -7875,12 +7875,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.37613c4a4ed53831",
+        "version": "2026-10-18.ai-api.v5.343e4a3630746932",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 2,
-        "output": 12,
-        "cached_input": 0.2
+        "input": 2.1,
+        "output": 12.6,
+        "cached_input": 0.21
       }
     },
     {
@@ -7930,12 +7930,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.37613c4a4ed53831",
+        "version": "2026-10-18.ai-api.v5.343e4a3630746932",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 2,
-        "output": 12,
-        "cached_input": 0.2
+        "input": 2.1,
+        "output": 12.6,
+        "cached_input": 0.21
       }
     },
     {
@@ -7985,12 +7985,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.95009d3825a03638",
+        "version": "2026-10-18.ai-api.v5.fd2c41d792e4da57",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 2,
-        "output": 10,
-        "cached_input": 0.1
+        "input": 2.1,
+        "output": 10.5,
+        "cached_input": 0.105
       }
     },
     {
@@ -8040,12 +8040,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.7f39577baae9e121",
+        "version": "2026-10-18.ai-api.v5.b1c563d739a0e1da",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 12,
-        "output": 60,
-        "cached_input": 0.6
+        "input": 12.6,
+        "output": 63,
+        "cached_input": 0.63
       }
     },
     {
@@ -8095,12 +8095,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.380edf7deefe65b8",
+        "version": "2026-10-18.ai-api.v5.d926b248b94dc542",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 10,
-        "output": 50,
-        "cached_input": 1
+        "input": 10.5,
+        "output": 52.5,
+        "cached_input": 1.05
       }
     },
     {
@@ -8150,12 +8150,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.380edf7deefe65b8",
+        "version": "2026-10-18.ai-api.v5.d926b248b94dc542",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 10,
-        "output": 50,
-        "cached_input": 1
+        "input": 10.5,
+        "output": 52.5,
+        "cached_input": 1.05
       }
     },
     {
@@ -8205,12 +8205,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.3c420cc1263e184e",
+        "version": "2026-10-18.ai-api.v5.5a7b2cb5497016a5",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.1,
-        "output": 0.5,
-        "cached_input": 0.01
+        "input": 0.105,
+        "output": 0.525,
+        "cached_input": 0.0105
       }
     },
     {
@@ -8260,12 +8260,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.00095fa37c44ca6c",
+        "version": "2026-10-18.ai-api.v5.19daeab245314f4f",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 2,
-        "output": 10,
-        "cached_input": 0.2
+        "input": 2.1,
+        "output": 10.5,
+        "cached_input": 0.21
       }
     },
     {
@@ -8312,13 +8312,13 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.89fb318e0c236674",
+        "version": "2026-10-18.ai-api.v5.f476409646596531",
         "currency": "usd",
         "unit": "per_image",
         "input": 0,
         "output": 0,
         "cached_input": 0,
-        "request": 0.26
+        "request": 0.273
       }
     },
     {
@@ -8365,13 +8365,13 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.abedf7b8b04d8421",
+        "version": "2026-10-18.ai-api.v5.b4b1a7c08c703c44",
         "currency": "usd",
         "unit": "per_image",
         "input": 0,
         "output": 0,
         "cached_input": 0,
-        "request": 0.27
+        "request": 0.2835
       }
     },
     {
@@ -8418,13 +8418,13 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.1e0fc80e08e5e9db",
+        "version": "2026-10-18.ai-api.v5.548cacbc51378b99",
         "currency": "usd",
         "unit": "per_image",
         "input": 0,
         "output": 0,
         "cached_input": 0,
-        "request": 0.07
+        "request": 0.0735
       }
     },
     {
@@ -8471,13 +8471,13 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.1e0fc80e08e5e9db",
+        "version": "2026-10-18.ai-api.v5.548cacbc51378b99",
         "currency": "usd",
         "unit": "per_image",
         "input": 0,
         "output": 0,
         "cached_input": 0,
-        "request": 0.07
+        "request": 0.0735
       }
     },
     {
@@ -8524,12 +8524,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.6ade1eaea61bccf4",
+        "version": "2026-10-18.ai-api.v5.6cab88336ac3030e",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.037,
-        "output": 0.187,
-        "cached_input": 0.037
+        "input": 0.03885,
+        "output": 0.19635,
+        "cached_input": 0.03885
       }
     },
     {
@@ -8576,12 +8576,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.abd271fe62c44f4b",
+        "version": "2026-10-18.ai-api.v5.09cdb6a72b218943",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.02,
-        "output": 0.1,
-        "cached_input": 0.02
+        "input": 0.021,
+        "output": 0.105,
+        "cached_input": 0.021
       }
     },
     {
@@ -8632,10 +8632,10 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.audio.51a7315e1a320fbb",
+        "version": "2026-10-18.ai-api.v5.audio.4bd017581dbe3b0c",
         "currency": "usd",
         "unit": "per_million_characters",
-        "input": 47.5,
+        "input": 49.875,
         "output": 0,
         "cached_input": 0
       }
@@ -8687,12 +8687,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.2697b42cf2706427",
+        "version": "2026-10-18.ai-api.v5.e60519424812cc41",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 1.42,
-        "output": 2.83,
-        "cached_input": 0.23
+        "input": 1.491,
+        "output": 2.9715,
+        "cached_input": 0.2415
       }
     },
     {
@@ -8742,12 +8742,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.2697b42cf2706427",
+        "version": "2026-10-18.ai-api.v5.e60519424812cc41",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 1.42,
-        "output": 2.83,
-        "cached_input": 0.23
+        "input": 1.491,
+        "output": 2.9715,
+        "cached_input": 0.2415
       }
     },
     {
@@ -8797,12 +8797,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.2697b42cf2706427",
+        "version": "2026-10-18.ai-api.v5.e60519424812cc41",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 1.42,
-        "output": 2.83,
-        "cached_input": 0.23
+        "input": 1.491,
+        "output": 2.9715,
+        "cached_input": 0.2415
       }
     },
     {
@@ -8852,12 +8852,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.c89218ca7baa3fe5",
+        "version": "2026-10-18.ai-api.v5.7b59ba22aa10d356",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 2.27,
-        "output": 6.8,
-        "cached_input": 0.34
+        "input": 2.3835,
+        "output": 7.14,
+        "cached_input": 0.357
       }
     },
     {
@@ -8907,12 +8907,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.2b066ef6aa37d877",
+        "version": "2026-10-18.ai-api.v5.5f04e21113418792",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 2.27,
-        "output": 6.8,
-        "cached_input": 0.57
+        "input": 2.3835,
+        "output": 7.14,
+        "cached_input": 0.5985
       }
     },
     {
@@ -8962,12 +8962,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.2b066ef6aa37d877",
+        "version": "2026-10-18.ai-api.v5.5f04e21113418792",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 2.27,
-        "output": 6.8,
-        "cached_input": 0.57
+        "input": 2.3835,
+        "output": 7.14,
+        "cached_input": 0.5985
       }
     },
     {
@@ -9017,12 +9017,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.cfa71f0ac04ceb62",
+        "version": "2026-10-18.ai-api.v5.90ce0b42121fd2d1",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 1,
-        "output": 2,
-        "cached_input": 0.2
+        "input": 1.05,
+        "output": 2.1,
+        "cached_input": 0.21
       }
     },
     {
@@ -9069,13 +9069,13 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.ee3eeaa3f34bc9b4",
+        "version": "2026-10-18.ai-api.v5.35cc4c3cb8d4a1df",
         "currency": "usd",
         "unit": "per_image",
         "input": 0,
         "output": 0,
         "cached_input": 0,
-        "request": 0.03
+        "request": 0.0315
       }
     },
     {
@@ -9122,13 +9122,13 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.1e0fc80e08e5e9db",
+        "version": "2026-10-18.ai-api.v5.548cacbc51378b99",
         "currency": "usd",
         "unit": "per_image",
         "input": 0,
         "output": 0,
         "cached_input": 0,
-        "request": 0.07
+        "request": 0.0735
       }
     },
     {
@@ -9176,13 +9176,13 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.3e393754bb129bb9",
+        "version": "2026-10-18.ai-api.v5.406a22765091bada",
         "currency": "usd",
         "unit": "per_image",
         "input": 0,
         "output": 0,
         "cached_input": 0,
-        "request": 0.06
+        "request": 0.063
       }
     },
     {
@@ -9229,13 +9229,13 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.3e393754bb129bb9",
+        "version": "2026-10-18.ai-api.v5.406a22765091bada",
         "currency": "usd",
         "unit": "per_image",
         "input": 0,
         "output": 0,
         "cached_input": 0,
-        "request": 0.06
+        "request": 0.063
       }
     },
     {
@@ -9284,12 +9284,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.013aee0a5f99f82d",
+        "version": "2026-10-18.ai-api.v5.5ed0a0827e82e2ac",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 1.1,
-        "output": 3,
-        "cached_input": 1.1
+        "input": 1.155,
+        "output": 3.15,
+        "cached_input": 1.155
       }
     },
     {
@@ -9336,13 +9336,13 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.bd79fb9384cd79f7",
+        "version": "2026-10-18.ai-api.v5.771c1f5d419ed0f9",
         "currency": "usd",
         "unit": "per_image",
         "input": 0,
         "output": 0,
         "cached_input": 0,
-        "request": 0.09
+        "request": 0.0945
       }
     },
     {
@@ -9391,12 +9391,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.a1f5bb73b64f2ce0",
+        "version": "2026-10-18.ai-api.v5.22791dec60cc15cf",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 1.0425,
-        "output": 3.12625,
-        "cached_input": 0.0525
+        "input": 1.094625,
+        "output": 3.2825625,
+        "cached_input": 0.055125
       }
     },
     {
@@ -9443,13 +9443,13 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.3e393754bb129bb9",
+        "version": "2026-10-18.ai-api.v5.406a22765091bada",
         "currency": "usd",
         "unit": "per_image",
         "input": 0,
         "output": 0,
         "cached_input": 0,
-        "request": 0.06
+        "request": 0.063
       }
     },
     {
@@ -9496,13 +9496,13 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.89fb318e0c236674",
+        "version": "2026-10-18.ai-api.v5.f476409646596531",
         "currency": "usd",
         "unit": "per_image",
         "input": 0,
         "output": 0,
         "cached_input": 0,
-        "request": 0.26
+        "request": 0.273
       }
     },
     {
@@ -9549,13 +9549,13 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.3e393754bb129bb9",
+        "version": "2026-10-18.ai-api.v5.406a22765091bada",
         "currency": "usd",
         "unit": "per_image",
         "input": 0,
         "output": 0,
         "cached_input": 0,
-        "request": 0.06
+        "request": 0.063
       }
     },
     {
@@ -9606,12 +9606,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.3d4ee3eca502cd5f",
+        "version": "2026-10-18.ai-api.v5.395d3377aac739ab",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 1.25,
-        "output": 5.0625,
-        "cached_input": 0.2125
+        "input": 1.3125,
+        "output": 5.315625,
+        "cached_input": 0.223125
       }
     },
     {
@@ -9660,10 +9660,10 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.audio.5364ff293a04551e",
+        "version": "2026-10-18.ai-api.v5.audio.28eef1505a3d6b57",
         "currency": "usd",
         "unit": "per_million_characters",
-        "input": 12.5,
+        "input": 13.125,
         "output": 0,
         "cached_input": 0
       }
@@ -9715,12 +9715,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.5e5b25c9e088a4ad",
+        "version": "2026-10-18.ai-api.v5.6c905d9374df7aa3",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.56,
-        "output": 3.5,
-        "cached_input": 0.22
+        "input": 0.588,
+        "output": 3.675,
+        "cached_input": 0.231
       }
     },
     {
@@ -9770,12 +9770,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.60746c851ffd7742",
+        "version": "2026-10-18.ai-api.v5.d9f5619923d0fe0e",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.75,
-        "output": 3.5,
-        "cached_input": 0.16
+        "input": 0.7875,
+        "output": 3.675,
+        "cached_input": 0.168
       }
     },
     {
@@ -9825,12 +9825,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.60746c851ffd7742",
+        "version": "2026-10-18.ai-api.v5.d9f5619923d0fe0e",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.75,
-        "output": 3.5,
-        "cached_input": 0.16
+        "input": 0.7875,
+        "output": 3.675,
+        "cached_input": 0.168
       }
     },
     {
@@ -9878,12 +9878,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.659a3827b2163f81",
+        "version": "2026-10-18.ai-api.v5.baf7b6084985ad01",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 3.75,
-        "output": 18.75,
-        "cached_input": 0.375
+        "input": 3.9375,
+        "output": 19.6875,
+        "cached_input": 0.39375
       }
     },
     {
@@ -9933,12 +9933,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.63b9a8fd5134aaf8",
+        "version": "2026-10-18.ai-api.v5.76adc35e241bb225",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 4.5,
-        "output": 22.5,
-        "cached_input": 0.45
+        "input": 4.725,
+        "output": 23.625,
+        "cached_input": 0.4725
       }
     },
     {
@@ -9992,10 +9992,10 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.audio.76c9fdf184d7fe81",
+        "version": "2026-10-18.ai-api.v5.audio.851b965eae8dcb12",
         "currency": "usd",
         "unit": "per_million_characters",
-        "input": 3.5,
+        "input": 3.675,
         "output": 0,
         "cached_input": 0
       }
@@ -10044,13 +10044,13 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.3844ebbaf023291b",
+        "version": "2026-10-18.ai-api.v5.7a010657a70fec6a",
         "currency": "usd",
         "unit": "per_image",
         "input": 0,
         "output": 0,
         "cached_input": 0,
-        "request": 0.04
+        "request": 0.042
       }
     },
     {
@@ -10097,13 +10097,13 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.1e0fc80e08e5e9db",
+        "version": "2026-10-18.ai-api.v5.548cacbc51378b99",
         "currency": "usd",
         "unit": "per_image",
         "input": 0,
         "output": 0,
         "cached_input": 0,
-        "request": 0.07
+        "request": 0.0735
       }
     },
     {
@@ -10150,13 +10150,13 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.3844ebbaf023291b",
+        "version": "2026-10-18.ai-api.v5.7a010657a70fec6a",
         "currency": "usd",
         "unit": "per_image",
         "input": 0,
         "output": 0,
         "cached_input": 0,
-        "request": 0.04
+        "request": 0.042
       }
     },
     {
@@ -10205,12 +10205,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.43d477baf8d6ab45",
+        "version": "2026-10-18.ai-api.v5.327a8d35ac94da9f",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.15,
-        "output": 0.6,
-        "cached_input": 0.15
+        "input": 0.1575,
+        "output": 0.63,
+        "cached_input": 0.1575
       }
     },
     {
@@ -10258,12 +10258,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.4e4917f8b57c3a0e",
+        "version": "2026-10-18.ai-api.v5.c44bb302ed0ccfe6",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.7,
-        "output": 2.8,
-        "cached_input": 0.7
+        "input": 0.735,
+        "output": 2.94,
+        "cached_input": 0.735
       }
     },
     {
@@ -10310,13 +10310,13 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.a19f3e18d98d2be6",
+        "version": "2026-10-18.ai-api.v5.70c6fa31040b79ad",
         "currency": "usd",
         "unit": "per_image",
         "input": 0,
         "output": 0,
         "cached_input": 0,
-        "request": 0.05
+        "request": 0.0525
       }
     },
     {
@@ -10363,13 +10363,13 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.3f5e1605690a8667",
+        "version": "2026-10-18.ai-api.v5.69e07a73156e4dc3",
         "currency": "usd",
         "unit": "per_image",
         "input": 0,
         "output": 0,
         "cached_input": 0,
-        "request": 0.12
+        "request": 0.126
       }
     },
     {
@@ -10416,13 +10416,13 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.fed65a03ede592bf",
+        "version": "2026-10-18.ai-api.v5.6e6ca6d2f98e1d62",
         "currency": "usd",
         "unit": "per_image",
         "input": 0,
         "output": 0,
         "cached_input": 0,
-        "request": 0.01
+        "request": 0.0105
       }
     },
     {
@@ -10469,13 +10469,13 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.fed65a03ede592bf",
+        "version": "2026-10-18.ai-api.v5.6e6ca6d2f98e1d62",
         "currency": "usd",
         "unit": "per_image",
         "input": 0,
         "output": 0,
         "cached_input": 0,
-        "request": 0.01
+        "request": 0.0105
       }
     },
     {
@@ -10522,13 +10522,13 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.fed65a03ede592bf",
+        "version": "2026-10-18.ai-api.v5.6e6ca6d2f98e1d62",
         "currency": "usd",
         "unit": "per_image",
         "input": 0,
         "output": 0,
         "cached_input": 0,
-        "request": 0.01
+        "request": 0.0105
       }
     },
     {
@@ -10577,12 +10577,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.cc893cd6b714478a",
+        "version": "2026-10-18.ai-api.v5.0496210f7611303e",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.3125,
-        "output": 0.9375,
-        "cached_input": 0.03125
+        "input": 0.328125,
+        "output": 0.984375,
+        "cached_input": 0.0328125
       }
     },
     {
@@ -10631,12 +10631,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.761dc0b1fd04aa85",
+        "version": "2026-10-18.ai-api.v5.6d160235e7de68ed",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.25,
-        "output": 0.9375,
-        "cached_input": 0.025
+        "input": 0.2625,
+        "output": 0.984375,
+        "cached_input": 0.02625
       }
     },
     {
@@ -10688,12 +10688,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.e5d54bed157ae03f",
+        "version": "2026-10-18.ai-api.v5.cb73aad7507ce980",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.4,
-        "output": 2,
-        "cached_input": 0.08
+        "input": 0.42,
+        "output": 2.1,
+        "cached_input": 0.084
       }
     },
     {
@@ -10745,12 +10745,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.55959b906b1013c9",
+        "version": "2026-10-18.ai-api.v5.782c022678885647",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.175,
-        "output": 0.35,
-        "cached_input": 0.00375
+        "input": 0.18375,
+        "output": 0.3675,
+        "cached_input": 0.0039375
       }
     },
     {
@@ -10799,12 +10799,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.2c516f73342e02a0",
+        "version": "2026-10-18.ai-api.v5.50103701ad48fd82",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.27,
-        "output": 0.95,
-        "cached_input": 0.03
+        "input": 0.2835,
+        "output": 0.9975,
+        "cached_input": 0.0315
       }
     },
     {
@@ -10853,12 +10853,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.f97af1ee8360e560",
+        "version": "2026-10-18.ai-api.v5.ca31c6d683071563",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.375,
-        "output": 1.5,
-        "cached_input": 0.06875
+        "input": 0.39375,
+        "output": 1.575,
+        "cached_input": 0.0721875
       }
     },
     {
@@ -10909,12 +10909,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.c705f9fc76c05e22",
+        "version": "2026-10-18.ai-api.v5.5fea7c3a2afb0a94",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.3,
-        "output": 1.2,
-        "cached_input": 0.06
+        "input": 0.315,
+        "output": 1.26,
+        "cached_input": 0.063
       }
     },
     {
@@ -10965,10 +10965,10 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.audio.97891e5c5c0ae004",
+        "version": "2026-10-18.ai-api.v5.audio.9b3c9d160c69139f",
         "currency": "usd",
         "unit": "per_million_characters",
-        "input": 125,
+        "input": 131.25,
         "output": 0,
         "cached_input": 0
       }
@@ -11020,12 +11020,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.9ed17b0da3315238",
+        "version": "2026-10-18.ai-api.v5.c4d26ead0dc4cfad",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.09375,
-        "output": 0.25,
-        "cached_input": 0.09375
+        "input": 0.0984375,
+        "output": 0.2625,
+        "cached_input": 0.0984375
       }
     },
     {
@@ -11072,12 +11072,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.8674aa414807717c",
+        "version": "2026-10-18.ai-api.v5.2a1fb046663a92ff",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.0125,
-        "output": 0.0125,
-        "cached_input": 0.0125
+        "input": 0.013125,
+        "output": 0.013125,
+        "cached_input": 0.013125
       }
     },
     {
@@ -11124,13 +11124,13 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.616b1ef05f9fc93c",
+        "version": "2026-10-18.ai-api.v5.838e61c5e205152a",
         "currency": "usd",
         "unit": "per_image",
         "input": 0,
         "output": 0,
         "cached_input": 0,
-        "request": 0.02
+        "request": 0.021
       }
     },
     {
@@ -11180,12 +11180,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.b2b7e12c64b9eac3",
+        "version": "2026-10-18.ai-api.v5.2cb1648f1c86bf27",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 1.5625,
-        "output": 5.3125,
-        "cached_input": 0.1875
+        "input": 1.640625,
+        "output": 5.578125,
+        "cached_input": 0.196875
       }
     },
     {
@@ -11232,13 +11232,13 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.2ddd0aa325ef5d2a",
+        "version": "2026-10-18.ai-api.v5.0e8e35a80f78bddc",
         "currency": "usd",
         "unit": "per_image",
         "input": 0,
         "output": 0,
         "cached_input": 0,
-        "request": 0.1
+        "request": 0.105
       }
     },
     {
@@ -11285,13 +11285,13 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.2ddd0aa325ef5d2a",
+        "version": "2026-10-18.ai-api.v5.0e8e35a80f78bddc",
         "currency": "usd",
         "unit": "per_image",
         "input": 0,
         "output": 0,
         "cached_input": 0,
-        "request": 0.1
+        "request": 0.105
       }
     },
     {
@@ -11338,13 +11338,13 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.3e393754bb129bb9",
+        "version": "2026-10-18.ai-api.v5.406a22765091bada",
         "currency": "usd",
         "unit": "per_image",
         "input": 0,
         "output": 0,
         "cached_input": 0,
-        "request": 0.06
+        "request": 0.063
       }
     },
     {
@@ -11391,13 +11391,13 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.17eb235529418741",
+        "version": "2026-10-18.ai-api.v5.4922562df4208f71",
         "currency": "usd",
         "unit": "per_image",
         "input": 0,
         "output": 0,
         "cached_input": 0,
-        "request": 0.18
+        "request": 0.189
       }
     },
     {
@@ -11444,12 +11444,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.8674aa414807717c",
+        "version": "2026-10-18.ai-api.v5.2a1fb046663a92ff",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.0125,
-        "output": 0.0125,
-        "cached_input": 0.0125
+        "input": 0.013125,
+        "output": 0.013125,
+        "cached_input": 0.013125
       }
     },
     {
@@ -11500,12 +11500,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.456be98eee440d60",
+        "version": "2026-10-18.ai-api.v5.375c22fc663b78b5",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.25,
-        "output": 1.25,
-        "cached_input": 0.125
+        "input": 0.2625,
+        "output": 1.3125,
+        "cached_input": 0.13125
       }
     },
     {
@@ -11554,12 +11554,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.6a404017c1ee9ff4",
+        "version": "2026-10-18.ai-api.v5.da24a92efe00325c",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.075,
-        "output": 0.3,
-        "cached_input": 0.075
+        "input": 0.07875,
+        "output": 0.315,
+        "cached_input": 0.07875
       }
     },
     {
@@ -11608,12 +11608,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.7cbee4f171ff767a",
+        "version": "2026-10-18.ai-api.v5.489052587e9bd839",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.625,
-        "output": 3.125,
-        "cached_input": 0.1875
+        "input": 0.65625,
+        "output": 3.28125,
+        "cached_input": 0.196875
       }
     },
     {
@@ -11662,12 +11662,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.5e69af7b2757a5e3",
+        "version": "2026-10-18.ai-api.v5.7885698b259659b3",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.07,
-        "output": 0.3,
-        "cached_input": 0.07
+        "input": 0.0735,
+        "output": 0.315,
+        "cached_input": 0.0735
       }
     },
     {
@@ -11716,10 +11716,10 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.audio.81a8d366669a4a04",
+        "version": "2026-10-18.ai-api.v5.audio.64f11c98cc6b274c",
         "currency": "usd",
         "unit": "per_million_characters",
-        "input": 62.5,
+        "input": 65.625,
         "output": 0,
         "cached_input": 0
       }
@@ -11768,10 +11768,10 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.audio.7eb3c3df99e18fc8",
+        "version": "2026-10-18.ai-api.v5.audio.53192566d0a865f7",
         "currency": "usd",
         "unit": "per_audio_second",
-        "input": 0.0001,
+        "input": 0.000105,
         "output": 0,
         "cached_input": 0
       }
@@ -11822,12 +11822,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.feaa5aac12f7037f",
+        "version": "2026-10-18.ai-api.v5.9068c894b4f90a77",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.15,
-        "output": 0.75,
-        "cached_input": 0.15
+        "input": 0.1575,
+        "output": 0.7875,
+        "cached_input": 0.1575
       }
     },
     {
@@ -11876,12 +11876,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.9413405d41a3c813",
+        "version": "2026-10-18.ai-api.v5.40c4449fbd72f59e",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.45,
-        "output": 3.5,
-        "cached_input": 0.45
+        "input": 0.4725,
+        "output": 3.675,
+        "cached_input": 0.4725
       }
     },
     {
@@ -11932,12 +11932,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.44c628c9cb7eacb7",
+        "version": "2026-10-18.ai-api.v5.ce023ad1e4473484",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.15,
-        "output": 1,
-        "cached_input": 0.05
+        "input": 0.1575,
+        "output": 1.05,
+        "cached_input": 0.0525
       }
     },
     {
@@ -11988,12 +11988,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.6a43d691dc00a4b0",
+        "version": "2026-10-18.ai-api.v5.27a86dd76385c386",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.75,
-        "output": 4.5,
-        "cached_input": 0.75
+        "input": 0.7875,
+        "output": 4.725,
+        "cached_input": 0.7875
       }
     },
     {
@@ -12044,12 +12044,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.8af346be6ae1a608",
+        "version": "2026-10-18.ai-api.v5.6749fa5dcbcb9239",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.325,
-        "output": 3.25,
-        "cached_input": 0.325
+        "input": 0.34125,
+        "output": 3.4125,
+        "cached_input": 0.34125
       }
     },
     {
@@ -12097,12 +12097,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.57060c32e084121c",
+        "version": "2026-10-18.ai-api.v5.98d1248a23671fe7",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.1,
-        "output": 1,
-        "cached_input": 0.1
+        "input": 0.105,
+        "output": 1.05,
+        "cached_input": 0.105
       }
     },
     {
@@ -12153,12 +12153,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.0ffe7770cef4aeb9",
+        "version": "2026-10-18.ai-api.v5.0081792701012eaa",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.625,
-        "output": 3.75,
-        "cached_input": 0.0625
+        "input": 0.65625,
+        "output": 3.9375,
+        "cached_input": 0.065625
       }
     },
     {
@@ -12209,12 +12209,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.112c124643234ce3",
+        "version": "2026-10-18.ai-api.v5.681a89377bacf6d3",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 2.7,
-        "output": 8.05,
-        "cached_input": 0.27
+        "input": 2.835,
+        "output": 8.4525,
+        "cached_input": 0.2835
       }
     },
     {
@@ -12265,12 +12265,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.47feeb6d762ede8a",
+        "version": "2026-10-18.ai-api.v5.0f146ebad7c06781",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.5,
-        "output": 2,
-        "cached_input": 0.05
+        "input": 0.525,
+        "output": 2.1,
+        "cached_input": 0.0525
       }
     },
     {
@@ -12319,12 +12319,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.ee1a81ac48e6ef24",
+        "version": "2026-10-18.ai-api.v5.9398d313be4e88f9",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 2.5,
-        "output": 7.5,
-        "cached_input": 0.3125
+        "input": 2.625,
+        "output": 7.875,
+        "cached_input": 0.328125
       }
     },
     {
@@ -12375,12 +12375,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.f123f58c3c882cff",
+        "version": "2026-10-18.ai-api.v5.2c75e2ed88d93a46",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.45,
-        "output": 3.2,
-        "cached_input": 0.45
+        "input": 0.4725,
+        "output": 3.36,
+        "cached_input": 0.4725
       }
     },
     {
@@ -12431,12 +12431,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.02f698edabcf5231",
+        "version": "2026-10-18.ai-api.v5.1fb5143c91831827",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.14,
-        "output": 0.49,
-        "cached_input": 0.014
+        "input": 0.147,
+        "output": 0.5145,
+        "cached_input": 0.0147
       }
     },
     {
@@ -12487,12 +12487,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.ee1a81ac48e6ef24",
+        "version": "2026-10-18.ai-api.v5.9398d313be4e88f9",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 2.5,
-        "output": 7.5,
-        "cached_input": 0.3125
+        "input": 2.625,
+        "output": 7.875,
+        "cached_input": 0.328125
       }
     },
     {
@@ -12541,12 +12541,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.eb288212b23e78ad",
+        "version": "2026-10-18.ai-api.v5.c7e0fbe913038124",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.35,
-        "output": 1.5,
-        "cached_input": 0.04
+        "input": 0.3675,
+        "output": 1.575,
+        "cached_input": 0.042
       }
     },
     {
@@ -12595,12 +12595,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.e4883443f39ae3f0",
+        "version": "2026-10-18.ai-api.v5.72e5cfc21ce27764",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.35,
-        "output": 1.9,
-        "cached_input": 0.35
+        "input": 0.3675,
+        "output": 1.995,
+        "cached_input": 0.3675
       }
     },
     {
@@ -12649,10 +12649,10 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.audio.47d924abf51b64ee",
+        "version": "2026-10-18.ai-api.v5.audio.148bf10eaf32d6a6",
         "currency": "usd",
         "unit": "per_million_characters",
-        "input": 87.5,
+        "input": 91.875,
         "output": 0,
         "cached_input": 0
       }
@@ -12703,10 +12703,10 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.audio.162dabe487ee6c8f",
+        "version": "2026-10-18.ai-api.v5.audio.d426ec703356f976",
         "currency": "usd",
         "unit": "per_million_characters",
-        "input": 112.5,
+        "input": 118.125,
         "output": 0,
         "cached_input": 0
       }
@@ -12756,13 +12756,13 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.3844ebbaf023291b",
+        "version": "2026-10-18.ai-api.v5.7a010657a70fec6a",
         "currency": "usd",
         "unit": "per_image",
         "input": 0,
         "output": 0,
         "cached_input": 0,
-        "request": 0.04
+        "request": 0.042
       }
     },
     {
@@ -12809,13 +12809,13 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.ee3eeaa3f34bc9b4",
+        "version": "2026-10-18.ai-api.v5.35cc4c3cb8d4a1df",
         "currency": "usd",
         "unit": "per_image",
         "input": 0,
         "output": 0,
         "cached_input": 0,
-        "request": 0.03
+        "request": 0.0315
       }
     },
     {
@@ -12862,13 +12862,13 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.a19f3e18d98d2be6",
+        "version": "2026-10-18.ai-api.v5.70c6fa31040b79ad",
         "currency": "usd",
         "unit": "per_image",
         "input": 0,
         "output": 0,
         "cached_input": 0,
-        "request": 0.05
+        "request": 0.0525
       }
     },
     {
@@ -12915,13 +12915,13 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.a19f3e18d98d2be6",
+        "version": "2026-10-18.ai-api.v5.70c6fa31040b79ad",
         "currency": "usd",
         "unit": "per_image",
         "input": 0,
         "output": 0,
         "cached_input": 0,
-        "request": 0.05
+        "request": 0.0525
       }
     },
     {
@@ -12968,13 +12968,13 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.616b1ef05f9fc93c",
+        "version": "2026-10-18.ai-api.v5.838e61c5e205152a",
         "currency": "usd",
         "unit": "per_image",
         "input": 0,
         "output": 0,
         "cached_input": 0,
-        "request": 0.02
+        "request": 0.021
       }
     },
     {
@@ -13021,13 +13021,13 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.2ddd0aa325ef5d2a",
+        "version": "2026-10-18.ai-api.v5.0e8e35a80f78bddc",
         "currency": "usd",
         "unit": "per_image",
         "input": 0,
         "output": 0,
         "cached_input": 0,
-        "request": 0.1
+        "request": 0.105
       }
     },
     {
@@ -13074,13 +13074,13 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.3844ebbaf023291b",
+        "version": "2026-10-18.ai-api.v5.7a010657a70fec6a",
         "currency": "usd",
         "unit": "per_image",
         "input": 0,
         "output": 0,
         "cached_input": 0,
-        "request": 0.04
+        "request": 0.042
       }
     },
     {
@@ -13127,13 +13127,13 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.a19f3e18d98d2be6",
+        "version": "2026-10-18.ai-api.v5.70c6fa31040b79ad",
         "currency": "usd",
         "unit": "per_image",
         "input": 0,
         "output": 0,
         "cached_input": 0,
-        "request": 0.05
+        "request": 0.0525
       }
     },
     {
@@ -13180,12 +13180,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.50c1599cdcd30aae",
+        "version": "2026-10-18.ai-api.v5.83cbb87c4f5f0d4d",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.225,
-        "output": 1.98,
-        "cached_input": 0.05
+        "input": 0.23625,
+        "output": 2.079,
+        "cached_input": 0.0525
       }
     },
     {
@@ -13232,12 +13232,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.8674aa414807717c",
+        "version": "2026-10-18.ai-api.v5.2a1fb046663a92ff",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.0125,
-        "output": 0.0125,
-        "cached_input": 0.0125
+        "input": 0.013125,
+        "output": 0.013125,
+        "cached_input": 0.013125
       }
     },
     {
@@ -13284,12 +13284,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.8674aa414807717c",
+        "version": "2026-10-18.ai-api.v5.2a1fb046663a92ff",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.0125,
-        "output": 0.0125,
-        "cached_input": 0.0125
+        "input": 0.013125,
+        "output": 0.013125,
+        "cached_input": 0.013125
       }
     },
     {
@@ -13339,12 +13339,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.983fd3e035ee799b",
+        "version": "2026-10-18.ai-api.v5.de7ef94b1e5c425f",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.21,
-        "output": 1.9,
-        "cached_input": 0.1
+        "input": 0.2205,
+        "output": 1.995,
+        "cached_input": 0.105
       }
     },
     {
@@ -13391,13 +13391,13 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.a19f3e18d98d2be6",
+        "version": "2026-10-18.ai-api.v5.70c6fa31040b79ad",
         "currency": "usd",
         "unit": "per_image",
         "input": 0,
         "output": 0,
         "cached_input": 0,
-        "request": 0.05
+        "request": 0.0525
       }
     },
     {
@@ -13444,13 +13444,13 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.5d87938f7c7006f8",
+        "version": "2026-10-18.ai-api.v5.8a3a5113256420f9",
         "currency": "usd",
         "unit": "per_image",
         "input": 0,
         "output": 0,
         "cached_input": 0,
-        "request": 0.29
+        "request": 0.3045
       }
     },
     {
@@ -13500,12 +13500,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.1618aa775918b679",
+        "version": "2026-10-18.ai-api.v5.2b6a4490bf97bcab",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.5,
-        "output": 2,
-        "cached_input": 0.5
+        "input": 0.525,
+        "output": 2.1,
+        "cached_input": 0.525
       }
     },
     {
@@ -13552,13 +13552,13 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.fed65a03ede592bf",
+        "version": "2026-10-18.ai-api.v5.6e6ca6d2f98e1d62",
         "currency": "usd",
         "unit": "per_image",
         "input": 0,
         "output": 0,
         "cached_input": 0,
-        "request": 0.01
+        "request": 0.0105
       }
     },
     {
@@ -13609,12 +13609,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.e8c8127e91b37bbc",
+        "version": "2026-10-18.ai-api.v5.9a13d91f0cc24712",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.625,
-        "output": 3.125,
-        "cached_input": 0.125
+        "input": 0.65625,
+        "output": 3.28125,
+        "cached_input": 0.13125
       }
     },
     {
@@ -13661,13 +13661,13 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.a19f3e18d98d2be6",
+        "version": "2026-10-18.ai-api.v5.70c6fa31040b79ad",
         "currency": "usd",
         "unit": "per_image",
         "input": 0,
         "output": 0,
         "cached_input": 0,
-        "request": 0.05
+        "request": 0.0525
       }
     },
     {
@@ -13714,13 +13714,13 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.a19f3e18d98d2be6",
+        "version": "2026-10-18.ai-api.v5.70c6fa31040b79ad",
         "currency": "usd",
         "unit": "per_image",
         "input": 0,
         "output": 0,
         "cached_input": 0,
-        "request": 0.05
+        "request": 0.0525
       }
     },
     {
@@ -13767,13 +13767,13 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.3e393754bb129bb9",
+        "version": "2026-10-18.ai-api.v5.406a22765091bada",
         "currency": "usd",
         "unit": "per_image",
         "input": 0,
         "output": 0,
         "cached_input": 0,
-        "request": 0.06
+        "request": 0.063
       }
     },
     {
@@ -13820,12 +13820,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.612d5bb78754eaf7",
+        "version": "2026-10-18.ai-api.v5.8a9327b846316b69",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.1625,
-        "output": 0.1625,
-        "cached_input": 0.1625
+        "input": 0.170625,
+        "output": 0.170625,
+        "cached_input": 0.170625
       }
     },
     {
@@ -13872,12 +13872,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.ea23014477891344",
+        "version": "2026-10-18.ai-api.v5.92fc3fb9d58dc3de",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.025,
-        "output": 0.025,
-        "cached_input": 0.025
+        "input": 0.02625,
+        "output": 0.02625,
+        "cached_input": 0.02625
       }
     },
     {
@@ -13927,12 +13927,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.5b858ab7ac966037",
+        "version": "2026-10-18.ai-api.v5.6f18e803f5196f47",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.2,
-        "output": 0.9,
-        "cached_input": 0.2
+        "input": 0.21,
+        "output": 0.945,
+        "cached_input": 0.21
       }
     },
     {
@@ -13979,13 +13979,13 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.fd6817bf4b92722d",
+        "version": "2026-10-18.ai-api.v5.b31059f780e21318",
         "currency": "usd",
         "unit": "per_image",
         "input": 0,
         "output": 0,
         "cached_input": 0,
-        "request": 0.0375
+        "request": 0.039375
       }
     },
     {
@@ -14032,13 +14032,13 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.ce0583ad9c5b52b8",
+        "version": "2026-10-18.ai-api.v5.19b0becddb543e23",
         "currency": "usd",
         "unit": "per_image",
         "input": 0,
         "output": 0,
         "cached_input": 0,
-        "request": 0.09375
+        "request": 0.0984375
       }
     },
     {
@@ -14085,10 +14085,10 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.audio.7eb3c3df99e18fc8",
+        "version": "2026-10-18.ai-api.v5.audio.53192566d0a865f7",
         "currency": "usd",
         "unit": "per_audio_second",
-        "input": 0.0001,
+        "input": 0.000105,
         "output": 0,
         "cached_input": 0
       }
@@ -14137,10 +14137,10 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.audio.7eb3c3df99e18fc8",
+        "version": "2026-10-18.ai-api.v5.audio.53192566d0a865f7",
         "currency": "usd",
         "unit": "per_audio_second",
-        "input": 0.0001,
+        "input": 0.000105,
         "output": 0,
         "cached_input": 0
       }
@@ -14189,10 +14189,10 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.audio.540f6f5721047d4e",
+        "version": "2026-10-18.ai-api.v5.audio.d98a38f1b0950590",
         "currency": "usd",
         "unit": "per_audio_second",
-        "input": 0.00003148,
+        "input": 0.00003305,
         "output": 0,
         "cached_input": 0
       }
@@ -14245,10 +14245,10 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.audio.cde6cdf1c83e84ee",
+        "version": "2026-10-18.ai-api.v5.audio.6662f6d8a6a9790c",
         "currency": "usd",
         "unit": "per_million_characters",
-        "input": 18.75,
+        "input": 19.6875,
         "output": 0,
         "cached_input": 0
       }
@@ -14297,13 +14297,13 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-09-17.v4.fed65a03ede592bf",
+        "version": "2026-10-18.ai-api.v5.6e6ca6d2f98e1d62",
         "currency": "usd",
         "unit": "per_image",
         "input": 0,
         "output": 0,
         "cached_input": 0,
-        "request": 0.01
+        "request": 0.0105
       }
     }
   ]
