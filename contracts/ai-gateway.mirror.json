@@ -1208,7 +1208,7 @@
         "get": {
           "operationId": "getInferenceUsage",
           "summary": "Get owner-scoped inference usage",
-          "description": "Returns authoritative customer spend from settled AI Gateway charges plus the separate prepaid Gateway balance. Provider identity and upstream cost never cross this interface.",
+          "description": "Returns authoritative customer spend from settled AI Gateway API charges plus the separate prepaid Gateway balance. Requests made from the Varity Chat or Build product are billed in credits and are not included. Provider identity and upstream cost never cross this interface.",
           "responses": {
             "200": {
               "description": "Current tenant policy-period usage",
@@ -2221,7 +2221,15 @@
               "description": "The privacy class of the route that served the request. Null when the request was never dispatched to a route, or was recorded before this field existed."
             },
             "customer_charge": {
-              "$ref": "#/components/schemas/CustomerCharge"
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/CustomerCharge"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Null for a request made from the Varity Chat or Build product (a signed-in Portal session), which is shown in credits rather than USD."
             }
           }
         },

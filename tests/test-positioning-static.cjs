@@ -114,6 +114,18 @@ if (!fs.existsSync(REDIRECTS_PATH)) {
   }
 }
 
+// Short paths people and tools guess (docs.varity.so/pricing returned 404 on
+// 2026-10-19) redirect to a real page. Each target must exist as a content page.
+for (const [route, target] of [['pricing', 'resources/pricing'], ['introduction', 'getting-started/introduction']]) {
+  const redirectPath = path.join(__dirname, `../src/pages/${route}/index.astro`);
+  const source = fs.existsSync(redirectPath) ? fs.readFileSync(redirectPath, 'utf8') : '';
+  const exists = ['.md', '.mdx'].some((ext) => fs.existsSync(path.join(__dirname, `../src/content/docs/${target}${ext}`)));
+  if (!source.includes(`Astro.redirect('/${target}/', 301)`) || !exists) {
+    console.error(`FAIL [src/pages/${route}/index.astro] must 301 /${route}/ to the existing page /${target}/`);
+    totalViolations++;
+  }
+}
+
 const README_PATH = path.join(__dirname, '../README.md');
 const readme = fs.readFileSync(README_PATH, 'utf8');
 const normalizedReadme = readme.replace(/\s+/g, ' ');
