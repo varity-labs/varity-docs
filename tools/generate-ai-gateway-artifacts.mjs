@@ -289,7 +289,7 @@ function renderAiGatewayCatalog(mirror) {
  */
 function renderCreditPolicy(mirror) {
   return [
-    '## Credit policy snapshot',
+    '## Billing policy snapshot',
     '',
     `Source: ${mirror.source}, snapshotted in varity-docs ${CREDIT_POLICY_MIRROR_PATH} `
       + `(status ${mirror.status}, version ${mirror.credit_policy.version}). The live endpoint is authoritative; read it at runtime.`,

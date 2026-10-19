@@ -179,7 +179,7 @@ key id (`vki_…`). The same key format is used across the
 Varity [public API](/ai-tools/api-reference/). A revoked key stops working
 within 60 seconds. See [Billing and Keys](/ai-gateway/billing-and-keys/).
 
-Inference is prepaid: add credits on the **Gateway billing** tab before your
+Inference is prepaid: add funds on the **Gateway billing** tab before your
 first request. Each request is charged according to the live model catalog;
 funding terms come from the live OpenAPI commercial-contract block.
 
@@ -284,7 +284,7 @@ headers each refusal returns, and the body-size ceilings are on
 ## Next Steps
 
 - **[Endpoints](/ai-gateway/endpoints/)**: one minimal request for every route
-- **[Billing and Keys](/ai-gateway/billing-and-keys/)**: credits, live funding terms, top-ups, key create and revoke, usage
+- **[Billing and Keys](/ai-gateway/billing-and-keys/)**: charges, live funding terms, top-ups, key create and revoke, usage
 - **[Playground](/ai-gateway/playground/)**: try models in the Developer Portal before writing code
 - **[Models](/ai-gateway/models/)**: the full live catalog with makers, context windows, limits, and prices
 - **[Rate Limits](/ai-gateway/limits/)**: budgets, concurrency, response headers, and the `429` bodies
@@ -296,21 +296,20 @@ headers each refusal returns, and the body-size ceilings are on
 ## AI Gateway Billing and Keys
 
 URL: https://docs.varity.so/ai-gateway/billing-and-keys/
-Description: How Varity AI Gateway requests spend credits from your credit balance, and how inference keys and usage reporting work.
+Description: How Varity AI Gateway requests are charged to your prepaid balance, and how inference keys and usage reporting work.
 
-The AI Gateway spends credits from your credit balance, the same prepaid
-credit balance Varity Cloud uses, at **100 credits = $1**.
-Credits come from your plan, from top-ups, or from the Free plan; see
+The AI Gateway charges your prepaid balance in USD, the same balance Varity
+Cloud uses. It is funded by your plan, by top-ups, or by the Free plan; see
 [Billing and Pricing](/resources/billing/). An inference key is what your code
-sends to spend them.
+sends to spend it.
 
 ## How You Are Charged
 
-- **Free plan credits** cover only Chat, Build, and static apps,
-  up to 50 credits of AI usage per
-  day on the cheapest suitable model. Any subscription or top-up removes the
+- **Free plan usage** covers only Chat, Build, and static apps,
+  up to $0.50 of AI usage per day on the
+  cheapest suitable model. Any subscription or top-up removes the
   daily limit.
-- **API key requests** need paid credits from a subscription or top-up.
+- **API key requests** need a paid balance from a subscription or top-up.
 - You cannot bring your own provider key.
 
 Inference key requests are charged per model at the rate in `customer_pricing`
@@ -323,11 +322,11 @@ When a request cannot be paid for, it is refused with a `402` before any model
 is called. The codes and what each one means are listed once, in
 [API Errors](/api/errors/#capacity-and-billing).
 
-## Adding Credits
+## Adding Funds
 
 Subscribe to a plan or buy a top-up on the billing page of the Developer
 Portal; see [Top-Ups](/resources/billing/#top-ups). Optional auto top-up
-refills your credit balance when it falls below a threshold you set, up to a
+refills your balance when it falls below a threshold you set, up to a
 monthly cap you choose.
 
 ## Inference Keys
@@ -381,8 +380,8 @@ The request budgets for these routes are on
 Your own code can read what it has spent with an inference key, through the
 `/v1/inference/*` routes listed on
 [Endpoints](/ai-gateway/endpoints/#your-account-with-an-inference-key).
-They report spend for inference key requests only. Chat and Build usage
-appears in credits in your billing history on the Developer Portal.
+They report spend for inference key requests only. Chat and Build have no
+per-action price.
 
 Request records hold metadata only, never prompt or response content, and are
 kept for 30 days. See
@@ -842,7 +841,7 @@ and what it has spent:
 | Route | Returns |
 |-------|---------|
 | `GET /v1/inference/policy` | Your privacy floor and [rate limits](/ai-gateway/limits/). |
-| `GET /v1/inference/usage` | Requests, tokens, and `spend_usd` from inference key requests for the current period, with breakdowns. Chat and Build requests are billed in credits and are not included. |
+| `GET /v1/inference/usage` | Requests, tokens, and `spend_usd` from inference key requests for the current period, with breakdowns. Chat and Build requests are not included. |
 | `GET /v1/inference/requests` | Per-request metadata. Rows for Chat and Build requests carry `customer_charge` and `usage` as `null`. Filters: `limit` (1 to 100), `cursor`, `model`, `state`, `created_after`, `created_before`. The two timestamps are RFC 3339; send them with fractional seconds, for example `2026-09-16T00:00:00.000Z`. |
 | `GET /v1/inference/performance` | Latency percentiles. `window` is `1h`, `24h`, `7d`, or `30d`. |
 
@@ -1375,8 +1374,8 @@ guarantee: each admitted request snapshots its own price before it runs.
 
 These are the rates for requests sent with an inference key: the provider's
 cost plus 5%, with cached-input discounts passed through. Chat and Build in the
-Developer Portal spend credits from your balance and are not priced from this
-field.
+Developer Portal are charged to the same balance, have no per-action price, and
+are not priced from this field.
 
 Input and output prices both vary widely across the catalog and change with it,
 so read `customer_pricing` per model instead of carrying a range from this page.
@@ -1520,7 +1519,7 @@ The Playground uses the same privacy floor as your account. See
 ## Next Steps
 
 - **[AI Gateway Overview](/ai-gateway/)**: call the same models from your code
-- **[Billing and Keys](/ai-gateway/billing-and-keys/)**: credits and inference keys
+- **[Billing and Keys](/ai-gateway/billing-and-keys/)**: charges and inference keys
 
 ---
 
@@ -1529,7 +1528,7 @@ The Playground uses the same privacy floor as your account. See
 URL: https://docs.varity.so/ai-tools/api-reference/
 Description: Varity public API for deploying, operating, and integrating apps programmatically.
 
-Varity's public API is a resource API for deployments, self-managed machines, templates, pricing and quotes, credits, API keys, AI Gateway attachments, and webhooks. Use it for direct integrations, custom agents, launchpads, internal tools, and backend services that need to deploy or operate Varity apps without the dashboard.
+Varity's public API is a resource API for deployments, self-managed machines, templates, pricing and quotes, balance, API keys, AI Gateway attachments, and webhooks. Use it for direct integrations, custom agents, launchpads, internal tools, and backend services that need to deploy or operate Varity apps without the dashboard.
 
 The machine-readable source is:
 
@@ -1542,7 +1541,7 @@ Older thin-client compatibility routes are not the public resource contract. New
 
 Varity exposes two public base URLs:
 
-**Platform APIs** cover apps, deployments, templates, pricing, credits, API keys, and webhooks. That is everything on this page:
+**Platform APIs** cover apps, deployments, templates, pricing, balance, API keys, and webhooks. That is everything on this page:
 
 ```text
 https://varity.app/api
@@ -1558,7 +1557,7 @@ For the older `varity.app/v1` alias, see [AI Gateway Endpoints](/ai-gateway/endp
 
 These are two different products with two different contracts:
 
-- **`/api/*` is the platform surface.** Resource CRUD for deployments, machines, templates, pricing, credits, keys, and webhooks. Everything on this page. Errors use the [Varity error envelope](/api/errors/).
+- **`/api/*` is the platform surface.** Resource CRUD for deployments, machines, templates, pricing, balance, keys, and webhooks. Everything on this page. Errors use the [Varity error envelope](/api/errors/).
 - **`/v1/*` is the OpenAI-compatible inference surface.** Chat completions, embeddings, images, audio, and model listing. Point any OpenAI client at it by setting the base URL. It has its own error shape and its own rate limits, documented in the [AI Gateway](/ai-gateway/) docs. Nothing on this page applies to it.
 
 A single Varity API key does not automatically work on both surfaces: keys are scoped per product, and using one out of scope returns `403 credential_scope_violation`. Create AI Gateway keys from the Developer Portal **Inference keys** tab, which calls `POST /v1/keys` on `https://ai.varity.app` with your Portal session; that is the only AI Gateway key issuer (see [Billing and Keys](/ai-gateway/billing-and-keys/#account-routes)).
@@ -1729,7 +1728,7 @@ curl -X DELETE https://varity.app/api/deployments/$DEPLOYMENT_ID \
   -H "Authorization: Bearer $VARITY_API_KEY"
 ```
 
-## Templates, Pricing, And Credits
+## Templates, Pricing, And Balance
 
 Templates are deployable app starters. Pricing is estimated from the live API, not a hardcoded table, and returns fixed monthly hardware-reservation cost for the requested profile.
 
@@ -1935,7 +1934,7 @@ The live OpenAPI document at `https://varity.app/api/openapi.json` defines **34 
 | `GET` | `/api/pricing/estimate` | Estimate fixed monthly cost |
 | `POST` | `/api/pricing/accelerator-quote` | GPU container quote; returns `409 capability_disabled` while GPU containers are unavailable |
 | `POST` | `/api/pricing/machine-quote` | Exact machine quote |
-| `GET` | `/api/credits` | Read credit and deploy eligibility |
+| `GET` | `/api/credits` | Read balance and deploy eligibility |
 
 ### Templates
 
@@ -2422,10 +2421,10 @@ Billing refusals are `402` and a billing outage is `503`. These codes are the co
 
 | Code | HTTP | Retryable | Meaning |
 | --- | --- | --- | --- |
-| `insufficient_credits` | 402 | no | Your credit balance cannot cover the action. Add credits or change plan. Replaces the AI Gateway code `insufficient_gateway_balance`; handle both while it is retired. |
+| `insufficient_credits` | 402 | no | Your balance cannot cover the action. Add funds or change plan. Replaces the AI Gateway code `insufficient_gateway_balance`; handle both while it is retired. |
 | `daily_free_limit_reached` | 402 | no | The Free plan's daily AI allowance is used up. It resets the next UTC day; any subscription or top-up removes the limit. |
 | `spending_limit_reached` | 402 | no | The monthly spending limit you set is reached. Raise the limit or wait for the next month. Replaces the AI Gateway code `gateway_monthly_limit_exceeded`; handle both while it is retired. |
-| `subscription_required` | 402 | no | The action needs paid credits from a subscription or top-up, for example an AI Gateway API key request on Free plan credits only. |
+| `subscription_required` | 402 | no | The action needs a paid balance from a subscription or top-up, for example an AI Gateway API key request on Free plan usage only. |
 | `wallet_frozen` | 402 | no | Paid usage on this account is paused, for example while a refund or dispute leaves a balance owed. New funding repays it first. |
 | `payment_method_shared` | 402 | no | This card already backs another account's free app. Use a different card. |
 | `quote_expired` | 402 | no | The price quote expired. Request a new quote and confirm again. |
@@ -2447,7 +2446,7 @@ All of these are `retryable: true`. They mean a Varity subsystem or a downstream
 | <span id="deploy_status_unavailable"></span>`deploy_status_unavailable` | 502 | Run status could not be read. |
 | <span id="deployment_read_unavailable"></span>`deployment_read_unavailable` | 502 | The deployment record could not be read. |
 | <span id="logs_unavailable"></span>`logs_unavailable` | 502/503 | The log source could not be reached. |
-| <span id="credit_state_unavailable"></span>`credit_state_unavailable` | 503 | Credit state could not be read. |
+| <span id="credit_state_unavailable"></span>`credit_state_unavailable` | 503 | Balance state could not be read. |
 | <span id="billing_summary_unavailable"></span>`billing_summary_unavailable` | 503 | The billing summary could not be read. |
 | <span id="webhook_state_unavailable"></span>`webhook_state_unavailable` | 503 | Webhook state could not be read. |
 | <span id="custom_domain_unavailable"></span>`custom_domain_unavailable` | 503 | Custom-domain state could not be read. |
@@ -6935,11 +6934,10 @@ machine disk, so copy required data first.
 ## Billing and Pricing on Varity
 
 URL: https://docs.varity.so/resources/billing/
-Description: How Varity billing works: one prepaid credit balance for AI Gateway and Varity Cloud, monthly plans, top-ups, a Free plan, and a monthly maximum per app that doesn't grow with traffic.
+Description: How Varity billing works: one prepaid USD balance for AI Gateway and Varity Cloud, monthly plans, top-ups, a Free plan, and a monthly maximum per app that doesn't grow with traffic.
 
-Every Varity account has one prepaid credit balance. AI Gateway (Chat, Build,
-and API keys) and Varity Cloud (apps, CPU VMs, and GPUs) all spend from it, at
-**100 credits = $1**.
+Every Varity account has one prepaid balance in USD. AI Gateway (Chat, Build,
+and API keys) and Varity Cloud (apps, CPU VMs, and GPUs) all spend from it.
 
 This page explains the billing shape. The plan, allowance, and top-up values
 below are rendered from a snapshot of the billing contract; the live pricing service and
@@ -6947,33 +6945,33 @@ the quote you confirm own current per-resource prices.
 
 ## Plans
 
-| Plan | Price | Credits each month |
+| Plan | Price | Usage included each month |
 | --- | --- | --- |
-| Free | $0 | 500 |
-| Core | $20/month | 2,000 |
-| Pro | $100/month | 10,000 |
-| Business | $500/month | 50,000 |
+| Free | $0 | $5 |
+| Core | $20/month | $20 |
+| Pro | $100/month | $100 |
+| Business | $500/month | $500 |
 | Enterprise | Contact sales, $5,000 minimum monthly spend | Set by contract |
 
-- Each paid renewal adds the plan's credits to your credit balance.
-- Unused plan credits roll over for 1 billing cycle
-  while your subscription stays active. They are lost when you cancel.
-- Upgrades take effect immediately and add the difference in credits.
+- Each paid renewal adds the plan's included usage to your balance.
+- Unused plan usage rolls over for 1 billing cycle
+  while your subscription stays active. It is lost when you cancel.
+- Upgrades take effect immediately and add the difference in included usage.
   Downgrades and cancellation take effect at the next billing cycle.
-- Paid plans do not also receive the Free plan's monthly credits.
+- Paid plans do not also receive the Free plan's monthly usage.
 
 Manage your card, invoices, plan changes, and cancellation from the billing
 page of the Developer Portal.
 
 ## Free Plan
 
-- **500 credits per month** (UTC
-  calendar month). They do not roll over.
-- **Up to 50 credits per day of AI
-  usage**, on the cheapest suitable model. Any subscription or top-up removes
+- **$5 of usage per month** (UTC
+  calendar month). It does not roll over.
+- **Up to $0.50 of AI usage per day**,
+  on the cheapest suitable model. Any subscription or top-up removes
   the daily limit.
-- Free credits pay only for Chat, Build, and static apps.
-  Everything else, including AI Gateway API key requests, needs paid credits
+- Free usage pays only for Chat, Build, and static apps.
+  Everything else, including AI Gateway API key requests, needs a paid balance
   from a subscription or top-up.
 
 ### One Free Starter App
@@ -6981,7 +6979,7 @@ page of the Developer Portal.
 Free accounts can run one **Starter** app at no charge after saving a card
 that passes verification. Each card can back only one free app.
 
-- The free app does not spend your Free plan credits. Paid plans keep it too.
+- The free app does not spend your Free plan usage. Paid plans keep it too.
 - It keeps running while you sign in at least once every 30 days. If you do
   not, you get a notice first, and after 30 days without a sign-in the app is
   stopped. Its source is kept, so you can redeploy it in one click.
@@ -6989,24 +6987,23 @@ that passes verification. Each card can back only one free app.
 
 ## Top-Ups
 
-You can buy credits at any time, on any plan.
+You can add funds at any time, on any plan.
 
 - Top-ups start at $20, with
-  $20, $100, and $500 options, at the same credit rate as
-  plans.
-- Top-up credits do not expire.
+  $20, $100, and $500 options.
+- Top-ups do not expire.
 - Auto top-up is optional and off by default. When it is on, you choose the
   threshold, the amount, and a monthly spending cap.
 
-Credits are spent oldest first: plan credits before top-up credits.
+Your balance is spent oldest first: plan usage before top-ups.
 
-A paid action that your credit balance cannot cover is refused with a `402`
+A paid action that your balance cannot cover is refused with a `402`
 before anything is started or charged. Every billing code is listed in
 [API Errors](/api/errors/#capacity-and-billing).
 
 ## What You're Charged For
 
-Each paid app bills **up to a fixed monthly maximum** in credits, based on the
+Each paid app bills **up to a fixed monthly maximum** in USD, based on the
 resources that app reserves, prorated by the time it runs.
 
 Your bill does **not** change with:
@@ -7017,7 +7014,7 @@ Your bill does **not** change with:
 
 This is the core difference from usage-metered hosting, where billing follows usage meters. With Varity, an unchanged profile keeps the same monthly maximum no matter how much traffic it serves. For the full model, see [How Pricing Works](/resources/pricing/).
 
-CPU VMs and GPUs are priced by the quote you confirm, shown in credits. AI
+CPU VMs and GPUs are priced by the quote you confirm, shown in USD. AI
 Gateway requests are charged per request; see
 [AI Gateway Billing and Keys](/ai-gateway/billing-and-keys/).
 
@@ -7025,11 +7022,11 @@ Use the cost calculator in the dashboard (or `varity_cost_calculator` in an AI
 editor) for a current estimate before you deploy. The quote shown at
 confirmation is the transactional price for that deployment.
 
-## Seeing Your Credits
+## Seeing Your Balance
 
-The billing page of the Developer Portal shows your plan, available credits,
-credits that expire soon, the Free plan's daily AI allowance, and your free app
-status. Every subscription credit, top-up, charge, refund, and expiry appears
+The billing page of the Developer Portal shows your plan, available balance,
+plan usage that expires soon, the Free plan's daily AI allowance, and your free
+app status. Every plan renewal, top-up, charge, refund, and expiry appears
 in your billing history.
 
 If billing state cannot be read, the portal and API say it is unavailable
@@ -7044,7 +7041,7 @@ proof that resource release and billing closure are complete.
 ## Related
 
 - [How Pricing Works](/resources/pricing/): the predictable-pricing model in full.
-- [AI Gateway Billing and Keys](/ai-gateway/billing-and-keys/): how AI requests spend credits.
+- [AI Gateway Billing and Keys](/ai-gateway/billing-and-keys/): how AI requests are charged.
 - [What You Can Deploy Today](/deploy/what-you-can-deploy/): what your bill covers in beta.
 
 ---
@@ -7322,8 +7319,7 @@ per-model AI rates, catalog availability, and resource profiles can change
 independently of this site. A copied value would become a second,
 discrepancy-causing owner.
 
-Every price is charged in credits from one prepaid credit balance, at
-**100 credits = $1**. Plans, top-ups, and the Free plan
+Every price is charged in USD from one prepaid balance. Plans, top-ups, and the Free plan
 are described in [Billing and Pricing](/resources/billing/).
 
 ## Current Price Sources
@@ -7336,7 +7332,7 @@ Use the source that matches the workload:
 | Pre-deploy application estimate | `GET https://varity.app/api/pricing/estimate` or `varity_cost_calculator` |
 | CPU VM or GPU machine | `POST https://varity.app/api/pricing/machine-quote` |
 | AI Gateway request rates | `GET https://ai.varity.app/v1/models` |
-| Your plan, credits, and free allowance | The billing page of the Developer Portal (`GET https://varity.app/api/billing/account`) |
+| Your plan, balance, and free allowance | The billing page of the Developer Portal (`GET https://varity.app/api/billing/account`) |
 
 If the live pricing response or workload-bound quote is unavailable, no current
 numeric price is available to publish or spend against. Do not fall back to a
@@ -7345,13 +7341,13 @@ number copied from this page, a screenshot, or an earlier quote.
 ## How Billing Is Shaped
 
 - Application pricing is tied to the selected reserved profile. Read the live
-  response for the applicable maximum, proration, storage, replica, and credit
+  response for the applicable maximum, proration, storage, replica, and billing
   policy.
 - Machine and accelerator prices are bound by a time-limited quote. If the
   quote expires or the requested workload changes, request a new one.
-- AI Gateway request rates come from the live model catalog. Free plan credits
-  cover only Chat, Build, and static apps; API key requests
-  need paid credits from a subscription or top-up.
+- AI Gateway request rates come from the live model catalog. Free plan usage
+  covers only Chat, Build, and static apps; API key requests
+  need a paid balance from a subscription or top-up.
 - A price shown when a billable action is confirmed is the transactional price
   for that action. Documentation never authorizes a charge.
 
@@ -8200,21 +8196,17 @@ Make sure your `.env` file is in the project root (same directory you run `varit
 
 ---
 
-## Credit policy snapshot
+## Billing policy snapshot
 
 Source: https://varity.app/api/pricing (field credit_policy), snapshotted in varity-docs contracts/credit-policy.mirror.json (status live, version 2026-10-18). The live endpoint is authoritative; read it at runtime.
 
-### credits-per-usd
+### free-monthly-usage
 
-100 credits = $1
+$5
 
-### free-monthly-credits
+### free-daily-ai-usage
 
-500
-
-### free-daily-ai-credits
-
-50
+$0.50
 
 ### free-promo-categories
 
@@ -8234,26 +8226,26 @@ $20, $100, and $500
 
 ### top-up-expiry
 
-Top-up credits do not expire.
+Top-ups do not expire.
 
 ### plans
 
-| Plan | Price | Credits each month |
+| Plan | Price | Usage included each month |
 | --- | --- | --- |
-| Free | $0 | 500 |
-| Core | $20/month | 2,000 |
-| Pro | $100/month | 10,000 |
-| Business | $500/month | 50,000 |
+| Free | $0 | $5 |
+| Core | $20/month | $20 |
+| Pro | $100/month | $100 |
+| Business | $500/month | $500 |
 | Enterprise | Contact sales, $5,000 minimum monthly spend | Set by contract |
 
 ### billing-codes
 
 | Code | HTTP | Retryable | Meaning |
 | --- | --- | --- | --- |
-| `insufficient_credits` | 402 | no | Your credit balance cannot cover the action. Add credits or change plan. Replaces the AI Gateway code `insufficient_gateway_balance`; handle both while it is retired. |
+| `insufficient_credits` | 402 | no | Your balance cannot cover the action. Add funds or change plan. Replaces the AI Gateway code `insufficient_gateway_balance`; handle both while it is retired. |
 | `daily_free_limit_reached` | 402 | no | The Free plan's daily AI allowance is used up. It resets the next UTC day; any subscription or top-up removes the limit. |
 | `spending_limit_reached` | 402 | no | The monthly spending limit you set is reached. Raise the limit or wait for the next month. Replaces the AI Gateway code `gateway_monthly_limit_exceeded`; handle both while it is retired. |
-| `subscription_required` | 402 | no | The action needs paid credits from a subscription or top-up, for example an AI Gateway API key request on Free plan credits only. |
+| `subscription_required` | 402 | no | The action needs a paid balance from a subscription or top-up, for example an AI Gateway API key request on Free plan usage only. |
 | `wallet_frozen` | 402 | no | Paid usage on this account is paused, for example while a refund or dispute leaves a balance owed. New funding repays it first. |
 | `payment_method_shared` | 402 | no | This card already backs another account's free app. Use a different card. |
 | `quote_expired` | 402 | no | The price quote expired. Request a new quote and confirm again. |

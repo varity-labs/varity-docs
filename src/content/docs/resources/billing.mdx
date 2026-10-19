@@ -1,6 +1,6 @@
 ---
 title: Billing and Pricing on Varity
-description: "How Varity billing works: one prepaid credit balance for AI Gateway and Varity Cloud, monthly plans, top-ups, a Free plan, and a monthly maximum per app that doesn't grow with traffic."
+description: "How Varity billing works: one prepaid USD balance for AI Gateway and Varity Cloud, monthly plans, top-ups, a Free plan, and a monthly maximum per app that doesn't grow with traffic."
 ---
 
 import { Aside } from '@astrojs/starlight/components';
@@ -13,9 +13,8 @@ import CreditPolicy from '../../../components/CreditPolicy.astro';
   stability="stable"
 />
 
-Every Varity account has one prepaid credit balance. AI Gateway (Chat, Build,
-and API keys) and Varity Cloud (apps, CPU VMs, and GPUs) all spend from it, at
-**<CreditPolicy field="credits-per-usd" />**.
+Every Varity account has one prepaid balance in USD. AI Gateway (Chat, Build,
+and API keys) and Varity Cloud (apps, CPU VMs, and GPUs) all spend from it.
 
 This page explains the billing shape. The plan, allowance, and top-up values
 below are rendered from a snapshot of the billing contract; the live pricing service and
@@ -25,25 +24,25 @@ the quote you confirm own current per-resource prices.
 
 <CreditPolicy field="plans" />
 
-- Each paid renewal adds the plan's credits to your credit balance.
-- Unused plan credits roll over for <CreditPolicy field="rollover-cycles" />
-  while your subscription stays active. They are lost when you cancel.
-- Upgrades take effect immediately and add the difference in credits.
+- Each paid renewal adds the plan's included usage to your balance.
+- Unused plan usage rolls over for <CreditPolicy field="rollover-cycles" />
+  while your subscription stays active. It is lost when you cancel.
+- Upgrades take effect immediately and add the difference in included usage.
   Downgrades and cancellation take effect at the next billing cycle.
-- Paid plans do not also receive the Free plan's monthly credits.
+- Paid plans do not also receive the Free plan's monthly usage.
 
 Manage your card, invoices, plan changes, and cancellation from the billing
 page of the Developer Portal.
 
 ## Free Plan
 
-- **<CreditPolicy field="free-monthly-credits" /> credits per month** (UTC
-  calendar month). They do not roll over.
-- **Up to <CreditPolicy field="free-daily-ai-credits" /> credits per day of AI
-  usage**, on the cheapest suitable model. Any subscription or top-up removes
+- **<CreditPolicy field="free-monthly-usage" /> of usage per month** (UTC
+  calendar month). It does not roll over.
+- **Up to <CreditPolicy field="free-daily-ai-usage" /> of AI usage per day**,
+  on the cheapest suitable model. Any subscription or top-up removes
   the daily limit.
-- Free credits pay only for <CreditPolicy field="free-promo-categories" />.
-  Everything else, including AI Gateway API key requests, needs paid credits
+- Free usage pays only for <CreditPolicy field="free-promo-categories" />.
+  Everything else, including AI Gateway API key requests, needs a paid balance
   from a subscription or top-up.
 
 ### One Free Starter App
@@ -51,7 +50,7 @@ page of the Developer Portal.
 Free accounts can run one **Starter** app at no charge after saving a card
 that passes verification. Each card can back only one free app.
 
-- The free app does not spend your Free plan credits. Paid plans keep it too.
+- The free app does not spend your Free plan usage. Paid plans keep it too.
 - It keeps running while you sign in at least once every 30 days. If you do
   not, you get a notice first, and after 30 days without a sign-in the app is
   stopped. Its source is kept, so you can redeploy it in one click.
@@ -59,26 +58,25 @@ that passes verification. Each card can back only one free app.
 
 ## Top-Ups
 
-You can buy credits at any time, on any plan.
+You can add funds at any time, on any plan.
 
 - Top-ups start at <CreditPolicy field="top-up-minimum" />, with
-  <CreditPolicy field="top-up-presets" /> options, at the same credit rate as
-  plans.
+  <CreditPolicy field="top-up-presets" /> options.
 - <CreditPolicy field="top-up-expiry" />
 - Auto top-up is optional and off by default. When it is on, you choose the
   threshold, the amount, and a monthly spending cap.
 
-Credits are spent oldest first: plan credits before top-up credits.
+Your balance is spent oldest first: plan usage before top-ups.
 
-<Aside type="caution" title="When credits run out">
-A paid action that your credit balance cannot cover is refused with a `402`
+<Aside type="caution" title="When your balance runs out">
+A paid action that your balance cannot cover is refused with a `402`
 before anything is started or charged. Every billing code is listed in
 [API Errors](/api/errors/#capacity-and-billing).
 </Aside>
 
 ## What You're Charged For
 
-Each paid app bills **up to a fixed monthly maximum** in credits, based on the
+Each paid app bills **up to a fixed monthly maximum** in USD, based on the
 resources that app reserves, prorated by the time it runs.
 
 Your bill does **not** change with:
@@ -89,7 +87,7 @@ Your bill does **not** change with:
 
 This is the core difference from usage-metered hosting, where billing follows usage meters. With Varity, an unchanged profile keeps the same monthly maximum no matter how much traffic it serves. For the full model, see [How Pricing Works](/resources/pricing/).
 
-CPU VMs and GPUs are priced by the quote you confirm, shown in credits. AI
+CPU VMs and GPUs are priced by the quote you confirm, shown in USD. AI
 Gateway requests are charged per request; see
 [AI Gateway Billing and Keys](/ai-gateway/billing-and-keys/).
 
@@ -99,11 +97,11 @@ editor) for a current estimate before you deploy. The quote shown at
 confirmation is the transactional price for that deployment.
 </Aside>
 
-## Seeing Your Credits
+## Seeing Your Balance
 
-The billing page of the Developer Portal shows your plan, available credits,
-credits that expire soon, the Free plan's daily AI allowance, and your free app
-status. Every subscription credit, top-up, charge, refund, and expiry appears
+The billing page of the Developer Portal shows your plan, available balance,
+plan usage that expires soon, the Free plan's daily AI allowance, and your free
+app status. Every plan renewal, top-up, charge, refund, and expiry appears
 in your billing history.
 
 If billing state cannot be read, the portal and API say it is unavailable
@@ -118,5 +116,5 @@ proof that resource release and billing closure are complete.
 ## Related
 
 - [How Pricing Works](/resources/pricing/): the predictable-pricing model in full.
-- [AI Gateway Billing and Keys](/ai-gateway/billing-and-keys/): how AI requests spend credits.
+- [AI Gateway Billing and Keys](/ai-gateway/billing-and-keys/): how AI requests are charged.
 - [What You Can Deploy Today](/deploy/what-you-can-deploy/): what your bill covers in beta.
