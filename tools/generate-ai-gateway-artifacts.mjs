@@ -291,7 +291,8 @@ function renderCreditPolicy(mirror) {
   return [
     '## Billing policy snapshot',
     '',
-    `Source: ${mirror.source}, snapshotted in varity-docs ${CREDIT_POLICY_MIRROR_PATH} `
+    // Contract names stay in code spans so agents read them as identifiers, not prose.
+    `Source: ${PRICING_URL} (field \`credit_policy\`), snapshotted in varity-docs \`${CREDIT_POLICY_MIRROR_PATH}\` `
       + `(status ${mirror.status}, version ${mirror.credit_policy.version}). The live endpoint is authoritative; read it at runtime.`,
     '',
     ...CREDIT_POLICY_FIELDS.flatMap((field) => [`### ${field}`, '', creditPolicyMarkdown(mirror, field), '']),
