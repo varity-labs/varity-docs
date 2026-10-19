@@ -65,6 +65,33 @@ for (const page of readdirSync(docsDir, { recursive: true }).filter((name) => /\
   }
   if (/credits\s*=\s*\$1/.test(source)) errors.push(`${page} copies the credit rate; use <CreditPolicy field="credits-per-usd" />`);
 }
+// Only the API key rate (provider cost plus a published percentage) is public.
+// Chat/Build economics must never reach a public file, even when a producer
+// leaks them: on 2026-10-18 the gateway served credit_policy.aiPricing
+// .chatBuildDivisor and the mirror republished it. Any of these in a mirror
+// or a published artifact fails the check, so --refresh-mirror cannot ship it.
+const leak = /chat[-_ ]?build\.v\d|chatBuild|aiPricing|divisor|markup|margin|contribution/i;
+for (const dir of ['contracts', 'public']) {
+  for (const name of readdirSync(new URL(`../${dir}/`, import.meta.url))) {
+    if (!/\.(json|ya?ml|txt)$/.test(name)) continue;
+    const match = readFileSync(new URL(`../${dir}/${name}`, import.meta.url), 'utf8').match(leak);
+    if (match) errors.push(`${dir}/${name} exposes internal Chat/Build economics ("${match[0]}")`);
+  }
+}
+// The API key percentage is stated on one page, ai-gateway/models.mdx#pricing,
+// and must equal the mirrored managed rate; every other page links there.
+const rate = /^provider_cost_times_(\d+)_(\d+)$/.exec(mirror.openapi?.['x-varity-commercial-contract']?.managed_rate ?? '');
+if (!rate) errors.push('contracts/ai-gateway.mirror.json managed_rate is not provider_cost_times_<multiplier>');
+const percent = rate ? Math.round((Number(`${rate[1]}.${rate[2]}`) - 1) * 100) : null;
+const RATE_OWNER = 'ai-gateway/models.mdx';
+for (const page of readdirSync(docsDir, { recursive: true }).filter((name) => /\.mdx?$/.test(name))) {
+  const stated = [...readFileSync(new URL(page, docsDir), 'utf8').matchAll(/cost plus (\d+)%/g)].map((m) => Number(m[1]));
+  if (page.replaceAll('\\', '/') !== RATE_OWNER) {
+    if (stated.length) errors.push(`${page} states the API key percentage; link /ai-gateway/models/#pricing instead`);
+  } else if (stated.length !== 1 || stated[0] !== percent) {
+    errors.push(`${RATE_OWNER} must state the API key rate once as "cost plus ${percent}%" (found ${JSON.stringify(stated)})`);
+  }
+}
 // Per-replica health and timestamps must never enter the mirror, or the daily
 // live check would fail on every read instead of on a real catalog change.
 const volatile = /"(availability|refreshed_at|evidence|observed_at)":/;
