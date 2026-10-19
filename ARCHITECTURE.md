@@ -75,13 +75,20 @@ calls. The built site does not depend on those repositories or their secrets.
   `src/content/docs/` plus the MCP catalog machine-readable fields in
   `public/mcp-schema.json`, and generates `public/openapi.yaml` from the
   checked-in mirror `contracts/openapi.platform.mirror.json`. `llms-full.txt`
-  also renders the AI Gateway funding terms, capability matrix, operations,
-  capability fields and one line per model from `contracts/ai-gateway.mirror.json`
-  (exact `https://ai.varity.app/v1/openapi.json` plus a stable projection of
-  `/v1/models`).
-  `--refresh-mirror` replaces both mirrors: the platform one with the exact
+  also renders the AI Gateway capability matrix, operations, capability fields
+  and one line per model from `contracts/ai-gateway.mirror.json` (exact
+  `https://ai.varity.app/v1/openapi.json` plus a stable projection of
+  `/v1/models`), and the funding terms (plans, Free allowance, top-ups, closed
+  billing codes) from `contracts/credit-policy.mirror.json` (`credit_policy` in
+  `https://varity.app/api/pricing`). Pages render the same credit-policy fields
+  through `src/components/CreditPolicy.astro`; both renderers share
+  `src/lib/credit-policy.mjs`, so no page copies a credit-policy value. Until the
+  producer serves `credit_policy`, that mirror is a file marked
+  `pending_fixture`.
+  `--refresh-mirror` replaces the mirrors: the platform one with the exact
   body of the live platform document `https://varity.app/api/openapi.json`, the
-  AI Gateway one from its two live endpoints.
+  AI Gateway one from its two live endpoints, and the credit-policy one once
+  live pricing serves `credit_policy`.
   `public/mcp-schema.json` is a checked-in safety-oriented documentation
   reference tied to the latest package actually published at the public npm
   registry, not an MCP wire-contract mirror and not an unreleased source-branch
@@ -162,7 +169,7 @@ identify users.
 | OpenAPI | `public/openapi.yaml` (generated) | `contracts/openapi.platform.mirror.json`, refreshed from live `https://varity.app/api/openapi.json`; gateway-owned public platform interface | Generated-artifact drift check, JSON/OpenAPI structure, internal references, unique operation IDs, API-reference link, build copy |
 | MCP safety reference | `public/mcp-schema.json` | Installed published package `tools/list` response owns the executable contract; this reference may narrow prose that overclaims lifecycle guarantees | Release-identity drift, JSON/schema structure, tool-count/name uniqueness, reference-page links, build copy |
 | LLM summary | `public/llms.txt` (generated) | `src/content/docs/` and `public/mcp-schema.json` | Generated-artifact drift check, required identity/artifact links, no placeholder content, build copy |
-| LLM full context | `public/llms-full.txt` (generated) | `src/content/docs/` and `contracts/ai-gateway.mirror.json`, refreshed from live `https://ai.varity.app/v1/openapi.json` + `/v1/models` | Generated-artifact drift check, every mirrored model id and the funding fee present, required identity/artifact links, nontrivial full-content size, daily `check:live`, build copy |
+| LLM full context | `public/llms-full.txt` (generated) | `src/content/docs/`, `contracts/ai-gateway.mirror.json` (refreshed from live `https://ai.varity.app/v1/openapi.json` + `/v1/models`) and `contracts/credit-policy.mirror.json` (refreshed from live `https://varity.app/api/pricing` `credit_policy`) | Generated-artifact drift check, every mirrored model id and credit-policy field present, no superseded funding fee, no page copying a billing code or the credit rate, required identity/artifact links, nontrivial full-content size, daily `check:live`, build copy |
 | Redirects and static assets | `public/` | Current hosting behavior and brand assets | Redirect invariant, Astro build, visual review where applicable |
 
 The contract projections are public documentation artifacts. They must not

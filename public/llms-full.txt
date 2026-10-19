@@ -296,41 +296,38 @@ headers each refusal returns, and the body-size ceilings are on
 ## AI Gateway Billing and Keys
 
 URL: https://docs.varity.so/ai-gateway/billing-and-keys/
-Description: How Varity AI Gateway credits, live funding terms, inference keys, and usage reporting work.
+Description: How Varity AI Gateway requests spend credits from your credit balance, and how inference keys and usage reporting work.
 
-The AI Gateway is prepaid. You add credits, each request is charged from that
-balance, and an inference key is what your code sends to spend it.
+The AI Gateway spends credits from your credit balance, the same prepaid
+credit balance Varity Cloud uses, at **100 credits = $1**.
+Credits come from your plan, from top-ups, or from the Free plan; see
+[Billing and Pricing](/resources/billing/). An inference key is what your code
+sends to spend them.
 
 ## How You Are Charged
 
-- **Each request is charged exactly its provider cost.** No markup is added per
-  request.
-- **Funding terms are published by the live OpenAPI contract.** Read the fee
-  and refill bounds before opening checkout; this page does not retain a copy.
-- **A payment method is required.** There is no automatic sign-up credit, and you
-  cannot bring your own provider key.
-
-These terms are machine-readable in the `x-varity-commercial-contract` block of
-`GET https://ai.varity.app/v1/openapi.json`. Treat a missing block or field as
-unavailable; do not fall back to an earlier value.
+- **Free plan credits** cover only Chat, Build, and static apps,
+  up to 50 credits of AI usage per
+  day on the cheapest suitable model. Any subscription or top-up removes the
+  daily limit.
+- **API key requests** need paid credits from a subscription or top-up.
+- You cannot bring your own provider key.
 
 Per-model rates are in `customer_pricing` on
 [`GET /v1/models`](/ai-gateway/models/#pricing) and on the **Models** tab of the
 portal's AI Gateway page. This page lists no prices, because the catalog changes
 without a docs release.
 
-When the balance cannot cover a request, or your monthly spending limit is
-reached, the request is refused with `402 insufficient_gateway_balance` before
-any model is called.
+When a request cannot be paid for, it is refused with a `402` before any model
+is called. The codes and what each one means are listed once, in
+[API Errors](/api/errors/#capacity-and-billing).
 
 ## Adding Credits
 
-Add credits on the **Gateway billing** tab of the AI Gateway page in the
-Developer Portal. The same tab sets a monthly spending limit and auto-reload.
-
-Auto-reload tops the balance up when it falls below a threshold. Its amount and
-fee use the live commercial contract, and the threshold must be lower than the
-amount.
+Subscribe to a plan or buy a top-up on the billing page of the Developer
+Portal; see [Top-Ups](/resources/billing/#top-ups). Optional auto top-up
+refills your credit balance when it falls below a threshold you set, up to a
+monthly cap you choose.
 
 ## Inference Keys
 
@@ -372,7 +369,7 @@ place AI Gateway keys are issued is `POST /v1/keys` on this host.
 | `GET /v1/billing/balance` | The balance: `availableBalanceUsd`, `reservedUsd`, `spendThisMonthUsd`, `monthlySpendingLimitUsd`, `autoReload`, and more. |
 | `GET /v1/billing/transactions` | Balance transactions. Accepts `limit` from 1 to 100 (default 50) and `offset` from 0 to 10,000. |
 | `PATCH /v1/billing/settings` | Sets `monthlySpendingLimitCents` (`null`, or 100 to 10,000,000) and `autoReload` `{ enabled, thresholdCents, amountCents }`. |
-| `POST /v1/billing/top-up` | Starts a card checkout. Body: `email` (must belong to your account) and `balanceCents` (within the refill bounds of the live commercial contract; see [How You Are Charged](#how-you-are-charged)). Returns the checkout `url` plus `balanceCents`, `serviceFeeCents`, and `totalCents`. |
+| `POST /v1/billing/top-up` | Starts a card checkout. Body: `email` (must belong to your account) and `balanceCents` (within the top-up bounds; see [Top-Ups](/resources/billing/#top-ups)). Returns the checkout `url` plus `balanceCents`, `serviceFeeCents`, and `totalCents`. |
 | `PUT /v1/inference/policy` | Sets the account privacy floor. See [Privacy Routing](/ai-gateway/compatibility/#privacy-routing). |
 
 The request budgets for these routes are on
@@ -581,11 +578,10 @@ that response; the column below is what the gateway publishes today.
 | `rate_limit_exceeded` | `429` | yes | The account's requests-per-minute budget, or the key's own `requests_per_minute`, is exhausted. See [Rate Limits](/ai-gateway/limits/). |
 | `concurrency_limit_exceeded` | `429` | yes | The account's in-flight bound, or the key's own `concurrency_limit`, is exhausted. See [Rate Limits](/ai-gateway/limits/). |
 | `budget_exceeded` | `429` | yes | The account's inference budget, or the key's own spending budget, is exhausted. See [Billing and Keys](/ai-gateway/billing-and-keys/). |
-| `payment_method_required` | `402` | no | No active payment method. |
-| `insufficient_gateway_balance` | `402` | no | The prepaid AI Gateway balance cannot cover the request. |
-| `gateway_balance_frozen` | `402` | no | The balance is frozen pending billing review. |
-| `billing_unavailable` | `503` | yes | The isolated billing ledger could not answer. Not your request's fault. |
 | `internal_error` | `500` | no | An unclassified gateway failure. Quote `request_id`. |
+
+Billing refusals (`402`) and billing outages (`503`) use the codes listed in
+[API Errors](/api/errors/#capacity-and-billing).
 
 **A model provider decided it** (`failure_domain: "supplier_observed"`):
 
@@ -1413,8 +1409,9 @@ limits as your API keys.
 
 The composer has two modes:
 
-- **Build**: build and change your app. Build always runs on GLM 5.3 Flash, so
-  there is no model to choose.
+- **Build (Beta)**: build and change your app with a verified Build model; new Build
+  chats start on DeepSeek V4.1 Flash, and the model picker lets you choose
+  another available Build model.
 - **Chat**: ask, plan, and read with any model. Nothing is written or deployed.
   The model picker lists your favorites, your recent models, and a short list,
   then **All models** for the rest of the live catalog.
@@ -1474,12 +1471,15 @@ it back to the chat; nothing is fixed automatically.
 
 ## Workspace Panel
 
-Open the side panel for:
+Open the side panel for three views:
 
-- **Files**: open a file from the chat or the connected repository.
-- **Browser**: open a deployed app, or any https address.
-- **Terminal**: follow a deployment's runtime logs. It is read-only and runs no
-  commands.
+- **Preview**: run the in-progress app as its files change. After a deployment,
+  **Live site** switches between that preview and the deployed app. A new
+  deployment opens the live site, and the next file change returns to the
+  in-progress preview.
+- **Code**: browse the chat's workspace and connected repository, then open a
+  file in the editor.
+- **Logs**: follow a deployment's runtime logs.
 
 ## View Code
 
@@ -1561,7 +1561,7 @@ For non-browser callers, send your Varity API key as a bearer credential:
 Authorization: Bearer $VARITY_API_KEY
 ```
 
-Create API keys in the [Developer Portal settings page](https://developer.store.varity.so/dashboard/settings?utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=api-reference-api-keys). API key plaintext is shown once. Listing and revoking keys require an authenticated Developer Portal session; plaintext keys are never returned after creation.
+Create deploy keys in the [Developer Portal settings page](https://developer.store.varity.so/dashboard/settings?utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=api-reference-api-keys). Deploy key plaintext is shown once. Listing and revoking keys require an authenticated Developer Portal session; plaintext keys are never returned after creation.
 
 ## Deploy
 
@@ -1723,7 +1723,7 @@ curl -X DELETE https://varity.app/api/deployments/$DEPLOYMENT_ID \
 
 ## Templates, Pricing, And Credits
 
-Templates are deployable app starters. Pricing is estimated from the live API, not a hardcoded table, and returns fixed monthly hardware-reservation cost for the requested profile. Credits show whether the caller can deploy with a payment method or active starter credit.
+Templates are deployable app starters. Pricing is estimated from the live API, not a hardcoded table, and returns fixed monthly hardware-reservation cost for the requested profile.
 
 ```bash
 curl https://varity.app/api/templates \
@@ -2410,9 +2410,21 @@ Validation errors may carry a `field` naming the offending property.
 
 ### Capacity And Billing
 
+Billing refusals are `402` and a billing outage is `503`. These codes are the complete set every Varity service uses, rendered from the billing contract. A refused action starts nothing and charges nothing.
+
+| Code | HTTP | Retryable | Meaning |
+| --- | --- | --- | --- |
+| `insufficient_credits` | 402 | no | Your credit balance cannot cover the action. Add credits or change plan. Replaces the AI Gateway code `insufficient_gateway_balance`; handle both while it is retired. |
+| `daily_free_limit_reached` | 402 | no | The Free plan's daily AI allowance is used up. It resets the next UTC day; any subscription or top-up removes the limit. |
+| `spending_limit_reached` | 402 | no | The monthly spending limit you set is reached. Raise the limit or wait for the next month. Replaces the AI Gateway code `gateway_monthly_limit_exceeded`; handle both while it is retired. |
+| `subscription_required` | 402 | no | The action needs paid credits from a subscription or top-up, for example an AI Gateway API key request on Free plan credits only. |
+| `wallet_frozen` | 402 | no | Paid usage on this account is paused, for example while a refund or dispute leaves a balance owed. New funding repays it first. |
+| `payment_method_shared` | 402 | no | This card already backs another account's free app. Use a different card. |
+| `quote_expired` | 402 | no | The price quote expired. Request a new quote and confirm again. |
+| `billing_unavailable` | 503 | yes | Billing state could not be read. Never reported as a zero balance; retry with backoff. The body can be the short form `{"error": "billing_unavailable"}`, so read the code from `error` when `code` is absent. |
+
 | Code | HTTP | Retryable | Cause |
 |------|------|-----------|-------|
-| <span id="billing_or_credit_required"></span>`billing_or_credit_required` | 402 | no | No payment method and no active starter credit. |
 | <span id="gpu_capacity_unavailable"></span>`gpu_capacity_unavailable` | 409 | yes | No accelerator capacity right now for the requested profile. |
 
 `gpu_capacity_unavailable` is the one common `409` you should retry. Capacity is a moving target; back off and retry, or quote a different profile.
@@ -2610,7 +2622,7 @@ Some limits are enforced by the resource contract rather than by a request budge
 - **Idempotency keys**: constraints differ by operation; use the OpenAPI
   parameter on the route you are calling. Records are retained for 24 hours.
 
-Spend is governed by your billing state, not by a request limit. A request that is refused for billing reasons returns `402 billing_or_credit_required`, not `429`.
+Spend is governed by your billing state, not by a request limit. A request that is refused for billing reasons, including a monthly spending limit you set, returns a `402` billing code, not `429`. The codes are listed in [API Errors](/api/errors/#capacity-and-billing).
 
 The AI Gateway (`https://ai.varity.app/v1`) is a separate surface with its own independent rate-limit, concurrency, and budget admission controls. Limits documented here do not apply to it. See [AI Gateway Rate Limits](/ai-gateway/limits/).
 
@@ -2660,7 +2672,7 @@ You need a deploy key from the Varity developer portal:
 
 2. **Copy your deploy key**
 
-   Open the **API keys** tab and click **Create API key** (a payment method or active starter credit is required), then copy the key. The portal calls it an API key; the CLI stores it as your deploy key. Either `varitykit login` or the `VARITY_DEPLOY_KEY` environment variable supplies it.
+   Open the **Deploy keys** tab and click **Create deploy key**, then copy the key. Either `varitykit login` or the `VARITY_DEPLOY_KEY` environment variable supplies it.
 
 3. **Run the login command**
 
@@ -2717,7 +2729,7 @@ Remove your saved credentials from this machine.
 varitykit auth logout
 ```
 
-This removes the deploy key, gateway key, and database credentials from your local config file. You will need to run `varitykit login` again to deploy or manage domains.
+This removes the deploy key from your local config file. You will need to run `varitykit login` again to deploy.
 
 ### status
 
@@ -2730,7 +2742,7 @@ varitykit auth status
 Example output when logged in:
 
 ```
-  Logged in (key: dk_live_...7f2a)
+  Logged in (key: vk_...7f2a)
 ```
 
 Example output when not logged in:
@@ -2749,22 +2761,18 @@ Credentials are saved to `~/.varitykit/config.json` with restricted file permiss
 | `~/.varitykit/` | `700` (owner-only access) |
 | `~/.varitykit/config.json` | `600` (owner-only read/write) |
 
-The config file may contain:
+The config file holds one credential:
 
 | Key | Description |
 |-----|-------------|
 | `deploy_key` | Your developer portal deploy key |
-| `gateway_api_key` | API key for the Varity gateway (auto-configured) |
-| `jwt_secret` | Database credentials (auto-configured) |
-
-Deploy keys can bundle multiple credentials. When you paste a key from the developer portal, the CLI automatically extracts and saves all associated credentials (gateway key, database credentials) in one step.
 
 ## When Is Authentication Required?
 
 | Command | Requires Login |
 |---------|---------------|
 | `varitykit app deploy` | Yes |
-| `varitykit domains list` | Yes |
+| `varitykit app list` | Yes |
 | `varitykit migrate` | Yes |
 | `varitykit doctor` | No |
 
@@ -3205,12 +3213,6 @@ VarityKit is a Python-based CLI that helps you deploy and manage applications. I
 | `varitykit app redeploy NAME` | Reapply the saved configuration on the same URL |
 | `varitykit app restart NAME` | Restart with a verified replacement on the same URL |
 | `varitykit app rollback DEPLOYMENT_ID` | Redeploy an earlier configuration (`--confirm` skips the prompt) |
-
-### Domains
-
-| Command | Description |
-|---------|-------------|
-| `varitykit domains list` | List all domains you own on `varity.app` |
 
 ### Migration (Vercel → Varity)
 
@@ -3685,27 +3687,13 @@ curl -X DELETE https://varity.app/api/deployments/$DEPLOYMENT_ID/domain \
 
 Your app stays reachable at its `varity.app` URL.
 
-## View Your Registered Names
+## List Your Apps
 
-List the `varity.app` names registered to your account:
+List your deployments with their status and URLs:
 
 ```bash
-varitykit domains list
+varitykit app list
 ```
-
-Output:
-
-```
-Your Domains (2)
-┌─────────────┬──────────────────────────────────┬──────────────────┐
-│ Subdomain   │ App URL                          │ App Name         │
-├─────────────┼──────────────────────────────────┼──────────────────┤
-│ my-app      │ https://varity.app/my-app        │ my-app           │
-│ my-other    │ https://varity.app/my-other      │ my-other-project │
-└─────────────┴──────────────────────────────────┴──────────────────┘
-```
-
-You must be logged in to list your names. Run `varitykit login` first if you see a "Not logged in" message.
 
 ## Redeploy Under the Same Name
 
@@ -5951,7 +5939,7 @@ If you are using Claude Code or Cursor, the Varity MCP server lets your AI tool 
    https://varity.app/your-app-name/
    ```
 
-The first deploy needs an API key. Create one in the developer portal under **Settings > API keys** (a payment method or starter credit is required), then ask your AI tool to "Log in to Varity with key `<your key>`", or set `VARITY_API_KEY` in the MCP server's environment.
+The first deploy needs a deploy key. Create one in the developer portal under **Settings > Deploy keys**, then ask your AI tool to "Log in to Varity with key `<your key>`", or set `VARITY_API_KEY` in the MCP server's environment.
 
 ---
 
@@ -6939,21 +6927,79 @@ machine disk, so copy required data first.
 ## Billing and Pricing on Varity
 
 URL: https://docs.varity.so/resources/billing/
-Description: How Varity billing works: a payment method for paid products, free static hosting with a verified account, and a monthly maximum per app that doesn't grow with traffic.
+Description: How Varity billing works: one prepaid credit balance for AI Gateway and Varity Cloud, monthly plans, top-ups, a Free plan, and a monthly maximum per app that doesn't grow with traffic.
 
-Varity billing is built around the profile and resources an app reserves. This
-page explains the billing shape; the live pricing service and the quote you
-confirm own current numeric values, eligibility, and credits.
+Every Varity account has one prepaid credit balance. AI Gateway (Chat, Build,
+and API keys) and Varity Cloud (apps, CPU VMs, and GPUs) all spend from it, at
+**100 credits = $1**.
 
-## A Card on File
+This page explains the billing shape. The plan, allowance, and top-up values
+below are rendered from a snapshot of the billing contract; the live pricing service and
+the quote you confirm own current per-resource prices.
 
-The Developer Portal shows whether the selected workload requires a payment
-method before confirmation. Account eligibility and credits come from the live
-billing response, not from a rule copied into this page.
+## Plans
+
+| Plan | Price | Credits each month |
+| --- | --- | --- |
+| Free | $0 | 500 |
+| Core | $20/month | 2,000 |
+| Pro | $100/month | 10,000 |
+| Business | $500/month | 50,000 |
+| Enterprise | Contact sales, $5,000 minimum monthly spend | Set by contract |
+
+- Each paid renewal adds the plan's credits to your credit balance.
+- Unused plan credits roll over for 1 billing cycle
+  while your subscription stays active. They are lost when you cancel.
+- Upgrades take effect immediately and add the difference in credits.
+  Downgrades and cancellation take effect at the next billing cycle.
+- Paid plans do not also receive the Free plan's monthly credits.
+
+Manage your card, invoices, plan changes, and cancellation from the billing
+page of the Developer Portal.
+
+## Free Plan
+
+- **500 credits per month** (UTC
+  calendar month). They do not roll over.
+- **Up to 50 credits per day of AI
+  usage**, on the cheapest suitable model. Any subscription or top-up removes
+  the daily limit.
+- Free credits pay only for Chat, Build, and static apps.
+  Everything else, including AI Gateway API key requests, needs paid credits
+  from a subscription or top-up.
+
+### One Free Starter App
+
+Free accounts can run one **Starter** app at no charge after saving a card
+that passes verification. Each card can back only one free app.
+
+- The free app does not spend your Free plan credits. Paid plans keep it too.
+- It keeps running while you sign in at least once every 30 days. If you do
+  not, you get a notice first, and after 30 days without a sign-in the app is
+  stopped. Its source is kept, so you can redeploy it in one click.
+- It runs on a Varity subdomain.
+
+## Top-Ups
+
+You can buy credits at any time, on any plan.
+
+- Top-ups start at $20, with
+  $20, $100, and $500 options, at the same credit rate as
+  plans.
+- Top-up credits do not expire.
+- Auto top-up is optional and off by default. When it is on, you choose the
+  threshold, the amount, and a monthly spending cap.
+
+Credits are spent oldest first: plan credits before top-up credits.
+
+A paid action that your credit balance cannot cover is refused with a `402`
+before anything is started or charged. Every billing code is listed in
+[API Errors](/api/errors/#capacity-and-billing).
 
 ## What You're Charged For
 
-Each paid app bills **up to a fixed monthly maximum**, based on the resources that app reserves, prorated by the time it runs. That's it.
+Each paid app bills **up to a fixed monthly maximum** in credits, based on the
+resources that app reserves, prorated by the time it runs.
 
 Your bill does **not** change with:
 
@@ -6963,13 +7009,23 @@ Your bill does **not** change with:
 
 This is the core difference from usage-metered hosting, where billing follows usage meters. With Varity, an unchanged profile keeps the same monthly maximum no matter how much traffic it serves. For the full model, see [How Pricing Works](/resources/pricing/).
 
+CPU VMs and GPUs are priced by the quote you confirm, shown in credits. AI
+Gateway requests are charged per request; see
+[AI Gateway Billing and Keys](/ai-gateway/billing-and-keys/).
+
 Use the cost calculator in the dashboard (or `varity_cost_calculator` in an AI
 editor) for a current estimate before you deploy. The quote shown at
 confirmation is the transactional price for that deployment.
 
-## Seeing Your Costs
+## Seeing Your Credits
 
-Your dashboard shows the monthly maximum for each app and your overall bill. Because pricing is tied to the reserved profile, there is no end-of-month surprise from a traffic spike.
+The billing page of the Developer Portal shows your plan, available credits,
+credits that expire soon, the Free plan's daily AI allowance, and your free app
+status. Every subscription credit, top-up, charge, refund, and expiry appears
+in your billing history.
+
+If billing state cannot be read, the portal and API say it is unavailable
+rather than showing a zero balance.
 
 ## Deleting an App
 
@@ -6980,6 +7036,7 @@ proof that resource release and billing closure are complete.
 ## Related
 
 - [How Pricing Works](/resources/pricing/): the predictable-pricing model in full.
+- [AI Gateway Billing and Keys](/ai-gateway/billing-and-keys/): how AI requests spend credits.
 - [What You Can Deploy Today](/deploy/what-you-can-deploy/): what your bill covers in beta.
 
 ---
@@ -7252,9 +7309,14 @@ Not sure which hosting type your app needs? Run `varitykit app deploy`. Varity d
 URL: https://docs.varity.so/resources/pricing/
 Description: How to obtain a current Varity price from the live pricing service or a sealed workload quote without relying on copied documentation values.
 
-Varity documentation does not maintain a price book. Prices, credits, fees,
-catalog availability, and resource profiles can change independently of this
-site. A copied value would become a second, discrepancy-causing owner.
+Varity documentation does not maintain a price book. Per-resource prices,
+per-model AI rates, catalog availability, and resource profiles can change
+independently of this site. A copied value would become a second,
+discrepancy-causing owner.
+
+Every price is charged in credits from one prepaid credit balance, at
+**100 credits = $1**. Plans, top-ups, and the Free plan
+are described in [Billing and Pricing](/resources/billing/).
 
 ## Current Price Sources
 
@@ -7262,11 +7324,11 @@ Use the source that matches the workload:
 
 | Workload | Current source |
 | --- | --- |
-| Managed applications and static sites | `GET https://varity.app/api/pricing` or the [Developer Portal](https://developer.store.varity.so/?utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=pricing-portal) quote shown before deploy |
+| Managed applications and static sites, plans, Free allowance, and top-ups (field `credit_policy`) | `GET https://varity.app/api/pricing` or the [Developer Portal](https://developer.store.varity.so/?utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=pricing-portal) quote shown before deploy |
 | Pre-deploy application estimate | `GET https://varity.app/api/pricing/estimate` or `varity_cost_calculator` |
 | CPU VM or GPU machine | `POST https://varity.app/api/pricing/machine-quote` |
 | AI Gateway request rates | `GET https://ai.varity.app/v1/models` |
-| AI Gateway funding terms | `GET https://ai.varity.app/v1/openapi.json`, field `x-varity-commercial-contract` |
+| Your plan, credits, and free allowance | The billing page of the Developer Portal (`GET https://varity.app/api/billing/account`) |
 
 If the live pricing response or workload-bound quote is unavailable, no current
 numeric price is available to publish or spend against. Do not fall back to a
@@ -7279,8 +7341,9 @@ number copied from this page, a screenshot, or an earlier quote.
   policy.
 - Machine and accelerator prices are bound by a time-limited quote. If the
   quote expires or the requested workload changes, request a new one.
-- AI Gateway request rates come from the live model catalog. Funding terms are
-  separately published in its OpenAPI commercial-contract block.
+- AI Gateway request rates come from the live model catalog. Free plan credits
+  cover only Chat, Build, and static apps; API key requests
+  need paid credits from a subscription or top-up.
 - A price shown when a billable action is confirmed is the transactional price
   for that action. Documentation never authorizes a charge.
 
@@ -8129,19 +8192,70 @@ Make sure your `.env` file is in the project root (same directory you run `varit
 
 ---
 
+## Credit policy snapshot
+
+Source: https://varity.app/api/pricing (field credit_policy), snapshotted in varity-docs contracts/credit-policy.mirror.json (status live, version 2026-10-18). The live endpoint is authoritative; read it at runtime.
+
+### credits-per-usd
+
+100 credits = $1
+
+### free-monthly-credits
+
+500
+
+### free-daily-ai-credits
+
+50
+
+### free-promo-categories
+
+Chat, Build, and static apps
+
+### rollover-cycles
+
+1 billing cycle
+
+### top-up-minimum
+
+$20
+
+### top-up-presets
+
+$20, $100, and $500
+
+### top-up-expiry
+
+Top-up credits do not expire.
+
+### plans
+
+| Plan | Price | Credits each month |
+| --- | --- | --- |
+| Free | $0 | 500 |
+| Core | $20/month | 2,000 |
+| Pro | $100/month | 10,000 |
+| Business | $500/month | 50,000 |
+| Enterprise | Contact sales, $5,000 minimum monthly spend | Set by contract |
+
+### billing-codes
+
+| Code | HTTP | Retryable | Meaning |
+| --- | --- | --- | --- |
+| `insufficient_credits` | 402 | no | Your credit balance cannot cover the action. Add credits or change plan. Replaces the AI Gateway code `insufficient_gateway_balance`; handle both while it is retired. |
+| `daily_free_limit_reached` | 402 | no | The Free plan's daily AI allowance is used up. It resets the next UTC day; any subscription or top-up removes the limit. |
+| `spending_limit_reached` | 402 | no | The monthly spending limit you set is reached. Raise the limit or wait for the next month. Replaces the AI Gateway code `gateway_monthly_limit_exceeded`; handle both while it is retired. |
+| `subscription_required` | 402 | no | The action needs paid credits from a subscription or top-up, for example an AI Gateway API key request on Free plan credits only. |
+| `wallet_frozen` | 402 | no | Paid usage on this account is paused, for example while a refund or dispute leaves a balance owed. New funding repays it first. |
+| `payment_method_shared` | 402 | no | This card already backs another account's free app. Use a different card. |
+| `quote_expired` | 402 | no | The price quote expired. Request a new quote and confirm again. |
+| `billing_unavailable` | 503 | yes | Billing state could not be read. Never reported as a zero balance; retry with backoff. The body can be the short form `{"error": "billing_unavailable"}`, so read the code from `error` when `code` is absent. |
+
+---
+
 ## AI Gateway live contract snapshot
 
 Source: https://ai.varity.app/v1/openapi.json (Varity AI Gateway API 2026-09-17) and https://ai.varity.app/v1/models, snapshotted in varity-docs contracts/ai-gateway.mirror.json. The live endpoints are authoritative; read them at runtime.
-
-### Funding terms (x-varity-commercial-contract)
-
-- managed_rate: actual_provider_cost
-- funding_service_fee_percent: 5
-- minimum_refill_usd: 20
-- maximum_refill_usd: 1000
-- payment_method_required: true
-- automatic_signup_credit: false
-- byok: unavailable
 
 ### Capability matrix (x-varity-capability-matrix)
 
@@ -8215,7 +8329,7 @@ Source: https://ai.varity.app/v1/openapi.json (Varity AI Gateway API 2026-09-17)
 - `refreshed_at`: no description in the contract
 - `evidence`: see #/components/schemas/CapabilityEvidenceMap
 
-### Models (188)
+### Models (195)
 
 - `abliterated-large-v2`: privacy anonymized; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 32768; usd per_million_tokens input 3 output 5 cached_input 0.3 (price set 2026-09-17.v4.0a1d2996c25a551e)
 - `aion-3-0`: privacy anonymized; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 128000; max completion 32768; usd per_million_tokens input 3.75 output 7.5 cached_input 0.9375 (price set 2026-09-17.v4.3395bb4e50eed133)
@@ -8227,22 +8341,23 @@ Source: https://ai.varity.app/v1/openapi.json (Varity AI Gateway API 2026-09-17)
 - `bge-m3`: privacy private; in text -> out embedding; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 8192; max completion 0; usd per_million_tokens input 0.15 output 0.6 cached_input 0.15 (price set 2026-09-17.v4.43d477baf8d6ab45)
 - `chatterbox-hd-resemble-ai`: privacy private; in text -> out audio; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_million_characters input 50 output 0 cached_input 0 (price set 2026-09-17.v4.audio.57bd2cb598c116a3)
 - `chroma`: privacy private; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.01 (price set 2026-09-17.v4.fed65a03ede592bf)
-- `claude-fable-5`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 12 output 60 cached_input 1.2 (price set 2026-09-17.v4.795a701c83bb0ac0)
-- `claude-fable-5-1`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 12 output 60 cached_input 0.3 (price set 2026-09-17.v4.707577305481b7d5)
-- `claude-haiku-5-5`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 0.125 output 0.625 cached_input 0.0125 (price set 2026-09-17.v4.9a0abaae96c1b1c3)
-- `claude-opus-4-5`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 198000; max completion 32768; usd per_million_tokens input 6 output 30 cached_input 0.6 (price set 2026-09-17.v4.6b3334b7e44c59b4)
-- `claude-opus-4-6`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 6 output 30 cached_input 0.6 (price set 2026-09-17.v4.6b3334b7e44c59b4)
-- `claude-opus-4-7`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 6 output 30 cached_input 0.6 (price set 2026-09-17.v4.6b3334b7e44c59b4)
-- `claude-opus-4-8`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 6 output 30 cached_input 0.6 (price set 2026-09-17.v4.6b3334b7e44c59b4)
-- `claude-opus-4-8-fast`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 12 output 60 cached_input 1.2 (price set 2026-09-17.v4.795a701c83bb0ac0)
-- `claude-opus-5`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 6 output 30 cached_input 0.6 (price set 2026-09-17.v4.6b3334b7e44c59b4)
-- `claude-opus-5-5`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 4.8 output 24 cached_input 0.24 (price set 2026-09-17.v4.7feb926fa8fd3e9f)
-- `claude-opus-5-5-fast`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 9.6 output 48 cached_input 0.48 (price set 2026-09-17.v4.45f869ede1943183)
-- `claude-opus-5-fast`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 12 output 60 cached_input 1.2 (price set 2026-09-17.v4.795a701c83bb0ac0)
-- `claude-sonnet-4-6`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 64000; usd per_million_tokens input 3.6 output 18 cached_input 0.36 (price set 2026-09-17.v4.edbfebda73d6cc5d)
-- `claude-sonnet-5`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 64000; usd per_million_tokens input 2.5 output 12.5 cached_input 0.25 (price set 2026-09-17.v4.cedee259fa213f3a)
-- `claude-sonnet-5-5`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 2.5 output 12.5 cached_input 0.125 (price set 2026-09-17.v4.e6d7725d9d91306f)
+- `claude-fable-5`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 10 output 50 cached_input 1 (price set 2026-09-17.v4.380edf7deefe65b8)
+- `claude-fable-5-1`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 10 output 50 cached_input 0.25 (price set 2026-09-17.v4.68d3a7b8b5bde536)
+- `claude-haiku-5-5`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 0.1 output 0.5 cached_input 0.01 (price set 2026-09-17.v4.3c420cc1263e184e)
+- `claude-opus-4-5`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 198000; max completion 32768; usd per_million_tokens input 5 output 25 cached_input 0.5 (price set 2026-09-17.v4.927fb8bd1cbad40a)
+- `claude-opus-4-6`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 5 output 25 cached_input 0.5 (price set 2026-09-17.v4.927fb8bd1cbad40a)
+- `claude-opus-4-7`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 5 output 25 cached_input 0.5 (price set 2026-09-17.v4.927fb8bd1cbad40a)
+- `claude-opus-4-8`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 5 output 25 cached_input 0.5 (price set 2026-09-17.v4.927fb8bd1cbad40a)
+- `claude-opus-4-8-fast`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 10 output 50 cached_input 1 (price set 2026-09-17.v4.380edf7deefe65b8)
+- `claude-opus-5`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 5 output 25 cached_input 0.5 (price set 2026-09-17.v4.927fb8bd1cbad40a)
+- `claude-opus-5-5`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 4 output 20 cached_input 0.2 (price set 2026-09-17.v4.20d06f85f51de127)
+- `claude-opus-5-5-fast`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 8 output 40 cached_input 0.4 (price set 2026-09-17.v4.509e15f42672d2f2)
+- `claude-opus-5-fast`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 10 output 50 cached_input 1 (price set 2026-09-17.v4.380edf7deefe65b8)
+- `claude-sonnet-4-6`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 64000; usd per_million_tokens input 3 output 15 cached_input 0.3 (price set 2026-09-17.v4.2a30972b7a064dac)
+- `claude-sonnet-5`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 64000; usd per_million_tokens input 2 output 10 cached_input 0.2 (price set 2026-09-17.v4.00095fa37c44ca6c)
+- `claude-sonnet-5-5`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 2 output 10 cached_input 0.1 (price set 2026-09-17.v4.95009d3825a03638)
 - `deepseek-v4-1-flash`: privacy private; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 131072; usd per_million_tokens input 0.3 output 1.2 cached_input 0.0075 (price set 2026-09-17.v4.c105e464633e1afd)
+- `deepseek-v4-1-flash-1017`: privacy private; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 131072; usd per_million_tokens input 0.3 output 1.2 cached_input 0.0075 (price set 2026-09-17.v4.c105e464633e1afd)
 - `deepseek-v4-flash`: privacy private; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 32768; usd per_million_tokens input 0.138 output 0.275 cached_input 0.028 (price set 2026-09-17.v4.a0ae8fe2294bb09c)
 - `deepseek-v4-flash-0731`: privacy private; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 32768; usd per_million_tokens input 0.13 output 0.26 cached_input 0.028 (price set 2026-09-17.v4.3e4042167666328a)
 - `deepseek-v4-flash-0731-fast`: privacy private; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 32768; usd per_million_tokens input 0.35 output 0.7 cached_input 0.0875 (price set 2026-09-17.v4.136c279c9b5500d2)
@@ -8262,11 +8377,11 @@ Source: https://ai.varity.app/v1/openapi.json (Varity AI Gateway API 2026-09-17)
 - `gemini-3-7-flash`: privacy anonymized; in text,document,audio,image,video -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 65536; usd per_million_tokens input 0.9375 output 4.6875 cached_input 0.09375 (price set 2026-09-17.v4.7b9e90de8892bb4b)
 - `gemini-3-8-flash`: privacy anonymized; in text,document,audio,image,video -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 65536; usd per_million_tokens input 0.9375 output 4.6875 cached_input 0.09375 (price set 2026-09-17.v4.7b9e90de8892bb4b)
 - `gemini-3-flash-preview`: privacy anonymized; in text,document,audio,image,video -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 256000; max completion 65536; usd per_million_tokens input 0.7 output 3.75 cached_input 0.07 (price set 2026-09-17.v4.7ec9a96197b4e517)
+- `gemini-4-argon`: privacy anonymized; in text,document,audio,image,video -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 65536; usd per_million_tokens input 2.5 output 12.5 cached_input 0.125 (price set 2026-09-17.v4.e6d7725d9d91306f)
 - `gemini-embedding-2-preview`: privacy anonymized; in text -> out embedding; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 2048; max completion 0; usd per_million_tokens input 0.25 output 0.25 cached_input 0.25 (price set 2026-09-17.v4.bf6cc883a6959315)
 - `gemma-4-uncensored`: privacy private; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools 20; context 256000; max completion 8192; usd per_million_tokens input 0.1625 output 0.5 cached_input 0.1625 (price set 2026-09-17.v4.2819da9c60d7d0b3)
 - `glm-4-6`: privacy private; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 198000; max completion 16384; usd per_million_tokens input 0.43 output 1.75 cached_input 0.08 (price set 2026-09-17.v4.968045786a86ac2e)
 - `glm-4-7`: privacy private; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 198000; max completion 16384; usd per_million_tokens input 0.55 output 2.65 cached_input 0.11 (price set 2026-09-17.v4.098796ec1c55f49d)
-- `glm-4-7-flash`: privacy private; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 128000; max completion 16384; usd per_million_tokens input 0.06 output 0.4 cached_input 0.01 (price set 2026-09-17.v4.edec2f6fcad286da)
 - `glm-4-7-flash-heretic`: privacy private; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 200000; max completion 24000; usd per_million_tokens input 0.07 output 0.4 cached_input 0.035 (price set 2026-09-17.v4.9a397f197ae27fab)
 - `glm-5`: privacy private; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 198000; max completion 32000; usd per_million_tokens input 1 output 3.2 cached_input 0.2 (price set 2026-09-17.v4.3e386f8a8adc270a)
 - `glm-5-1`: privacy private; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 200000; max completion 80000; usd per_million_tokens input 1.54 output 4.84 cached_input 0.286 (price set 2026-09-17.v4.319337e451e23b9c)
@@ -8278,26 +8393,27 @@ Source: https://ai.varity.app/v1/openapi.json (Varity AI Gateway API 2026-09-17)
 - `google-gemma-3-27b-instruct`: privacy private; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 198000; max completion 16384; usd per_million_tokens input 0.12 output 0.2 cached_input 0.12 (price set 2026-09-17.v4.5663da284529546d)
 - `google-gemma-4-26b-a4b-instruct`: privacy private; in text,document,image,video -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 256000; max completion 8192; usd per_million_tokens input 0.13 output 0.4 cached_input 0.05 (price set 2026-09-17.v4.aa7f3deb3fbdb5a6)
 - `google-gemma-4-31b-instruct`: privacy private; in text,document,image,video -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 256000; max completion 8192; usd per_million_tokens input 0.12 output 0.36 cached_input 0.09 (price set 2026-09-17.v4.45054af417645c94)
-- `gpt-4o`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 128000; max completion 16384; usd per_million_tokens input 3.125 output 12.5 cached_input 3.125 (price set 2026-09-17.v4.e7a1604f56bf005e)
-- `gpt-4o-mini`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 128000; max completion 16384; usd per_million_tokens input 0.1875 output 0.75 cached_input 0.09375 (price set 2026-09-17.v4.b4c7b8a11df97265)
-- `gpt-5-2`: privacy anonymized; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 256000; max completion 65536; usd per_million_tokens input 2.19 output 17.5 cached_input 0.219 (price set 2026-09-17.v4.89a4ed66aa3bca45)
-- `gpt-5-3-codex`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 400000; max completion 128000; usd per_million_tokens input 2.19 output 17.5 cached_input 0.219 (price set 2026-09-17.v4.89a4ed66aa3bca45)
-- `gpt-5-4`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 131072; usd per_million_tokens input 3.13 output 18.8 cached_input 0.313 (price set 2026-09-17.v4.90c1ef770d5b9e4a)
-- `gpt-5-4-mini`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 400000; max completion 128000; usd per_million_tokens input 0.9375 output 5.625 cached_input 0.09375 (price set 2026-09-17.v4.13eb5fd5a86d0037)
-- `gpt-5-4-pro`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 37.5 output 225 cached_input 37.5 (price set 2026-09-17.v4.d244dffcf9e7e064)
-- `gpt-5-5`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 131072; usd per_million_tokens input 6.25 output 37.5 cached_input 0.625 (price set 2026-09-17.v4.6880d5ea7d2a589c)
-- `gpt-5-5-pro`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 37.5 output 225 cached_input 37.5 (price set 2026-09-17.v4.d244dffcf9e7e064)
-- `gpt-5-6-luna`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 0.25 output 1.5 cached_input 0.025 (price set 2026-09-17.v4.8a5b329064ba16c4)
-- `gpt-5-6-luna-pro`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 0.25 output 1.5 cached_input 0.025 (price set 2026-09-17.v4.8a5b329064ba16c4)
-- `gpt-5-6-sol`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 5 output 25 cached_input 0.5 (price set 2026-09-17.v4.927fb8bd1cbad40a)
-- `gpt-5-6-sol-pro`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 5 output 25 cached_input 0.5 (price set 2026-09-17.v4.927fb8bd1cbad40a)
-- `gpt-5-6-terra`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 2.5 output 15 cached_input 0.25 (price set 2026-09-17.v4.8b7cb4f7caddc879)
-- `gpt-5-6-terra-pro`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 2.5 output 15 cached_input 0.25 (price set 2026-09-17.v4.8b7cb4f7caddc879)
-- `gpt-6-1-sol`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1050000; max completion 128000; usd per_million_tokens input 2.5 output 12.5 cached_input 0.125 (price set 2026-09-17.v4.e6d7725d9d91306f)
+- `gpt-4o`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 128000; max completion 16384; usd per_million_tokens input 2.5 output 10 cached_input 1.25 (price set 2026-09-17.v4.f8836876ff170dc0)
+- `gpt-4o-mini`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 128000; max completion 16384; usd per_million_tokens input 0.15 output 0.6 cached_input 0.075 (price set 2026-09-17.v4.de885a2cc5123b13)
+- `gpt-5-2`: privacy anonymized; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 256000; max completion 65536; usd per_million_tokens input 1.75 output 14 cached_input 0.175 (price set 2026-09-17.v4.8d505bcb3de5edc0)
+- `gpt-5-3-codex`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 400000; max completion 128000; usd per_million_tokens input 1.75 output 14 cached_input 0.175 (price set 2026-09-17.v4.8d505bcb3de5edc0)
+- `gpt-5-4`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 131072; usd per_million_tokens input 2.5 output 15 cached_input 0.25 (price set 2026-09-17.v4.8b7cb4f7caddc879)
+- `gpt-5-4-mini`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 400000; max completion 128000; usd per_million_tokens input 0.75 output 4.5 cached_input 0.075 (price set 2026-09-17.v4.31da7f6a52e84d05)
+- `gpt-5-4-pro`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 30 output 180 cached_input 30 (price set 2026-09-17.v4.f17783906930ae66)
+- `gpt-5-5`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 131072; usd per_million_tokens input 5 output 30 cached_input 0.5 (price set 2026-09-17.v4.a66ff160a0d51b20)
+- `gpt-5-5-pro`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 30 output 180 cached_input 30 (price set 2026-09-17.v4.f17783906930ae66)
+- `gpt-5-6-luna`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 0.2 output 1.2 cached_input 0.02 (price set 2026-09-17.v4.feafe03b29ff9479)
+- `gpt-5-6-luna-pro`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 0.2 output 1.2 cached_input 0.02 (price set 2026-09-17.v4.feafe03b29ff9479)
+- `gpt-5-6-sol`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 4 output 20 cached_input 0.4 (price set 2026-09-17.v4.51addf24c1610e4f)
+- `gpt-5-6-sol-pro`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 4 output 20 cached_input 0.4 (price set 2026-09-17.v4.51addf24c1610e4f)
+- `gpt-5-6-terra`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 2 output 12 cached_input 0.2 (price set 2026-09-17.v4.37613c4a4ed53831)
+- `gpt-5-6-terra-pro`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 2 output 12 cached_input 0.2 (price set 2026-09-17.v4.37613c4a4ed53831)
+- `gpt-6-1-sol`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1050000; max completion 128000; usd per_million_tokens input 2 output 10 cached_input 0.1 (price set 2026-09-17.v4.95009d3825a03638)
+- `gpt-6-1-sol-ultrafast`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1050000; max completion 128000; usd per_million_tokens input 12 output 60 cached_input 0.6 (price set 2026-09-17.v4.7f39577baae9e121)
 - `gpt-6-astra`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1050000; max completion 128000; usd per_million_tokens input 10 output 50 cached_input 1 (price set 2026-09-17.v4.380edf7deefe65b8)
-- `gpt-6-astra-pro`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1050000; max completion 128000; usd per_million_tokens input 12.5 output 62.5 cached_input 1.25 (price set 2026-09-17.v4.a26adae70a0ba7d1)
-- `gpt-6-luna`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1050000; max completion 128000; usd per_million_tokens input 0.125 output 0.625 cached_input 0.0125 (price set 2026-09-17.v4.9a0abaae96c1b1c3)
-- `gpt-6-sol`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1050000; max completion 128000; usd per_million_tokens input 2.5 output 12.5 cached_input 0.25 (price set 2026-09-17.v4.cedee259fa213f3a)
+- `gpt-6-astra-pro`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1050000; max completion 128000; usd per_million_tokens input 10 output 50 cached_input 1 (price set 2026-09-17.v4.380edf7deefe65b8)
+- `gpt-6-luna`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1050000; max completion 128000; usd per_million_tokens input 0.1 output 0.5 cached_input 0.01 (price set 2026-09-17.v4.3c420cc1263e184e)
+- `gpt-6-sol`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1050000; max completion 128000; usd per_million_tokens input 2 output 10 cached_input 0.2 (price set 2026-09-17.v4.00095fa37c44ca6c)
 - `gpt-image-1-5`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.26 (price set 2026-09-17.v4.89fb318e0c236674)
 - `gpt-image-2`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.27 (price set 2026-09-17.v4.abedf7b8b04d8421)
 - `gpt-image-2-5-flare`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.07 (price set 2026-09-17.v4.1e0fc80e08e5e9db)
@@ -8318,6 +8434,7 @@ Source: https://ai.varity.app/v1/openapi.json (Varity AI Gateway API 2026-09-17)
 - `grok-imagine-high-quality-sota`: privacy private; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.06 (price set 2026-09-17.v4.3e393754bb129bb9)
 - `hermes-3-llama-3-1-405b`: privacy private; in text,document -> out text; chat yes; tool_calls no; streaming_tool_calls no; max_tools not known; context 128000; max completion 16384; usd per_million_tokens input 1.1 output 3 cached_input 1.1 (price set 2026-09-17.v4.013aee0a5f99f82d)
 - `hunyuan-image-3-0`: privacy private; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.09 (price set 2026-09-17.v4.bd79fb9384cd79f7)
+- `hy4-preview`: privacy private; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1048576; max completion 64000; usd per_million_tokens input 1.0425 output 3.12625 cached_input 0.0525 (price set 2026-09-17.v4.a1f5bb73b64f2ce0)
 - `ideogram-v4`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.06 (price set 2026-09-17.v4.3e393754bb129bb9)
 - `ideogram-v4-5`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.26 (price set 2026-09-17.v4.89fb318e0c236674)
 - `imagineart-1-5-pro`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.06 (price set 2026-09-17.v4.3e393754bb129bb9)
@@ -8350,11 +8467,13 @@ Source: https://ai.varity.app/v1/openapi.json (Varity AI Gateway API 2026-09-17)
 - `mistral-small-3-2-24b-instruct`: privacy private; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 256000; max completion 16384; usd per_million_tokens input 0.09375 output 0.25 cached_input 0.09375 (price set 2026-09-17.v4.9ed17b0da3315238)
 - `multilingual-e5-large-instruct`: privacy private; in text -> out embedding; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 512; max completion 0; usd per_million_tokens input 0.0125 output 0.0125 cached_input 0.0125 (price set 2026-09-17.v4.8674aa414807717c)
 - `muse-image`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.02 (price set 2026-09-17.v4.616b1ef05f9fc93c)
+- `muse-spark-open`: privacy private; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1048576; max completion 131072; usd per_million_tokens input 1.5625 output 5.3125 cached_input 0.1875 (price set 2026-09-17.v4.b2b7e12c64b9eac3)
 - `nano-banana-2`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.1 (price set 2026-09-17.v4.2ddd0aa325ef5d2a)
 - `nano-banana-2-1`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.1 (price set 2026-09-17.v4.2ddd0aa325ef5d2a)
 - `nano-banana-2-lite`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.06 (price set 2026-09-17.v4.3e393754bb129bb9)
 - `nano-banana-pro`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.18 (price set 2026-09-17.v4.17eb235529418741)
 - `nemotron-embed-vl-1b-v2`: privacy private; in text -> out embedding; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 32768; max completion 0; usd per_million_tokens input 0.0125 output 0.0125 cached_input 0.0125 (price set 2026-09-17.v4.8674aa414807717c)
+- `nvidia-nemotron-3-5-super-vl-120b`: privacy private; in text,document,image,video -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 262144; max completion 32768; usd per_million_tokens input 0.25 output 1.25 cached_input 0.125 (price set 2026-09-17.v4.456be98eee440d60)
 - `nvidia-nemotron-3-nano-30b`: privacy private; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 128000; max completion 16384; usd per_million_tokens input 0.075 output 0.3 cached_input 0.075 (price set 2026-09-17.v4.6a404017c1ee9ff4)
 - `nvidia-nemotron-3-ultra`: privacy private; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 256000; max completion 32768; usd per_million_tokens input 0.625 output 3.125 cached_input 0.1875 (price set 2026-09-17.v4.7cbee4f171ff767a)
 - `openai-gpt-oss-120b`: privacy private; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 128000; max completion 16384; usd per_million_tokens input 0.07 output 0.3 cached_input 0.07 (price set 2026-09-17.v4.5e69af7b2757a5e3)
@@ -8362,7 +8481,7 @@ Source: https://ai.varity.app/v1/openapi.json (Varity AI Gateway API 2026-09-17)
 - `parakeet-asr`: privacy private; in audio -> out text; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_audio_second input 0.0001 output 0 cached_input 0 (price set 2026-09-17.v4.audio.7eb3c3df99e18fc8)
 - `qwen-3-235b-a22b-instruct-2507`: privacy private; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 128000; max completion 16384; usd per_million_tokens input 0.15 output 0.75 cached_input 0.15 (price set 2026-09-17.v4.feaa5aac12f7037f)
 - `qwen-3-235b-a22b-thinking-2507`: privacy private; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 128000; max completion 16384; usd per_million_tokens input 0.45 output 3.5 cached_input 0.45 (price set 2026-09-17.v4.9413405d41a3c813)
-- `qwen-3-5-35b-a3b`: privacy private; in text,document,image,video -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 256000; max completion 16384; usd per_million_tokens input 0.3125 output 1.25 cached_input 0.15625 (price set 2026-09-17.v4.a4546b480fd875a9)
+- `qwen-3-5-35b-a3b`: privacy private; in text,document,image,video -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 256000; max completion 16384; usd per_million_tokens input 0.15 output 1 cached_input 0.05 (price set 2026-09-17.v4.44c628c9cb7eacb7)
 - `qwen-3-5-397b`: privacy anonymized; in text,document,image,video -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 128000; max completion 32768; usd per_million_tokens input 0.75 output 4.5 cached_input 0.75 (price set 2026-09-17.v4.6a43d691dc00a4b0)
 - `qwen-3-6-27b`: privacy private; in text,document,image,video -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 256000; max completion 65536; usd per_million_tokens input 0.325 output 3.25 cached_input 0.325 (price set 2026-09-17.v4.8af346be6ae1a608)
 - `qwen-3-6-35b-a3b`: privacy private; in text -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 256000; max completion 65536; usd per_million_tokens input 0.1 output 1 cached_input 0.1 (price set 2026-09-17.v4.57060c32e084121c)
@@ -8380,6 +8499,8 @@ Source: https://ai.varity.app/v1/openapi.json (Varity AI Gateway API 2026-09-17)
 - `qwen-edit-uncensored`: privacy private; in text,image -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.04 (price set 2026-09-17.v4.3844ebbaf023291b)
 - `qwen-image`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.03 (price set 2026-09-17.v4.ee3eeaa3f34bc9b4)
 - `qwen-image-2`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.05 (price set 2026-09-17.v4.a19f3e18d98d2be6)
+- `qwen-image-2-1-pro`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.05 (price set 2026-09-17.v4.a19f3e18d98d2be6)
+- `qwen-image-2-1-turbo`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.02 (price set 2026-09-17.v4.616b1ef05f9fc93c)
 - `qwen-image-2-pro`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.1 (price set 2026-09-17.v4.2ddd0aa325ef5d2a)
 - `qwen-image-3`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.04 (price set 2026-09-17.v4.3844ebbaf023291b)
 - `qwen-image-3-pro`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.05 (price set 2026-09-17.v4.a19f3e18d98d2be6)

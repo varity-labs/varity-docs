@@ -5,6 +5,7 @@ description: How to obtain a current Varity price from the live pricing service 
 
 import { Aside } from '@astrojs/starlight/components';
 import PageMeta from '../../../components/PageMeta.astro';
+import CreditPolicy from '../../../components/CreditPolicy.astro';
 
 <PageMeta
   author="Varity Team"
@@ -12,9 +13,14 @@ import PageMeta from '../../../components/PageMeta.astro';
   stability="stable"
 />
 
-Varity documentation does not maintain a price book. Prices, credits, fees,
-catalog availability, and resource profiles can change independently of this
-site. A copied value would become a second, discrepancy-causing owner.
+Varity documentation does not maintain a price book. Per-resource prices,
+per-model AI rates, catalog availability, and resource profiles can change
+independently of this site. A copied value would become a second,
+discrepancy-causing owner.
+
+Every price is charged in credits from one prepaid credit balance, at
+**<CreditPolicy field="credits-per-usd" />**. Plans, top-ups, and the Free plan
+are described in [Billing and Pricing](/resources/billing/).
 
 ## Current Price Sources
 
@@ -22,11 +28,11 @@ Use the source that matches the workload:
 
 | Workload | Current source |
 | --- | --- |
-| Managed applications and static sites | `GET https://varity.app/api/pricing` or the [Developer Portal](https://developer.store.varity.so/?utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=pricing-portal) quote shown before deploy |
+| Managed applications and static sites, plans, Free allowance, and top-ups (field `credit_policy`) | `GET https://varity.app/api/pricing` or the [Developer Portal](https://developer.store.varity.so/?utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=pricing-portal) quote shown before deploy |
 | Pre-deploy application estimate | `GET https://varity.app/api/pricing/estimate` or `varity_cost_calculator` |
 | CPU VM or GPU machine | `POST https://varity.app/api/pricing/machine-quote` |
 | AI Gateway request rates | `GET https://ai.varity.app/v1/models` |
-| AI Gateway funding terms | `GET https://ai.varity.app/v1/openapi.json`, field `x-varity-commercial-contract` |
+| Your plan, credits, and free allowance | The billing page of the Developer Portal (`GET https://varity.app/api/billing/account`) |
 
 <Aside type="caution" title="Fail closed on missing pricing">
 If the live pricing response or workload-bound quote is unavailable, no current
@@ -41,8 +47,9 @@ number copied from this page, a screenshot, or an earlier quote.
   policy.
 - Machine and accelerator prices are bound by a time-limited quote. If the
   quote expires or the requested workload changes, request a new one.
-- AI Gateway request rates come from the live model catalog. Funding terms are
-  separately published in its OpenAPI commercial-contract block.
+- AI Gateway request rates come from the live model catalog. Free plan credits
+  cover only <CreditPolicy field="free-promo-categories" />; API key requests
+  need paid credits from a subscription or top-up.
 - A price shown when a billable action is confirmed is the transactional price
   for that action. Documentation never authorizes a charge.
 
