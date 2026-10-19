@@ -326,8 +326,8 @@ is called. The codes and what each one means are listed once, in
 
 Subscribe to a plan or buy a top-up on the billing page of the Developer
 Portal; see [Top-Ups](/resources/billing/#top-ups). Optional auto top-up
-refills your balance when it falls below a threshold you set, up to a
-monthly cap you choose.
+refills your balance when it falls below a threshold you set, adding no
+more in a month than the limit you choose.
 
 ## Inference Keys
 
@@ -6646,7 +6646,7 @@ so the authenticated catalog and a fresh quote are the only current sources.
 
 ## The Three Catalogs
 
-| Catalog | `workload` | `execution_class` | Create with | Access | Monthly cap |
+| Catalog | `workload` | `execution_class` | Create with | Access | Monthly maximum |
 | --- | --- | --- | --- | --- | --- |
 | CPU VMs | `virtual_machine` | `cpu_virtual_machine` | `POST /api/machines` | SSH | When present in the quote |
 | GPU VMs | `gpu` | `virtual_machine` | `POST /api/machines` | SSH | No |
@@ -6795,12 +6795,15 @@ Take all three values from the machine's `access` block. There is no default use
 
 ## Billing
 
+A CPU VM bills hourly while it exists and never costs more than its monthly
+maximum for compute in a month. Storage is billed separately.
+
 The machine's `billing` block reports:
 
 - `state` is `pending`, `active`, or `stopped`.
 - `customer_price` is the hourly rate, in microdollars.
 - `monthly_cap_microusd` is present **only** for `cpu_virtual_machine`.
-- `month_to_date` holds `compute_microusd` (capped), `storage_microusd` (not capped), and `month_started_at`. It is `null` until the first billed hour completes, so a new machine legitimately shows nothing.
+- `month_to_date` holds `compute_microusd` (never more than `monthly_cap_microusd` in a month), `storage_microusd` (no monthly maximum), and `month_started_at`. It is `null` until the first billed hour completes, so a new machine legitimately shows nothing.
 
 ## Restart
 
@@ -6993,7 +6996,7 @@ You can add funds at any time, on any plan.
   $20, $100, and $500 options.
 - Top-ups do not expire.
 - Auto top-up is optional and off by default. When it is on, you choose the
-  threshold, the amount, and a monthly spending cap.
+  threshold, the amount, and the most it can add in a month.
 
 Your balance is spent oldest first: plan usage before top-ups.
 
@@ -7328,7 +7331,7 @@ Use the source that matches the workload:
 
 | Workload | Current source |
 | --- | --- |
-| Managed applications and static sites, plans, Free allowance, and top-ups (field `credit_policy`) | `GET https://varity.app/api/pricing` or the [Developer Portal](https://developer.store.varity.so/?utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=pricing-portal) quote shown before deploy |
+| Managed applications and static sites, plans, Free allowance, and top-ups | `GET https://varity.app/api/pricing` or the [Developer Portal](https://developer.store.varity.so/?utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=pricing-portal) quote shown before deploy |
 | Pre-deploy application estimate | `GET https://varity.app/api/pricing/estimate` or `varity_cost_calculator` |
 | CPU VM or GPU machine | `POST https://varity.app/api/pricing/machine-quote` |
 | AI Gateway request rates | `GET https://ai.varity.app/v1/models` |
@@ -8198,7 +8201,7 @@ Make sure your `.env` file is in the project root (same directory you run `varit
 
 ## Billing policy snapshot
 
-Source: https://varity.app/api/pricing (field credit_policy), snapshotted in varity-docs contracts/credit-policy.mirror.json (status live, version 2026-10-18). The live endpoint is authoritative; read it at runtime.
+Source: https://varity.app/api/pricing (field `credit_policy`), snapshotted in varity-docs `contracts/credit-policy.mirror.json` (status live, version 2026-10-18). The live endpoint is authoritative; read it at runtime.
 
 ### free-monthly-usage
 
@@ -8329,7 +8332,7 @@ Source: https://ai.varity.app/v1/openapi.json (Varity AI Gateway API 2026-09-17)
 - `refreshed_at`: no description in the contract
 - `evidence`: see #/components/schemas/CapabilityEvidenceMap
 
-### Models (195)
+### Models (196)
 
 - `abliterated-large-v2`: privacy anonymized; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 32768; usd per_million_tokens input 3.15 output 5.25 cached_input 0.315 (price set 2026-10-18.ai-api.v5.01822ec28ea991ab)
 - `aion-3-0`: privacy anonymized; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 128000; max completion 32768; usd per_million_tokens input 3.9375 output 7.875 cached_input 0.984375 (price set 2026-10-18.ai-api.v5.35914f9bc861f0aa)
@@ -8462,6 +8465,7 @@ Source: https://ai.varity.app/v1/openapi.json (Varity AI Gateway API 2026-09-17)
 - `mimo-v2-6-flash`: privacy private; in text,document,audio,image,video -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 131072; usd per_million_tokens input 0.18375 output 0.3675 cached_input 0.0039375 (price set 2026-10-18.ai-api.v5.782c022678885647)
 - `minimax-m2-5`: privacy private; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 198000; max completion 32768; usd per_million_tokens input 0.2835 output 0.9975 cached_input 0.0315 (price set 2026-10-18.ai-api.v5.50103701ad48fd82)
 - `minimax-m2-7`: privacy private; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 198000; max completion 32768; usd per_million_tokens input 0.39375 output 1.575 cached_input 0.0721875 (price set 2026-10-18.ai-api.v5.ca31c6d683071563)
+- `minimax-m3-1-flash`: privacy anonymized; in text,document,image,video -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 131072; usd per_million_tokens input 0.196875 output 0.7875 cached_input 0.0196875 (price set 2026-10-18.ai-api.v5.3eda0cc39da79a0c)
 - `minimax-m3-preview`: privacy private; in text,document,image,video -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 524288; max completion 65536; usd per_million_tokens input 0.315 output 1.26 cached_input 0.063 (price set 2026-10-18.ai-api.v5.5fea7c3a2afb0a94)
 - `minimax-speech-02-hd`: privacy anonymized; in text -> out audio; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_million_characters input 131.25 output 0 cached_input 0 (price set 2026-10-18.ai-api.v5.audio.9b3c9d160c69139f)
 - `mistral-small-3-2-24b-instruct`: privacy private; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 256000; max completion 16384; usd per_million_tokens input 0.0984375 output 0.2625 cached_input 0.0984375 (price set 2026-10-18.ai-api.v5.c4d26ead0dc4cfad)

@@ -114,12 +114,15 @@ Take all three values from the machine's `access` block. There is no default use
 
 ## Billing
 
+A CPU VM bills hourly while it exists and never costs more than its monthly
+maximum for compute in a month. Storage is billed separately.
+
 The machine's `billing` block reports:
 
 - `state` is `pending`, `active`, or `stopped`.
 - `customer_price` is the hourly rate, in microdollars.
 - `monthly_cap_microusd` is present **only** for `cpu_virtual_machine`.
-- `month_to_date` holds `compute_microusd` (capped), `storage_microusd` (not capped), and `month_started_at`. It is `null` until the first billed hour completes, so a new machine legitimately shows nothing.
+- `month_to_date` holds `compute_microusd` (never more than `monthly_cap_microusd` in a month), `storage_microusd` (no monthly maximum), and `month_started_at`. It is `null` until the first billed hour completes, so a new machine legitimately shows nothing.
 
 ## Restart
 

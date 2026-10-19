@@ -1208,7 +1208,7 @@
         "get": {
           "operationId": "getInferenceUsage",
           "summary": "Get owner-scoped inference usage",
-          "description": "Returns authoritative customer spend from settled AI Gateway API charges plus the separate prepaid Gateway balance. Requests made from the Varity Chat or Build product are billed in credits and are not included. Provider identity and upstream cost never cross this interface.",
+          "description": "Returns authoritative customer spend from settled AI Gateway API charges plus the separate prepaid Gateway balance. Chat and Build requests are billed from the prepaid balance and are not included here. Provider identity and upstream cost never cross this interface.",
           "responses": {
             "200": {
               "description": "Current tenant policy-period usage",
@@ -2229,7 +2229,7 @@
                   "type": "null"
                 }
               ],
-              "description": "Null for a request made from the Varity Chat or Build product (a signed-in Portal session), which is shown in credits rather than USD."
+              "description": "Null for a request made from the Varity Chat or Build product (a signed-in Portal session), which is billed from the prepaid balance and not itemized here."
             }
           }
         },
@@ -10867,6 +10867,62 @@
         "input": 0.39375,
         "output": 1.575,
         "cached_input": 0.0721875
+      }
+    },
+    {
+      "id": "minimax-m3-1-flash",
+      "privacy": "anonymized",
+      "context_window": 1000000,
+      "max_completion_tokens": 131072,
+      "capabilities": {
+        "version": 1,
+        "input_modalities": [
+          "text",
+          "document",
+          "image",
+          "video"
+        ],
+        "output_modalities": [
+          "text"
+        ],
+        "chat_completions": true,
+        "streaming_text": true,
+        "tool_calls": true,
+        "streaming_tool_calls": true,
+        "structured_outputs": false,
+        "json_schema": false,
+        "streaming": true,
+        "transcription": false,
+        "speech": false,
+        "speech_formats": [],
+        "parallel_tool_calls": true,
+        "max_documents_per_message": 5,
+        "reasoning_controls": true,
+        "reasoning_effort": true,
+        "web_search": true,
+        "x_search": false,
+        "optimized_for_code": true,
+        "uncensored": false,
+        "log_probs": false,
+        "temperature": true,
+        "top_p": true,
+        "seed": true,
+        "stop": true,
+        "context_window": 1000000,
+        "max_completion_tokens": 131072,
+        "privacy": "anonymized",
+        "privacy_routes": [
+          "anonymized"
+        ]
+      },
+      "customer_pricing": {
+        "status": "configured",
+        "version": "2026-10-18.ai-api.v5.3eda0cc39da79a0c",
+        "currency": "usd",
+        "unit": "per_million_tokens",
+        "input": 0.196875,
+        "output": 0.7875,
+        "cached_input": 0.0196875
       }
     },
     {
