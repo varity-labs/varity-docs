@@ -204,6 +204,7 @@ function routeForSource(file) {
   }
   let searchState = 'idle';
   let renderedCount = 0;
+  let messageText = '';
   const renderedResults = {
     querySelectorAll: (selector) => {
       assert.equal(selector, ':scope > .pagefind-ui__result');
@@ -213,7 +214,7 @@ function routeForSource(file) {
   const resultsArea = {
     querySelector: (selector) => {
       if (selector === '.pagefind-ui__results') return searchState === 'complete' ? renderedResults : null;
-      if (selector === '.pagefind-ui__message') return searchState === 'loading' ? {} : null;
+      if (selector === '.pagefind-ui__message') return searchState === 'loading' ? {} : searchState === 'complete' ? { textContent: messageText } : null;
       return null;
     },
   };
@@ -267,6 +268,7 @@ function routeForSource(file) {
   assert.deepEqual(firstObserver.options, { childList: true, subtree: true, characterData: true });
 
   searchState = 'complete';
+  messageText = '11 results for x';
   renderedCount = 11;
   firstObserver.callback();
   assert.deepEqual(emitted, [], 'a stale completion before the current loading signal must be ignored');
@@ -286,6 +288,7 @@ function routeForSource(file) {
   searchState = 'loading';
   secondObserver.callback();
   searchState = 'complete';
+  messageText = '3 results for x';
   renderedCount = 3;
   secondObserver.callback();
   assert.deepEqual(emitted, [eventPayload('docs_search_results_presented', runtimeLocation, { count_bucket: '2-5' })]);
@@ -293,6 +296,28 @@ function routeForSource(file) {
   assert.equal(emitted.length, 1, 'completion mutations must be deduplicated');
   assert.equal(secondObserver.disconnected, true);
   assert.equal(timers.size, 0);
+
+  // Pagefind renders only the first page of results; the bucket must come from the total in its message.
+  const presentedBucket = (message, rendered) => {
+    emitted.length = 0;
+    searchState = 'loading';
+    listeners.get('input')({ target: searchTarget });
+    const observer = FakeMutationObserver.instances.at(-1);
+    observer.callback();
+    searchState = 'complete';
+    messageText = message;
+    renderedCount = rendered;
+    observer.callback();
+    assert.equal(observer.disconnected, true);
+    assert.equal(timers.size, 0);
+    return emitted.map(({ data }) => data.count_bucket);
+  };
+  assert.deepEqual(presentedBucket('52 results for deploy', 5), ['11+'], 'the total, not the rendered first page, sets the bucket');
+  assert.deepEqual(presentedBucket('1 result for x', 1), ['1']);
+  assert.deepEqual(presentedBucket('No results for x', 0), ['0']);
+  assert.deepEqual(presentedBucket('1,234 results for x', 5), ['11+']);
+  assert.deepEqual(presentedBucket('Résultats', 5), [], 'an unparseable total with rendered results must not emit');
+  emitted.length = 0;
 
   searchState = 'loading';
   listeners.get('input')({ target: searchTarget });

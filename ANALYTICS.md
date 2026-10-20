@@ -101,7 +101,8 @@ The closed custom events are:
 
 Search input values are never read. A bounded MutationObserver adapter waits for
 Pagefind's loading render and subsequent completed result-list render, then
-counts top-level result elements only. A newer input disconnects the prior
+buckets the total from Pagefind's result message (its leading integer only; zero
+when no result renders and the message has no number). A newer input disconnects the prior
 observer, a completed render disconnects before emission, and an incomplete
 render expires after ten seconds. This rejects stale out-of-order renders and
 deduplicates later mutations. An unknown route, send type, event, property,

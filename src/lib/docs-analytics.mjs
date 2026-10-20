@@ -359,8 +359,12 @@ export function installDocsAnalytics(windowLike, documentLike) {
         return;
       }
       if (!sawCurrentLoading) return;
-      const count = renderedResults.querySelectorAll?.(':scope > .pagefind-ui__result').length ?? 0;
-      const countBucket = searchResultCountBucket(count);
+      const rendered = renderedResults.querySelectorAll?.(':scope > .pagefind-ui__result').length ?? 0;
+      // Pagefind renders only the first page of results; its message carries the total ("52 results for …").
+      // Only the leading integer is read; the message's search term is never read or sent.
+      const total = /^\s*(\d[\d,]*)/.exec(resultsArea.querySelector?.('.pagefind-ui__message')?.textContent ?? '');
+      const count = total ? Number(total[1].replace(/,/g, '')) : rendered === 0 ? 0 : null;
+      const countBucket = count === null ? null : searchResultCountBucket(count);
       stopSearchObservation();
       if (countBucket) emit(eventPayload('docs_search_results_presented', windowLike.location, { count_bucket: countBucket }));
     });
