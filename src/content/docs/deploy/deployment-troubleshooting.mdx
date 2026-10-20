@@ -14,16 +14,15 @@ import PageMeta from '../../../components/PageMeta.astro';
 
 When a deployment fails, the fastest path to recovery is: **get the logs → identify the error → fix and redeploy**. This page walks through each step.
 
-## Step 1: Get the Build Logs
+## Step 1: Get the Logs
 
-Every deployment produces a build log. Always read it before guessing at a cause.
+Always read what Varity reports before guessing at a cause.
 
 ### From the CLI
 
-Re-run the deploy to stream its full output, or preview what would deploy first with `--dry-run`:
+`varitykit app deploy` prints no build output while it waits. When it finishes it prints the final status and a `varitykit app status <run id>` command; run that command to see the outcome of the run. To check what would deploy before shipping, use `--dry-run`:
 
 ```bash
-varitykit app deploy
 varitykit app deploy --dry-run   # preview without deploying
 ```
 
@@ -47,7 +46,7 @@ This calls `varity_deploy_logs`:
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `deployment_id` | string | Yes | The deployment ID from `varitykit app list` |
+| `deployment` | string | Yes | The deployment ID or app name, from `varitykit app list` |
 | `limit` | number | No | Max log lines (default 100) |
 
 <Aside type="tip" icon="approve-check">

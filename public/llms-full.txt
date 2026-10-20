@@ -4089,13 +4089,7 @@ View your deployment history:
 varitykit app list
 ```
 
-Output:
-```
-ID                  Status    URL                                Deployed
-deploy-1737491000   live      https://your-app.varity.app       2 hours ago
-deploy-1737484800   archived  https://your-app-v2.varity.app    1 day ago
-deploy-1737398400   archived  https://your-app-v1.varity.app    2 days ago
-```
+The table has the columns ID, Name, Status, Runtime, URL, Outcome, and Updated. In a narrow terminal (80 columns) only ID and Name fit, so widen the terminal or use `varitykit --json app list`.
 
 ### Recover a Known-Good Version
 
@@ -4106,7 +4100,7 @@ To recover after a bad deploy, redeploy a known-good version of your app. Check 
 Check the details of a specific deployment:
 
 ```bash
-varitykit app info deploy-1737491000
+varitykit app info my-app
 ```
 
 ### Check Deployment Status
@@ -4203,16 +4197,15 @@ Description: Diagnose failed Varity deployments with logs, common error patterns
 
 When a deployment fails, the fastest path to recovery is: **get the logs → identify the error → fix and redeploy**. This page walks through each step.
 
-## Step 1: Get the Build Logs
+## Step 1: Get the Logs
 
-Every deployment produces a build log. Always read it before guessing at a cause.
+Always read what Varity reports before guessing at a cause.
 
 ### From the CLI
 
-Re-run the deploy to stream its full output, or preview what would deploy first with `--dry-run`:
+`varitykit app deploy` prints no build output while it waits. When it finishes it prints the final status and a `varitykit app status <run id>` command; run that command to see the outcome of the run. To check what would deploy before shipping, use `--dry-run`:
 
 ```bash
-varitykit app deploy
 varitykit app deploy --dry-run   # preview without deploying
 ```
 
@@ -4236,7 +4229,7 @@ This calls `varity_deploy_logs`:
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `deployment_id` | string | Yes | The deployment ID from `varitykit app list` |
+| `deployment` | string | Yes | The deployment ID or app name, from `varitykit app list` |
 | `limit` | number | No | Max log lines (default 100) |
 
 Don't know the deployment ID? Run `varitykit app list` or call `varity_deploy_status` from your AI editor to see all deployments.
@@ -4776,7 +4769,7 @@ varitykit app list
 Inspect a specific deployment's details:
 
 ```bash
-varitykit app info deploy-1737491000
+varitykit app info my-app
 ```
 
 Check overall status:
@@ -6176,7 +6169,7 @@ Show me the runtime logs for my last Varity deployment
 
 **Estimate cost**
 ```
-How much would it cost to host this app with 1000 monthly users on Varity?
+How much does it cost to host this app on Varity?
 ```
 
 **Full build-to-deploy flow**
@@ -6205,7 +6198,7 @@ The Varity MCP server gives your AI editor a full set of tools. Here are the mos
 | `varity_redeploy` | "Redeploy this app in place" |
 | `varity_delete_deployment` | "Tear down this deployment" |
 | `varity_migrate` | "Migrate my Vercel app to Varity" |
-| `varity_cost_calculator` | "How much will this cost at 500 users?" |
+| `varity_cost_calculator` | "How much does the web-app profile cost?" |
 | `varity_list_templates` | "What templates can Varity deploy?" |
 | `varity_template_info` | "What does this template need?" |
 
@@ -7321,7 +7314,7 @@ Use the source that matches the workload:
 | Workload | Current source |
 | --- | --- |
 | Managed applications and static sites, plans, Free allowance, and top-ups | `GET https://varity.app/api/pricing` or the [Developer Portal](https://developer.store.varity.so/?utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=pricing-portal) quote shown before deploy |
-| Pre-deploy application estimate | `GET https://varity.app/api/pricing/estimate` or `varity_cost_calculator` |
+| Pre-deploy application estimate | `GET https://varity.app/api/pricing?profile=<profile>` (no key needed) or `varity_cost_calculator`. `GET https://varity.app/api/pricing/estimate` also works but needs your key |
 | CPU VM or GPU machine | `POST https://varity.app/api/pricing/machine-quote` |
 | AI Gateway request rates | `GET https://ai.varity.app/v1/models` |
 | Your plan, balance, and free allowance | The billing page of the Developer Portal (`GET https://varity.app/api/billing/account`) |
@@ -7641,7 +7634,7 @@ All without writing a single line of code yourself. Your AI editor writes the ap
 Install the following (one-time setup):
 
 1. **Cursor** or **Claude Code** (AI editor with MCP support)
-2. **Node.js 20+**: [download here](https://nodejs.org)
+2. **Node.js 22.11+**: [download here](https://nodejs.org)
 3. **Python 3.11+**: [download here](https://python.org)
 4. **Varity MCP**: install with:
 
@@ -7676,7 +7669,7 @@ That's it. No complex infrastructure setup.
 
    **Expected output:**
    ```
-   ✓ Node.js version: 20.0.0
+   ✓ Node.js version: 22.11.0
    ✓ npm version: 10.0.0
    ✓ varitykit CLI: installed
    ✓ All checks passed!
@@ -7827,7 +7820,7 @@ That's it. No complex infrastructure setup.
 - **Add more features:** "Add a clients page with name, email, and company fields"
 - **Customize the UI:** "Change the primary color to purple"
 - **View logs:** "Show me deployment logs" → `varity_deploy_logs`
-- **Scale up:** "How much would 5,000 users cost?" → `varity_cost_calculator`
+- **Check the price:** "How much does a web-app profile cost on Varity?" → `varity_cost_calculator`
 
 ## Advanced Prompts
 
@@ -7871,7 +7864,7 @@ varitykit doctor
 
 **"Cannot find module @varity-labs/mcp"**
 
-Verify Node.js 20+ is installed:
+Verify Node.js 22.11+ is installed:
 ```bash
 node --version
 ```

@@ -33,7 +33,7 @@ All without writing a single line of code yourself. Your AI editor writes the ap
 Install the following (one-time setup):
 
 1. **Cursor** or **Claude Code** (AI editor with MCP support)
-2. **Node.js 20+**: [download here](https://nodejs.org)
+2. **Node.js 22.11+**: [download here](https://nodejs.org)
 3. **Python 3.11+**: [download here](https://python.org)
 4. **Varity MCP**: install with:
 
@@ -70,7 +70,7 @@ That's it. No complex infrastructure setup.
 
    **Expected output:**
    ```
-   ✓ Node.js version: 20.0.0
+   ✓ Node.js version: 22.11.0
    ✓ npm version: 10.0.0
    ✓ varitykit CLI: installed
    ✓ All checks passed!
@@ -223,7 +223,7 @@ That's it. No complex infrastructure setup.
 - **Add more features:** "Add a clients page with name, email, and company fields"
 - **Customize the UI:** "Change the primary color to purple"
 - **View logs:** "Show me deployment logs" → `varity_deploy_logs`
-- **Scale up:** "How much would 5,000 users cost?" → `varity_cost_calculator`
+- **Check the price:** "How much does a web-app profile cost on Varity?" → `varity_cost_calculator`
 
 ## Advanced Prompts
 
@@ -267,7 +267,7 @@ varitykit doctor
 
 **"Cannot find module @varity-labs/mcp"**
 
-Verify Node.js 20+ is installed:
+Verify Node.js 22.11+ is installed:
 ```bash
 node --version
 ```
