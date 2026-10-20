@@ -1934,7 +1934,7 @@ The live OpenAPI document at `https://varity.app/api/openapi.json` defines **34 
 | `GET` | `/api/pricing/estimate` | Estimate fixed monthly cost |
 | `POST` | `/api/pricing/accelerator-quote` | GPU container quote; returns `409 capability_disabled` while GPU containers are unavailable |
 | `POST` | `/api/pricing/machine-quote` | Exact machine quote |
-| `GET` | `/api/credits` | Read balance and deploy eligibility |
+| `GET` | `/api/credits` | Read your USD balance and deploy eligibility |
 
 ### Templates
 
@@ -2001,7 +2001,7 @@ moves ahead of the reference's release marker.
 
 ## Prerequisites
 
-- **Node.js 18 or newer**, as required by the package currently published to npm
+- **Node.js 22.11 or newer**, as required by the package currently published to npm
 - **Python 3.11 or newer** for the current `varitykit` CLI
 - **varitykit**, installed with `pipx install varitykit`
 
@@ -2687,7 +2687,7 @@ You need a deploy key from the Varity developer portal:
    varitykit login
    ```
 
-   The CLI will open the settings page in your browser automatically. Paste the key when prompted (input is hidden for security).
+   In an interactive terminal the CLI opens the settings page in your browser and asks you to paste the key (input is hidden for security). In CI or any non-interactive shell, pass the key instead: `varitykit login --key <key>`.
 
 4. **Verify you are logged in**
 
@@ -2722,8 +2722,8 @@ Example output:
 
   Deploy key saved securely.
   Logged in successfully!
-  Configured: deploy key, gateway key, database credentials
-  Your domains are now protected. Run 'varitykit app deploy' to deploy.
+  Configured: deploy key
+  Run 'varitykit app deploy' to deploy.
 ```
 
 If you are already logged in, the CLI will show your current key (masked) and ask if you want to replace it.
@@ -2849,8 +2849,8 @@ varitykit app deploy
 - Global CDN distribution
 - Permanent deployment URLs
 - Automatic SSL
-- Current eligibility and price come from the live pricing response shown
-  before confirmation; see [Pricing and Costs](/resources/pricing/)
+- The CLI does not show a price or ask for confirmation before it deploys.
+  Check the current price first in [Pricing and Costs](/resources/pricing/)
 
 ### Dynamic Apps
 
@@ -2892,8 +2892,8 @@ Dynamic hosting is powered by cloud compute. `--hosting` defaults to `auto`, whi
 | `--image-registry` | None | Registry host for a private `--image` |
 | `--image-username` | None | Username for a private `--image` |
 | `--image-password` | None | Password or secret value for a private `--image` |
-| `--port` | `80` | Port your dynamic app listens on |
-| `--dry-run` | `false` | Preview the deployment without shipping (not compatible with `--image`) |
+| `--port` | `80` | Container listen port for an `--image` deploy only |
+| `--dry-run` | `false` | Preview the deployment without shipping (not compatible with `--image` or `--template`) |
 
 ## Basic Deployment
 
@@ -2912,15 +2912,17 @@ Dynamic hosting is powered by cloud compute. `--hosting` defaults to `auto`, whi
 3. **View your live app**
 
    ```
-   ✓ Build complete
-   ✓ Deployed successfully
-   ✓ Registered on Varity
+   Deploying via Varity…
+     Run: 3f2a9c1e-7b4d-4e8a-9c21-5d6e7f8a9b0c
 
-   Your app is live at:
-   https://varity.app/your-app/
-
-   Deployment ID: deploy-1737492000
+   ✓ Live: https://varity.app/your-app/
+   Run: 3f2a9c1e-7b4d-4e8a-9c21-5d6e7f8a9b0c
+   Final status: live
+   Continue: varitykit app status 3f2a9c1e-7b4d-4e8a-9c21-5d6e7f8a9b0c
    ```
+
+   The command waits until the app is live. A dynamic app can take a few
+   minutes, and the CLI prints no progress while it waits.
 
 Static apps live at a path: `https://varity.app/<name>/`. Dynamic apps get their own subdomain: `https://<name>.varity.app/` (the apex path redirects to the subdomain).
 
@@ -2950,12 +2952,9 @@ varitykit app list
 
 Output:
 
-```
-Name       | Type    | URL                          | Deployed
------------|---------|------------------------------|-----------------
-your-app   | static  | https://varity.app/your-app/ | 2026-09-06 12:00
-my-api     | dynamic | https://my-api.varity.app/   | 2026-09-05 18:30
-```
+The table has the columns ID, Name, Status, Runtime, URL, Outcome, and
+Updated. In a narrow terminal (80 columns) only ID and Name fit, so widen the
+terminal or use JSON output.
 
 Pass the global `--json` flag (`varitykit --json app list`) for machine-readable output.
 
@@ -2997,17 +2996,6 @@ varitykit app delete my-app --yes
    ```
 
 2. Check your internet connection and try again
-
-After deployment, a manifest file is created:
-
-```json title=".varity/deploy-1737492000.json"
-{
-  "deployment_id": "deploy-1737492000",
-  "timestamp": "2026-01-28T12:00:00Z",
-  "hosting": "static",
-  "url": "https://varity.app/your-app/"
-}
-```
 
 ## Next Steps
 
@@ -3181,7 +3169,7 @@ VarityKit is a Python-based CLI that helps you deploy and manage applications. I
     Move an existing Vercel app to Varity in one step: analyze, transform, and deploy.
   
   
-    List deployments, view status and logs, and redeploy a known-good version when needed.
+    List deployments, view status and runtime logs, and redeploy or restart an app on the same URL.
   
   
     Run diagnostics to ensure your development environment is ready.
@@ -3219,7 +3207,7 @@ VarityKit is a Python-based CLI that helps you deploy and manage applications. I
 | `varitykit app env NAME KEY=VALUE...` | Set environment variables on a live app, then redeploy in place (`--replace` overwrites the set) |
 | `varitykit app redeploy NAME` | Reapply the saved configuration on the same URL |
 | `varitykit app restart NAME` | Restart with a verified replacement on the same URL |
-| `varitykit app rollback DEPLOYMENT_ID` | Redeploy an earlier configuration (`--confirm` skips the prompt) |
+| `varitykit app logs NAME` | Show the runtime logs of a dynamic app (static sites have no runtime logs) |
 
 ### Migration (Vercel → Varity)
 
@@ -3260,7 +3248,7 @@ varitykit app deploy --hosting static
 
 ## Global Options
 
-All commands support these global options:
+These global options go before the command:
 
 ```bash
 varitykit [OPTIONS] COMMAND [ARGS]...
@@ -3272,6 +3260,9 @@ Options:
   --json           Output in JSON format
   --help           Show help message
 ```
+
+`--json` is not honoured by every command yet: `varitykit --json app list`
+prints JSON, but `varitykit --json app status` still prints a formatted panel.
 
 ## Requirements
 
@@ -4098,13 +4089,7 @@ View your deployment history:
 varitykit app list
 ```
 
-Output:
-```
-ID                  Status    URL                                Deployed
-deploy-1737491000   live      https://your-app.varity.app       2 hours ago
-deploy-1737484800   archived  https://your-app-v2.varity.app    1 day ago
-deploy-1737398400   archived  https://your-app-v1.varity.app    2 days ago
-```
+The table has the columns ID, Name, Status, Runtime, URL, Outcome, and Updated. In a narrow terminal (80 columns) only ID and Name fit, so widen the terminal or use `varitykit --json app list`.
 
 ### Recover a Known-Good Version
 
@@ -4115,7 +4100,7 @@ To recover after a bad deploy, redeploy a known-good version of your app. Check 
 Check the details of a specific deployment:
 
 ```bash
-varitykit app info deploy-1737491000
+varitykit app info my-app
 ```
 
 ### Check Deployment Status
@@ -4212,25 +4197,24 @@ Description: Diagnose failed Varity deployments with logs, common error patterns
 
 When a deployment fails, the fastest path to recovery is: **get the logs → identify the error → fix and redeploy**. This page walks through each step.
 
-## Step 1: Get the Build Logs
+## Step 1: Get the Logs
 
-Every deployment produces a build log. Always read it before guessing at a cause.
+Always read what Varity reports before guessing at a cause.
 
 ### From the CLI
 
-Re-run the deploy to stream its full output, or preview what would deploy first with `--dry-run`:
+`varitykit app deploy` prints no build output while it waits. When it finishes it prints the final status and a `varitykit app status <run id>` command; run that command to see the outcome of the run. To check what would deploy before shipping, use `--dry-run`:
 
 ```bash
-varitykit app deploy
 varitykit app deploy --dry-run   # preview without deploying
 ```
 
 ### From a past deployment
 
-If the deployment already ran, retrieve its logs by ID:
+If the app is running, read its runtime logs by name:
 
 ```bash
-varitykit app info deploy-1737492000
+varitykit app logs my-app
 ```
 
 ### From the MCP server
@@ -4238,14 +4222,14 @@ varitykit app info deploy-1737492000
 If you're in an AI editor with the [Varity MCP server](/ai-tools/mcp-server-spec) connected:
 
 ```
-"Show me the build logs for deploy-1737492000"
+"Show me the runtime logs for my-app"
 ```
 
 This calls `varity_deploy_logs`:
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `deployment_id` | string | Yes | The deployment ID from `varitykit app list` |
+| `deployment` | string | Yes | The deployment ID or app name, from `varitykit app list` |
 | `limit` | number | No | Max log lines (default 100) |
 
 Don't know the deployment ID? Run `varitykit app list` or call `varity_deploy_status` from your AI editor to see all deployments.
@@ -4344,7 +4328,7 @@ Compute was reserved but the container exited immediately after launch.
 **Get more detail from logs:**
 
 ```bash
-varitykit app info deploy-1737492000
+varitykit app info my-app
 ```
 
 Or via MCP: `varity_deploy_logs` with `limit: 200` for more context.
@@ -4744,7 +4728,7 @@ Description: Recover after a bad Varity deploy by redeploying a known-good versi
 
 If a deployment breaks your app, the way to recover today is to **redeploy a known-good version of your app**. This guide covers the recovery flow and what to watch out for.
 
-**Rollback ships in the CLI: `varitykit app rollback <deployment_id> --confirm` redeploys from the stored deployment config.** There is no shipped "restore the previous live deployment" button. To recover, redeploy a working version as described below.
+**There is no rollback command and no "restore the previous live deployment" button today.** To recover, redeploy a working version as described below.
 
 ## Recover by Redeploying a Known-Good Version
 
@@ -4785,7 +4769,7 @@ varitykit app list
 Inspect a specific deployment's details:
 
 ```bash
-varitykit app info deploy-1737491000
+varitykit app info my-app
 ```
 
 Check overall status:
@@ -5483,7 +5467,7 @@ The MCP server connects Varity to your AI coding tool. It gives you a full set o
     Restart Claude Code after running this command. You will see Varity tools available in your session.
   
   
-    Add the following to your Cursor MCP config file (`~/.cursor/mcp.json`):
+    Add the following to `.cursor/mcp.json` in your project:
 
     ```json
     {
@@ -5511,7 +5495,9 @@ The MCP server connects Varity to your AI coding tool. It gives you a full set o
     Refer to your AI tool's documentation for how to add MCP servers.
   
 
-Once the MCP server is installed, you do not need to add any code to your app to deploy it. The MCP handles the full deploy flow automatically.
+Once the MCP server is installed, you do not need to add any code to your app to deploy it. Varity builds from your project's GitHub repository, so push the project to GitHub first (the MCP can do this with `varity_create_repo`).
+
+The MCP server needs Node.js 22.11 or later.
 
 ### Verify MCP installation
 
@@ -5561,12 +5547,12 @@ The CLI is a Python package called `varitykit`. If you are a JavaScript develope
    varitykit doctor
    ```
 
-   You should see all checks passing.
+   You should see all checks passing. The doctor also checks free disk space and fails below 5 GB.
 
 3. **Log in**
 
    ```bash
-   varitykit login
+   varitykit auth login
    ```
 
    This opens the developer portal in your browser. Copy your deploy key and paste it back into the terminal when prompted.
@@ -5607,7 +5593,7 @@ pipx install varitykit
 
 ### Node.js version errors
 
-Varity requires Node.js 20 or later. Check your version:
+The MCP server needs Node.js 22.11 or later. The CLI needs Node.js 20 or later to build JavaScript projects. Check your version:
 
 ```bash
 node --version
@@ -6086,7 +6072,7 @@ Works with Claude Code, Cursor, Windsurf, VS Code (Copilot), and any other edito
     You should see `varity` in the list.
   
   
-    Create `.cursor/mcp.json` in your project root (or your home directory for a global install):
+    Create `.cursor/mcp.json` in your project root:
 
     ```json
     {
@@ -6132,7 +6118,7 @@ Works with Claude Code, Cursor, Windsurf, VS Code (Copilot), and any other edito
     ```
   
 
-Node.js 20 or later and Python 3.11 or later are required. If you do not have `varitykit` installed, your AI editor will prompt you to install it: `pipx install varitykit`.
+Node.js 22.11 or later and Python 3.11 or later are required. If you do not have `varitykit` installed, your AI editor will prompt you to install it: `pipx install varitykit`.
 
 ## Deploy with one prompt
 
@@ -6142,7 +6128,7 @@ Once the MCP server is installed, type this in your AI editor:
 Deploy this project to Varity
 ```
 
-Your AI editor calls `varity_build` and `varity_deploy` in sequence and returns the live URL.
+Your AI editor calls `varity_build` and `varity_deploy` in sequence and returns the live URL. Varity builds from the project's GitHub repository, so the project needs a GitHub `origin`. Without one, the deploy stops with `NO_DEPLOY_SOURCE`; ask your AI editor to push the project with `varity_create_repo` (this needs the GitHub CLI signed in or a `GITHUB_TOKEN`).
 
 For a brand new project, ask your AI editor to build the app first, then deploy it:
 
@@ -6176,14 +6162,14 @@ Build my project and deploy it to Varity. Show me the live URL when done.
 Show me the status of my Varity deployments
 ```
 
-**Debug a failed deploy**
+**Debug a running app**
 ```
-Show me the build logs for my last Varity deployment
+Show me the runtime logs for my last Varity deployment
 ```
 
 **Estimate cost**
 ```
-How much would it cost to host this app with 1000 monthly users on Varity?
+How much does it cost to host this app on Varity?
 ```
 
 **Full build-to-deploy flow**
@@ -6207,18 +6193,14 @@ The Varity MCP server gives your AI editor a full set of tools. Here are the mos
 | `varity_create_repo` | "Create a GitHub repo and push this project" |
 | `varity_deploy` | "Deploy this to Varity" |
 | `varity_deploy_status` | "Show me my deployment status" |
-| `varity_deploy_logs` | "Show me the build logs" |
-| `varity_set_env` | "Set environment variables on this app" |
+| `varity_deploy_logs` | "Show me the runtime logs" (dynamic apps only; static sites have no runtime logs) |
+| `varity_set_env` | Does not accept values; it points you to a secret-safe way to set them |
 | `varity_redeploy` | "Redeploy this app in place" |
 | `varity_delete_deployment` | "Tear down this deployment" |
 | `varity_migrate` | "Migrate my Vercel app to Varity" |
-| `varity_cost_calculator` | "How much will this cost at 500 users?" |
+| `varity_cost_calculator` | "How much does the web-app profile cost?" |
 | `varity_list_templates` | "What templates can Varity deploy?" |
-| `varity_template_info` | "What does the Agent Zero template need?" |
-| `varity_deploy_template` | "Deploy Agent Zero with these environment variables" |
-| `varity_list_agents` | "What agent templates can Varity deploy?" |
-| `varity_agent_info` | "What does the Agent Zero template need?" |
-| `varity_deploy_agent` | "Deploy Agent Zero" |
+| `varity_template_info` | "What does this template need?" |
 
 Full reference at [MCP Server Spec](/ai-tools/mcp-server-spec).
 
@@ -6232,7 +6214,7 @@ For Claude Code, add this to your project's `CLAUDE.md`:
 This project deploys to Varity. Use the Varity MCP server tools:
 - Deploy: ask "Deploy this project to Varity"
 - Check status: ask "Show me my Varity deployment status"
-- Logs: ask "Show me the build logs for my last deployment"
+- Logs: ask "Show me the runtime logs for my last deployment"
 ```
 
 For Cursor, save this as `.cursor/rules/varity.mdc`:
@@ -6553,7 +6535,7 @@ These are the relevant MCP tools for a Next.js deploy workflow:
 | `varity_build` | Builds for production |
 | `varity_deploy` | Deploys and returns the live URL |
 | `varity_deploy_status` | Lists deployments with status and URL |
-| `varity_deploy_logs` | Gets build logs for debugging |
+| `varity_deploy_logs` | Gets runtime logs of a running app for debugging |
 
 Copy-paste prompts for each step:
 
@@ -7230,7 +7212,7 @@ varitykit auth login
 ### Deployment
 
 A specific version of your app that is live on Varity infrastructure. Each deployment has:
-- A unique ID (e.g., `deploy-1737492000`)
+- A unique ID (e.g., `3f2a9c1e-7b4d-4e8a-9c21-5d6e7f8a9b0c`)
 - A status (live or archived)
 - A public URL
 
@@ -7239,7 +7221,7 @@ A specific version of your app that is live on Varity infrastructure. Each deplo
 A unique identifier for each deployment:
 
 ```
-deploy-1737492000
+3f2a9c1e-7b4d-4e8a-9c21-5d6e7f8a9b0c
 ```
 
 Use this to track or reference specific versions.
@@ -7332,7 +7314,7 @@ Use the source that matches the workload:
 | Workload | Current source |
 | --- | --- |
 | Managed applications and static sites, plans, Free allowance, and top-ups | `GET https://varity.app/api/pricing` or the [Developer Portal](https://developer.store.varity.so/?utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=pricing-portal) quote shown before deploy |
-| Pre-deploy application estimate | `GET https://varity.app/api/pricing/estimate` or `varity_cost_calculator` |
+| Pre-deploy application estimate | `GET https://varity.app/api/pricing?profile=<profile>` (no key needed) or `varity_cost_calculator`. `GET https://varity.app/api/pricing/estimate` also works but needs your key |
 | CPU VM or GPU machine | `POST https://varity.app/api/pricing/machine-quote` |
 | AI Gateway request rates | `GET https://ai.varity.app/v1/models` |
 | Your plan, balance, and free allowance | The billing page of the Developer Portal (`GET https://varity.app/api/billing/account`) |
@@ -7652,7 +7634,7 @@ All without writing a single line of code yourself. Your AI editor writes the ap
 Install the following (one-time setup):
 
 1. **Cursor** or **Claude Code** (AI editor with MCP support)
-2. **Node.js 20+**: [download here](https://nodejs.org)
+2. **Node.js 22.11+**: [download here](https://nodejs.org)
 3. **Python 3.11+**: [download here](https://python.org)
 4. **Varity MCP**: install with:
 
@@ -7687,7 +7669,7 @@ That's it. No complex infrastructure setup.
 
    **Expected output:**
    ```
-   ✓ Node.js version: 20.0.0
+   ✓ Node.js version: 22.11.0
    ✓ npm version: 10.0.0
    ✓ varitykit CLI: installed
    ✓ All checks passed!
@@ -7838,7 +7820,7 @@ That's it. No complex infrastructure setup.
 - **Add more features:** "Add a clients page with name, email, and company fields"
 - **Customize the UI:** "Change the primary color to purple"
 - **View logs:** "Show me deployment logs" → `varity_deploy_logs`
-- **Scale up:** "How much would 5,000 users cost?" → `varity_cost_calculator`
+- **Check the price:** "How much does a web-app profile cost on Varity?" → `varity_cost_calculator`
 
 ## Advanced Prompts
 
@@ -7882,7 +7864,7 @@ varitykit doctor
 
 **"Cannot find module @varity-labs/mcp"**
 
-Verify Node.js 20+ is installed:
+Verify Node.js 22.11+ is installed:
 ```bash
 node --version
 ```
@@ -7894,7 +7876,7 @@ Restart Cursor after adding `.cursor/mcp.json`. Verify the JSON is valid.
 **Deploy fails**
 
 Ask the AI:
-> "Show me the build logs for my last deployment"
+> "Show me the runtime logs for my last deployment"
 
 The AI runs `varity_deploy_logs` to debug.
 

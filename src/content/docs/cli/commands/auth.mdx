@@ -46,7 +46,7 @@ You need a deploy key from the Varity developer portal:
    varitykit login
    ```
 
-   The CLI will open the settings page in your browser automatically. Paste the key when prompted (input is hidden for security).
+   In an interactive terminal the CLI opens the settings page in your browser and asks you to paste the key (input is hidden for security). In CI or any non-interactive shell, pass the key instead: `varitykit login --key <key>`.
 
 4. **Verify you are logged in**
 
@@ -83,8 +83,8 @@ Example output:
 
   Deploy key saved securely.
   Logged in successfully!
-  Configured: deploy key, gateway key, database credentials
-  Your domains are now protected. Run 'varitykit app deploy' to deploy.
+  Configured: deploy key
+  Run 'varitykit app deploy' to deploy.
 ```
 
 If you are already logged in, the CLI will show your current key (masked) and ask if you want to replace it.

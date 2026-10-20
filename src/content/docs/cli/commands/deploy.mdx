@@ -4,7 +4,6 @@ description: "Deploy static sites and dynamic apps with varitykit app deploy. Su
 ---
 
 import { Tabs, TabItem, Steps, Aside } from '@astrojs/starlight/components';
-import Accordion from '../../../../components/Accordion.astro';
 import PageMeta from '../../../../components/PageMeta.astro';
 
 <PageMeta
@@ -41,8 +40,8 @@ varitykit app deploy
 - Global CDN distribution
 - Permanent deployment URLs
 - Automatic SSL
-- Current eligibility and price come from the live pricing response shown
-  before confirmation; see [Pricing and Costs](/resources/pricing/)
+- The CLI does not show a price or ask for confirmation before it deploys.
+  Check the current price first in [Pricing and Costs](/resources/pricing/)
 
 ### Dynamic Apps
 
@@ -86,8 +85,8 @@ Dynamic hosting is powered by cloud compute. `--hosting` defaults to `auto`, whi
 | `--image-registry` | None | Registry host for a private `--image` |
 | `--image-username` | None | Username for a private `--image` |
 | `--image-password` | None | Password or secret value for a private `--image` |
-| `--port` | `80` | Port your dynamic app listens on |
-| `--dry-run` | `false` | Preview the deployment without shipping (not compatible with `--image`) |
+| `--port` | `80` | Container listen port for an `--image` deploy only |
+| `--dry-run` | `false` | Preview the deployment without shipping (not compatible with `--image` or `--template`) |
 
 ## Basic Deployment
 
@@ -108,15 +107,17 @@ Dynamic hosting is powered by cloud compute. `--hosting` defaults to `auto`, whi
 3. **View your live app**
 
    ```
-   ✓ Build complete
-   ✓ Deployed successfully
-   ✓ Registered on Varity
+   Deploying via Varity…
+     Run: 3f2a9c1e-7b4d-4e8a-9c21-5d6e7f8a9b0c
 
-   Your app is live at:
-   https://varity.app/your-app/
-
-   Deployment ID: deploy-1737492000
+   ✓ Live: https://varity.app/your-app/
+   Run: 3f2a9c1e-7b4d-4e8a-9c21-5d6e7f8a9b0c
+   Final status: live
+   Continue: varitykit app status 3f2a9c1e-7b4d-4e8a-9c21-5d6e7f8a9b0c
    ```
+
+   The command waits until the app is live. A dynamic app can take a few
+   minutes, and the CLI prints no progress while it waits.
 
 </Steps>
 
@@ -150,12 +151,9 @@ varitykit app list
 
 Output:
 
-```
-Name       | Type    | URL                          | Deployed
------------|---------|------------------------------|-----------------
-your-app   | static  | https://varity.app/your-app/ | 2026-09-06 12:00
-my-api     | dynamic | https://my-api.varity.app/   | 2026-09-05 18:30
-```
+The table has the columns ID, Name, Status, Runtime, URL, Outcome, and
+Updated. In a narrow terminal (80 columns) only ID and Name fit, so widen the
+terminal or use JSON output.
 
 Pass the global `--json` flag (`varitykit --json app list`) for machine-readable output.
 
@@ -197,21 +195,6 @@ varitykit app delete my-app --yes
    ```
 
 2. Check your internet connection and try again
-
-<Accordion title="Advanced: Deployment Manifest">
-
-After deployment, a manifest file is created:
-
-```json title=".varity/deploy-1737492000.json"
-{
-  "deployment_id": "deploy-1737492000",
-  "timestamp": "2026-01-28T12:00:00Z",
-  "hosting": "static",
-  "url": "https://varity.app/your-app/"
-}
-```
-
-</Accordion>
 
 ## Next Steps
 

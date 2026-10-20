@@ -36,7 +36,7 @@ The MCP server connects Varity to your AI coding tool. It gives you a full set o
     Restart Claude Code after running this command. You will see Varity tools available in your session.
   </TabItem>
   <TabItem label="Cursor">
-    Add the following to your Cursor MCP config file (`~/.cursor/mcp.json`):
+    Add the following to `.cursor/mcp.json` in your project:
 
     ```json
     {
@@ -66,8 +66,10 @@ The MCP server connects Varity to your AI coding tool. It gives you a full set o
 </Tabs>
 
 <Aside type="tip" icon="approve-check">
-Once the MCP server is installed, you do not need to add any code to your app to deploy it. The MCP handles the full deploy flow automatically.
+Once the MCP server is installed, you do not need to add any code to your app to deploy it. Varity builds from your project's GitHub repository, so push the project to GitHub first (the MCP can do this with `varity_create_repo`).
 </Aside>
+
+The MCP server needs Node.js 22.11 or later.
 
 ### Verify MCP installation
 
@@ -119,12 +121,12 @@ The CLI is a Python package called `varitykit`. If you are a JavaScript develope
    varitykit doctor
    ```
 
-   You should see all checks passing.
+   You should see all checks passing. The doctor also checks free disk space and fails below 5 GB.
 
 3. **Log in**
 
    ```bash
-   varitykit login
+   varitykit auth login
    ```
 
    This opens the developer portal in your browser. Copy your deploy key and paste it back into the terminal when prompted.
@@ -169,7 +171,7 @@ pipx install varitykit
 
 ### Node.js version errors
 
-Varity requires Node.js 20 or later. Check your version:
+The MCP server needs Node.js 22.11 or later. The CLI needs Node.js 20 or later to build JavaScript projects. Check your version:
 
 ```bash
 node --version

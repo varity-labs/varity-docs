@@ -28,7 +28,7 @@ Use the source that matches the workload:
 | Workload | Current source |
 | --- | --- |
 | Managed applications and static sites, plans, Free allowance, and top-ups | `GET https://varity.app/api/pricing` or the [Developer Portal](https://developer.store.varity.so/?utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=pricing-portal) quote shown before deploy |
-| Pre-deploy application estimate | `GET https://varity.app/api/pricing/estimate` or `varity_cost_calculator` |
+| Pre-deploy application estimate | `GET https://varity.app/api/pricing?profile=<profile>` (no key needed) or `varity_cost_calculator`. `GET https://varity.app/api/pricing/estimate` also works but needs your key |
 | CPU VM or GPU machine | `POST https://varity.app/api/pricing/machine-quote` |
 | AI Gateway request rates | `GET https://ai.varity.app/v1/models` |
 | Your plan, balance, and free allowance | The billing page of the Developer Portal (`GET https://varity.app/api/billing/account`) |
