@@ -101,7 +101,8 @@ The closed custom events are:
 
 Search input values are never read. A bounded MutationObserver adapter waits for
 Pagefind's loading render and subsequent completed result-list render, then
-counts top-level result elements only. A newer input disconnects the prior
+buckets the total from Pagefind's result message (its leading integer only; zero
+when no result renders and the message has no number). A newer input disconnects the prior
 observer, a completed render disconnects before emission, and an incomplete
 render expires after ten seconds. This rejects stale out-of-order renders and
 deduplicates later mutations. An unknown route, send type, event, property,
@@ -122,22 +123,23 @@ an ungoverned link is added.
 ## Saved reports for the fenced account writer
 
 These reports answer browser questions only. They are not configured by this
-repository:
+repository. The docs property holds exactly these four:
 
 1. **Docs acquisition (UTM):** hostname `docs.varity.so`; break down the four
    accepted UTM dimensions; label the result attributed browser arrivals.
 2. **Docs content:** native pageviews by sanitized path and title key, with the
    `category:*` tag breakdown.
-3. **Search usefulness:**
-   `docs_search_results_presented -> docs_cta_click | docs_portal_handoff`,
-   broken down by `count_bucket`; label counts as browser attempts.
+3. **Search usefulness:** two same-property funnels,
+   `docs_search_results_presented -> docs_cta_click` and
+   `docs_search_results_presented -> docs_portal_handoff`; label counts as
+   browser attempts. Funnels cannot be broken down by `count_bucket`; read it
+   from the `docs_search_results_presented` event properties.
 4. **Portal handoff goal:** event `docs_portal_handoff`, broken down by
    `page`, `category`, and `handoff`.
-5. **Docs journey:** native pageview -> optional CTA/search event ->
-   `docs_portal_handoff`; never extend it to browser `deploy_success` as proof
-   of an accepted, healthy, paying, or retained deployment.
-6. **Returning-browser retention:** canonical hostname only, with mature cohort
-   denominators stated for each interval.
+
+There is no saved journey or retention report. Never extend a browser report to
+`deploy_success` as proof of an accepted, healthy, paying, or retained
+deployment.
 
 Any saved report must include the exact hostname fence and must preserve the
 event/property names above. Recorder, replay, and heatmap remain disabled.
