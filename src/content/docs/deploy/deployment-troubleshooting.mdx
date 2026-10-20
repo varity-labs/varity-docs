@@ -29,10 +29,10 @@ varitykit app deploy --dry-run   # preview without deploying
 
 ### From a past deployment
 
-If the deployment already ran, retrieve its logs by ID:
+If the app is running, read its runtime logs by name:
 
 ```bash
-varitykit app info deploy-1737492000
+varitykit app logs my-app
 ```
 
 ### From the MCP server
@@ -40,7 +40,7 @@ varitykit app info deploy-1737492000
 If you're in an AI editor with the [Varity MCP server](/ai-tools/mcp-server-spec) connected:
 
 ```
-"Show me the build logs for deploy-1737492000"
+"Show me the runtime logs for my-app"
 ```
 
 This calls `varity_deploy_logs`:
@@ -152,7 +152,7 @@ Compute was reserved but the container exited immediately after launch.
 **Get more detail from logs:**
 
 ```bash
-varitykit app info deploy-1737492000
+varitykit app info my-app
 ```
 
 Or via MCP: `varity_deploy_logs` with `limit: 200` for more context.

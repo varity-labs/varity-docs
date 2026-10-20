@@ -24,7 +24,7 @@ VarityKit is a Python-based CLI that helps you deploy and manage applications. I
     Move an existing Vercel app to Varity in one step: analyze, transform, and deploy.
   </Card>
   <Card title="Manage Deployments" icon="list-format">
-    List deployments, view status and logs, and redeploy a known-good version when needed.
+    List deployments, view status and runtime logs, and redeploy or restart an app on the same URL.
   </Card>
   <Card title="Validate Setup" icon="approve-check">
     Run diagnostics to ensure your development environment is ready.
@@ -63,7 +63,7 @@ VarityKit is a Python-based CLI that helps you deploy and manage applications. I
 | `varitykit app env NAME KEY=VALUE...` | Set environment variables on a live app, then redeploy in place (`--replace` overwrites the set) |
 | `varitykit app redeploy NAME` | Reapply the saved configuration on the same URL |
 | `varitykit app restart NAME` | Restart with a verified replacement on the same URL |
-| `varitykit app rollback DEPLOYMENT_ID` | Redeploy an earlier configuration (`--confirm` skips the prompt) |
+| `varitykit app logs NAME` | Show the runtime logs of a dynamic app (static sites have no runtime logs) |
 
 ### Migration (Vercel → Varity)
 
@@ -104,7 +104,7 @@ varitykit app deploy --hosting static
 
 ## Global Options
 
-All commands support these global options:
+These global options go before the command:
 
 ```bash
 varitykit [OPTIONS] COMMAND [ARGS]...
@@ -116,6 +116,9 @@ Options:
   --json           Output in JSON format
   --help           Show help message
 ```
+
+`--json` is not honoured by every command yet: `varitykit --json app list`
+prints JSON, but `varitykit --json app status` still prints a formatted panel.
 
 ## Requirements
 

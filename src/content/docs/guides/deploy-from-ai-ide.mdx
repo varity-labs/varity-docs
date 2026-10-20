@@ -35,7 +35,7 @@ Works with Claude Code, Cursor, Windsurf, VS Code (Copilot), and any other edito
     You should see `varity` in the list.
   </TabItem>
   <TabItem label="Cursor">
-    Create `.cursor/mcp.json` in your project root (or your home directory for a global install):
+    Create `.cursor/mcp.json` in your project root:
 
     ```json
     {
@@ -83,7 +83,7 @@ Works with Claude Code, Cursor, Windsurf, VS Code (Copilot), and any other edito
 </Tabs>
 
 <Aside type="note">
-Node.js 20 or later and Python 3.11 or later are required. If you do not have `varitykit` installed, your AI editor will prompt you to install it: `pipx install varitykit`.
+Node.js 22.11 or later and Python 3.11 or later are required. If you do not have `varitykit` installed, your AI editor will prompt you to install it: `pipx install varitykit`.
 </Aside>
 
 ## Deploy with one prompt
@@ -94,7 +94,7 @@ Once the MCP server is installed, type this in your AI editor:
 Deploy this project to Varity
 ```
 
-Your AI editor calls `varity_build` and `varity_deploy` in sequence and returns the live URL.
+Your AI editor calls `varity_build` and `varity_deploy` in sequence and returns the live URL. Varity builds from the project's GitHub repository, so the project needs a GitHub `origin`. Without one, the deploy stops with `NO_DEPLOY_SOURCE`; ask your AI editor to push the project with `varity_create_repo` (this needs the GitHub CLI signed in or a `GITHUB_TOKEN`).
 
 For a brand new project, ask your AI editor to build the app first, then deploy it:
 
@@ -128,9 +128,9 @@ Build my project and deploy it to Varity. Show me the live URL when done.
 Show me the status of my Varity deployments
 ```
 
-**Debug a failed deploy**
+**Debug a running app**
 ```
-Show me the build logs for my last Varity deployment
+Show me the runtime logs for my last Varity deployment
 ```
 
 **Estimate cost**
@@ -159,18 +159,14 @@ The Varity MCP server gives your AI editor a full set of tools. Here are the mos
 | `varity_create_repo` | "Create a GitHub repo and push this project" |
 | `varity_deploy` | "Deploy this to Varity" |
 | `varity_deploy_status` | "Show me my deployment status" |
-| `varity_deploy_logs` | "Show me the build logs" |
-| `varity_set_env` | "Set environment variables on this app" |
+| `varity_deploy_logs` | "Show me the runtime logs" (dynamic apps only; static sites have no runtime logs) |
+| `varity_set_env` | Does not accept values; it points you to a secret-safe way to set them |
 | `varity_redeploy` | "Redeploy this app in place" |
 | `varity_delete_deployment` | "Tear down this deployment" |
 | `varity_migrate` | "Migrate my Vercel app to Varity" |
 | `varity_cost_calculator` | "How much will this cost at 500 users?" |
 | `varity_list_templates` | "What templates can Varity deploy?" |
-| `varity_template_info` | "What does the Agent Zero template need?" |
-| `varity_deploy_template` | "Deploy Agent Zero with these environment variables" |
-| `varity_list_agents` | "What agent templates can Varity deploy?" |
-| `varity_agent_info` | "What does the Agent Zero template need?" |
-| `varity_deploy_agent` | "Deploy Agent Zero" |
+| `varity_template_info` | "What does this template need?" |
 
 Full reference at [MCP Server Spec](/ai-tools/mcp-server-spec).
 
@@ -184,7 +180,7 @@ For Claude Code, add this to your project's `CLAUDE.md`:
 This project deploys to Varity. Use the Varity MCP server tools:
 - Deploy: ask "Deploy this project to Varity"
 - Check status: ask "Show me my Varity deployment status"
-- Logs: ask "Show me the build logs for my last deployment"
+- Logs: ask "Show me the runtime logs for my last deployment"
 ```
 
 For Cursor, save this as `.cursor/rules/varity.mdc`:
