@@ -14,25 +14,24 @@ import PageMeta from '../../../components/PageMeta.astro';
 
 When a deployment fails, the fastest path to recovery is: **get the logs → identify the error → fix and redeploy**. This page walks through each step.
 
-## Step 1: Get the Build Logs
+## Step 1: Get the Logs
 
-Every deployment produces a build log. Always read it before guessing at a cause.
+Always read what Varity reports before guessing at a cause.
 
 ### From the CLI
 
-Re-run the deploy to stream its full output, or preview what would deploy first with `--dry-run`:
+`varitykit app deploy` prints no build output while it waits. When it finishes it prints the final status and a `varitykit app status <run id>` command; run that command to see the outcome of the run. To check what would deploy before shipping, use `--dry-run`:
 
 ```bash
-varitykit app deploy
 varitykit app deploy --dry-run   # preview without deploying
 ```
 
 ### From a past deployment
 
-If the deployment already ran, retrieve its logs by ID:
+If the app is running, read its runtime logs by name:
 
 ```bash
-varitykit app info deploy-1737492000
+varitykit app logs my-app
 ```
 
 ### From the MCP server
@@ -40,14 +39,14 @@ varitykit app info deploy-1737492000
 If you're in an AI editor with the [Varity MCP server](/ai-tools/mcp-server-spec) connected:
 
 ```
-"Show me the build logs for deploy-1737492000"
+"Show me the runtime logs for my-app"
 ```
 
 This calls `varity_deploy_logs`:
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `deployment_id` | string | Yes | The deployment ID from `varitykit app list` |
+| `deployment` | string | Yes | The deployment ID or app name, from `varitykit app list` |
 | `limit` | number | No | Max log lines (default 100) |
 
 <Aside type="tip" icon="approve-check">
@@ -152,7 +151,7 @@ Compute was reserved but the container exited immediately after launch.
 **Get more detail from logs:**
 
 ```bash
-varitykit app info deploy-1737492000
+varitykit app info my-app
 ```
 
 Or via MCP: `varity_deploy_logs` with `limit: 200` for more context.

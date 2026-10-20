@@ -147,13 +147,7 @@ View your deployment history:
 varitykit app list
 ```
 
-Output:
-```
-ID                  Status    URL                                Deployed
-deploy-1737491000   live      https://your-app.varity.app       2 hours ago
-deploy-1737484800   archived  https://your-app-v2.varity.app    1 day ago
-deploy-1737398400   archived  https://your-app-v1.varity.app    2 days ago
-```
+The table has the columns ID, Name, Status, Runtime, URL, Outcome, and Updated. In a narrow terminal (80 columns) only ID and Name fit, so widen the terminal or use `varitykit --json app list`.
 
 ### Recover a Known-Good Version
 
@@ -164,7 +158,7 @@ To recover after a bad deploy, redeploy a known-good version of your app. Check 
 Check the details of a specific deployment:
 
 ```bash
-varitykit app info deploy-1737491000
+varitykit app info my-app
 ```
 
 ### Check Deployment Status
