@@ -42,40 +42,20 @@
             "schema": {
               "type": "string",
               "enum": [
-                "container",
                 "virtual_machine",
                 "bare_metal",
                 "cpu_virtual_machine"
               ]
             }
-          },
-          {
-            "name": "contract_version",
-            "in": "query",
-            "required": false,
-            "description": "Request the resource-, location-, runtime-, and access-complete GPU container catalog. Omit during a rolling v1 compatibility window.",
-            "schema": {
-              "const": "gpu-container-profiles-v2"
-            }
           }
         ],
         "responses": {
           "200": {
-            "description": "Normalized GPU deployment profile catalog",
+            "description": "Normalized deployment profile catalog",
             "content": {
               "application/json": {
                 "schema": {
-                  "oneOf": [
-                    {
-                      "$ref": "#/components/schemas/GpuContainerProfileCatalogV1"
-                    },
-                    {
-                      "$ref": "#/components/schemas/GpuContainerProfileCatalog"
-                    },
-                    {
-                      "$ref": "#/components/schemas/MachineProfileCatalog"
-                    }
-                  ]
+                  "$ref": "#/components/schemas/MachineProfileCatalog"
                 }
               }
             }
@@ -100,7 +80,6 @@
             "schema": {
               "type": "string",
               "enum": [
-                "container",
                 "virtual_machine",
                 "bare_metal"
               ]
@@ -133,14 +112,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "oneOf": [
-                  {
-                    "$ref": "#/components/schemas/PrepareGpuContainerQuoteRequest"
-                  },
-                  {
-                    "$ref": "#/components/schemas/CreateApplicationDeploymentRequest"
-                  }
-                ]
+                "$ref": "#/components/schemas/CreateApplicationDeploymentRequest"
               }
             }
           }
@@ -2122,7 +2094,6 @@
           "execution_class": {
             "type": "string",
             "enum": [
-              "container",
               "virtual_machine",
               "bare_metal"
             ]
@@ -2248,338 +2219,6 @@
                 }
               }
             }
-          }
-        }
-      },
-      "CreateGpuContainerRequest": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "name",
-          "execution_class",
-          "profile_id",
-          "ssh_public_key",
-          "accelerator_quote_token"
-        ],
-        "properties": {
-          "name": {
-            "type": "string",
-            "pattern": "^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$"
-          },
-          "execution_class": {
-            "const": "container"
-          },
-          "profile_id": {
-            "type": "string",
-            "pattern": "^gpo-[0-9a-f]{24}$"
-          },
-          "ssh_public_key": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 10000,
-            "writeOnly": true,
-            "description": "OpenSSH public key. Private key material is forbidden."
-          },
-          "accelerator_quote_token": {
-            "type": "string",
-            "minLength": 16,
-            "maxLength": 8192,
-            "writeOnly": true
-          }
-        }
-      },
-      "PrepareGpuContainerQuoteRequest": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "execution_class",
-          "profile_id"
-        ],
-        "properties": {
-          "execution_class": {
-            "const": "container"
-          },
-          "profile_id": {
-            "type": "string",
-            "pattern": "^gpo-[0-9a-f]{24}$"
-          }
-        }
-      },
-      "GpuContainerProfileCatalogV1": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "schema_version",
-          "workload",
-          "execution_class",
-          "profiles"
-        ],
-        "properties": {
-          "schema_version": {
-            "const": "gpu-container-profiles-v1"
-          },
-          "workload": {
-            "const": "gpu"
-          },
-          "execution_class": {
-            "const": "container"
-          },
-          "profiles": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/GpuContainerProfileV1"
-            }
-          }
-        }
-      },
-      "GpuContainerProfileV1": {
-        "type": "object",
-        "additionalProperties": false,
-        "description": "Rolling-release compatibility profile. Request v2 before presenting this profile as deployable.",
-        "required": [
-          "id",
-          "label",
-          "execution_class",
-          "accelerator",
-          "hardware",
-          "customer_price",
-          "availability"
-        ],
-        "properties": {
-          "id": {
-            "$ref": "#/components/schemas/GpuContainerProfile/properties/id"
-          },
-          "label": {
-            "$ref": "#/components/schemas/GpuContainerProfile/properties/label"
-          },
-          "execution_class": {
-            "const": "container"
-          },
-          "accelerator": {
-            "$ref": "#/components/schemas/AcceleratorProfileSelection"
-          },
-          "hardware": {
-            "$ref": "#/components/schemas/GpuContainerProfile/properties/hardware"
-          },
-          "customer_price": {
-            "$ref": "#/components/schemas/GpuContainerProfile/properties/customer_price"
-          },
-          "availability": {
-            "$ref": "#/components/schemas/GpuProfileAvailability"
-          }
-        }
-      },
-      "GpuContainerProfileCatalog": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "schema_version",
-          "workload",
-          "execution_class",
-          "profiles"
-        ],
-        "properties": {
-          "schema_version": {
-            "const": "gpu-container-profiles-v2"
-          },
-          "workload": {
-            "const": "gpu"
-          },
-          "execution_class": {
-            "const": "container"
-          },
-          "profiles": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/GpuContainerProfile"
-            }
-          }
-        }
-      },
-      "GpuContainerProfile": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "id",
-          "label",
-          "execution_class",
-          "accelerator",
-          "hardware",
-          "resources",
-          "locations",
-          "runtime",
-          "access",
-          "customer_price",
-          "availability"
-        ],
-        "properties": {
-          "id": {
-            "type": "string",
-            "pattern": "^gpo-[0-9a-f]{24}$"
-          },
-          "label": {
-            "type": "string"
-          },
-          "execution_class": {
-            "const": "container"
-          },
-          "accelerator": {
-            "$ref": "#/components/schemas/AcceleratorProfileSelection"
-          },
-          "hardware": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": [
-              "vendor",
-              "model",
-              "vram_mb",
-              "interface",
-              "count"
-            ],
-            "properties": {
-              "vendor": {
-                "const": "NVIDIA"
-              },
-              "model": {
-                "type": "string"
-              },
-              "vram_mb": {
-                "type": "integer"
-              },
-              "interface": {
-                "type": "string",
-                "enum": [
-                  "pcie",
-                  "sxm"
-                ]
-              },
-              "count": {
-                "type": "integer",
-                "minimum": 1,
-                "maximum": 24
-              }
-            }
-          },
-          "resources": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": [
-              "cpu_units",
-              "memory_mb",
-              "storage_mb"
-            ],
-            "properties": {
-              "cpu_units": {
-                "type": "number",
-                "exclusiveMinimum": 0
-              },
-              "memory_mb": {
-                "type": "integer",
-                "minimum": 1
-              },
-              "storage_mb": {
-                "type": "integer",
-                "minimum": 1
-              }
-            }
-          },
-          "locations": {
-            "type": "array",
-            "maxItems": 256,
-            "uniqueItems": true,
-            "description": "Current location availability for this exact offer. Final placement is reported after activation.",
-            "items": {
-              "type": "string",
-              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$"
-            }
-          },
-          "runtime": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": [
-              "label",
-              "provider_default"
-            ],
-            "properties": {
-              "label": {
-                "type": "string",
-                "minLength": 1,
-                "maxLength": 128
-              },
-              "ports": {
-                "type": "array",
-                "maxItems": 64,
-                "uniqueItems": true,
-                "items": {
-                  "type": "string",
-                  "pattern": "^[1-9][0-9]{0,4}/(?:tcp|udp)$"
-                }
-              },
-              "startup_command": {
-                "type": [
-                  "string",
-                  "null"
-                ],
-                "minLength": 1,
-                "maxLength": 4096
-              },
-              "provider_default": {
-                "const": true
-              }
-            }
-          },
-          "access": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": [
-              "mode",
-              "requires_public_key"
-            ],
-            "properties": {
-              "mode": {
-                "const": "ssh"
-              },
-              "requires_public_key": {
-                "const": true
-              }
-            }
-          },
-          "customer_price": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": [
-              "hourly_usd",
-              "currency",
-              "billing_period",
-              "price_basis",
-              "pricing_policy_version"
-            ],
-            "properties": {
-              "hourly_usd": {
-                "type": "number",
-                "exclusiveMinimum": 0
-              },
-              "currency": {
-                "const": "USD"
-              },
-              "billing_period": {
-                "const": "hour"
-              },
-              "price_basis": {
-                "type": "string",
-                "enum": [
-                  "exact",
-                  "maximum"
-                ],
-                "description": "exact: hourly_usd is the current customer price for this offer. maximum: hourly_usd is the most this offer can cost per hour; you are billed the actual hourly rate, never more. A signed quote is required before create."
-              },
-              "pricing_policy_version": {
-                "type": "string"
-              }
-            }
-          },
-          "availability": {
-            "$ref": "#/components/schemas/GpuProfileAvailability"
           }
         }
       },
@@ -5886,9 +5525,6 @@
         "oneOf": [
           {
             "$ref": "#/components/schemas/CreateApplicationDeploymentRequest"
-          },
-          {
-            "$ref": "#/components/schemas/CreateGpuContainerRequest"
           }
         ]
       },
