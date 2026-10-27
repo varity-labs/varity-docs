@@ -20,12 +20,6 @@ are live supply, not a documentation rate card.
 | `virtual_machine` | A GPU virtual machine | `POST /api/machines` | SSH when ready |
 | `bare_metal` | A physical GPU host | `POST /api/machines` | SSH when ready |
 
-<Aside type="note" title="GPU containers are unavailable">
-GPU containers are not offered right now. `GET /api/deployment-capabilities`
-reports them `temporarily_unavailable`, and a GPU container create or
-accelerator quote returns `409 capability_disabled`. Use a GPU VM instead.
-</Aside>
-
 <Aside type="caution" title="No documentation price is current">
 Read the authenticated catalog, choose the complete workload configuration,
 and request a fresh quote. The quote's price, resource fingerprint, and

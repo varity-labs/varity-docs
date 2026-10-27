@@ -127,7 +127,7 @@ if (llmsFull.length <= llms.length) errors.push('public/llms-full.txt must conta
 // Public docs route pricing to executable/live owners. Until a generated,
 // expiring pricing projection exists, copied numeric prices fail closed.
 const pricingPage = read('src/content/docs/resources/pricing.mdx');
-// No accelerator-quote owner: GPU containers are withdrawn (gateway 409 capability_disabled).
+// No accelerator-quote owner: GPU containers are not offered.
 for (const owner of ['/api/pricing', '/api/pricing/machine-quote', 'ai.varity.app/v1/models']) {
   if (!pricingPage.includes(owner)) errors.push(`resources/pricing.mdx must route to ${owner}`);
 }
@@ -145,6 +145,27 @@ for (const staleLiteral of previouslyCopiedPrices) {
     errors.push(`public docs restored removed mutable price literal: ${staleLiteral}`);
   }
 }
+
+// GPU containers are not offered (founder 2026-10-27), and no producer emits
+// `capability_disabled`. Pages do not mention them at all rather than describe
+// a refusal mechanism the platform does not implement.
+function docsPages(dir) {
+  return fs.readdirSync(path.join(root, dir), { withFileTypes: true }).flatMap((entry) => {
+    const rel = path.join(dir, entry.name);
+    if (entry.isDirectory()) return docsPages(rel);
+    return /\.mdx?$/.test(entry.name) ? [rel] : [];
+  });
+}
+for (const page of docsPages('src/content/docs')) {
+  const content = read(page);
+  if (/capability_disabled/.test(content)) errors.push(`${page} documents capability_disabled, which no producer emits`);
+  if (/\bGPU\s+containers?\b|\(containers, VMs/i.test(content)) errors.push(`${page} mentions GPU containers, which are not offered`);
+}
+// #184: environment values reach the compute host that runs the deployment.
+if (!/compute host that runs your deployment can read its environment values/.test(read('src/content/docs/deploy/env-variables.mdx'))) {
+  errors.push('deploy/env-variables.mdx must disclose that the compute host can read environment values');
+}
+if (/capability_disabled/.test(llmsFull)) errors.push('public/llms-full.txt documents capability_disabled, which no producer emits');
 
 if (process.env.VERIFY_DIST === '1') {
   for (const artifact of ['openapi.yaml', 'mcp-schema.json', 'llms.txt', 'llms-full.txt']) {

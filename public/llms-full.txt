@@ -1836,8 +1836,6 @@ curl "https://varity.app/api/deployment-profiles?workload=gpu&execution_class=vi
 
 `workload` is one of `gpu`, `virtual_machine`, `cpu`. `execution_class` is one of `container`, `virtual_machine`, `bare_metal`, `cpu_virtual_machine`. An invalid combination returns `422 deployment_profile_scope_invalid`.
 
-GPU containers (`execution_class=container`) are not offered right now: the capability reads `temporarily_unavailable`, and a GPU container create or accelerator quote returns `409 capability_disabled`.
-
 Profiles carry availability, not a price commitment. For an exact hourly figure, take a quote:
 
 ```bash
@@ -1898,7 +1896,7 @@ See **[API Errors](/api/errors/)** and **[Rate Limits](/api/limits/)** for the f
 
 ## Endpoint Summary
 
-The live OpenAPI document at `https://varity.app/api/openapi.json` defines **34 paths and 46 operations** in the checked-in projection. The live document itself is authoritative.
+The live OpenAPI document at `https://varity.app/api/openapi.json` is authoritative.
 
 ### Deployments
 
@@ -1932,7 +1930,6 @@ The live OpenAPI document at `https://varity.app/api/openapi.json` defines **34 
 | `GET` | `/api/deployment-capabilities` | Provider-neutral deployment catalog |
 | `GET` | `/api/deployment-profiles` | Normalized profiles, prices, and availability |
 | `GET` | `/api/pricing/estimate` | Estimate fixed monthly cost |
-| `POST` | `/api/pricing/accelerator-quote` | GPU container quote; returns `409 capability_disabled` while GPU containers are unavailable |
 | `POST` | `/api/pricing/machine-quote` | Exact machine quote |
 | `GET` | `/api/credits` | Read your USD balance and deploy eligibility |
 
@@ -2408,7 +2405,6 @@ Validation errors may carry a `field` naming the offending property.
 | <span id="webhook_not_found"></span>`webhook_not_found` | 404 | no | No such webhook. |
 | <span id="idempotency_key_reused"></span>`idempotency_key_reused` | 409 | no | The key was reused with a different request body. |
 | <span id="legacy_deployment_retired"></span>`legacy_deployment_retired` | 409 | no | The deployment predates the current runtime contract. |
-| <span id="capability_disabled"></span>`capability_disabled` | 409 | no | The requested capability is not offered right now (GPU containers). |
 | <span id="legacy_run_retired"></span>`legacy_run_retired` | 410 | no | The run record is retired and permanently gone. |
 | <span id="restart_unavailable"></span>`restart_unavailable` | 409/501/503 | varies | Restart is not possible for this deployment. `503` is retryable; `409` and `501` are not. |
 | <span id="template_not_certified"></span>`template_not_certified` | 409/503 | varies | The template is not certified, or certification could not be checked. `503` is retryable; `409` is not. |
@@ -4528,6 +4524,8 @@ configuration. Never put a secret in a public-prefixed variable.
 - Rotate a credential after suspected exposure.
 - Treat environment values as write-only; logs and read APIs should not echo
   them.
+- The compute host that runs your deployment can read its environment values.
+  Do not put data in an environment variable that the host must not see.
 - Test the application locally with your own development credentials before
   deploying.
 
@@ -5233,9 +5231,8 @@ See [CPU virtual machines](/machines/cpu-vms/) for live catalog and quote instru
 
 ### GPU workloads
 
-GPU compute comes in two forms: **GPU VMs** and **GPU bare metal**. GPU
-containers are not offered right now. The GPU marketplace shows the exact cards
-on offer. You
+GPU compute comes in two forms: **GPU VMs** and **GPU bare metal**. The GPU
+marketplace shows the exact cards on offer. You
 choose the card, region, and price before you deploy.
 
 See [GPU machines](/machines/gpu/) for the available cards, or [Deployment categories](/machines/) to compare all three.
@@ -5427,7 +5424,7 @@ Varity chooses the default based on the app type. You can force the mode with `-
 
 Varity is in guided beta. Use it freely for demos, side projects, AI agent apps, and apps that tolerate beta limits. Bring your own external database for business critical data until managed database durability, backups, and restore are shipped.
 
-Varity serves three deployment categories: applications (Node, Python, Go, static projects, and Docker or OCI HTTP service images), [CPU VMs](/machines/cpu-vms/), and [GPU workloads](/machines/gpu/) (containers, VMs, and bare metal). Varity also runs an [OpenAI-compatible AI Gateway](/ai-gateway/) you can call without deploying anything. Cron jobs, preview deployments, and one click rollback are not shipped yet.
+Varity serves three deployment categories: applications (Node, Python, Go, static projects, and Docker or OCI HTTP service images), [CPU VMs](/machines/cpu-vms/), and [GPU workloads](/machines/gpu/) (VMs and bare metal). Varity also runs an [OpenAI-compatible AI Gateway](/ai-gateway/) you can call without deploying anything. Cron jobs, preview deployments, and one click rollback are not shipped yet.
 
 ## Next Steps
 
@@ -6637,10 +6634,6 @@ so the authenticated catalog and a fresh quote are the only current sources.
 Both query parameters are required. Treat `availability` as a snapshot, not a
 reservation.
 
-GPU containers are not offered right now. `GET /api/deployment-capabilities`
-reports them `temporarily_unavailable`, and a GPU container create or
-accelerator quote returns `409 capability_disabled`. Use a GPU VM instead.
-
 Applications are a managed Varity Cloud workload: you provide a supported repo
 or image and Varity returns an application URL. Choose a machine only when you
 need host-level access or an exact accelerator configuration.
@@ -6825,10 +6818,6 @@ are live supply, not a documentation rate card.
 | --- | --- | --- | --- |
 | `virtual_machine` | A GPU virtual machine | `POST /api/machines` | SSH when ready |
 | `bare_metal` | A physical GPU host | `POST /api/machines` | SSH when ready |
-
-GPU containers are not offered right now. `GET /api/deployment-capabilities`
-reports them `temporarily_unavailable`, and a GPU container create or
-accelerator quote returns `409 capability_disabled`. Use a GPU VM instead.
 
 Read the authenticated catalog, choose the complete workload configuration,
 and request a fresh quote. The quote's price, resource fingerprint, and
