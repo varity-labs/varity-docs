@@ -1577,6 +1577,28 @@
         }
       }
     },
+    "/credits/balance": {
+      "get": {
+        "operationId": "getCreditBalance",
+        "summary": "Get the prepaid balance",
+        "description": "The authenticated owner's prepaid balance as decimal strings of USD x 1e8. A 503 balance_unavailable means the balance could not be read; it is never reported as zero.",
+        "responses": {
+          "200": {
+            "description": "Prepaid balance",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreditBalance"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      }
+    },
     "/webhooks": {
       "get": {
         "operationId": "listWebhooks",
@@ -2544,8 +2566,12 @@
                 "const": "hour"
               },
               "price_basis": {
-                "const": "exact",
-                "description": "The exact current customer price for this offer; a signed quote is required before create."
+                "type": "string",
+                "enum": [
+                  "exact",
+                  "maximum"
+                ],
+                "description": "exact: hourly_usd is the current customer price for this offer. maximum: hourly_usd is the most this offer can cost per hour; you are billed the actual hourly rate, never more. A signed quote is required before create."
               },
               "pricing_policy_version": {
                 "type": "string"
@@ -2720,6 +2746,14 @@
           },
           "pricing_policy_version": {
             "type": "string"
+          },
+          "price_basis": {
+            "type": "string",
+            "enum": [
+              "exact",
+              "maximum"
+            ],
+            "description": "Optional. maximum: hourly_usd and authorization_usd are upper bounds; you are billed the actual hourly rate, never more. Absent or exact: the exact price."
           },
           "availability": {
             "type": [
@@ -3013,6 +3047,11 @@
             "items": {
               "$ref": "#/components/schemas/MachineOsImage"
             }
+          },
+          "default_os_image": {
+            "type": "string",
+            "pattern": "^os-[a-z0-9](?:[a-z0-9-]{0,42}[a-z0-9])?-[0-9a-f]{12}$",
+            "description": "The OS image preselected for this accelerated profile: one of os_images. Absent for cpu_virtual_machine."
           }
         }
       },
@@ -3354,7 +3393,9 @@
           "region",
           "lifecycle",
           "access",
-          "billing"
+          "billing",
+          "final_charge_microusd",
+          "final_charge_unobserved_reason"
         ],
         "properties": {
           "machine_id": {
@@ -3391,6 +3432,15 @@
           "hardware": {
             "$ref": "#/components/schemas/MachineHardware"
           },
+          "disks": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 2,
+            "description": "Only cpu_virtual_machine machines may carry a disk layout; absent when the producer does not report it. The boot disk comes first and is mounted at /; at most one additional disk follows, mounted at /mnt/data or null when it is not mounted.",
+            "items": {
+              "$ref": "#/components/schemas/MachineDisk"
+            }
+          },
           "region": {
             "type": "string"
           },
@@ -3417,6 +3467,27 @@
               }
             ]
           },
+          "final_charge_microusd": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "Deleted machines: the total billing-meter booked over this machine's prepaid holds, including the up-front authorization. Null while live, or with final_charge_unobserved_reason when not booked or not readable. Never an estimate."
+          },
+          "final_charge_unobserved_reason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "hold_not_identifiable",
+              "no_prepaid_hold",
+              "billing_unavailable",
+              "settlement_pending",
+              null
+            ]
+          },
           "allowed_actions": {
             "type": "array",
             "items": {
@@ -3435,6 +3506,40 @@
               "access_projection_invalid"
             ],
             "description": "Present when this machine's billing or access projection is incomplete. Every other field is still authoritative; treat only the named projection as untrustworthy. The list route collapses such a row to DegradedMachine and counts it as partial inventory, EXCEPT when the machine's delete already succeeded and its cleanup is complete: that machine is gone, so its row is served in full and the inventory stays complete. A single-machine read always returns the full row so nothing observed is withheld."
+          }
+        }
+      },
+      "MachineDisk": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "role",
+          "size_gb",
+          "mount_path"
+        ],
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "boot",
+              "additional"
+            ]
+          },
+          "size_gb": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 65536
+          },
+          "mount_path": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "/",
+              "/mnt/data",
+              null
+            ]
           }
         }
       },
@@ -3523,6 +3628,11 @@
               }
             ],
             "description": "Month-to-date billed usage. May appear only when the machine execution_class is cpu_virtual_machine; null while the first billed hour is pending."
+          },
+          "active_seconds_this_month": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Seconds of the machine's billed usage inside the current UTC month, up to the read. Every machine class; absent while the first billed hour is pending."
           },
           "observed_at": {
             "type": "string",
@@ -3971,6 +4081,27 @@
           },
           "billing": {
             "$ref": "#/components/schemas/DeploymentBilling"
+          },
+          "final_charge_microusd": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "Deleted deployments: the charge billing-meter booked against this deployment's hold (a released hold books 0). Null while live, or with final_charge_unobserved_reason when not booked or not readable. Never an estimate."
+          },
+          "final_charge_unobserved_reason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "hold_not_identifiable",
+              "no_prepaid_hold",
+              "billing_unavailable",
+              "settlement_pending",
+              null
+            ]
           },
           "membership": {
             "type": "string",
@@ -4556,7 +4687,24 @@
             "type": "number"
           },
           "accrued_this_month_usd": {
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "estimated_month_to_date_microusd": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991,
+            "description": "Authoritative GPU-container estimate from quoted durable usage in the current UTC month, including the create-month minimum. Absent when unobserved."
+          },
+          "active_seconds_this_month": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "Seconds this deployment was live in the current UTC month, up to the response time. GPU containers use the durable billed interval; registry applications use their lifecycle interval. Null when the interval was not observed."
           },
           "billing_model": {
             "type": "string",
@@ -5024,7 +5172,7 @@
                   "integer",
                   "null"
                 ],
-                "description": "Bucket size chosen by the server (300 for windows up to 48h, 3600 for 7d and 30d). null ONLY when series is empty (no durable deployment identity); read each signal reason instead."
+                "description": "Bucket size chosen by the server (400 for windows up to 48h, 3600 for 7d and 30d). null ONLY when series is empty (no durable deployment identity); read each signal reason instead."
               }
             }
           },
@@ -5094,6 +5242,101 @@
                           "integer",
                           "null"
                         ]
+                      },
+                      "basis": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "enum": [
+                          "filesystem_used_bytes",
+                          null
+                        ],
+                        "description": "Present on VM deployments (the guest filesystems' used bytes) and on GPU containers with a sampled root (bytes of the container's own files, against its sealed ephemeral storage). Absent on every other deployment."
+                      },
+                      "used_bytes": {
+                        "type": [
+                          "integer",
+                          "null"
+                        ],
+                        "description": "Sum of volumes[].used_bytes, only when every volume is measured; otherwise null, never 0."
+                      },
+                      "observed_at": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "format": "date-time"
+                      },
+                      "components": {
+                        "type": "array",
+                        "items": {
+                          "type": "object"
+                        }
+                      },
+                      "volumes": {
+                        "type": "array",
+                        "description": "VM deployments: one row per disk (boot first). A volume that was not measured has null bytes and a reason (no_samples_received, no_guest_collector, data_disk_not_mounted, data_disk_unreadable).",
+                        "items": {
+                          "type": "object",
+                          "required": [
+                            "role",
+                            "mount_path",
+                            "status",
+                            "reason",
+                            "used_bytes",
+                            "size_bytes",
+                            "observed_at"
+                          ],
+                          "properties": {
+                            "role": {
+                              "type": "string",
+                              "enum": [
+                                "boot",
+                                "additional"
+                              ]
+                            },
+                            "mount_path": {
+                              "type": "string",
+                              "enum": [
+                                "/",
+                                "/mnt/data"
+                              ]
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "measured",
+                                "not_measured"
+                              ]
+                            },
+                            "reason": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "used_bytes": {
+                              "type": [
+                                "integer",
+                                "null"
+                              ]
+                            },
+                            "size_bytes": {
+                              "type": [
+                                "integer",
+                                "null"
+                              ]
+                            },
+                            "observed_at": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "format": "date-time"
+                            }
+                          }
+                        }
                       }
                     }
                   }
@@ -5112,6 +5355,39 @@
                           "number",
                           "null"
                         ]
+                      }
+                    }
+                  }
+                ]
+              },
+              "gpu": {
+                "description": "GPU workloads only (GPU containers and GPU machines); absent otherwise. From the newest sample: unread is null with a reason (gpu_driver_unavailable, gpu_query_failed, gpu_not_reported, no_samples_received), never 0.",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/MetricsSignal"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "count": {
+                        "type": [
+                          "integer",
+                          "null"
+                        ],
+                        "description": "GPUs visible to the workload."
+                      },
+                      "memory_total_bytes": {
+                        "type": [
+                          "integer",
+                          "null"
+                        ]
+                      },
+                      "observed_at": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "format": "date-time"
                       }
                     }
                   }
@@ -5343,6 +5619,20 @@
                     "partial"
                   ],
                   "description": "partial only when a signal that has rows in this bucket is incomplete; a bucket with no gateway row means no traffic."
+                },
+                "gpu_utilization_percent": {
+                  "type": [
+                    "number",
+                    "null"
+                  ],
+                  "description": "GPU workloads only (absent otherwise): mean utilization across GPUs and samples in the bucket; null when not measured."
+                },
+                "gpu_memory_used_bytes": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "description": "GPU workloads only (absent otherwise): the bucket's maximum GPU memory used, summed across GPUs; null when not measured."
                 }
               }
             }
@@ -5898,7 +6188,7 @@
           "max_body_bytes": {
             "type": "integer",
             "minimum": 1,
-            "maximum": 1073741824,
+            "maximum": 104857600,
             "default": 104857600
           },
           "read_timeout_ms": {
@@ -5929,6 +6219,19 @@
             "type": "array",
             "minItems": 1,
             "maxItems": 10,
+            "uniqueItems": true,
+            "allOf": [
+              {
+                "if": {
+                  "contains": {
+                    "const": "off"
+                  }
+                },
+                "then": {
+                  "maxItems": 1
+                }
+              }
+            ],
             "items": {
               "type": "string",
               "enum": [
@@ -6127,6 +6430,32 @@
           },
           "pricing_policy_version": {
             "type": "string"
+          }
+        }
+      },
+      "CreditBalance": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "availableE8",
+          "reservedE8",
+          "debtE8"
+        ],
+        "properties": {
+          "availableE8": {
+            "type": "string",
+            "pattern": "^-?[0-9]+$",
+            "description": "USD x 1e8 as a decimal string"
+          },
+          "reservedE8": {
+            "type": "string",
+            "pattern": "^-?[0-9]+$",
+            "description": "USD x 1e8 as a decimal string"
+          },
+          "debtE8": {
+            "type": "string",
+            "pattern": "^-?[0-9]+$",
+            "description": "USD x 1e8 as a decimal string"
           }
         }
       },

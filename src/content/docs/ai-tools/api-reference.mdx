@@ -326,8 +326,6 @@ curl "https://varity.app/api/deployment-profiles?workload=gpu&execution_class=vi
 
 `workload` is one of `gpu`, `virtual_machine`, `cpu`. `execution_class` is one of `container`, `virtual_machine`, `bare_metal`, `cpu_virtual_machine`. An invalid combination returns `422 deployment_profile_scope_invalid`.
 
-GPU containers (`execution_class=container`) are not offered right now: the capability reads `temporarily_unavailable`, and a GPU container create or accelerator quote returns `409 capability_disabled`.
-
 Profiles carry availability, not a price commitment. For an exact hourly figure, take a quote:
 
 ```bash
@@ -422,7 +420,6 @@ The live OpenAPI document at `https://varity.app/api/openapi.json` defines **34 
 | `GET` | `/api/deployment-capabilities` | Provider-neutral deployment catalog |
 | `GET` | `/api/deployment-profiles` | Normalized profiles, prices, and availability |
 | `GET` | `/api/pricing/estimate` | Estimate fixed monthly cost |
-| `POST` | `/api/pricing/accelerator-quote` | GPU container quote; returns `409 capability_disabled` while GPU containers are unavailable |
 | `POST` | `/api/pricing/machine-quote` | Exact machine quote |
 | `GET` | `/api/credits` | Read your USD balance and deploy eligibility |
 

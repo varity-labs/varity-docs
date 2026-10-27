@@ -84,6 +84,8 @@ configuration. Never put a secret in a public-prefixed variable.
 - Rotate a credential after suspected exposure.
 - Treat environment values as write-only; logs and read APIs should not echo
   them.
+- The compute host that runs your deployment can read its environment values.
+  Do not put data in an environment variable that the host must not see.
 - Test the application locally with your own development credentials before
   deploying.
 
