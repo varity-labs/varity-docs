@@ -89,6 +89,10 @@ configuration. Never put a secret in a public-prefixed variable.
 - Test the application locally with your own development credentials before
   deploying.
 
+## Updating an Existing App
+
+Changing environment variables restarts an existing dynamic app. Attached databases and persistent files follow the [same update protection](/deploy/databases/#updates-and-persistent-data): supported updates keep the storage or are refused. Follow the returned operation to its terminal state before treating the change as applied.
+
 ## Troubleshooting
 
 If a variable is absent after deploy:
