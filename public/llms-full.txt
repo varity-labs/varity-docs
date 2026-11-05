@@ -3751,6 +3751,12 @@ Your app reads these from its environment. No connection strings to manage:
 const db = process.env.DATABASE_URL;
 ```
 
+## Updates and Persistent Data
+
+For a dynamic app with an attached database or other persistent storage, supported redeploys, source-code updates, environment changes, and AI Gateway attachment updates keep that storage. If Varity cannot apply the update while keeping it, the update is refused.
+
+Updates can interrupt the app while a version starts. This protection does not undo changes your code makes to database data or schema. Files on temporary container disk may not survive an update.
+
 ## Durability in Beta: Read This
 
 Auto-wired databases are real and your data survives container restarts within a deployment. They are **not** yet a managed database product: there are no automated backups, no high availability, and no point-in-time recovery. Do not store data you cannot afford to lose without your own backups.
@@ -4089,7 +4095,7 @@ The table has the columns ID, Name, Status, Runtime, URL, Outcome, and Updated. 
 
 ### Recover a Known-Good Version
 
-To recover after a bad deploy, redeploy a known-good version of your app. Check out the working commit and run `varitykit app deploy` again under the same `--name`. The deployment at that URL is replaced with the version you just built.
+To recover after a bad deploy, redeploy a known-good version of your app. Check out the working commit and run `varitykit app deploy` again under the same `--name`. The app at that URL is updated when the deployment operation succeeds. See [updates and persistent data](/deploy/databases/#updates-and-persistent-data) for the storage protection and database-migration limits.
 
 ### View Deployment Details
 
@@ -4529,6 +4535,10 @@ configuration. Never put a secret in a public-prefixed variable.
 - Test the application locally with your own development credentials before
   deploying.
 
+## Updating an Existing App
+
+Changing environment variables restarts an existing dynamic app. Attached databases and persistent files follow the [same update protection](/deploy/databases/#updates-and-persistent-data): supported updates keep the storage or are refused. Follow the returned operation to its terminal state before treating the change as applied.
+
 ## Troubleshooting
 
 If a variable is absent after deploy:
@@ -4730,7 +4740,7 @@ If a deployment breaks your app, the way to recover today is to **redeploy a kno
 
 ## Recover by Redeploying a Known-Good Version
 
-The reliable recovery path is to rebuild and redeploy a version you know works, under the same app name. Varity replaces the deployment at that URL with what you just built.
+The reliable recovery path is to rebuild and redeploy a version you know works, under the same app name. Varity updates the app at that URL with the version you just built.
 
 1. **Check out the last working version of your code**
 
@@ -4754,7 +4764,7 @@ The reliable recovery path is to rebuild and redeploy a version you know works, 
    varitykit app deploy --name my-app
    ```
 
-   Your app at `https://varity.app/my-app/` (static) or `https://my-app.varity.app/` (dynamic) is replaced with the version you just built.
+   Your app at `https://varity.app/my-app/` (static) or `https://my-app.varity.app/` (dynamic) serves the version you just built when the deployment operation succeeds.
 
 ## See What's Currently Deployed
 
@@ -4786,7 +4796,7 @@ If the broken deployment introduced new environment variables that your code now
 
 ### Database schema changes
 
-If your app ran database migrations between the broken version and the version you're restoring, redeploying the older app code may leave the schema ahead of the code. Test your app after redeploying before considering it stable.
+Redeploying an earlier version follows the [same persistent-storage protection](/deploy/databases/#updates-and-persistent-data). The database is not rolled back with the code. If your app ran database migrations between versions, the schema may remain ahead of the older code. Test your app after redeploying before considering it stable.
 
 ## Verify the Recovery Worked
 

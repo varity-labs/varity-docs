@@ -20,7 +20,7 @@ If a deployment breaks your app, the way to recover today is to **redeploy a kno
 
 ## Recover by Redeploying a Known-Good Version
 
-The reliable recovery path is to rebuild and redeploy a version you know works, under the same app name. Varity replaces the deployment at that URL with what you just built.
+The reliable recovery path is to rebuild and redeploy a version you know works, under the same app name. Varity updates the app at that URL with the version you just built.
 
 <Steps>
 
@@ -46,7 +46,7 @@ The reliable recovery path is to rebuild and redeploy a version you know works, 
    varitykit app deploy --name my-app
    ```
 
-   Your app at `https://varity.app/my-app/` (static) or `https://my-app.varity.app/` (dynamic) is replaced with the version you just built.
+   Your app at `https://varity.app/my-app/` (static) or `https://my-app.varity.app/` (dynamic) serves the version you just built when the deployment operation succeeds.
 
 </Steps>
 
@@ -82,7 +82,7 @@ If the broken deployment introduced new environment variables that your code now
 
 ### Database schema changes
 
-If your app ran database migrations between the broken version and the version you're restoring, redeploying the older app code may leave the schema ahead of the code. Test your app after redeploying before considering it stable.
+Redeploying an earlier version follows the [same persistent-storage protection](/deploy/databases/#updates-and-persistent-data). The database is not rolled back with the code. If your app ran database migrations between versions, the schema may remain ahead of the older code. Test your app after redeploying before considering it stable.
 
 ## Verify the Recovery Worked
 

@@ -45,6 +45,12 @@ Your app reads these from its environment. No connection strings to manage:
 const db = process.env.DATABASE_URL;
 ```
 
+## Updates and Persistent Data
+
+For a dynamic app with an attached database or other persistent storage, supported redeploys, source-code updates, environment changes, and AI Gateway attachment updates keep that storage. If Varity cannot apply the update while keeping it, the update is refused.
+
+Updates can interrupt the app while a version starts. This protection does not undo changes your code makes to database data or schema. Files on temporary container disk may not survive an update.
+
 ## Durability in Beta: Read This
 
 <Aside type="caution" title="Not yet a managed database product">

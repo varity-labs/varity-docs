@@ -9,6 +9,7 @@
 // Check name: generated AI gateway artifacts match their sources
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { createMarkdownProcessor } from '@astrojs/markdown-remark';
 import { check, fetchCreditPolicyMirror, projectModel } from '../tools/generate-ai-gateway-artifacts.mjs';
 import { CREDIT_POLICY_FIELDS, creditPolicyMarkdown, creditPolicyField } from '../src/lib/credit-policy.mjs';
 
@@ -20,6 +21,79 @@ const { ok, errors } = check(root);
 // so an LLM answering from it quoted a stale "cheapest model" and no fee.
 const mirror = JSON.parse(readFileSync(new URL('../contracts/ai-gateway.mirror.json', import.meta.url), 'utf8'));
 const full = readFileSync(new URL('../public/llms-full.txt', import.meta.url), 'utf8');
+
+// Readers recovering or updating an app must be able to reach the canonical
+// storage guidance, including its migration/durability limits, from both the
+// human pages and the retrieval corpus. Resolve real Astro headings and links;
+// the wording and heading names may change without changing this contract.
+const storageUrl = 'https://docs.varity.so/deploy/databases/';
+const updateWorkflows = ['env-variables', 'rollback', 'deploy-your-app']
+  .map((slug) => `https://docs.varity.so/deploy/${slug}/`);
+const markdown = await createMarkdownProcessor({ syntaxHighlight: false });
+const renderPages = async (pages) => new Map(await Promise.all([...pages].map(async ([url, body]) =>
+  [url, await markdown.render(body)])));
+const corpusPages = (text) => new Map(text.split('\n\n---\n\n').flatMap((section) => {
+  const page = /^## [^\n]+\n\nURL: (\S+)\nDescription:[^\n]*\n\n([\s\S]*)$/.exec(section);
+  return page && [storageUrl, ...updateWorkflows].includes(page[1]) ? [[page[1], page[2]]] : [];
+}));
+const sourcePages = new Map([storageUrl, ...updateWorkflows].map((url) => [url,
+  readFileSync(new URL(`../src/content/docs${new URL(url).pathname.slice(0, -1)}.mdx`, import.meta.url), 'utf8')
+    .replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, ''),
+]));
+const sourceRendered = await renderPages(sourcePages);
+const retrievalPages = corpusPages(full);
+const retrievalRendered = await renderPages(retrievalPages);
+const guidanceLinks = (page, pageUrl) => [...(page?.code ?? '').matchAll(/href="([^"]+)"/g)]
+  .map((match) => new URL(match[1], pageUrl))
+  .filter((url) => `${url.origin}${url.pathname}` === storageUrl && url.hash);
+const navigationErrors = (sources, retrieval) => {
+  const failures = [];
+  for (const url of updateWorkflows) {
+    const sourceLinks = guidanceLinks(sources.get(url), url);
+    const retrievalLinks = guidanceLinks(retrieval.get(url), url);
+    if (!sourceLinks.length) failures.push(`${url} has no link to persistent-storage update guidance`);
+    for (const target of sourceLinks) {
+      const slug = decodeURIComponent(target.hash.slice(1));
+      for (const [label, pages] of [['source', sources], ['llms-full.txt', retrieval]]) {
+        if (!pages.get(storageUrl)?.metadata.headings.some((heading) => heading.slug === slug)) {
+          failures.push(`${label} cannot resolve ${target.href} from ${url}`);
+        }
+      }
+      if (!retrievalLinks.some((link) => link.href === target.href)) {
+        failures.push(`llms-full.txt omits the guidance link from ${url}`);
+      }
+    }
+  }
+  return failures;
+};
+const navigation = navigationErrors(sourceRendered, retrievalRendered);
+errors.push(...navigation);
+if (!navigation.length) {
+  const brokenHeading = new Map(sourcePages);
+  brokenHeading.set(storageUrl, sourcePages.get(storageUrl).replace(/^#{1,6}[ \t].*$/gm, ''));
+  const absentPage = new Map(retrievalPages);
+  absentPage.delete(storageUrl);
+  const absentProjection = new Map(retrievalPages);
+  absentProjection.set(updateWorkflows[0], retrievalPages.get(updateWorkflows[0])
+    .replace(/\[([^\]]+)\]\(\/deploy\/databases\/#[^)]+\)/g, '$1'));
+  // A fragment-only link stays on its containing workflow page. It must not
+  // be mistaken for a link to the database guidance in either publication.
+  const fragmentOnlySource = new Map(sourcePages);
+  const fragmentOnlyProjection = new Map(retrievalPages);
+  for (const pages of [fragmentOnlySource, fragmentOnlyProjection]) {
+    pages.set(updateWorkflows[1], pages.get(updateWorkflows[1])
+      .replace(/\]\(\/deploy\/databases\/(#[^)]+)\)/g, ']($1)'));
+  }
+  for (const [label, sources, retrieval] of [
+    ['missing source target heading', await renderPages(brokenHeading), retrievalRendered],
+    ['missing retrieval target page', sourceRendered, await renderPages(absentPage)],
+    ['missing retrieval guidance link', sourceRendered, await renderPages(absentProjection)],
+    ['fragment-only source guidance link', await renderPages(fragmentOnlySource), retrievalRendered],
+    ['fragment-only retrieval guidance link', sourceRendered, await renderPages(fragmentOnlyProjection)],
+  ]) {
+    if (!navigationErrors(sources, retrieval).length) errors.push(`storage guidance navigation must reject ${label}`);
+  }
+}
 if (mirror.openapi?.info?.title !== 'Varity AI Gateway API') {
   errors.push('contracts/ai-gateway.mirror.json does not hold the AI Gateway contract (R41: mirror only the document it names)');
 }
