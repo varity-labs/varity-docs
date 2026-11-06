@@ -32,9 +32,9 @@ same surface; see [Endpoints](/ai-gateway/endpoints/#host).
 | `POST /v1/images/edits` | **Supported.** Requires a bearer API key. The OpenAI SDK's `multipart/form-data` upload, or JSON with base64 image data (`image/png`, `image/jpeg`, `image/webp`); a source image or mask at or above 25 MB is rejected. |
 | `POST /v1/audio/transcriptions` | **Supported.** Requires a bearer API key. The OpenAI SDK's `multipart/form-data` upload, or JSON with the audio as a base64 typed part; the model must advertise `capabilities.transcription`. Returns JSON, or plain text when `response_format` is `text`. No streaming mode. |
 | `POST /v1/audio/speech` | **Supported.** Requires a bearer API key. The model must advertise `capabilities.speech` and the format must be one of its `capabilities.speech_formats`. Returns audio bytes with a matching `audio/*` content type; `stream: true` gives a chunked binary response, not SSE. |
-| `GET /v1/models/{id}` | **Not implemented.** Returns `404`. Fetch the list and filter client-side. |
+| `GET /v1/models/{model}` | **Supported.** Public, no key required. Returns one model's catalog entry, including its capabilities and pricing. |
 | `POST /v1/completions` (legacy text completions) | **Not implemented.** Returns `404`. |
-| `POST /v1/responses` | **Not implemented.** Returns `404`. |
+| `POST /v1/responses` | **Supported.** Requires a bearer API key. Stateless response creation with JSON or Responses SSE output; see [Responses](#responses). |
 | `/v1/assistants` | **Not implemented.** Returns `404`. |
 | `/v1/files` | **Not implemented.** Returns `404`. |
 | `/v1/vector_stores` | **Not implemented.** Returns `404`. |
@@ -65,11 +65,26 @@ Unauthenticated `GET /healthz` and `GET /readyz` probes are available outside
 
 <Aside type="caution">
 Any OpenAI SDK helper that touches an unimplemented route will fail, including
-the Assistants and Responses APIs, file upload helpers, and batch. The
-`chat.completions`, `models`, `embeddings`, `images.generate`, `images.edit`,
-`audio.speech`, and `audio.transcriptions` namespaces work unchanged, on the
-models whose `capabilities` advertise them.
+the Assistants API, file upload helpers, and batch. Use the supported routes
+listed above, on models whose `capabilities` advertise them. Responses support
+is limited to stateless creation, not stored-response retrieval or background
+jobs.
 </Aside>
+
+## Responses
+
+`POST /v1/responses` uses the same chat models, routing, limits, and billing as
+chat completions. Send `model` and `input`; input can be text or a list of
+message, function-call, function-result, and reasoning items. Function tools
+are supported on eligible models, but hosted tool execution is not offered.
+
+Responses are stateless. Send the full conversation in `input` on each request.
+`store: true`, conversation chaining through `previous_response_id`, and
+`background: true` are refused. Omit `store` and `background`, or send `false`.
+
+With `stream: true`, the response uses Responses SSE events such as
+`response.created` and `response.completed`, rather than chat-completion chunks.
+Without streaming, it returns response JSON with an `output` array.
 
 ## Per-Model Capabilities
 

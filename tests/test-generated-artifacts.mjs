@@ -22,6 +22,35 @@ const { ok, errors } = check(root);
 const mirror = JSON.parse(readFileSync(new URL('../contracts/ai-gateway.mirror.json', import.meta.url), 'utf8'));
 const full = readFileSync(new URL('../public/llms-full.txt', import.meta.url), 'utf8');
 
+// The prose and its retrieval copy must not deny operations the published
+// inference contract serves. Normalize parameter names, not endpoint meaning.
+const compatibility = readFileSync(new URL('../src/content/docs/ai-gateway/compatibility.mdx', import.meta.url), 'utf8');
+const compatibilityCorpus = full.split('\n\n---\n\n')
+  .find((section) => section.includes('\nURL: https://docs.varity.so/ai-gateway/compatibility/\n')) ?? '';
+const endpointStatuses = (body) => new Map([...body.matchAll(/^\|\s*`(GET|POST) ([^`]+)`\s*\|([^|]+)\|/gm)]
+  .map(([, method, path, status]) => [`${method} ${path.replace(/\{[^}]+\}/g, '{}')}`, status]));
+for (const [method, path] of [['GET', '/v1/models/{model}'], ['POST', '/v1/responses']]) {
+  if (!mirror.openapi?.paths?.[path]?.[method.toLowerCase()]) {
+    errors.push(`AI Gateway contract is missing the documented ${method} ${path}`);
+    continue;
+  }
+  const key = `${method} ${path.replace(/\{[^}]+\}/g, '{}')}`;
+  for (const [label, body] of [['compatibility page', compatibility], ['compatibility retrieval', compatibilityCorpus]]) {
+    if (!/^\s*\*\*Supported\.\*\*/.test(endpointStatuses(body).get(key) ?? '')) {
+      errors.push(`${label} must mark served ${method} ${path} as supported`);
+    }
+  }
+}
+for (const [label, body] of [['compatibility page', compatibility], ['compatibility retrieval', compatibilityCorpus]]) {
+  for (const field of ['store: true', 'previous_response_id', 'background: true']) {
+    if (!body.includes(`\`${field}\``)) errors.push(`${label} must disclose the stateless Responses refusal for ${field}`);
+  }
+}
+const modelsGuidance = readFileSync(new URL('../src/content/docs/ai-gateway/models.mdx', import.meta.url), 'utf8');
+if (/There is no per-model retrieval route|GET \/v1\/models\/\{id\}` returns `404`/.test(modelsGuidance)) {
+  errors.push('model selection guidance must not deny the served model-detail route');
+}
+
 // Readers recovering or updating an app must be able to reach the canonical
 // storage guidance, including its migration/durability limits, from both the
 // human pages and the retrieval corpus. Resolve real Astro headings and links;
