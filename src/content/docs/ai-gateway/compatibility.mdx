@@ -257,16 +257,18 @@ provider does with a request depends on the model's privacy class; see
 
 ## Privacy Routing
 
-The live catalog reports two routing privacy classes: `privacy: "private"` with
-`privacy_routes: ["private"]`, and `privacy: "anonymized"` with
-`privacy_routes: ["anonymized"]`. This field has no OpenAI equivalent; it is
+The live catalog reports three routing privacy classes, from least to most
+restrictive: `anonymized`, `private` and `tee`. Each model has one `privacy`
+value and a `privacy_routes` list; a few models list more than one route. This
+field has no OpenAI equivalent; it is
 Varity-specific catalog metadata describing how each model is routed. Read it per
 model.
 
 Your account has a privacy floor. A new account starts at `anonymized`, with
-nothing to acknowledge, which lets requests use both `private` and `anonymized`
-models. Set it to `private` with `PUT /v1/inference/policy` (or on the portal's
-**Gateway settings** tab) and only `private` models are callable. A `PUT` that
+nothing to acknowledge, which lets requests use models of every class. Set it
+to `private` with `PUT /v1/inference/policy` (or on the portal's
+**Gateway settings** tab) and only `private` and `tee` models are callable; set
+it to `tee` and only `tee` models are. A `PUT` that
 sets it to `anonymized` carries `acknowledge_anonymized_processing: true`. A single chat request can
 tighten the floor, never loosen it, with
 `"varity_extensions": { "privacy_floor": "private" }`; asking for a weaker floor

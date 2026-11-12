@@ -80,7 +80,7 @@ Each entry in `data` carries these Varity fields:
 | `capabilities.speech` | boolean | `true` when `POST /v1/audio/speech` accepts the model; `speech_formats` lists its output formats |
 | `context_window` | integer | Total tokens, input plus output |
 | `max_completion_tokens` | integer | Ceiling on generated tokens |
-| `privacy` | string | Routing privacy class. The live catalog contains both `"private"` and `"anonymized"` entries |
+| `privacy` | string | Routing privacy class: `"anonymized"`, `"private"` or `"tee"` |
 | `privacy_routes` | array | Route set matching `privacy` |
 | `availability.status` | string | `"available"`, `"last_known_available"`, `"temporarily_unavailable"`, `"verification_stale"`, or `"unverified"`, with an `observed_at` timestamp and, on the last three, a `reason` |
 | `customer_pricing` | object | See below |
