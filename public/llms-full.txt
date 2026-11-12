@@ -310,6 +310,9 @@ sends to spend it.
   cheapest suitable model. Any subscription or top-up removes the
   daily limit.
 - **API key requests** need a paid balance from a subscription or top-up.
+- Adding funds has no fee: the amount you pay is the amount added to your
+  balance. Requests sent with an API key are priced at the provider's cost plus
+  5%.
 - You cannot bring your own provider key.
 
 Inference key requests are charged per model at the rate in `customer_pricing`
