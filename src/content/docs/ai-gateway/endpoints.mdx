@@ -50,8 +50,11 @@ terms. Public, no key.
 
 All inference routes take an inference key as `Authorization: Bearer …` and a
 JSON body. Varity has no total response-time limit: without an
-`X-Varity-Deadline-Ms` header a request runs until the model finishes or the
-client disconnects. A provider that sends nothing for 300 seconds fails the
+`X-Varity-Deadline-Ms` header a request runs until the model finishes. Closing
+the connection does not cancel a streamed chat request that has already been
+sent to the model: Varity reads the answer to its end and charges the tokens
+the model generated, delivered or not. Set `max_tokens` to bound that cost. A
+provider that sends nothing for 300 seconds fails the
 request `504 upstream_timeout` (every chat request except a `web_search` one,
 whose answer the provider returns only whole).
 
