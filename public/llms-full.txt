@@ -657,6 +657,12 @@ tighten the floor, never loosen it, with
 `"varity_extensions": { "privacy_floor": "private" }`; asking for a weaker floor
 than the account's returns `403 privacy_policy_violation`.
 
+If a route refuses a request or sends nothing, Varity retries the request on
+another route for the same model that meets your privacy floor, when one
+exists. You are charged once, for the route that answered; `fallback_count` on
+the request record counts how many times the request moved to another route.
+`GET /v1/inference/requests` shows whether a failed request was charged.
+
 ## Next Steps
 
 - **[AI Gateway Overview](/ai-gateway/)**: base URL, auth, quickstart, streaming
