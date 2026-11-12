@@ -24,6 +24,9 @@ sends to spend it.
   cheapest suitable model. Any subscription or top-up removes the
   daily limit.
 - **API key requests** need a paid balance from a subscription or top-up.
+- Adding funds has no fee: the amount you pay is the amount added to your
+  balance. Requests sent with an API key are priced at the provider's cost plus
+  5%.
 - You cannot bring your own provider key.
 
 Inference key requests are charged per model at the rate in `customer_pricing`
@@ -70,8 +73,8 @@ Authorization: Bearer $VARITY_API_KEY
 The portal tabs are built on these routes on `https://ai.varity.app`. They take
 a **Developer Portal session** as the bearer credential. An inference key is
 refused on them with `403 portal_session_required`, so a leaked inference key
-cannot mint more keys, move money, or change privacy settings. They are not in
-`GET /v1/openapi.json`; this table is their public reference, and the only
+cannot mint more keys, move money, or change privacy settings. The key and billing
+routes are also described in `GET /v1/openapi.json`; the only
 place AI Gateway keys are issued is `POST /v1/keys` on this host.
 
 | Route | What it does |

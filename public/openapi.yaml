@@ -567,6 +567,32 @@
         }
       }
     },
+    "/deployments/runs/{run_id}/logs": {
+      "get": {
+        "operationId": "getDeploymentRunBuildLog",
+        "summary": "Get a failed run's build error",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/RunId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The run's sealed build output",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      }
+    },
     "/deployments/{deployment_id}": {
       "get": {
         "operationId": "getDeployment",
@@ -959,6 +985,112 @@
                     },
                     "status_url": {
                       "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/PublicError"
+          },
+          "409": {
+            "$ref": "#/components/responses/PublicError"
+          },
+          "422": {
+            "$ref": "#/components/responses/PublicError"
+          },
+          "default": {
+            "$ref": "#/components/responses/PublicError"
+          }
+        }
+      }
+    },
+    "/deployments/{deployment_id}/source-revision/preserve-storage": {
+      "post": {
+        "operationId": "deploySourceRevisionPreservingStorage",
+        "summary": "Deploy an exact commit, keeping persistent storage or refusing",
+        "description": "Deploys one commit of a web service while keeping its retained persistent volumes, or refuses with nothing changed. Ephemeral files and SQL run by the new code are outside this guarantee, and 202 does not mean the new version is healthy. Requires an Idempotency-Key and, in the X-Varity-Approval-Id header, a pending approval with kind deploy_revision, target deployment:{deployment_id} and fingerprint preserve_or_refuse_v1:{commit}. Refusals: 409 source_revision_preservation_unavailable, 409 source_revision_policy_unavailable.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeploymentId"
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Varity-Approval-Id",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "commit"
+                ],
+                "properties": {
+                  "commit": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{40}$"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Commit accepted under the policy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "status",
+                    "commit_sha",
+                    "run_id",
+                    "status_url",
+                    "storage_policy"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "app_name": {
+                      "type": "string"
+                    },
+                    "subdomain": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "const": "redeploying"
+                    },
+                    "commit_sha": {
+                      "type": "string"
+                    },
+                    "run_id": {
+                      "type": "string"
+                    },
+                    "status_url": {
+                      "type": "string"
+                    },
+                    "storage_policy": {
+                      "const": "preserve_or_refuse_v1"
                     }
                   }
                 }
@@ -3138,6 +3270,10 @@
             },
             "description": "Day-2 actions this machine's durable state currently permits. Absent when none apply."
           },
+          "terminal_supported": {
+            "type": "boolean",
+            "description": "Whether this machine kind can open a browser console for this caller now. False is definitive. True does not say the machine is ready, and consoles open only from the signed-in Portal. Absent from a backend that predates the field."
+          },
           "degradation_reason": {
             "type": "string",
             "enum": [
@@ -3598,6 +3734,10 @@
           "correlation_id": {
             "type": "string"
           },
+          "idempotency_key": {
+            "type": "string",
+            "description": "Present on deploy_acceptance_unconfirmed: resend the same create with this Idempotency-Key; it returns the deployment if it was accepted and never creates a second one."
+          },
           "trace_id": {
             "type": "string",
             "pattern": "^[0-9a-f]{32}$",
@@ -3750,6 +3890,10 @@
               "durable_only"
             ],
             "description": "How this owner-scoped collection row is represented. This is not provider-live state."
+          },
+          "terminal_supported": {
+            "type": "boolean",
+            "description": "Whether POST /deployments/{deployment_id}/terminal-sessions admits this deployment now. False is definitive. True does not say the app is running, and a runtime without a browser shell still answers 409."
           },
           "operation_deployment_id": {
             "type": [
@@ -4079,11 +4223,11 @@
               },
               "repository_url": {
                 "type": "string",
-                "description": "The repository the live release was built from, when observed."
+                "description": "The repository the live release was built from, when observed. On a failed deployment with no live release, the repository it was asked to build."
               },
               "commit_sha": {
                 "type": "string",
-                "description": "The exact commit the live release serves, when observed.",
+                "description": "The exact commit the live release serves, when observed. On a failed deployment with no live release, the commit it was asked to build.",
                 "pattern": "^[0-9a-f]{40}$"
               }
             }
@@ -4322,6 +4466,15 @@
           "null"
         ],
         "properties": {
+          "billing_basis": {
+            "type": "string",
+            "enum": [
+              "free_allowance",
+              "paid",
+              "unavailable"
+            ],
+            "description": "How this deployment is billed now, from the billing meter's own charging records. Independent of the nominal hardware tariff, accrual state and current charging waiver. Unavailable when not proved."
+          },
           "fixed_monthly_cost_usd": {
             "type": "number"
           },
@@ -4494,6 +4647,26 @@
           },
           "status_url": {
             "type": "string"
+          },
+          "ai_gateway": {
+            "type": "object",
+            "required": [
+              "attachment_id",
+              "model",
+              "status"
+            ],
+            "properties": {
+              "attachment_id": {
+                "type": "string"
+              },
+              "model": {
+                "type": "string"
+              },
+              "status": {
+                "const": "attaching"
+              }
+            },
+            "description": "Present when the create requested the AI Gateway add-on. Becomes active in GET /api/ai-gateway/attachments once the run succeeds."
           },
           "deployment_id": {
             "type": "string"
@@ -5642,6 +5815,11 @@
                     "required": [
                       "accelerator_quote_token"
                     ]
+                  },
+                  {
+                    "required": [
+                      "ai_gateway"
+                    ]
                   }
                 ]
               },
@@ -5814,6 +5992,28 @@
           "accelerator_quote_token": {
             "type": "string",
             "description": "The quote_token from POST /pricing/accelerator-quote. Required with accelerator; deploy-api rejects an accelerator without its exact quote and vice versa."
+          },
+          "ai_gateway": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "model"
+            ],
+            "properties": {
+              "model": {
+                "type": "string",
+                "pattern": "^[a-z0-9][a-z0-9.-]{0,95}$"
+              },
+              "privacy_floor": {
+                "type": "string",
+                "enum": [
+                  "private",
+                  "tee"
+                ],
+                "default": "private"
+              }
+            },
+            "description": "AI Gateway add-on for a dynamic repository or image create. The first release receives VARITY_AI_API_KEY, VARITY_AI_BASE_URL and VARITY_AI_MODEL (= model) from a deployment-scoped key with the selected private or tee floor (private by default); no further request is needed. Requires an Idempotency-Key (422 idempotency_key_required). Refusals: 422 invalid_deployment_request (field ai_gateway, or env naming those variables), 422 ai_gateway_unsupported_for_workload (static, template, GPU container), 409 ai_gateway_already_attached (the live app already holds one: deploy in place instead), 409 ai_gateway_conflict (the key belongs to a different create), 503 ai_gateway_unavailable (retryable; nothing was created)."
           }
         }
       },
@@ -6210,7 +6410,8 @@
             "type": "string",
             "enum": [
               "private",
-              "anonymized"
+              "anonymized",
+              "tee"
             ]
           },
           "upstream_budget_usd": {
@@ -6319,7 +6520,7 @@
             "type": "string",
             "enum": [
               "private",
-              "anonymized"
+              "tee"
             ]
           },
           "upstream_budget_usd": {
@@ -6399,7 +6600,8 @@
             "type": "string",
             "enum": [
               "private",
-              "anonymized"
+              "anonymized",
+              "tee"
             ]
           },
           "upstream_budget_usd": {

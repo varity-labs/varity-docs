@@ -32,9 +32,9 @@ same surface; see [Endpoints](/ai-gateway/endpoints/#host).
 | `POST /v1/images/edits` | **Supported.** Requires a bearer API key. The OpenAI SDK's `multipart/form-data` upload, or JSON with base64 image data (`image/png`, `image/jpeg`, `image/webp`); a source image or mask at or above 25 MB is rejected. |
 | `POST /v1/audio/transcriptions` | **Supported.** Requires a bearer API key. The OpenAI SDK's `multipart/form-data` upload, or JSON with the audio as a base64 typed part; the model must advertise `capabilities.transcription`. Returns JSON, or plain text when `response_format` is `text`. No streaming mode. |
 | `POST /v1/audio/speech` | **Supported.** Requires a bearer API key. The model must advertise `capabilities.speech` and the format must be one of its `capabilities.speech_formats`. Returns audio bytes with a matching `audio/*` content type; `stream: true` gives a chunked binary response, not SSE. |
-| `GET /v1/models/{id}` | **Not implemented.** Returns `404`. Fetch the list and filter client-side. |
+| `GET /v1/models/{id}` | **Supported.** No credential needed. Returns that model's entry from `GET /v1/models`; an id the catalog does not list returns `404 model_not_found`. |
 | `POST /v1/completions` (legacy text completions) | **Not implemented.** Returns `404`. |
-| `POST /v1/responses` | **Not implemented.** Returns `404`. |
+| `POST /v1/responses` | **Supported.** Requires a bearer API key. The OpenAI Responses request for every model that chat serves, with the same routing, limits and billing. Function tools only. Varity stores no responses, so `previous_response_id`, `store: true` and `background: true` are refused. `stream: true` returns Responses events. |
 | `/v1/assistants` | **Not implemented.** Returns `404`. |
 | `/v1/files` | **Not implemented.** Returns `404`. |
 | `/v1/vector_stores` | **Not implemented.** Returns `404`. |
@@ -192,7 +192,7 @@ that response; the column below is what the gateway publishes today.
 | `privacy_policy_violation` | `403` | no | The request asked for a privacy floor weaker than the account's. |
 | `duplicate_request` | `409` | no | The idempotency identity was already admitted. |
 | `request_cancelled` | `499`, `408` | no | `499`: the caller closed the connection before the response finished. `408`: the request's deadline had already passed when the gateway admitted it. |
-| `deadline_exceeded` | `504` | no | With the optional `X-Varity-Deadline-Ms` header, a request still running at that instant ends `504 deadline_exceeded`. Varity has no total response-time limit: without this header a request runs until the model finishes or the client disconnects. Once a stream has started, the status is already `200` and the error arrives as the final `data:` event before `[DONE]`. |
+| `deadline_exceeded` | `504` | no | With the optional `X-Varity-Deadline-Ms` header, a request still running at that instant ends `504 deadline_exceeded`. Varity has no total response-time limit: without this header a request runs until the model finishes. Closing the connection does not cancel a streamed chat request that has already been sent to the model: Varity reads the answer to its end and charges the tokens the model generated, delivered or not. Set `max_tokens` to bound that cost. Once a stream has started, the status is already `200` and the error arrives as the final `data:` event before `[DONE]`. |
 | `rate_limit_exceeded` | `429` | yes | The account's requests-per-minute budget, or the key's own `requests_per_minute`, is exhausted. See [Rate Limits](/ai-gateway/limits/). |
 | `concurrency_limit_exceeded` | `429` | yes | The account's in-flight bound, or the key's own `concurrency_limit`, is exhausted. See [Rate Limits](/ai-gateway/limits/). |
 | `budget_exceeded` | `429` | yes | The account's inference budget, or the key's own spending budget, is exhausted. See [Billing and Keys](/ai-gateway/billing-and-keys/). |
@@ -257,20 +257,28 @@ provider does with a request depends on the model's privacy class; see
 
 ## Privacy Routing
 
-The live catalog reports two routing privacy classes: `privacy: "private"` with
-`privacy_routes: ["private"]`, and `privacy: "anonymized"` with
-`privacy_routes: ["anonymized"]`. This field has no OpenAI equivalent; it is
+The live catalog reports three routing privacy classes, from least to most
+restrictive: `anonymized`, `private` and `tee`. Each model has one `privacy`
+value and a `privacy_routes` list; a few models list more than one route. This
+field has no OpenAI equivalent; it is
 Varity-specific catalog metadata describing how each model is routed. Read it per
 model.
 
 Your account has a privacy floor. A new account starts at `anonymized`, with
-nothing to acknowledge, which lets requests use both `private` and `anonymized`
-models. Set it to `private` with `PUT /v1/inference/policy` (or on the portal's
-**Gateway settings** tab) and only `private` models are callable. A `PUT` that
+nothing to acknowledge, which lets requests use models of every class. Set it
+to `private` with `PUT /v1/inference/policy` (or on the portal's
+**Gateway settings** tab) and only `private` and `tee` models are callable; set
+it to `tee` and only `tee` models are. A `PUT` that
 sets it to `anonymized` carries `acknowledge_anonymized_processing: true`. A single chat request can
 tighten the floor, never loosen it, with
 `"varity_extensions": { "privacy_floor": "private" }`; asking for a weaker floor
 than the account's returns `403 privacy_policy_violation`.
+
+If a route refuses a request or sends nothing, Varity retries the request on
+another route for the same model that meets your privacy floor, when one
+exists. You are charged once, for the route that answered; `fallback_count` on
+the request record counts how many times the request moved to another route.
+`GET /v1/inference/requests` shows whether a failed request was charged.
 
 ## Next Steps
 

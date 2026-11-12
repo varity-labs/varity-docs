@@ -21,6 +21,7 @@ MCP clients must discover executable tool definitions from the installed server'
 - [AI Gateway Rate Limits](https://docs.varity.so/ai-gateway/limits/): The request budgets, concurrency bound, and body-size ceilings the Varity AI Gateway enforces, the headers it actually returns, and what each 429 body looks like.
 - [AI Gateway Models](https://docs.varity.so/ai-gateway/models/): Ids, makers, modalities, context windows, completion limits, tool-calling and streaming support, and per-unit pricing in the live Varity AI Gateway model catalog.
 - [AI Gateway Playground](https://docs.varity.so/ai-gateway/playground/): Try AI Gateway models in the Developer Portal, compare them, search the web, attach files, and let the assistant work on your connected repository and deployments.
+- [Where your data goes](https://docs.varity.so/ai-gateway/your-data/): Where the AI Gateway Playground saves your chats, who can access them, and where each message is sent.
 - [Varity Public API Reference](https://docs.varity.so/ai-tools/api-reference/): Varity public API for deploying, operating, and integrating apps programmatically.
 - [Varity MCP Server Reference](https://docs.varity.so/ai-tools/mcp-server-spec/): Install the published Varity MCP package, configure a supported editor, and use its machine-readable tool catalog without relying on unreleased source.
 - [AI Tools for Varity Deploys](https://docs.varity.so/ai-tools/overview/): Accelerate Varity development with AI tools. Copy-paste prompts, Cursor rules, MCP server integration, and LLM-optimized documentation.

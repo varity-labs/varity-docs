@@ -80,7 +80,7 @@ Each entry in `data` carries these Varity fields:
 | `capabilities.speech` | boolean | `true` when `POST /v1/audio/speech` accepts the model; `speech_formats` lists its output formats |
 | `context_window` | integer | Total tokens, input plus output |
 | `max_completion_tokens` | integer | Ceiling on generated tokens |
-| `privacy` | string | Routing privacy class. The live catalog contains both `"private"` and `"anonymized"` entries |
+| `privacy` | string | Routing privacy class: `"anonymized"`, `"private"` or `"tee"` |
 | `privacy_routes` | array | Route set matching `privacy` |
 | `availability.status` | string | `"available"`, `"last_known_available"`, `"temporarily_unavailable"`, `"verification_stale"`, or `"unverified"`, with an `observed_at` timestamp and, on the last three, a `reason` |
 | `customer_pricing` | object | See below |
@@ -180,10 +180,7 @@ large answer, so read both fields per model.
 - **Need a very large context?** Sort the live catalog by `context_window`. The Grok 4.20 entries (`grok-4-20`, `grok-4-20-multi-agent`) have the widest windows in the current catalog, but read the field rather than assuming.
 - **Cost sensitive?** Sort the live catalog by `customer_pricing.input` within one `unit`; rates change with the catalog, so do not rely on a named model.
 
-<Aside type="caution">
-There is no per-model retrieval route. `GET /v1/models/{id}` returns `404`; fetch
-the list and filter it client-side.
-</Aside>
+`GET /v1/models/{id}` returns one entry of this list.
 
 ## Next Steps
 
