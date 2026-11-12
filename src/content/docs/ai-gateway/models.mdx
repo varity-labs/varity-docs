@@ -180,10 +180,7 @@ large answer, so read both fields per model.
 - **Need a very large context?** Sort the live catalog by `context_window`. The Grok 4.20 entries (`grok-4-20`, `grok-4-20-multi-agent`) have the widest windows in the current catalog, but read the field rather than assuming.
 - **Cost sensitive?** Sort the live catalog by `customer_pricing.input` within one `unit`; rates change with the catalog, so do not rely on a named model.
 
-<Aside type="caution">
-There is no per-model retrieval route. `GET /v1/models/{id}` returns `404`; fetch
-the list and filter it client-side.
-</Aside>
+`GET /v1/models/{id}` returns one entry of this list.
 
 ## Next Steps
 

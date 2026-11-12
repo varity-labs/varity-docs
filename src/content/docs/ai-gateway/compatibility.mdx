@@ -32,9 +32,9 @@ same surface; see [Endpoints](/ai-gateway/endpoints/#host).
 | `POST /v1/images/edits` | **Supported.** Requires a bearer API key. The OpenAI SDK's `multipart/form-data` upload, or JSON with base64 image data (`image/png`, `image/jpeg`, `image/webp`); a source image or mask at or above 25 MB is rejected. |
 | `POST /v1/audio/transcriptions` | **Supported.** Requires a bearer API key. The OpenAI SDK's `multipart/form-data` upload, or JSON with the audio as a base64 typed part; the model must advertise `capabilities.transcription`. Returns JSON, or plain text when `response_format` is `text`. No streaming mode. |
 | `POST /v1/audio/speech` | **Supported.** Requires a bearer API key. The model must advertise `capabilities.speech` and the format must be one of its `capabilities.speech_formats`. Returns audio bytes with a matching `audio/*` content type; `stream: true` gives a chunked binary response, not SSE. |
-| `GET /v1/models/{id}` | **Not implemented.** Returns `404`. Fetch the list and filter client-side. |
+| `GET /v1/models/{id}` | **Supported.** No credential needed. Returns that model's entry from `GET /v1/models`; an id the catalog does not list returns `404 model_not_found`. |
 | `POST /v1/completions` (legacy text completions) | **Not implemented.** Returns `404`. |
-| `POST /v1/responses` | **Not implemented.** Returns `404`. |
+| `POST /v1/responses` | **Supported.** Requires a bearer API key. The OpenAI Responses request for every model that chat serves, with the same routing, limits and billing. Function tools only. Varity stores no responses, so `previous_response_id`, `store: true` and `background: true` are refused. `stream: true` returns Responses events. |
 | `/v1/assistants` | **Not implemented.** Returns `404`. |
 | `/v1/files` | **Not implemented.** Returns `404`. |
 | `/v1/vector_stores` | **Not implemented.** Returns `404`. |

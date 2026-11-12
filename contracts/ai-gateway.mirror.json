@@ -38,7 +38,8 @@
     },
     "x-varity-catalog-exclusions": {
       "row_reasons": {
-        "e2ee_transport_unattested": "The model speaks an end-to-end-encrypted or TEE-attested protocol this gateway does not attest; it is never sent plaintext.",
+        "e2ee_transport_unattested": "The model runs in a TEE whose GPU attestation did not pass this gateway's own fresh check (or is not a text model); it is not served until a check passes. Client-encrypted (E2EE) requests are not relayed.",
+        "tee_gateway_only": "The model's attestation covers only an aggregator gateway, not the GPU inference host, so it is never offered as confidential.",
         "no_neutral_operation": "No public operation of this API serves the model (for example image upscaling)."
       },
       "unserved_types": {
@@ -78,6 +79,449 @@
       }
     ],
     "paths": {
+      "/v1/keys": {
+        "get": {
+          "security": [
+            {
+              "PrivySession": []
+            }
+          ],
+          "operationId": "listInferenceKeys",
+          "summary": "List the authenticated owner's inference keys",
+          "description": "Developer Portal session required. Returns inference-only key metadata without plaintext or hashes.",
+          "responses": {
+            "200": {
+              "description": "Owned inference key metadata",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/InferenceKeyList"
+                  }
+                }
+              }
+            },
+            "default": {
+              "description": "Normalized error envelope",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorEnvelope"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "post": {
+          "security": [
+            {
+              "PrivySession": []
+            }
+          ],
+          "operationId": "createInferenceKey",
+          "summary": "Create a scoped inference key for the authenticated owner",
+          "description": "Developer Portal session required. Plaintext is returned only once. An anonymized key requires the account's durable anonymized-processing consent; callers cannot supply owner, tier or services.",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InferenceKeyCreateRequest"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "The new plaintext key and owner-scoped metadata",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/InferenceKeyCreation"
+                  }
+                }
+              }
+            },
+            "default": {
+              "description": "Normalized error envelope",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorEnvelope"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/v1/keys/audit": {
+        "get": {
+          "security": [
+            {
+              "PrivySession": []
+            }
+          ],
+          "operationId": "listInferenceKeyAudit",
+          "summary": "List the authenticated owner's key lifecycle events",
+          "parameters": [
+            {
+              "name": "limit",
+              "in": "query",
+              "schema": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 500,
+                "default": 100
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Secret-free owner-scoped key lifecycle events",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/InferenceKeyAudit"
+                  }
+                }
+              }
+            },
+            "default": {
+              "description": "Normalized error envelope",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorEnvelope"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/v1/keys/{id}/revoke": {
+        "post": {
+          "security": [
+            {
+              "PrivySession": []
+            }
+          ],
+          "operationId": "revokeInferenceKey",
+          "summary": "Revoke a key owned by the authenticated account",
+          "description": "Developer Portal session required. The current replica forgets its cached verdict after Credential Proxy replies. Revocation does not promise cancellation or a refund for work already started.",
+          "parameters": [
+            {
+              "name": "id",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "string",
+                "pattern": "^vki_[A-Za-z0-9_-]{20,64}$"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "The owner-scoped revocation result",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/InferenceKeyRevocation"
+                  }
+                }
+              }
+            },
+            "default": {
+              "description": "Normalized error envelope",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorEnvelope"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/v1/billing/balance": {
+        "get": {
+          "security": [
+            {
+              "PrivySession": []
+            }
+          ],
+          "operationId": "getInferenceBalance",
+          "summary": "Get the authenticated owner's prepaid balance",
+          "responses": {
+            "200": {
+              "description": "The authenticated owner's current prepaid balance and settings",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/InferenceBalance"
+                  }
+                }
+              }
+            },
+            "default": {
+              "description": "Normalized error envelope",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorEnvelope"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/v1/billing/transactions": {
+        "get": {
+          "security": [
+            {
+              "PrivySession": []
+            }
+          ],
+          "operationId": "listInferenceBalanceTransactions",
+          "summary": "Get the authenticated owner's balance transactions",
+          "description": "USD amounts are returned for funding only. Usage, refunds and adjustments carry null USD amounts.",
+          "parameters": [
+            {
+              "name": "limit",
+              "in": "query",
+              "schema": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 100,
+                "default": 50
+              }
+            },
+            {
+              "name": "offset",
+              "in": "query",
+              "schema": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 10000,
+                "default": 0
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Customer-safe balance history and pagination",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/InferenceBalanceTransactions"
+                  }
+                }
+              }
+            },
+            "default": {
+              "description": "Normalized error envelope",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorEnvelope"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/v1/billing/settings": {
+        "patch": {
+          "security": [
+            {
+              "PrivySession": []
+            }
+          ],
+          "summary": "Update the authenticated owner's prepaid balance settings",
+          "description": "Requires a Developer Portal session. Both monthlySpendingLimitCents and all autoReload fields are required; thresholdCents must be less than amountCents. Does not fund the balance.",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InferenceBalanceSettings"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "The authenticated owner's current prepaid balance and settings",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/InferenceBalance"
+                  }
+                }
+              }
+            },
+            "default": {
+              "description": "Normalized error envelope",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorEnvelope"
+                  }
+                }
+              }
+            }
+          },
+          "operationId": "configureInferenceBalance"
+        },
+        "post": {
+          "security": [
+            {
+              "PrivySession": []
+            }
+          ],
+          "summary": "Update the authenticated owner's prepaid balance settings",
+          "description": "Requires a Developer Portal session. Both monthlySpendingLimitCents and all autoReload fields are required; thresholdCents must be less than amountCents. Does not fund the balance.",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InferenceBalanceSettings"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "The authenticated owner's current prepaid balance and settings",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/InferenceBalance"
+                  }
+                }
+              }
+            },
+            "default": {
+              "description": "Normalized error envelope",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorEnvelope"
+                  }
+                }
+              }
+            }
+          },
+          "operationId": "configureInferenceBalanceViaPost"
+        }
+      },
+      "/v1/billing/top-up": {
+        "post": {
+          "security": [
+            {
+              "PrivySession": []
+            }
+          ],
+          "operationId": "createInferenceBalanceCheckout",
+          "summary": "Create an owned card checkout to fund the prepaid balance",
+          "description": "Developer Portal session and an email verified as owned by that account are required. Replaying the same owner-scoped Idempotency-Key and payload returns the original checkout; a changed payload conflicts. A successful checkout creation is not proof of payment or credited balance.",
+          "parameters": [
+            {
+              "name": "Idempotency-Key",
+              "in": "header",
+              "required": true,
+              "schema": {
+                "type": "string",
+                "minLength": 16,
+                "maxLength": 200,
+                "pattern": "^[A-Za-z0-9._~-]{16,200}$"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InferenceBalanceTopUp"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Checkout URL and quoted funding amounts in cents; no funding service fee",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/InferenceBalanceCheckout"
+                  }
+                }
+              }
+            },
+            "default": {
+              "description": "Normalized error envelope",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorEnvelope"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/v1/billing/checkout/{id}/reconcile": {
+        "post": {
+          "security": [
+            {
+              "PrivySession": []
+            }
+          ],
+          "operationId": "reconcileInferenceBalanceCheckout",
+          "summary": "Reconcile an already-paid checkout owned by the authenticated account",
+          "description": "Developer Portal session required. Verifies checkout ownership, payment and the recorded funding amounts before idempotent credit; an unpaid or foreign checkout is refused. Does not submit a new payment.",
+          "parameters": [
+            {
+              "name": "id",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "string",
+                "pattern": "^cs_(?:test|live)_[A-Za-z0-9]{1,250}$"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Verified checkout funding reconciliation",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/InferenceBalanceCheckoutReconciliation"
+                  }
+                }
+              }
+            },
+            "default": {
+              "description": "Normalized error envelope",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorEnvelope"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
       "/v1/openapi.json": {
         "get": {
           "security": [],
@@ -124,7 +568,8 @@
                         "type": "string",
                         "enum": [
                           "private",
-                          "anonymized"
+                          "anonymized",
+                          "tee"
                         ],
                         "description": "Effective privacy floor used to project this catalog."
                       },
@@ -630,6 +1075,21 @@
                         "b64_json"
                       ],
                       "description": "Accepted for OpenAI SDK parity. Images are always returned inline as b64_json; Varity hosts no image URLs, so url is refused."
+                    },
+                    "varity_extensions": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "privacy_floor": {
+                          "type": "string",
+                          "enum": [
+                            "private",
+                            "anonymized",
+                            "tee"
+                          ],
+                          "description": "Requires this privacy class or stronger for this request. It cannot weaken the account floor (403 privacy_policy_violation), and a model with no route meeting it answers 403 privacy_route_unavailable."
+                        }
+                      }
                     }
                   }
                 },
@@ -776,6 +1236,21 @@
                     },
                     "size": {
                       "type": "string"
+                    },
+                    "varity_extensions": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "privacy_floor": {
+                          "type": "string",
+                          "enum": [
+                            "private",
+                            "anonymized",
+                            "tee"
+                          ],
+                          "description": "Requires this privacy class or stronger for this request. It cannot weaken the account floor (403 privacy_policy_violation), and a model with no route meeting it answers 403 privacy_route_unavailable."
+                        }
+                      }
                     }
                   }
                 }
@@ -808,6 +1283,10 @@
                     },
                     "size": {
                       "type": "string"
+                    },
+                    "varity_extensions": {
+                      "type": "string",
+                      "description": "The same object as the JSON body, as JSON text, for example {\"privacy_floor\":\"private\"}."
                     }
                   }
                 }
@@ -1303,6 +1782,12 @@
           "type": "http",
           "scheme": "bearer",
           "description": "An owner-bound Varity API key with an inference service scope. Provider credentials are never accepted."
+        },
+        "PrivySession": {
+          "type": "http",
+          "scheme": "bearer",
+          "bearerFormat": "JWT",
+          "description": "An authenticated Developer Portal Privy access token for the account owner. API keys cannot authorize these key-management or billing operations."
         }
       },
       "headers": {
@@ -1527,6 +2012,674 @@
         }
       },
       "schemas": {
+        "InferenceKeyCreateRequest": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "allowed_models",
+            "privacy_floor"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80,
+              "pattern": "^[^\\u0000-\\u001f\\u007f]+$"
+            },
+            "project_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9:._-]{0,127}$"
+            },
+            "application_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9:._-]{0,127}$"
+            },
+            "environment": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9:._-]{0,127}$"
+            },
+            "allowed_models": {
+              "type": "array",
+              "maxItems": 64,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z0-9][a-z0-9.-]{0,95}$"
+              },
+              "description": "Canonical Varity model ids, at most 4096 characters combined. An empty list adds no model restriction."
+            },
+            "privacy_floor": {
+              "type": "string",
+              "enum": [
+                "private",
+                "anonymized",
+                "tee"
+              ]
+            },
+            "upstream_budget_usd": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 10000
+            },
+            "requests_per_minute": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000
+            },
+            "concurrency_limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000
+            },
+            "expires_at": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 9007199254740991,
+              "description": "Unix seconds. Credential Proxy requires a future instant no more than 366 days away; fractions are accepted."
+            }
+          }
+        },
+        "InferenceKey": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "name",
+            "tier",
+            "principal_type",
+            "services",
+            "allowed_models",
+            "privacy_floor",
+            "rotation_generation",
+            "active"
+          ],
+          "description": "Owner-scoped Credential Proxy metadata. Plaintext, hashes and secret references are not returned by list or audit.",
+          "properties": {
+            "id": {
+              "type": "string",
+              "pattern": "^vki_[A-Za-z0-9_-]{20,64}$"
+            },
+            "name": {
+              "type": "string"
+            },
+            "tier": {
+              "type": "string"
+            },
+            "principal_type": {
+              "type": "string"
+            },
+            "services": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 1,
+              "items": {
+                "const": "inference"
+              }
+            },
+            "project_id": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "application_id": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "deployment_id": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "environment": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "allowed_models": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "privacy_floor": {
+              "type": "string",
+              "enum": [
+                "private",
+                "anonymized",
+                "tee"
+              ]
+            },
+            "upstream_budget_usd": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "requests_per_minute": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            },
+            "concurrency_limit": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            },
+            "expires_at": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "attachment_id": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "rotation_generation": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "created_at": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "last_used_at": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "revoked_at": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "active": {
+              "type": "boolean"
+            }
+          }
+        },
+        "InferenceKeyCreation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "api_key",
+            "key"
+          ],
+          "properties": {
+            "api_key": {
+              "type": "string",
+              "description": "Plaintext key, returned only at creation. Store it securely; it cannot be retrieved later."
+            },
+            "key": {
+              "$ref": "#/components/schemas/InferenceKey"
+            }
+          }
+        },
+        "InferenceKeyList": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "api_keys"
+          ],
+          "properties": {
+            "api_keys": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/InferenceKey"
+              }
+            }
+          }
+        },
+        "InferenceKeyAudit": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "events"
+          ],
+          "properties": {
+            "events": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "id",
+                  "type",
+                  "key_id",
+                  "principal_type",
+                  "occurred_at"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string"
+                  },
+                  "key_id": {
+                    "type": "string",
+                    "pattern": "^vki_[A-Za-z0-9_-]{20,64}$"
+                  },
+                  "principal_type": {
+                    "type": "string"
+                  },
+                  "project_id": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "application_id": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "deployment_id": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "attachment_id": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "occurred_at": {
+                    "type": "number",
+                    "minimum": 0,
+                    "description": "Unix seconds."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "InferenceKeyRevocation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "revoked"
+          ],
+          "properties": {
+            "revoked": {
+              "type": "boolean",
+              "description": "Whether an owned key was revoked. A key outside this owner is never changed."
+            }
+          }
+        },
+        "InferenceBalance": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status",
+            "currency",
+            "accessState",
+            "cashBalanceUsd",
+            "promotionalBalanceUsd",
+            "reservedUsd",
+            "availableBalanceUsd",
+            "spendThisMonthUsd",
+            "monthlySpendingLimitUsd",
+            "remainingMonthlySpendUsd",
+            "autoReload"
+          ],
+          "properties": {
+            "status": {
+              "const": "configured"
+            },
+            "currency": {
+              "const": "usd"
+            },
+            "accessState": {
+              "type": "string",
+              "enum": [
+                "active",
+                "frozen"
+              ]
+            },
+            "cashBalanceUsd": {
+              "type": "number",
+              "description": "Signed cash balance; negative cash does not become an unavailable or zero balance."
+            },
+            "promotionalBalanceUsd": {
+              "type": "number",
+              "minimum": 0
+            },
+            "reservedUsd": {
+              "type": "number",
+              "minimum": 0
+            },
+            "availableBalanceUsd": {
+              "type": "number"
+            },
+            "spendThisMonthUsd": {
+              "type": "number",
+              "minimum": 0
+            },
+            "monthlySpendingLimitUsd": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "remainingMonthlySpendUsd": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "autoReload": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "enabled",
+                "thresholdUsd",
+                "amountUsd",
+                "status",
+                "failureCode"
+              ],
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                },
+                "thresholdUsd": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "amountUsd": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "idle",
+                    "pending",
+                    "action_required"
+                  ]
+                },
+                "failureCode": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "InferenceBalanceSettings": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "monthlySpendingLimitCents",
+            "autoReload"
+          ],
+          "properties": {
+            "monthlySpendingLimitCents": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 100,
+              "maximum": 10000000
+            },
+            "autoReload": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "enabled",
+                "thresholdCents",
+                "amountCents"
+              ],
+              "description": "thresholdCents must be strictly less than amountCents, including when disabled.",
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                },
+                "thresholdCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 10000000
+                },
+                "amountCents": {
+                  "type": "integer",
+                  "minimum": 2000,
+                  "maximum": 100000
+                }
+              }
+            }
+          }
+        },
+        "InferenceBalanceTopUp": {
+          "type": "object",
+          "required": [
+            "email",
+            "balanceCents"
+          ],
+          "properties": {
+            "email": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 254,
+              "description": "An email address verified as owned by the authenticated account."
+            },
+            "balanceCents": {
+              "type": "integer",
+              "minimum": 2000,
+              "maximum": 100000
+            },
+            "successUrl": {
+              "type": "string",
+              "description": "HTTPS return URL on varity.so, varity.app or a subdomain; other values use the Portal fallback. The checkout session id is appended."
+            },
+            "cancelUrl": {
+              "type": "string",
+              "description": "HTTPS return URL on varity.so, varity.app or a subdomain; other values use the Portal fallback."
+            }
+          }
+        },
+        "InferenceBalanceCheckout": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "url",
+            "sessionId",
+            "balanceCents",
+            "serviceFeeCents",
+            "totalCents"
+          ],
+          "properties": {
+            "url": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "sessionId": {
+              "type": "string"
+            },
+            "balanceCents": {
+              "type": "integer",
+              "minimum": 2000,
+              "maximum": 100000
+            },
+            "serviceFeeCents": {
+              "const": 0
+            },
+            "totalCents": {
+              "type": "integer",
+              "minimum": 2000,
+              "maximum": 100000
+            }
+          }
+        },
+        "InferenceBalanceCheckoutReconciliation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "sessionId",
+            "funded"
+          ],
+          "properties": {
+            "sessionId": {
+              "type": "string"
+            },
+            "funded": {
+              "const": true
+            }
+          }
+        },
+        "InferenceBalanceTransactions": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "transactions",
+            "pagination"
+          ],
+          "properties": {
+            "transactions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "id",
+                  "type",
+                  "balance",
+                  "amountUsd",
+                  "serviceFeeUsd",
+                  "taxUsd",
+                  "totalUsd",
+                  "source",
+                  "grantAuthority",
+                  "grantReason",
+                  "createdAt"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "funding",
+                      "usage",
+                      "refund",
+                      "adjustment"
+                    ]
+                  },
+                  "balance": {
+                    "type": "string",
+                    "enum": [
+                      "cash",
+                      "promotional",
+                      "mixed"
+                    ]
+                  },
+                  "amountUsd": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "serviceFeeUsd": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "taxUsd": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "totalUsd": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "source": {
+                    "type": "string",
+                    "enum": [
+                      "inference",
+                      "card_refund",
+                      "auto_reload",
+                      "card",
+                      "promotion",
+                      "adjustment"
+                    ]
+                  },
+                  "grantAuthority": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "grantReason": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "createdAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                },
+                "description": "USD amounts are present for funding only; usage, refunds and adjustments return null amounts. No prompt, content or internal rate card is returned."
+              }
+            },
+            "pagination": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "limit",
+                "offset",
+                "hasMore"
+              ],
+              "properties": {
+                "limit": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 100
+                },
+                "offset": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 10000
+                },
+                "hasMore": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        },
         "ImageInput": {
           "type": "object",
           "additionalProperties": false,
@@ -1565,7 +2718,8 @@
               "type": "string",
               "enum": [
                 "private",
-                "anonymized"
+                "anonymized",
+                "tee"
               ]
             },
             "credential_privacy_floor": {
@@ -1576,6 +2730,7 @@
               "enum": [
                 "private",
                 "anonymized",
+                "tee",
                 null
               ]
             },
@@ -1583,7 +2738,8 @@
               "type": "string",
               "enum": [
                 "private",
-                "anonymized"
+                "anonymized",
+                "tee"
               ]
             },
             "limit_tier": {
@@ -2204,6 +3360,7 @@
               "enum": [
                 "private",
                 "anonymized",
+                "tee",
                 "legacy_unknown"
               ],
               "description": "The privacy floor the request required. legacy_unknown only for requests recorded before floors were enforced."
@@ -2216,6 +3373,7 @@
               "enum": [
                 "private",
                 "anonymized",
+                "tee",
                 null
               ],
               "description": "The privacy class of the route that served the request. Null when the request was never dispatched to a route, or was recorded before this field existed."
@@ -3077,7 +4235,8 @@
                   "type": "string",
                   "enum": [
                     "private",
-                    "anonymized"
+                    "anonymized",
+                    "tee"
                   ],
                   "description": "Per-request privacy floor. It may only tighten the account policy."
                 },
@@ -3519,7 +4678,8 @@
                   "type": "string",
                   "enum": [
                     "private",
-                    "anonymized"
+                    "anonymized",
+                    "tee"
                   ],
                   "description": "Strongest currently available route class, duplicated from the model top level."
                 },
@@ -3530,7 +4690,8 @@
                     "type": "string",
                     "enum": [
                       "private",
-                      "anonymized"
+                      "anonymized",
+                      "tee"
                     ]
                   },
                   "description": "Provider-hidden route-level privacy classes, duplicated from the model top level."
@@ -3559,9 +4720,10 @@
               "type": "string",
               "enum": [
                 "private",
-                "anonymized"
+                "anonymized",
+                "tee"
               ],
-              "description": "Strongest currently available route class. Private means the provider contract supports the required retention and training posture; it is not confidential compute. Anonymized means Varity withholds direct Varity identity and raw key data, while the provider still processes the content under its disclosed handling terms."
+              "description": "Strongest currently available route class. TEE means this route has current Varity-verified hardware attestation and is served in TEE mode; attestation and signature scopes are stated in confidential.verification. Private means the provider contract supports the required retention and training posture; it is not confidential compute. Anonymized means Varity withholds direct Varity identity and raw key data, while the provider still processes the content under its disclosed handling terms."
             },
             "privacy_routes": {
               "type": "array",
@@ -3570,10 +4732,107 @@
                 "type": "string",
                 "enum": [
                   "private",
-                  "anonymized"
+                  "anonymized",
+                  "tee"
                 ]
               },
-              "description": "Routing tries every route whose privacy class satisfies the effective floor, strongest class first. A weaker class the floor allows serves only when a stronger route is out of capacity, held or failing; a `private` floor is never served by an `anonymized` route. `privacy_routes` lists every class that can serve under the caller's floor; `customer_pricing` is the strongest class's price, and a fallback route that would cost more than it is not used."
+              "description": "Routing tries every route whose privacy class satisfies the effective floor, strongest class first. A weaker class the floor allows serves only when a stronger route is out of capacity, held or failing; a `private` floor is never served by an `anonymized` route, and a `tee` floor only uses currently hardware-attested TEE routes. `privacy_routes` lists every class that can serve under the caller's floor; `customer_pricing` is the strongest class's price, and a fallback route that would cost more than it is not used."
+            },
+            "deprecation": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "removes_at"
+              ],
+              "description": "Present only while the model is retiring. It stays callable, at its published price and privacy, until `removes_at`, and is withheld (404 `model_not_found`) after it. `replacement` is the suggested successor model id, present only when that model is published; requests are never remapped to it, so its price and privacy may differ.",
+              "properties": {
+                "removes_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "When the supplier stops serving this model."
+                },
+                "replacement": {
+                  "type": "string",
+                  "description": "Published id of the suggested successor model."
+                }
+              }
+            },
+            "confidential": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "modes",
+                "attestation_scope",
+                "attested_at",
+                "verification"
+              ],
+              "description": "Present only on a confidential model (its own id, suffixed `-confidential`; it never shares routes with the standard model). `tee`: the prompt is sent in plaintext over this API to a hardware enclave (Intel TDX with NVIDIA confidential computing). Varity requests its attestation with a fresh nonce and itself verifies the Intel TDX quote (Intel DCAP) and the NVIDIA GPU attestation (NRAS tokens checked against NVIDIA keys); see `verification`. It is not end-to-end encryption; answers without the provider TEE confirmation fail 502 `confidential_attestation_unbound`. Web search, X search, link reading and the provider system prompt are refused (400 `confidential_feature_unsupported`). When the attestation is not fresh the model answers 503 `confidential_attestation_unavailable` and is never served by another route.",
+              "properties": {
+                "modes": {
+                  "type": "array",
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "tee"
+                    ]
+                  }
+                },
+                "attestation_scope": {
+                  "type": "string",
+                  "enum": [
+                    "gpu"
+                  ],
+                  "description": "The attested machine carried NVIDIA GPU evidence (not an aggregator gateway)."
+                },
+                "attested_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "When this replica last passed the attestation check."
+                },
+                "verification": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "quote",
+                    "gpu",
+                    "response_signature",
+                    "request_binding"
+                  ],
+                  "description": "What Varity itself checked. Only these claims may be made about the model.",
+                  "properties": {
+                    "quote": {
+                      "type": "string",
+                      "enum": [
+                        "varity_verified",
+                        "varity_verified_tcb_advisory"
+                      ],
+                      "description": "`varity_verified`: Varity verified the Intel TDX quote with Intel DCAP (signature and certificate chain to Intel's root, TCB `UpToDate`, debug off) and that it binds the signing key and Varity's fresh nonce. `varity_verified_tcb_advisory`: the same, with an Intel TCB advisory (`SWHardeningNeeded` or `ConfigurationNeeded`)."
+                    },
+                    "gpu": {
+                      "type": "string",
+                      "enum": [
+                        "varity_verified"
+                      ],
+                      "description": "Varity verified every NVIDIA attestation token (NRAS) against NVIDIA's keys: it carries Varity's nonce, and every GPU reports matched measurements, secure boot and debug disabled."
+                    },
+                    "response_signature": {
+                      "type": "string",
+                      "enum": [
+                        "varity_verified_signer_sampled"
+                      ],
+                      "description": "After an answer is delivered, for a sample bounded by the provider's rate limit, Varity checks that a signature the provider marks as made by the model's TEE recovers to the attested signing key. A signature made by the provider's gateway is recorded but does not show that an enclave signed the answer. Neither proves the content: the signed request and response hashes are provider-reported and are not recomputed by Varity. It never delays or changes the answer."
+                    },
+                    "request_binding": {
+                      "type": "string",
+                      "enum": [
+                        "provider_header"
+                      ],
+                      "description": "Each answer must also carry the provider's TEE confirmation header before it is returned."
+                    }
+                  }
+                }
+              }
             },
             "availability": {
               "$ref": "#/components/schemas/Availability"
@@ -3735,6 +4994,61 @@
     }
   },
   "models": [
+    {
+      "id": "abliterated-large-flash",
+      "privacy": "anonymized",
+      "context_window": 1000000,
+      "max_completion_tokens": 131072,
+      "capabilities": {
+        "version": 1,
+        "input_modalities": [
+          "text",
+          "document",
+          "image"
+        ],
+        "output_modalities": [
+          "text"
+        ],
+        "chat_completions": true,
+        "streaming_text": true,
+        "tool_calls": true,
+        "streaming_tool_calls": true,
+        "structured_outputs": true,
+        "json_schema": true,
+        "streaming": true,
+        "transcription": false,
+        "speech": false,
+        "speech_formats": [],
+        "parallel_tool_calls": true,
+        "max_documents_per_message": 5,
+        "reasoning_controls": true,
+        "reasoning_effort": false,
+        "web_search": true,
+        "x_search": false,
+        "optimized_for_code": true,
+        "uncensored": true,
+        "log_probs": false,
+        "temperature": true,
+        "top_p": true,
+        "seed": true,
+        "stop": true,
+        "context_window": 1000000,
+        "max_completion_tokens": 131072,
+        "privacy": "anonymized",
+        "privacy_routes": [
+          "anonymized"
+        ]
+      },
+      "customer_pricing": {
+        "status": "configured",
+        "version": "2026-10-18.ai-api.v5.1496abe25f3c5dde",
+        "currency": "usd",
+        "unit": "per_million_tokens",
+        "input": 1.3125,
+        "output": 2.625,
+        "cached_input": 0.13125
+      }
+    },
     {
       "id": "abliterated-large-v2",
       "privacy": "anonymized",
@@ -3968,7 +5282,7 @@
         "chat_completions": true,
         "streaming_text": true,
         "tool_calls": true,
-        "streaming_tool_calls": true,
+        "streaming_tool_calls": false,
         "structured_outputs": true,
         "json_schema": true,
         "streaming": true,
@@ -4377,6 +5691,61 @@
         "input": 10.5,
         "output": 52.5,
         "cached_input": 0.2625
+      }
+    },
+    {
+      "id": "claude-fable-5-2",
+      "privacy": "anonymized",
+      "context_window": 1000000,
+      "max_completion_tokens": 128000,
+      "capabilities": {
+        "version": 1,
+        "input_modalities": [
+          "text",
+          "document",
+          "image"
+        ],
+        "output_modalities": [
+          "text"
+        ],
+        "chat_completions": true,
+        "streaming_text": true,
+        "tool_calls": true,
+        "streaming_tool_calls": true,
+        "structured_outputs": true,
+        "json_schema": true,
+        "streaming": true,
+        "transcription": false,
+        "speech": false,
+        "speech_formats": [],
+        "parallel_tool_calls": true,
+        "max_documents_per_message": 5,
+        "reasoning_controls": true,
+        "reasoning_effort": true,
+        "web_search": true,
+        "x_search": false,
+        "optimized_for_code": true,
+        "uncensored": false,
+        "log_probs": false,
+        "temperature": true,
+        "top_p": true,
+        "seed": true,
+        "stop": true,
+        "context_window": 1000000,
+        "max_completion_tokens": 128000,
+        "privacy": "anonymized",
+        "privacy_routes": [
+          "anonymized"
+        ]
+      },
+      "customer_pricing": {
+        "status": "configured",
+        "version": "2026-10-18.ai-api.v5.b232104f01275275",
+        "currency": "usd",
+        "unit": "per_million_tokens",
+        "input": 8.4,
+        "output": 42,
+        "cached_input": 0.21
       }
     },
     {
@@ -5095,10 +6464,64 @@
       }
     },
     {
+      "id": "deepseek-v3-2",
+      "privacy": "private",
+      "context_window": 160000,
+      "max_completion_tokens": 32768,
+      "capabilities": {
+        "version": 1,
+        "input_modalities": [
+          "text",
+          "document"
+        ],
+        "output_modalities": [
+          "text"
+        ],
+        "chat_completions": true,
+        "streaming_text": true,
+        "tool_calls": true,
+        "streaming_tool_calls": true,
+        "structured_outputs": true,
+        "json_schema": true,
+        "streaming": true,
+        "transcription": false,
+        "speech": false,
+        "speech_formats": [],
+        "parallel_tool_calls": true,
+        "max_documents_per_message": 5,
+        "reasoning_controls": true,
+        "reasoning_effort": true,
+        "web_search": true,
+        "x_search": false,
+        "optimized_for_code": false,
+        "uncensored": false,
+        "log_probs": false,
+        "temperature": true,
+        "top_p": true,
+        "seed": true,
+        "stop": true,
+        "context_window": 160000,
+        "max_completion_tokens": 32768,
+        "privacy": "private",
+        "privacy_routes": [
+          "private"
+        ]
+      },
+      "customer_pricing": {
+        "status": "configured",
+        "version": "2026-10-18.ai-api.v5.844b9e207d604eaf",
+        "currency": "usd",
+        "unit": "per_million_tokens",
+        "input": 0.3465,
+        "output": 0.504,
+        "cached_input": 0.168
+      }
+    },
+    {
       "id": "deepseek-v4-1-flash",
       "privacy": "private",
       "context_window": 1000000,
-      "max_completion_tokens": 131072,
+      "max_completion_tokens": 262144,
       "capabilities": {
         "version": 1,
         "input_modalities": [
@@ -5133,7 +6556,7 @@
         "seed": true,
         "stop": true,
         "context_window": 1000000,
-        "max_completion_tokens": 131072,
+        "max_completion_tokens": 262144,
         "privacy": "private",
         "privacy_routes": [
           "private"
@@ -5153,6 +6576,61 @@
       "id": "deepseek-v4-1-flash-1017",
       "privacy": "private",
       "context_window": 1000000,
+      "max_completion_tokens": 262144,
+      "capabilities": {
+        "version": 1,
+        "input_modalities": [
+          "text",
+          "document",
+          "image"
+        ],
+        "output_modalities": [
+          "text"
+        ],
+        "chat_completions": true,
+        "streaming_text": true,
+        "tool_calls": true,
+        "streaming_tool_calls": true,
+        "structured_outputs": true,
+        "json_schema": true,
+        "streaming": true,
+        "transcription": false,
+        "speech": false,
+        "speech_formats": [],
+        "parallel_tool_calls": true,
+        "max_documents_per_message": 5,
+        "reasoning_controls": true,
+        "reasoning_effort": true,
+        "web_search": true,
+        "x_search": false,
+        "optimized_for_code": true,
+        "uncensored": false,
+        "log_probs": false,
+        "temperature": true,
+        "top_p": true,
+        "seed": true,
+        "stop": true,
+        "context_window": 1000000,
+        "max_completion_tokens": 262144,
+        "privacy": "private",
+        "privacy_routes": [
+          "private"
+        ]
+      },
+      "customer_pricing": {
+        "status": "configured",
+        "version": "2026-10-18.ai-api.v5.4a6b651daf4948d9",
+        "currency": "usd",
+        "unit": "per_million_tokens",
+        "input": 0.315,
+        "output": 1.26,
+        "cached_input": 0.007875
+      }
+    },
+    {
+      "id": "deepseek-v4-1-flash-1017-ultrafast",
+      "privacy": "private",
+      "context_window": 1000000,
       "max_completion_tokens": 131072,
       "capabilities": {
         "version": 1,
@@ -5196,19 +6674,129 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-10-18.ai-api.v5.4a6b651daf4948d9",
+        "version": "2026-10-18.ai-api.v5.eb7690e2c07f62a4",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.315,
-        "output": 1.26,
-        "cached_input": 0.007875
+        "input": 3.15,
+        "output": 12.6,
+        "cached_input": 0.063
+      }
+    },
+    {
+      "id": "deepseek-v4-1-flash-1017-uncensored",
+      "privacy": "private",
+      "context_window": 1000000,
+      "max_completion_tokens": 131072,
+      "capabilities": {
+        "version": 1,
+        "input_modalities": [
+          "text",
+          "document",
+          "image"
+        ],
+        "output_modalities": [
+          "text"
+        ],
+        "chat_completions": true,
+        "streaming_text": true,
+        "tool_calls": true,
+        "streaming_tool_calls": true,
+        "structured_outputs": true,
+        "json_schema": true,
+        "streaming": true,
+        "transcription": false,
+        "speech": false,
+        "speech_formats": [],
+        "parallel_tool_calls": true,
+        "max_documents_per_message": 5,
+        "reasoning_controls": true,
+        "reasoning_effort": true,
+        "web_search": true,
+        "x_search": false,
+        "optimized_for_code": true,
+        "uncensored": true,
+        "log_probs": false,
+        "temperature": true,
+        "top_p": true,
+        "seed": true,
+        "stop": true,
+        "context_window": 1000000,
+        "max_completion_tokens": 131072,
+        "privacy": "private",
+        "privacy_routes": [
+          "private"
+        ]
+      },
+      "customer_pricing": {
+        "status": "configured",
+        "version": "2026-10-18.ai-api.v5.3e108cb531239362",
+        "currency": "usd",
+        "unit": "per_million_tokens",
+        "input": 0.3465,
+        "output": 1.386,
+        "cached_input": 0.0086625
+      }
+    },
+    {
+      "id": "deepseek-v4-1-flash-uncensored",
+      "privacy": "private",
+      "context_window": 1000000,
+      "max_completion_tokens": 131072,
+      "capabilities": {
+        "version": 1,
+        "input_modalities": [
+          "text",
+          "document",
+          "image"
+        ],
+        "output_modalities": [
+          "text"
+        ],
+        "chat_completions": true,
+        "streaming_text": true,
+        "tool_calls": true,
+        "streaming_tool_calls": true,
+        "structured_outputs": true,
+        "json_schema": true,
+        "streaming": true,
+        "transcription": false,
+        "speech": false,
+        "speech_formats": [],
+        "parallel_tool_calls": true,
+        "max_documents_per_message": 5,
+        "reasoning_controls": true,
+        "reasoning_effort": true,
+        "web_search": true,
+        "x_search": false,
+        "optimized_for_code": true,
+        "uncensored": true,
+        "log_probs": false,
+        "temperature": true,
+        "top_p": true,
+        "seed": true,
+        "stop": true,
+        "context_window": 1000000,
+        "max_completion_tokens": 131072,
+        "privacy": "private",
+        "privacy_routes": [
+          "private"
+        ]
+      },
+      "customer_pricing": {
+        "status": "configured",
+        "version": "2026-10-18.ai-api.v5.3e108cb531239362",
+        "currency": "usd",
+        "unit": "per_million_tokens",
+        "input": 0.3465,
+        "output": 1.386,
+        "cached_input": 0.0086625
       }
     },
     {
       "id": "deepseek-v4-flash",
       "privacy": "private",
       "context_window": 1000000,
-      "max_completion_tokens": 32768,
+      "max_completion_tokens": 262144,
       "capabilities": {
         "version": 1,
         "input_modalities": [
@@ -5242,7 +6830,7 @@
         "seed": true,
         "stop": true,
         "context_window": 1000000,
-        "max_completion_tokens": 32768,
+        "max_completion_tokens": 262144,
         "privacy": "private",
         "privacy_routes": [
           "private"
@@ -5262,7 +6850,7 @@
       "id": "deepseek-v4-flash-0731",
       "privacy": "private",
       "context_window": 1000000,
-      "max_completion_tokens": 32768,
+      "max_completion_tokens": 262144,
       "capabilities": {
         "version": 1,
         "input_modalities": [
@@ -5296,7 +6884,7 @@
         "seed": true,
         "stop": true,
         "context_window": 1000000,
-        "max_completion_tokens": 32768,
+        "max_completion_tokens": 262144,
         "privacy": "private",
         "privacy_routes": [
           "private"
@@ -5370,7 +6958,7 @@
       "id": "deepseek-v4-pro",
       "privacy": "private",
       "context_window": 1000000,
-      "max_completion_tokens": 32768,
+      "max_completion_tokens": 262144,
       "capabilities": {
         "version": 1,
         "input_modalities": [
@@ -5404,7 +6992,7 @@
         "seed": true,
         "stop": true,
         "context_window": 1000000,
-        "max_completion_tokens": 32768,
+        "max_completion_tokens": 262144,
         "privacy": "private",
         "privacy_routes": [
           "private"
@@ -5424,7 +7012,7 @@
       "id": "deepseek-v4-pro-0813",
       "privacy": "private",
       "context_window": 1000000,
-      "max_completion_tokens": 32768,
+      "max_completion_tokens": 262144,
       "capabilities": {
         "version": 1,
         "input_modalities": [
@@ -5458,7 +7046,7 @@
         "seed": true,
         "stop": true,
         "context_window": 1000000,
-        "max_completion_tokens": 32768,
+        "max_completion_tokens": 262144,
         "privacy": "private",
         "privacy_routes": [
           "private"
@@ -6306,6 +7894,63 @@
       }
     },
     {
+      "id": "gemini-4-carbon",
+      "privacy": "anonymized",
+      "context_window": 1000000,
+      "max_completion_tokens": 65536,
+      "capabilities": {
+        "version": 1,
+        "input_modalities": [
+          "text",
+          "document",
+          "audio",
+          "image",
+          "video"
+        ],
+        "output_modalities": [
+          "text"
+        ],
+        "chat_completions": true,
+        "streaming_text": true,
+        "tool_calls": true,
+        "streaming_tool_calls": true,
+        "structured_outputs": true,
+        "json_schema": true,
+        "streaming": true,
+        "transcription": false,
+        "speech": false,
+        "speech_formats": [],
+        "parallel_tool_calls": true,
+        "max_documents_per_message": 5,
+        "reasoning_controls": true,
+        "reasoning_effort": false,
+        "web_search": true,
+        "x_search": false,
+        "optimized_for_code": false,
+        "uncensored": false,
+        "log_probs": false,
+        "temperature": true,
+        "top_p": true,
+        "seed": true,
+        "stop": true,
+        "context_window": 1000000,
+        "max_completion_tokens": 65536,
+        "privacy": "anonymized",
+        "privacy_routes": [
+          "anonymized"
+        ]
+      },
+      "customer_pricing": {
+        "status": "configured",
+        "version": "2026-10-18.ai-api.v5.dc92acc7b7ec7350",
+        "currency": "usd",
+        "unit": "per_million_tokens",
+        "input": 2.625,
+        "output": 13.125,
+        "cached_input": 0.13125
+      }
+    },
+    {
       "id": "gemini-embedding-2-preview",
       "privacy": "anonymized",
       "context_window": 2048,
@@ -6847,6 +8492,61 @@
       }
     },
     {
+      "id": "glm-5-3-flash-confidential",
+      "privacy": "tee",
+      "context_window": 1000000,
+      "max_completion_tokens": 32768,
+      "capabilities": {
+        "version": 1,
+        "input_modalities": [
+          "text",
+          "document",
+          "image"
+        ],
+        "output_modalities": [
+          "text"
+        ],
+        "chat_completions": true,
+        "streaming_text": true,
+        "tool_calls": true,
+        "streaming_tool_calls": true,
+        "structured_outputs": false,
+        "json_schema": false,
+        "streaming": true,
+        "transcription": false,
+        "speech": false,
+        "speech_formats": [],
+        "parallel_tool_calls": true,
+        "max_documents_per_message": 5,
+        "reasoning_controls": true,
+        "reasoning_effort": false,
+        "web_search": false,
+        "x_search": false,
+        "optimized_for_code": true,
+        "uncensored": false,
+        "log_probs": false,
+        "temperature": true,
+        "top_p": true,
+        "seed": true,
+        "stop": true,
+        "context_window": 1000000,
+        "max_completion_tokens": 32768,
+        "privacy": "tee",
+        "privacy_routes": [
+          "tee"
+        ]
+      },
+      "customer_pricing": {
+        "status": "configured",
+        "version": "2026-10-18.ai-api.v5.a8ab2db65e1b4172",
+        "currency": "usd",
+        "unit": "per_million_tokens",
+        "input": 0.168,
+        "output": 0.567,
+        "cached_input": 0.0399
+      }
+    },
+    {
       "id": "glm-5-turbo",
       "privacy": "anonymized",
       "context_window": 200000,
@@ -7014,7 +8714,7 @@
       "id": "google-gemma-4-26b-a4b-instruct",
       "privacy": "private",
       "context_window": 256000,
-      "max_completion_tokens": 8192,
+      "max_completion_tokens": 16384,
       "capabilities": {
         "version": 1,
         "input_modalities": [
@@ -7050,7 +8750,7 @@
         "seed": true,
         "stop": true,
         "context_window": 256000,
-        "max_completion_tokens": 8192,
+        "max_completion_tokens": 16384,
         "privacy": "private",
         "privacy_routes": [
           "private"
@@ -7070,7 +8770,7 @@
       "id": "google-gemma-4-31b-instruct",
       "privacy": "private",
       "context_window": 256000,
-      "max_completion_tokens": 8192,
+      "max_completion_tokens": 16384,
       "capabilities": {
         "version": 1,
         "input_modalities": [
@@ -7106,7 +8806,7 @@
         "seed": true,
         "stop": true,
         "context_window": 256000,
-        "max_completion_tokens": 8192,
+        "max_completion_tokens": 16384,
         "privacy": "private",
         "privacy_routes": [
           "private"
@@ -8057,6 +9757,61 @@
       }
     },
     {
+      "id": "gpt-6-1-terra",
+      "privacy": "anonymized",
+      "context_window": 1050000,
+      "max_completion_tokens": 128000,
+      "capabilities": {
+        "version": 1,
+        "input_modalities": [
+          "text",
+          "document",
+          "image"
+        ],
+        "output_modalities": [
+          "text"
+        ],
+        "chat_completions": true,
+        "streaming_text": true,
+        "tool_calls": true,
+        "streaming_tool_calls": true,
+        "structured_outputs": true,
+        "json_schema": true,
+        "streaming": true,
+        "transcription": false,
+        "speech": false,
+        "speech_formats": [],
+        "parallel_tool_calls": true,
+        "max_documents_per_message": 5,
+        "reasoning_controls": true,
+        "reasoning_effort": true,
+        "web_search": true,
+        "x_search": false,
+        "optimized_for_code": false,
+        "uncensored": false,
+        "log_probs": false,
+        "temperature": true,
+        "top_p": true,
+        "seed": true,
+        "stop": true,
+        "context_window": 1050000,
+        "max_completion_tokens": 128000,
+        "privacy": "anonymized",
+        "privacy_routes": [
+          "anonymized"
+        ]
+      },
+      "customer_pricing": {
+        "status": "configured",
+        "version": "2026-10-18.ai-api.v5.69502022b01bceaa",
+        "currency": "usd",
+        "unit": "per_million_tokens",
+        "input": 1.05,
+        "output": 5.25,
+        "cached_input": 0.0525
+      }
+    },
+    {
       "id": "gpt-6-astra",
       "privacy": "anonymized",
       "context_window": 1050000,
@@ -8489,6 +10244,220 @@
       }
     },
     {
+      "id": "gpt-image-2-6-flare",
+      "privacy": "anonymized",
+      "context_window": 0,
+      "max_completion_tokens": 0,
+      "capabilities": {
+        "version": 1,
+        "input_modalities": [
+          "text"
+        ],
+        "output_modalities": [
+          "image"
+        ],
+        "chat_completions": false,
+        "streaming_text": false,
+        "tool_calls": false,
+        "streaming_tool_calls": false,
+        "structured_outputs": false,
+        "json_schema": false,
+        "streaming": false,
+        "transcription": false,
+        "speech": false,
+        "speech_formats": [],
+        "parallel_tool_calls": false,
+        "reasoning_controls": false,
+        "reasoning_effort": false,
+        "web_search": false,
+        "x_search": false,
+        "optimized_for_code": false,
+        "uncensored": false,
+        "log_probs": false,
+        "temperature": false,
+        "top_p": false,
+        "seed": false,
+        "stop": false,
+        "context_window": 0,
+        "max_completion_tokens": 0,
+        "privacy": "anonymized",
+        "privacy_routes": [
+          "anonymized"
+        ]
+      },
+      "customer_pricing": {
+        "status": "configured",
+        "version": "2026-10-18.ai-api.v5.771c1f5d419ed0f9",
+        "currency": "usd",
+        "unit": "per_image",
+        "input": 0,
+        "output": 0,
+        "cached_input": 0,
+        "request": 0.0945
+      }
+    },
+    {
+      "id": "gpt-image-2-6-flare-edit",
+      "privacy": "anonymized",
+      "context_window": 0,
+      "max_completion_tokens": 0,
+      "capabilities": {
+        "version": 1,
+        "input_modalities": [
+          "text",
+          "image"
+        ],
+        "output_modalities": [
+          "image"
+        ],
+        "chat_completions": false,
+        "streaming_text": false,
+        "tool_calls": false,
+        "streaming_tool_calls": false,
+        "structured_outputs": false,
+        "json_schema": false,
+        "streaming": false,
+        "transcription": false,
+        "speech": false,
+        "speech_formats": [],
+        "parallel_tool_calls": false,
+        "reasoning_controls": false,
+        "reasoning_effort": false,
+        "web_search": false,
+        "x_search": false,
+        "optimized_for_code": false,
+        "uncensored": false,
+        "log_probs": false,
+        "temperature": false,
+        "top_p": false,
+        "seed": false,
+        "stop": false,
+        "context_window": 0,
+        "max_completion_tokens": 0,
+        "privacy": "anonymized",
+        "privacy_routes": [
+          "anonymized"
+        ]
+      },
+      "customer_pricing": {
+        "status": "configured",
+        "version": "2026-10-18.ai-api.v5.0e8e35a80f78bddc",
+        "currency": "usd",
+        "unit": "per_image",
+        "input": 0,
+        "output": 0,
+        "cached_input": 0,
+        "request": 0.105
+      }
+    },
+    {
+      "id": "gpt-image-2-6-sunburst",
+      "privacy": "anonymized",
+      "context_window": 0,
+      "max_completion_tokens": 0,
+      "capabilities": {
+        "version": 1,
+        "input_modalities": [
+          "text"
+        ],
+        "output_modalities": [
+          "image"
+        ],
+        "chat_completions": false,
+        "streaming_text": false,
+        "tool_calls": false,
+        "streaming_tool_calls": false,
+        "structured_outputs": false,
+        "json_schema": false,
+        "streaming": false,
+        "transcription": false,
+        "speech": false,
+        "speech_formats": [],
+        "parallel_tool_calls": false,
+        "reasoning_controls": false,
+        "reasoning_effort": false,
+        "web_search": false,
+        "x_search": false,
+        "optimized_for_code": false,
+        "uncensored": false,
+        "log_probs": false,
+        "temperature": false,
+        "top_p": false,
+        "seed": false,
+        "stop": false,
+        "context_window": 0,
+        "max_completion_tokens": 0,
+        "privacy": "anonymized",
+        "privacy_routes": [
+          "anonymized"
+        ]
+      },
+      "customer_pricing": {
+        "status": "configured",
+        "version": "2026-10-18.ai-api.v5.771c1f5d419ed0f9",
+        "currency": "usd",
+        "unit": "per_image",
+        "input": 0,
+        "output": 0,
+        "cached_input": 0,
+        "request": 0.0945
+      }
+    },
+    {
+      "id": "gpt-image-2-6-sunburst-edit",
+      "privacy": "anonymized",
+      "context_window": 0,
+      "max_completion_tokens": 0,
+      "capabilities": {
+        "version": 1,
+        "input_modalities": [
+          "text",
+          "image"
+        ],
+        "output_modalities": [
+          "image"
+        ],
+        "chat_completions": false,
+        "streaming_text": false,
+        "tool_calls": false,
+        "streaming_tool_calls": false,
+        "structured_outputs": false,
+        "json_schema": false,
+        "streaming": false,
+        "transcription": false,
+        "speech": false,
+        "speech_formats": [],
+        "parallel_tool_calls": false,
+        "reasoning_controls": false,
+        "reasoning_effort": false,
+        "web_search": false,
+        "x_search": false,
+        "optimized_for_code": false,
+        "uncensored": false,
+        "log_probs": false,
+        "temperature": false,
+        "top_p": false,
+        "seed": false,
+        "stop": false,
+        "context_window": 0,
+        "max_completion_tokens": 0,
+        "privacy": "anonymized",
+        "privacy_routes": [
+          "anonymized"
+        ]
+      },
+      "customer_pricing": {
+        "status": "configured",
+        "version": "2026-10-18.ai-api.v5.0e8e35a80f78bddc",
+        "currency": "usd",
+        "unit": "per_image",
+        "input": 0,
+        "output": 0,
+        "cached_input": 0,
+        "request": 0.105
+      }
+    },
+    {
       "id": "gpt-oss-120b",
       "privacy": "anonymized",
       "context_window": 131072,
@@ -8513,7 +10482,7 @@
         "speech_formats": [],
         "parallel_tool_calls": true,
         "reasoning_controls": true,
-        "reasoning_effort": false,
+        "reasoning_effort": true,
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
@@ -8565,7 +10534,7 @@
         "speech_formats": [],
         "parallel_tool_calls": true,
         "reasoning_controls": true,
-        "reasoning_effort": false,
+        "reasoning_effort": true,
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
@@ -8584,12 +10553,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-10-18.ai-api.v5.09cdb6a72b218943",
+        "version": "2026-10-18.ai-api.v5.5888f4b8f987e773",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.021,
-        "output": 0.105,
-        "cached_input": 0.021
+        "input": 0.0189,
+        "output": 0.0945,
+        "cached_input": 0.00945
       }
     },
     {
@@ -9140,167 +11109,6 @@
       }
     },
     {
-      "id": "grok-imagine-high-quality",
-      "privacy": "private",
-      "context_window": 0,
-      "max_completion_tokens": 0,
-      "capabilities": {
-        "version": 1,
-        "input_modalities": [
-          "text",
-          "image"
-        ],
-        "output_modalities": [
-          "image"
-        ],
-        "chat_completions": false,
-        "streaming_text": false,
-        "tool_calls": false,
-        "streaming_tool_calls": false,
-        "structured_outputs": false,
-        "json_schema": false,
-        "streaming": false,
-        "transcription": false,
-        "speech": false,
-        "speech_formats": [],
-        "parallel_tool_calls": false,
-        "reasoning_controls": false,
-        "reasoning_effort": false,
-        "web_search": false,
-        "x_search": false,
-        "optimized_for_code": false,
-        "uncensored": false,
-        "log_probs": false,
-        "temperature": false,
-        "top_p": false,
-        "seed": false,
-        "stop": false,
-        "context_window": 0,
-        "max_completion_tokens": 0,
-        "privacy": "private",
-        "privacy_routes": [
-          "private"
-        ]
-      },
-      "customer_pricing": {
-        "status": "configured",
-        "version": "2026-10-18.ai-api.v5.406a22765091bada",
-        "currency": "usd",
-        "unit": "per_image",
-        "input": 0,
-        "output": 0,
-        "cached_input": 0,
-        "request": 0.063
-      }
-    },
-    {
-      "id": "grok-imagine-high-quality-sota",
-      "privacy": "private",
-      "context_window": 0,
-      "max_completion_tokens": 0,
-      "capabilities": {
-        "version": 1,
-        "input_modalities": [
-          "text"
-        ],
-        "output_modalities": [
-          "image"
-        ],
-        "chat_completions": false,
-        "streaming_text": false,
-        "tool_calls": false,
-        "streaming_tool_calls": false,
-        "structured_outputs": false,
-        "json_schema": false,
-        "streaming": false,
-        "transcription": false,
-        "speech": false,
-        "speech_formats": [],
-        "parallel_tool_calls": false,
-        "reasoning_controls": false,
-        "reasoning_effort": false,
-        "web_search": false,
-        "x_search": false,
-        "optimized_for_code": false,
-        "uncensored": false,
-        "log_probs": false,
-        "temperature": false,
-        "top_p": false,
-        "seed": false,
-        "stop": false,
-        "context_window": 0,
-        "max_completion_tokens": 0,
-        "privacy": "private",
-        "privacy_routes": [
-          "private"
-        ]
-      },
-      "customer_pricing": {
-        "status": "configured",
-        "version": "2026-10-18.ai-api.v5.406a22765091bada",
-        "currency": "usd",
-        "unit": "per_image",
-        "input": 0,
-        "output": 0,
-        "cached_input": 0,
-        "request": 0.063
-      }
-    },
-    {
-      "id": "hermes-3-llama-3-1-405b",
-      "privacy": "private",
-      "context_window": 128000,
-      "max_completion_tokens": 16384,
-      "capabilities": {
-        "version": 1,
-        "input_modalities": [
-          "text",
-          "document"
-        ],
-        "output_modalities": [
-          "text"
-        ],
-        "chat_completions": true,
-        "streaming_text": true,
-        "tool_calls": false,
-        "streaming_tool_calls": false,
-        "structured_outputs": false,
-        "json_schema": false,
-        "streaming": true,
-        "transcription": false,
-        "speech": false,
-        "speech_formats": [],
-        "parallel_tool_calls": false,
-        "max_documents_per_message": 5,
-        "reasoning_controls": false,
-        "reasoning_effort": false,
-        "web_search": true,
-        "x_search": false,
-        "optimized_for_code": false,
-        "uncensored": false,
-        "log_probs": false,
-        "temperature": true,
-        "top_p": true,
-        "seed": true,
-        "stop": true,
-        "context_window": 128000,
-        "max_completion_tokens": 16384,
-        "privacy": "private",
-        "privacy_routes": [
-          "private"
-        ]
-      },
-      "customer_pricing": {
-        "status": "configured",
-        "version": "2026-10-18.ai-api.v5.5ed0a0827e82e2ac",
-        "currency": "usd",
-        "unit": "per_million_tokens",
-        "input": 1.155,
-        "output": 3.15,
-        "cached_input": 1.155
-      }
-    },
-    {
       "id": "hunyuan-image-3-0",
       "privacy": "private",
       "context_window": 0,
@@ -9511,115 +11319,6 @@
         "output": 0,
         "cached_input": 0,
         "request": 0.273
-      }
-    },
-    {
-      "id": "imagineart-1-5-pro",
-      "privacy": "anonymized",
-      "context_window": 0,
-      "max_completion_tokens": 0,
-      "capabilities": {
-        "version": 1,
-        "input_modalities": [
-          "text"
-        ],
-        "output_modalities": [
-          "image"
-        ],
-        "chat_completions": false,
-        "streaming_text": false,
-        "tool_calls": false,
-        "streaming_tool_calls": false,
-        "structured_outputs": false,
-        "json_schema": false,
-        "streaming": false,
-        "transcription": false,
-        "speech": false,
-        "speech_formats": [],
-        "parallel_tool_calls": false,
-        "reasoning_controls": false,
-        "reasoning_effort": false,
-        "web_search": false,
-        "x_search": false,
-        "optimized_for_code": false,
-        "uncensored": false,
-        "log_probs": false,
-        "temperature": false,
-        "top_p": false,
-        "seed": false,
-        "stop": false,
-        "context_window": 0,
-        "max_completion_tokens": 0,
-        "privacy": "anonymized",
-        "privacy_routes": [
-          "anonymized"
-        ]
-      },
-      "customer_pricing": {
-        "status": "configured",
-        "version": "2026-10-18.ai-api.v5.406a22765091bada",
-        "currency": "usd",
-        "unit": "per_image",
-        "input": 0,
-        "output": 0,
-        "cached_input": 0,
-        "request": 0.063
-      }
-    },
-    {
-      "id": "inkling",
-      "privacy": "private",
-      "context_window": 524288,
-      "max_completion_tokens": 65536,
-      "capabilities": {
-        "version": 1,
-        "input_modalities": [
-          "text",
-          "document",
-          "audio",
-          "image"
-        ],
-        "output_modalities": [
-          "text"
-        ],
-        "chat_completions": true,
-        "streaming_text": true,
-        "tool_calls": true,
-        "streaming_tool_calls": true,
-        "structured_outputs": true,
-        "json_schema": true,
-        "streaming": true,
-        "transcription": false,
-        "speech": false,
-        "speech_formats": [],
-        "parallel_tool_calls": true,
-        "max_documents_per_message": 5,
-        "reasoning_controls": true,
-        "reasoning_effort": true,
-        "web_search": true,
-        "x_search": false,
-        "optimized_for_code": true,
-        "uncensored": false,
-        "log_probs": false,
-        "temperature": true,
-        "top_p": true,
-        "seed": true,
-        "stop": true,
-        "context_window": 524288,
-        "max_completion_tokens": 65536,
-        "privacy": "private",
-        "privacy_routes": [
-          "private"
-        ]
-      },
-      "customer_pricing": {
-        "status": "configured",
-        "version": "2026-10-18.ai-api.v5.395d3377aac739ab",
-        "currency": "usd",
-        "unit": "per_million_tokens",
-        "input": 1.3125,
-        "output": 5.315625,
-        "cached_input": 0.223125
       }
     },
     {
@@ -9849,6 +11548,61 @@
       "capabilities": {
         "version": 1,
         "input_modalities": [
+          "text",
+          "document",
+          "image"
+        ],
+        "output_modalities": [
+          "text"
+        ],
+        "chat_completions": true,
+        "streaming_text": true,
+        "tool_calls": true,
+        "streaming_tool_calls": true,
+        "structured_outputs": true,
+        "json_schema": true,
+        "streaming": true,
+        "transcription": false,
+        "speech": false,
+        "speech_formats": [],
+        "parallel_tool_calls": true,
+        "max_documents_per_message": 5,
+        "reasoning_controls": true,
+        "reasoning_effort": true,
+        "web_search": true,
+        "x_search": false,
+        "optimized_for_code": true,
+        "uncensored": false,
+        "log_probs": false,
+        "temperature": true,
+        "top_p": true,
+        "seed": true,
+        "stop": true,
+        "context_window": 1000000,
+        "max_completion_tokens": 131072,
+        "privacy": "private",
+        "privacy_routes": [
+          "private"
+        ]
+      },
+      "customer_pricing": {
+        "status": "configured",
+        "version": "2026-10-18.ai-api.v5.baf7b6084985ad01",
+        "currency": "usd",
+        "unit": "per_million_tokens",
+        "input": 3.9375,
+        "output": 19.6875,
+        "cached_input": 0.39375
+      }
+    },
+    {
+      "id": "kimi-k3-1-pro",
+      "privacy": "private",
+      "context_window": 1000000,
+      "max_completion_tokens": 131072,
+      "capabilities": {
+        "version": 1,
+        "input_modalities": [
           "text"
         ],
         "output_modalities": [
@@ -9866,7 +11620,7 @@
         "parallel_tool_calls": true,
         "max_documents_per_message": 5,
         "reasoning_controls": true,
-        "reasoning_effort": false,
+        "reasoning_effort": true,
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
@@ -9886,11 +11640,66 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-10-18.ai-api.v5.baf7b6084985ad01",
+        "version": "2026-10-18.ai-api.v5.19daeab245314f4f",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 3.9375,
-        "output": 19.6875,
+        "input": 2.1,
+        "output": 10.5,
+        "cached_input": 0.21
+      }
+    },
+    {
+      "id": "kimi-k3-1-pro-highspeed",
+      "privacy": "anonymized",
+      "context_window": 1000000,
+      "max_completion_tokens": 131072,
+      "capabilities": {
+        "version": 1,
+        "input_modalities": [
+          "text",
+          "document",
+          "image"
+        ],
+        "output_modalities": [
+          "text"
+        ],
+        "chat_completions": true,
+        "streaming_text": true,
+        "tool_calls": true,
+        "streaming_tool_calls": true,
+        "structured_outputs": true,
+        "json_schema": true,
+        "streaming": true,
+        "transcription": false,
+        "speech": false,
+        "speech_formats": [],
+        "parallel_tool_calls": true,
+        "max_documents_per_message": 5,
+        "reasoning_controls": true,
+        "reasoning_effort": true,
+        "web_search": true,
+        "x_search": false,
+        "optimized_for_code": true,
+        "uncensored": false,
+        "log_probs": false,
+        "temperature": true,
+        "top_p": true,
+        "seed": true,
+        "stop": true,
+        "context_window": 1000000,
+        "max_completion_tokens": 131072,
+        "privacy": "anonymized",
+        "privacy_routes": [
+          "anonymized"
+        ]
+      },
+      "customer_pricing": {
+        "status": "configured",
+        "version": "2026-10-18.ai-api.v5.7d4339e3039b0975",
+        "currency": "usd",
+        "unit": "per_million_tokens",
+        "input": 5.25,
+        "output": 26.25,
         "cached_input": 0.39375
       }
     },
@@ -10059,6 +11868,59 @@
         "output": 0,
         "cached_input": 0,
         "request": 0.042
+      }
+    },
+    {
+      "id": "krea-3",
+      "privacy": "anonymized",
+      "context_window": 0,
+      "max_completion_tokens": 0,
+      "capabilities": {
+        "version": 1,
+        "input_modalities": [
+          "text"
+        ],
+        "output_modalities": [
+          "image"
+        ],
+        "chat_completions": false,
+        "streaming_text": false,
+        "tool_calls": false,
+        "streaming_tool_calls": false,
+        "structured_outputs": false,
+        "json_schema": false,
+        "streaming": false,
+        "transcription": false,
+        "speech": false,
+        "speech_formats": [],
+        "parallel_tool_calls": false,
+        "reasoning_controls": false,
+        "reasoning_effort": false,
+        "web_search": false,
+        "x_search": false,
+        "optimized_for_code": false,
+        "uncensored": false,
+        "log_probs": false,
+        "temperature": false,
+        "top_p": false,
+        "seed": false,
+        "stop": false,
+        "context_window": 0,
+        "max_completion_tokens": 0,
+        "privacy": "anonymized",
+        "privacy_routes": [
+          "anonymized"
+        ]
+      },
+      "customer_pricing": {
+        "status": "configured",
+        "version": "2026-10-18.ai-api.v5.548cacbc51378b99",
+        "currency": "usd",
+        "unit": "per_image",
+        "input": 0,
+        "output": 0,
+        "cached_input": 0,
+        "request": 0.0735
       }
     },
     {
@@ -10540,114 +12402,6 @@
       }
     },
     {
-      "id": "mercury-2",
-      "privacy": "anonymized",
-      "context_window": 128000,
-      "max_completion_tokens": 50000,
-      "capabilities": {
-        "version": 1,
-        "input_modalities": [
-          "text",
-          "document"
-        ],
-        "output_modalities": [
-          "text"
-        ],
-        "chat_completions": true,
-        "streaming_text": true,
-        "tool_calls": true,
-        "streaming_tool_calls": true,
-        "structured_outputs": true,
-        "json_schema": true,
-        "streaming": true,
-        "transcription": false,
-        "speech": false,
-        "speech_formats": [],
-        "parallel_tool_calls": true,
-        "max_documents_per_message": 5,
-        "reasoning_controls": true,
-        "reasoning_effort": true,
-        "web_search": true,
-        "x_search": false,
-        "optimized_for_code": false,
-        "uncensored": false,
-        "log_probs": false,
-        "temperature": true,
-        "top_p": true,
-        "seed": true,
-        "stop": true,
-        "context_window": 128000,
-        "max_completion_tokens": 50000,
-        "privacy": "anonymized",
-        "privacy_routes": [
-          "anonymized"
-        ]
-      },
-      "customer_pricing": {
-        "status": "configured",
-        "version": "2026-10-18.ai-api.v5.0496210f7611303e",
-        "currency": "usd",
-        "unit": "per_million_tokens",
-        "input": 0.328125,
-        "output": 0.984375,
-        "cached_input": 0.0328125
-      }
-    },
-    {
-      "id": "mercury-2-5",
-      "privacy": "anonymized",
-      "context_window": 260000,
-      "max_completion_tokens": 65536,
-      "capabilities": {
-        "version": 1,
-        "input_modalities": [
-          "text",
-          "document"
-        ],
-        "output_modalities": [
-          "text"
-        ],
-        "chat_completions": true,
-        "streaming_text": true,
-        "tool_calls": true,
-        "streaming_tool_calls": true,
-        "structured_outputs": true,
-        "json_schema": true,
-        "streaming": true,
-        "transcription": false,
-        "speech": false,
-        "speech_formats": [],
-        "parallel_tool_calls": true,
-        "max_documents_per_message": 5,
-        "reasoning_controls": true,
-        "reasoning_effort": true,
-        "web_search": true,
-        "x_search": false,
-        "optimized_for_code": false,
-        "uncensored": false,
-        "log_probs": false,
-        "temperature": true,
-        "top_p": true,
-        "seed": true,
-        "stop": true,
-        "context_window": 260000,
-        "max_completion_tokens": 65536,
-        "privacy": "anonymized",
-        "privacy_routes": [
-          "anonymized"
-        ]
-      },
-      "customer_pricing": {
-        "status": "configured",
-        "version": "2026-10-18.ai-api.v5.6d160235e7de68ed",
-        "currency": "usd",
-        "unit": "per_million_tokens",
-        "input": 0.2625,
-        "output": 0.984375,
-        "cached_input": 0.02625
-      }
-    },
-    {
       "id": "mimo-v2-5",
       "privacy": "private",
       "context_window": 1000000,
@@ -10762,6 +12516,59 @@
       }
     },
     {
+      "id": "minimax-h3-image",
+      "privacy": "anonymized",
+      "context_window": 0,
+      "max_completion_tokens": 0,
+      "capabilities": {
+        "version": 1,
+        "input_modalities": [
+          "text"
+        ],
+        "output_modalities": [
+          "image"
+        ],
+        "chat_completions": false,
+        "streaming_text": false,
+        "tool_calls": false,
+        "streaming_tool_calls": false,
+        "structured_outputs": false,
+        "json_schema": false,
+        "streaming": false,
+        "transcription": false,
+        "speech": false,
+        "speech_formats": [],
+        "parallel_tool_calls": false,
+        "reasoning_controls": false,
+        "reasoning_effort": false,
+        "web_search": false,
+        "x_search": false,
+        "optimized_for_code": false,
+        "uncensored": false,
+        "log_probs": false,
+        "temperature": false,
+        "top_p": false,
+        "seed": false,
+        "stop": false,
+        "context_window": 0,
+        "max_completion_tokens": 0,
+        "privacy": "anonymized",
+        "privacy_routes": [
+          "anonymized"
+        ]
+      },
+      "customer_pricing": {
+        "status": "configured",
+        "version": "2026-10-18.ai-api.v5.7a010657a70fec6a",
+        "currency": "usd",
+        "unit": "per_image",
+        "input": 0,
+        "output": 0,
+        "cached_input": 0,
+        "request": 0.042
+      }
+    },
+    {
       "id": "minimax-m2-5",
       "privacy": "private",
       "context_window": 198000,
@@ -10871,7 +12678,7 @@
     },
     {
       "id": "minimax-m3-1-flash",
-      "privacy": "anonymized",
+      "privacy": "private",
       "context_window": 1000000,
       "max_completion_tokens": 131072,
       "capabilities": {
@@ -10898,7 +12705,7 @@
         "parallel_tool_calls": true,
         "max_documents_per_message": 5,
         "reasoning_controls": true,
-        "reasoning_effort": true,
+        "reasoning_effort": false,
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,
@@ -10910,9 +12717,9 @@
         "stop": true,
         "context_window": 1000000,
         "max_completion_tokens": 131072,
-        "privacy": "anonymized",
+        "privacy": "private",
         "privacy_routes": [
-          "anonymized"
+          "private"
         ]
       },
       "customer_pricing": {
@@ -10929,7 +12736,7 @@
       "id": "minimax-m3-preview",
       "privacy": "private",
       "context_window": 524288,
-      "max_completion_tokens": 65536,
+      "max_completion_tokens": 131072,
       "capabilities": {
         "version": 1,
         "input_modalities": [
@@ -10965,7 +12772,7 @@
         "seed": true,
         "stop": true,
         "context_window": 524288,
-        "max_completion_tokens": 65536,
+        "max_completion_tokens": 131072,
         "privacy": "private",
         "privacy_routes": [
           "private"
@@ -11253,6 +13060,63 @@
       }
     },
     {
+      "id": "muse-wonder",
+      "privacy": "anonymized",
+      "context_window": 1048576,
+      "max_completion_tokens": 131072,
+      "capabilities": {
+        "version": 1,
+        "input_modalities": [
+          "text",
+          "document",
+          "audio",
+          "image",
+          "video"
+        ],
+        "output_modalities": [
+          "text"
+        ],
+        "chat_completions": true,
+        "streaming_text": true,
+        "tool_calls": true,
+        "streaming_tool_calls": true,
+        "structured_outputs": true,
+        "json_schema": true,
+        "streaming": true,
+        "transcription": false,
+        "speech": false,
+        "speech_formats": [],
+        "parallel_tool_calls": true,
+        "max_documents_per_message": 5,
+        "reasoning_controls": true,
+        "reasoning_effort": true,
+        "web_search": true,
+        "x_search": false,
+        "optimized_for_code": true,
+        "uncensored": false,
+        "log_probs": false,
+        "temperature": true,
+        "top_p": true,
+        "seed": true,
+        "stop": true,
+        "context_window": 1048576,
+        "max_completion_tokens": 131072,
+        "privacy": "anonymized",
+        "privacy_routes": [
+          "anonymized"
+        ]
+      },
+      "customer_pricing": {
+        "status": "configured",
+        "version": "2026-10-18.ai-api.v5.346f63cd80888403",
+        "currency": "usd",
+        "unit": "per_million_tokens",
+        "input": 5.25,
+        "output": 26.25,
+        "cached_input": 0.2625
+      }
+    },
+    {
       "id": "nano-banana-2",
       "privacy": "anonymized",
       "context_window": 0,
@@ -11520,7 +13384,7 @@
       "id": "nvidia-nemotron-3-5-super-vl-120b",
       "privacy": "private",
       "context_window": 262144,
-      "max_completion_tokens": 32768,
+      "max_completion_tokens": 102400,
       "capabilities": {
         "version": 1,
         "input_modalities": [
@@ -11545,7 +13409,7 @@
         "parallel_tool_calls": true,
         "max_documents_per_message": 5,
         "reasoning_controls": true,
-        "reasoning_effort": true,
+        "reasoning_effort": false,
         "web_search": true,
         "x_search": false,
         "optimized_for_code": true,
@@ -11556,7 +13420,7 @@
         "seed": true,
         "stop": true,
         "context_window": 262144,
-        "max_completion_tokens": 32768,
+        "max_completion_tokens": 102400,
         "privacy": "private",
         "privacy_routes": [
           "private"
@@ -11564,12 +13428,12 @@
       },
       "customer_pricing": {
         "status": "configured",
-        "version": "2026-10-18.ai-api.v5.375c22fc663b78b5",
+        "version": "2026-10-18.ai-api.v5.c9ab2c1b551e6619",
         "currency": "usd",
         "unit": "per_million_tokens",
-        "input": 0.2625,
-        "output": 1.3125,
-        "cached_input": 0.13125
+        "input": 0.21,
+        "output": 0.525,
+        "cached_input": 0.042
       }
     },
     {
@@ -12170,6 +14034,60 @@
       }
     },
     {
+      "id": "qwen-3-6-35b-a3b-fp8-confidential",
+      "privacy": "tee",
+      "context_window": 32000,
+      "max_completion_tokens": 4096,
+      "capabilities": {
+        "version": 1,
+        "input_modalities": [
+          "text",
+          "document"
+        ],
+        "output_modalities": [
+          "text"
+        ],
+        "chat_completions": true,
+        "streaming_text": true,
+        "tool_calls": true,
+        "streaming_tool_calls": true,
+        "structured_outputs": false,
+        "json_schema": false,
+        "streaming": true,
+        "transcription": false,
+        "speech": false,
+        "speech_formats": [],
+        "parallel_tool_calls": true,
+        "max_documents_per_message": 5,
+        "reasoning_controls": true,
+        "reasoning_effort": false,
+        "web_search": false,
+        "x_search": false,
+        "optimized_for_code": true,
+        "uncensored": false,
+        "log_probs": false,
+        "temperature": true,
+        "top_p": true,
+        "seed": true,
+        "stop": true,
+        "context_window": 32000,
+        "max_completion_tokens": 4096,
+        "privacy": "tee",
+        "privacy_routes": [
+          "tee"
+        ]
+      },
+      "customer_pricing": {
+        "status": "configured",
+        "version": "2026-10-18.ai-api.v5.9fb96fdd5029dce5",
+        "currency": "usd",
+        "unit": "per_million_tokens",
+        "input": 0.1911,
+        "output": 1.239,
+        "cached_input": 0.063
+      }
+    },
+    {
       "id": "qwen-3-6-plus-uncensored",
       "privacy": "anonymized",
       "context_window": 1000000,
@@ -12445,6 +14363,61 @@
         "input": 0.4725,
         "output": 3.36,
         "cached_input": 0.4725
+      }
+    },
+    {
+      "id": "qwen-3-8-27b-confidential",
+      "privacy": "tee",
+      "context_window": 262144,
+      "max_completion_tokens": 8192,
+      "capabilities": {
+        "version": 1,
+        "input_modalities": [
+          "text",
+          "document",
+          "image"
+        ],
+        "output_modalities": [
+          "text"
+        ],
+        "chat_completions": true,
+        "streaming_text": true,
+        "tool_calls": true,
+        "streaming_tool_calls": true,
+        "structured_outputs": false,
+        "json_schema": false,
+        "streaming": true,
+        "transcription": false,
+        "speech": false,
+        "speech_formats": [],
+        "parallel_tool_calls": true,
+        "max_documents_per_message": 5,
+        "reasoning_controls": true,
+        "reasoning_effort": false,
+        "web_search": false,
+        "x_search": false,
+        "optimized_for_code": true,
+        "uncensored": false,
+        "log_probs": false,
+        "temperature": true,
+        "top_p": true,
+        "seed": true,
+        "stop": true,
+        "context_window": 262144,
+        "max_completion_tokens": 8192,
+        "privacy": "tee",
+        "privacy_routes": [
+          "tee"
+        ]
+      },
+      "customer_pricing": {
+        "status": "configured",
+        "version": "2026-10-18.ai-api.v5.af82b37f4f69d43d",
+        "currency": "usd",
+        "unit": "per_million_tokens",
+        "input": 0.4935,
+        "output": 3.7065,
+        "cached_input": 0.04935
       }
     },
     {
@@ -13225,7 +15198,7 @@
         "speech_formats": [],
         "parallel_tool_calls": true,
         "reasoning_controls": true,
-        "reasoning_effort": false,
+        "reasoning_effort": true,
         "web_search": false,
         "x_search": false,
         "optimized_for_code": false,
@@ -13735,6 +15708,59 @@
       }
     },
     {
+      "id": "seedream-v5-5",
+      "privacy": "anonymized",
+      "context_window": 0,
+      "max_completion_tokens": 0,
+      "capabilities": {
+        "version": 1,
+        "input_modalities": [
+          "text"
+        ],
+        "output_modalities": [
+          "image"
+        ],
+        "chat_completions": false,
+        "streaming_text": false,
+        "tool_calls": false,
+        "streaming_tool_calls": false,
+        "structured_outputs": false,
+        "json_schema": false,
+        "streaming": false,
+        "transcription": false,
+        "speech": false,
+        "speech_formats": [],
+        "parallel_tool_calls": false,
+        "reasoning_controls": false,
+        "reasoning_effort": false,
+        "web_search": false,
+        "x_search": false,
+        "optimized_for_code": false,
+        "uncensored": true,
+        "log_probs": false,
+        "temperature": false,
+        "top_p": false,
+        "seed": false,
+        "stop": false,
+        "context_window": 0,
+        "max_completion_tokens": 0,
+        "privacy": "anonymized",
+        "privacy_routes": [
+          "anonymized"
+        ]
+      },
+      "customer_pricing": {
+        "status": "configured",
+        "version": "2026-10-18.ai-api.v5.31153e1358c03394",
+        "currency": "usd",
+        "unit": "per_image",
+        "input": 0,
+        "output": 0,
+        "cached_input": 0,
+        "request": 0.026775
+      }
+    },
+    {
       "id": "seedream-v5-lite",
       "privacy": "anonymized",
       "context_window": 0,
@@ -14211,7 +16237,7 @@
     },
     {
       "id": "xai-speech-to-text-v1",
-      "privacy": "anonymized",
+      "privacy": "private",
       "context_window": 0,
       "max_completion_tokens": 0,
       "capabilities": {
@@ -14246,9 +16272,9 @@
         "stop": false,
         "context_window": 0,
         "max_completion_tokens": 0,
-        "privacy": "anonymized",
+        "privacy": "private",
         "privacy_routes": [
-          "anonymized"
+          "private"
         ]
       },
       "customer_pricing": {
@@ -14263,7 +16289,7 @@
     },
     {
       "id": "xai-tts-v1",
-      "privacy": "anonymized",
+      "privacy": "private",
       "context_window": 0,
       "max_completion_tokens": 0,
       "capabilities": {
@@ -14302,9 +16328,9 @@
         "stop": false,
         "context_window": 0,
         "max_completion_tokens": 0,
-        "privacy": "anonymized",
+        "privacy": "private",
         "privacy_routes": [
-          "anonymized"
+          "private"
         ]
       },
       "customer_pricing": {
