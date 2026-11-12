@@ -272,6 +272,7 @@ export default defineConfig({
             { label: "Models", slug: "ai-gateway/models" },
             { label: "Billing and Keys", slug: "ai-gateway/billing-and-keys" },
             { label: "Playground", slug: "ai-gateway/playground" },
+            { label: "Where your data goes", slug: "ai-gateway/your-data" },
             { label: "OpenAI Compatibility", slug: "ai-gateway/compatibility" },
             { label: "Rate Limits", slug: "ai-gateway/limits" },
           ],

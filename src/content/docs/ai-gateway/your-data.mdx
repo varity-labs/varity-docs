@@ -1,0 +1,56 @@
+---
+title: Where your data goes
+description: Where the AI Gateway Playground saves your chats, who can access them, and where each message is sent.
+---
+
+import PageMeta from '../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  stability="beta"
+/>
+
+This page covers chat messages and attached files in the
+[Playground](/ai-gateway/playground/).
+
+## Where it is saved
+
+Your chats, attached files, projects, memory and saved prompts are saved in
+your browser, on the device you are using. They are not saved on Varity's
+servers. They do not sync to your other devices, and clearing your browser's
+site data removes them. To keep a copy or move a chat, use Export in the chat's
+menu; Import brings a JSON export back. An incognito chat is not saved to
+history.
+
+An app saved or published from Build is different: its code is in its GitHub
+repository and its deployment runs on Varity Cloud.
+
+## Where a message goes
+
+Every message you send leaves your device. Your browser sends it over HTTPS to
+the Varity AI Gateway, which passes it to the provider that runs the model you
+chose. The conversation so far, including earlier attachments, is sent again
+with each new message, and your memory notes are included while memory is on.
+When you switch on Web search, the request is sent to the model's provider with
+web search enabled.
+
+Chat is not end-to-end encrypted: Varity and the model's provider process the
+message to answer it.
+
+## Who can access it
+
+- **You**: everything saved in your browser, on your device.
+- **Varity**: prompt, response and uploaded content is never written to
+  Varity's inference records. Request metadata (model id, token counts,
+  latency, fallback count, error code and timestamps) is retained for 30 days.
+  Billing records of what each request cost are kept separately. See
+  [Privacy And Data Retention](/ai-gateway/compatibility/#privacy-and-data-retention).
+- **The model's provider**: what the provider does with a request depends on
+  the model's privacy class, shown on each model as Anonymous, Private or TEE.
+  See [Privacy Routing](/ai-gateway/compatibility/#privacy-routing).
+
+## What this means in practice
+
+Because chats are saved only in your browser, there is no history on a second
+device and no share link. Export is the way to move a conversation.
