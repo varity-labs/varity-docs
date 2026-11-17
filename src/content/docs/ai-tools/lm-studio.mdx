@@ -1,0 +1,61 @@
+---
+title: Use Varity with LM Studio
+description: Add the Varity MCP server to LM Studio with one link, then set your deploy key so the model can check costs and deploy.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+import PageMeta from '../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  stability="stable"
+/>
+
+LM Studio can run the Varity MCP server (`@varity-labs/mcp`) as a local stdio
+server. You need LM Studio 0.3.17 or newer and Node.js 22.11 or newer.
+
+## Add to LM Studio
+
+With LM Studio installed, open this link:
+
+[Add Varity to LM Studio](lmstudio://add_mcp?name=varity&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB2YXJpdHktbGFicy9tY3BAbGF0ZXN0Il19)
+
+The link adds this server entry, named `varity`:
+
+```json
+{
+  "command": "npx",
+  "args": ["-y", "@varity-labs/mcp@latest"]
+}
+```
+
+## Set your deploy key
+
+Create a deploy key in the Developer Portal under **Settings > Deploy keys**.
+In LM Studio, open the **Program** tab in the right-hand sidebar, choose
+**Install > Edit mcp.json**, and add an `env` field to the `varity` entry:
+
+```json
+{
+  "mcpServers": {
+    "varity": {
+      "command": "npx",
+      "args": ["-y", "@varity-labs/mcp@latest"],
+      "env": { "VARITY_DEPLOY_KEY": "<your deploy key>" }
+    }
+  }
+}
+```
+
+<Aside type="caution">
+Never paste a key into the chat. Keep it in `mcp.json` or in the environment
+that starts LM Studio.
+</Aside>
+
+## Check the install
+
+Ask the model to "check my Varity environment". It runs `varity_doctor`, which
+reports whether a deploy key is configured. Tool calling works best with a
+model that supports tools. The full tool list is on the
+[MCP Server Reference](/ai-tools/mcp-server-spec/).
