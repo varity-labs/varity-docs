@@ -83,7 +83,7 @@ Attach a hostname with `PUT /deployments/{deployment_id}/domain`:
 
 ```bash
 curl -X PUT https://varity.app/api/deployments/$DEPLOYMENT_ID/domain \
-  -H "Authorization: Bearer $VARITY_API_KEY" \
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY" \
   -H "Content-Type: application/json" \
   -d '{"hostname": "app.example.com"}'
 ```
@@ -92,7 +92,7 @@ Read the current state at any time:
 
 ```bash
 curl https://varity.app/api/deployments/$DEPLOYMENT_ID/domain \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 ```
 
 The response tells you whether the deployment supports a custom domain, and returns the record it is waiting for:
@@ -151,7 +151,7 @@ After the records are live, ask Varity to observe DNS and confirm the domain ser
 
 ```bash
 curl -X POST https://varity.app/api/deployments/$DEPLOYMENT_ID/domain/verify \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 ```
 
 The domain moves through these states:
@@ -177,7 +177,7 @@ Detach the hostname to free it for another deployment:
 
 ```bash
 curl -X DELETE https://varity.app/api/deployments/$DEPLOYMENT_ID/domain \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 ```
 
 Your app stays reachable at its `varity.app` URL.

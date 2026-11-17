@@ -199,6 +199,26 @@ if (!/compute host that runs your deployment can read its environment values/.te
 }
 if (/capability_disabled/.test(llmsFull)) errors.push('public/llms-full.txt documents capability_disabled, which no producer emits');
 
+// MCP facts the published package contradicts: a key pasted into chat, the
+// retired HTTP transport, an image-credentials input no tool accepts, and an
+// anchor no page defines. public/mcp-schema.json is regenerated from the
+// released tools/list in its own change, so it is not scanned here.
+const RETIRED_MCP_TEXT = /with key|--transport http|image_credentials|llmstxt-alternative/;
+function scanTree(relativeDir, skip) {
+  for (const entry of fs.readdirSync(path.join(root, relativeDir), { withFileTypes: true })) {
+    const relativePath = `${relativeDir}/${entry.name}`;
+    if (skip.includes(relativePath)) continue;
+    if (entry.isDirectory()) {
+      scanTree(relativePath, skip);
+    } else if (/\.(mdx?|txt|json|ya?ml)$/.test(entry.name)) {
+      const match = RETIRED_MCP_TEXT.exec(fs.readFileSync(path.join(root, relativePath), 'utf8'));
+      if (match) errors.push(`${relativePath} documents retired MCP text "${match[0]}"`);
+    }
+  }
+}
+scanTree('src', []);
+scanTree('public', ['public/mcp-schema.json']);
+
 if (process.env.VERIFY_DIST === '1') {
   for (const artifact of ['openapi.yaml', 'mcp-schema.json', 'llms.txt', 'llms-full.txt']) {
     const publicPath = path.join(root, 'public', artifact);

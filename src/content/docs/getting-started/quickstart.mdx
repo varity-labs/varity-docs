@@ -118,20 +118,16 @@ If you are using Claude Code or Cursor, the Varity MCP server lets your AI tool 
    Deploy my app to Varity
    ```
 
-   The MCP server detects your framework, builds your project, and deploys it automatically.
+   Varity builds from your GitHub repository in the cloud, so the project needs a GitHub remote first. If it has none, your AI tool can create one with `varity_create_repo`, which pushes your code to a new repository. A prebuilt container image deploys without a repository. Varity then detects your framework, builds the app, and deploys it.
 
 3. **Your app is live**
 
-   Once the deploy finishes, your app is available at:
-
-   ```
-   https://varity.app/your-app-name/
-   ```
+   Once the deploy finishes, your app is available at its URL. Static sites live at `https://varity.app/<app-name>/`; dynamic apps live at `https://<app-name>.varity.app/`.
 
 </Steps>
 
 <Aside type="tip" icon="approve-check" title="First deploy?">
-The first deploy needs a deploy key. Create one in the developer portal under **Settings > Deploy keys**, then ask your AI tool to "Log in to Varity with key `<your key>`", or set `VARITY_API_KEY` in the MCP server's environment.
+The first deploy needs a deploy key. Create one in the developer portal under **Settings > Deploy keys**, then set it as `VARITY_DEPLOY_KEY` in the MCP server's environment, or run `varitykit login` in a terminal and paste it into the hidden prompt. Never paste a key into the chat: the MCP server does not accept credentials as tool input.
 </Aside>
 
 ---

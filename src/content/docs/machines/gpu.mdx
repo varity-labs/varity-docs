@@ -39,7 +39,7 @@ Read the matching catalog first:
 
 ```bash
 curl "https://varity.app/api/deployment-profiles?workload=gpu&execution_class=virtual_machine" \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 ```
 
 Use `execution_class=bare_metal` for a physical host. Region, accelerator,
@@ -52,7 +52,7 @@ are not independent assumptions.
 
    ```bash
    curl -X POST https://varity.app/api/pricing/machine-quote \
-     -H "Authorization: Bearer $VARITY_API_KEY" \
+     -H "Authorization: Bearer $VARITY_DEPLOY_KEY" \
      -H "Content-Type: application/json" \
      -d '{
        "profile_id": "<profile id from the current catalog>",
@@ -65,7 +65,7 @@ are not independent assumptions.
 
    ```bash
    curl -X POST https://varity.app/api/machines \
-     -H "Authorization: Bearer $VARITY_API_KEY" \
+     -H "Authorization: Bearer $VARITY_DEPLOY_KEY" \
      -H "Idempotency-Key: gpu-machine-001" \
      -H "Content-Type: application/json" \
      -d '{
@@ -85,7 +85,7 @@ are not independent assumptions.
 
    ```bash
    curl https://varity.app/api/machines/$MACHINE_ID \
-     -H "Authorization: Bearer $VARITY_API_KEY"
+     -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
    ```
 
    `access` is `null` until ready, then carries the SSH host, port, and user.
@@ -103,7 +103,7 @@ are not independent assumptions.
 
 ```bash
 curl -X DELETE https://varity.app/api/machines/$MACHINE_ID \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 ```
 
 Machine deletion is asynchronous. Acceptance is not closure proof: read the

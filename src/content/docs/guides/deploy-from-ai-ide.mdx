@@ -71,7 +71,7 @@ Works with Claude Code, Cursor, Windsurf, VS Code (Copilot), and any other edito
 
     ```json
     {
-      "mcpServers": {
+      "servers": {
         "varity": {
           "command": "npx",
           "args": ["-y", "@varity-labs/mcp"]
@@ -83,7 +83,7 @@ Works with Claude Code, Cursor, Windsurf, VS Code (Copilot), and any other edito
 </Tabs>
 
 <Aside type="note">
-Node.js 22.11 or later and Python 3.11 or later are required. If you do not have `varitykit` installed, your AI editor will prompt you to install it: `pipx install varitykit`.
+Node.js 22.11 or later is required, plus a deploy key from the Developer Portal under **Settings > Deploy keys**. Set it as `VARITY_DEPLOY_KEY` in the MCP server's environment, or run `varitykit login` in a terminal; never paste it into the chat. The `varitykit` CLI (`pipx install varitykit`, Python 3.11 or later) is needed only for `varity_migrate`.
 </Aside>
 
 ## Deploy with one prompt
@@ -145,7 +145,7 @@ Check my Varity environment, then build this project, deploy it, and open the li
 
 ## What the MCP server can do
 
-The Varity MCP server gives your AI editor a full set of tools. Here are the most useful ones for the build-to-deploy workflow:
+The Varity MCP server gives your AI editor 26 tools. Your installed server's `tools/list` response is the authoritative list:
 
 | Tool | What to ask your AI |
 |---|---|
@@ -162,11 +162,17 @@ The Varity MCP server gives your AI editor a full set of tools. Here are the mos
 | `varity_deploy_logs` | "Show me the runtime logs" (dynamic apps only; static sites have no runtime logs) |
 | `varity_set_env` | Does not accept values; it points you to a secret-safe way to set them |
 | `varity_redeploy` | "Redeploy this app in place" |
-| `varity_delete_deployment` | "Tear down this deployment" |
-| `varity_migrate` | "Migrate my Vercel app to Varity" |
+| `varity_delete_deployment` | "Tear down this deployment" (returns once accepted; check `varity_deploy_status` until billing reads stopped) |
+| `varity_migrate` | "Preview migrating my Vercel app to Varity" |
 | `varity_cost_calculator` | "How much does the web-app profile cost?" |
 | `varity_list_templates` | "What templates can Varity deploy?" |
 | `varity_template_info` | "What does this template need?" |
+| `varity_deploy_template` | "Deploy the Uptime Kuma template" |
+| `varity_list_agents`, `varity_agent_info`, `varity_deploy_agent` | Older names for the three template tools above |
+| `varity_balance` | "How much Varity balance do I have left?" |
+| `varity_machines_list` | "List my Varity virtual machines" |
+| `varity_machines_create` | "Create a virtual machine I can SSH into with my public key" |
+| `varity_machines_delete` | "Delete that virtual machine" |
 
 Full reference at [MCP Server Spec](/ai-tools/mcp-server-spec).
 
@@ -231,15 +237,23 @@ Here is a complete session from idea to live app, using only your AI editor:
    Add a tasks data model with title (string), status (string), and dueDate (string) fields. Include a dashboard page with a list and a create form.
    ```
 
-5. **Deploy to production**
+5. **Push to GitHub**
+
+   ```
+   Create a private GitHub repo for this project and push it
+   ```
+
+   The AI calls `varity_create_repo`, which creates the repository and pushes your code. Varity builds from that repository.
+
+6. **Deploy to production**
 
    ```
    Build and deploy this to Varity
    ```
 
-   The AI calls `varity_build` and `varity_deploy`, then reports the live URL.
+   The AI calls `varity_build` to check the production build locally, then `varity_deploy` with the repository, and reports the live URL.
 
-6. **Share the link**
+7. **Share the link**
 
    ```
    Show me the live URL for my deployment
@@ -251,17 +265,17 @@ Here is a complete session from idea to live app, using only your AI editor:
 
 ## Migrating from Vercel
 
-If you already have a Vercel app, one prompt migrates it to Varity:
+If you already have a Vercel app, one prompt previews the migration:
 
 ```
-Migrate my Vercel app at https://github.com/your-org/your-app to Varity
+Preview migrating my Vercel app at https://github.com/your-org/your-app to Varity
 ```
 
-The AI calls `varity_migrate`, which clones the repository, removes Vercel-specific configuration, and deploys to Varity infrastructure. See [Migrate from Vercel](/deploy/vercel-migration) for details.
+The AI calls `varity_migrate`, which clones the repository into a temporary directory and shows the changes the migration would make. It does not change your repository or deploy. To apply the migration, use the `varitykit migrate` CLI command described in [Migrate from Vercel](/deploy/vercel-migration).
 
 ## Browser-based AI tools (Claude.ai, ChatGPT)
 
-The hosted endpoint `mcp.varity.so` is retired. Browser-based tools that only accept a remote MCP URL are not supported today; use the stdio package (`npx -y @varity-labs/mcp`) from Claude Code, Cursor, VS Code, or Windsurf, or the [llms.txt context files](#llmstxt-alternative) for LLMs without MCP support.
+The hosted endpoint `mcp.varity.so` is retired. Browser-based tools that only accept a remote MCP URL are not supported today; use the stdio package (`npx -y @varity-labs/mcp`) from Claude Code, Cursor, VS Code, or Windsurf, or the [llms.txt context files](/ai-tools/mcp-server-spec/#llm-context-without-mcp) for LLMs without MCP support.
 
 ## Troubleshooting
 
@@ -276,7 +290,7 @@ claude mcp add varity -- npx -y @varity-labs/mcp
 
 Verify with `claude mcp list`.
 
-**Deploy fails with "varitykit not found"**
+**Migration preview fails with "varitykit not found"**
 
 ```bash
 pipx install varitykit

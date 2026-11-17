@@ -46,12 +46,12 @@ These are two different products with two different contracts:
 - **`/api/*` is the platform surface.** Resource CRUD for deployments, machines, templates, pricing, balance, keys, and webhooks. Everything on this page. Errors use the [Varity error envelope](/api/errors/).
 - **`/v1/*` is the OpenAI-compatible inference surface.** Chat completions, embeddings, images, audio, and model listing. Point any OpenAI client at it by setting the base URL. It has its own error shape and its own rate limits, documented in the [AI Gateway](/ai-gateway/) docs. Nothing on this page applies to it.
 
-A single Varity API key does not automatically work on both surfaces: keys are scoped per product, and using one out of scope returns `403 credential_scope_violation`. Create AI Gateway keys from the Developer Portal **Inference keys** tab, which calls `POST /v1/keys` on `https://ai.varity.app` with your Portal session; that is the only AI Gateway key issuer (see [Billing and Keys](/ai-gateway/billing-and-keys/#account-routes)).
+The two surfaces use different keys: a **deploy key** for `/api/*` (these examples read it from `VARITY_DEPLOY_KEY`) and an **AI Gateway key** for `/v1/*` (the AI Gateway examples read it from `VARITY_API_KEY`). Keys are scoped per product, and using one out of scope returns `403 credential_scope_violation`. Create AI Gateway keys from the Developer Portal **Inference keys** tab, which calls `POST /v1/keys` on `https://ai.varity.app` with your Portal session; that is the only AI Gateway key issuer (see [Billing and Keys](/ai-gateway/billing-and-keys/#account-routes)).
 
-For non-browser callers, send your Varity API key as a bearer credential:
+For non-browser callers, send your deploy key as a bearer credential:
 
 ```text
-Authorization: Bearer $VARITY_API_KEY
+Authorization: Bearer $VARITY_DEPLOY_KEY
 ```
 
 Create deploy keys in the [Developer Portal settings page](https://developer.store.varity.so/dashboard/settings?utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=api-reference-api-keys). Deploy key plaintext is shown once. Listing and revoking keys require an authenticated Developer Portal session; plaintext keys are never returned after creation.
@@ -81,7 +81,7 @@ Do not fire concurrent create requests with the same idempotency key; atomic con
 
     ```bash
     curl -X POST https://varity.app/api/deployments \
-      -H "Authorization: Bearer $VARITY_API_KEY" \
+      -H "Authorization: Bearer $VARITY_DEPLOY_KEY" \
       -H "Content-Type: application/json" \
       -H "Idempotency-Key: deploy-my-app-001" \
       -d '{
@@ -97,7 +97,7 @@ Do not fire concurrent create requests with the same idempotency key; atomic con
 
     ```bash
     curl -X POST https://varity.app/api/deployments \
-      -H "Authorization: Bearer $VARITY_API_KEY" \
+      -H "Authorization: Bearer $VARITY_DEPLOY_KEY" \
       -H "Content-Type: application/json" \
       -H "Idempotency-Key: deploy-my-api-001" \
       -d '{
@@ -114,7 +114,7 @@ Do not fire concurrent create requests with the same idempotency key; atomic con
 
     ```bash
     curl -X POST https://varity.app/api/templates/agent-zero/deploy \
-      -H "Authorization: Bearer $VARITY_API_KEY" \
+      -H "Authorization: Bearer $VARITY_DEPLOY_KEY" \
       -H "Content-Type: application/json" \
       -H "Idempotency-Key: deploy-agent-zero-001" \
       -d '{ "name": "my-agent" }'
@@ -129,7 +129,7 @@ Poll the run until it reaches `succeeded` or `failed`:
 
 ```bash
 curl "https://varity.app/api/deployments/runs/$RUN_ID?app=my-app" \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 ```
 
 ## Operate
@@ -138,24 +138,24 @@ List deployments:
 
 ```bash
 curl https://varity.app/api/deployments \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 ```
 
 Read one deployment:
 
 ```bash
 curl https://varity.app/api/deployments/$DEPLOYMENT_ID \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 ```
 
 Read logs and events:
 
 ```bash
 curl https://varity.app/api/deployments/$DEPLOYMENT_ID/logs \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 
 curl https://varity.app/api/deployments/$DEPLOYMENT_ID/events \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 ```
 
 Both responses include a `complete` flag and an `observed_at` timestamp. When
@@ -176,7 +176,7 @@ Read durable runtime and route health history:
 
 ```bash
 curl "https://varity.app/api/deployments/$DEPLOYMENT_ID/health-history?limit=100" \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 ```
 
 The response contains a `summary` with the latest runtime and route health
@@ -191,14 +191,14 @@ List environment variable keys. Values are write-only and are not returned:
 
 ```bash
 curl https://varity.app/api/deployments/$DEPLOYMENT_ID/env \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 ```
 
 Update environment variables and redeploy in place:
 
 ```bash
 curl -X PATCH https://varity.app/api/deployments/$DEPLOYMENT_ID/env \
-  -H "Authorization: Bearer $VARITY_API_KEY" \
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY" \
   -H "Content-Type: application/json" \
   -d '{ "env": { "FEATURE_FLAG": "on" } }'
 ```
@@ -207,13 +207,13 @@ Redeploy, restart, or delete:
 
 ```bash
 curl -X POST https://varity.app/api/deployments/$DEPLOYMENT_ID/redeploy \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 
 curl -X POST https://varity.app/api/deployments/$DEPLOYMENT_ID/restart \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 
 curl -X DELETE https://varity.app/api/deployments/$DEPLOYMENT_ID \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 ```
 
 ## Templates, Pricing, And Balance
@@ -222,13 +222,13 @@ Templates are deployable app starters. Pricing is estimated from the live API, n
 
 ```bash
 curl https://varity.app/api/templates \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 
 curl "https://varity.app/api/pricing/estimate?profile=web-app" \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 
 curl https://varity.app/api/credits \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 ```
 
 ## Webhooks
@@ -237,7 +237,7 @@ Create a webhook:
 
 ```bash
 curl -X POST https://varity.app/api/webhooks \
-  -H "Authorization: Bearer $VARITY_API_KEY" \
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "url": "https://example.com/varity/webhook",
@@ -267,14 +267,14 @@ List webhooks and delivery status:
 
 ```bash
 curl "https://varity.app/api/webhooks?include_deliveries=true" \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 ```
 
 Delete a webhook:
 
 ```bash
 curl -X DELETE https://varity.app/api/webhooks/$WEBHOOK_ID \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 ```
 
 ## Machines
@@ -283,12 +283,12 @@ Self-managed machines are a separate resource from deployments: you get a machin
 
 ```bash
 curl -X POST https://varity.app/api/pricing/machine-quote \
-  -H "Authorization: Bearer $VARITY_API_KEY" \
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY" \
   -H "Content-Type: application/json" \
   -d '{ ... }'
 
 curl -X POST https://varity.app/api/machines \
-  -H "Authorization: Bearer $VARITY_API_KEY" \
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY" \
   -H "Content-Type: application/json" \
   -H "Idempotency-Key: machine-001" \
   -d '{ ... }'
@@ -298,13 +298,13 @@ Create and delete return `202`. List, read, and run bounded synchronous actions:
 
 ```bash
 curl https://varity.app/api/machines \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 
 curl https://varity.app/api/machines/$MACHINE_ID \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 
 curl -X POST https://varity.app/api/machines/$MACHINE_ID/actions \
-  -H "Authorization: Bearer $VARITY_API_KEY" \
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY" \
   -H "Content-Type: application/json" \
   -d '{ ... }'
 ```
@@ -321,7 +321,7 @@ Before deploying, discover what is actually available instead of assuming a cata
 
 ```bash
 curl "https://varity.app/api/deployment-profiles?workload=gpu&execution_class=virtual_machine" \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 ```
 
 `workload` is one of `gpu`, `virtual_machine`, `cpu`. `execution_class` is one of `container`, `virtual_machine`, `bare_metal`, `cpu_virtual_machine`. An invalid combination returns `422 deployment_profile_scope_invalid`.
@@ -330,7 +330,7 @@ Profiles carry availability, not a price commitment. For an exact hourly figure,
 
 ```bash
 curl -X POST https://varity.app/api/pricing/machine-quote \
-  -H "Authorization: Bearer $VARITY_API_KEY" \
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY" \
   -H "Content-Type: application/json" \
   -d '{ ... }'
 ```
@@ -341,7 +341,7 @@ Attaching the Varity AI Gateway to a Cloud deployment injects a scoped inference
 
 ```bash
 curl -X POST https://varity.app/api/ai-gateway/attachments \
-  -H "Authorization: Bearer $VARITY_API_KEY" \
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY" \
   -H "Content-Type: application/json" \
   -H "Idempotency-Key: attach-my-app-001" \
   -d '{ ... }'
@@ -351,10 +351,10 @@ curl -X POST https://varity.app/api/ai-gateway/attachments \
 
 ```bash
 curl https://varity.app/api/ai-gateway/attachments \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 
 curl -X POST https://varity.app/api/ai-gateway/attachments/$ATTACHMENT_ID/rotate \
-  -H "Authorization: Bearer $VARITY_API_KEY" \
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY" \
   -H "Idempotency-Key: rotate-my-app-001"
 ```
 

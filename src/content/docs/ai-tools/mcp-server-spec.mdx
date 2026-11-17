@@ -28,8 +28,12 @@ moves ahead of the reference's release marker.
 ## Prerequisites
 
 - **Node.js 22.11 or newer**, as required by the package currently published to npm
-- **Python 3.11 or newer** for the current `varitykit` CLI
-- **varitykit**, installed with `pipx install varitykit`
+- **A deploy key** from the Developer Portal under **Settings > Deploy keys**
+
+Deploys, status, logs, templates, and machines go through the Varity public API
+and need only the deploy key. The `varitykit` CLI (Python 3.11 or newer,
+`pipx install varitykit`) is optional: `varity_migrate` uses it, and
+`varitykit login` is one way to store the deploy key.
 
 ## Setup
 
@@ -62,7 +66,7 @@ moves ahead of the reference's release marker.
 
     ```json
     {
-      "mcpServers": {
+      "servers": {
         "varity": {
           "command": "npx",
           "args": ["-y", "@varity-labs/mcp"]
@@ -78,12 +82,18 @@ moves ahead of the reference's release marker.
 
 ## Authentication
 
-Use `varity_login` for interactive setup. For a headless process, provide
-`VARITY_API_KEY` (or the package's compatibility name `VARITY_DEPLOY_KEY`) to
-the MCP process. Never put a real key in a checked-in editor configuration.
+The server reads your deploy key in this order:
 
-The server can also read the credential written by varitykit. API keys are
-account credentials; a project path is not an ownership boundary.
+1. `VARITY_DEPLOY_KEY` in the MCP process environment;
+2. the key stored by `varitykit login` in `~/.varitykit/config.json`;
+3. `VARITY_API_KEY`, accepted for deploys only as a legacy fallback.
+
+`VARITY_API_KEY` is the name of the [AI Gateway](/ai-gateway/)
+inference key, so name a deploy key `VARITY_DEPLOY_KEY`. `varity_login` checks
+whether a key is configured and opens the portal settings page; it never accepts
+a key as tool input, so never paste a key into the chat. Never put a real key in
+a checked-in editor configuration. Deploy keys are account credentials; a
+project path is not an ownership boundary.
 
 ## Tool Reference
 
@@ -98,19 +108,26 @@ Important lifecycle semantics:
 - A deploy, environment update, redeploy, or delete request can return before
   every runtime effect has converged. Track the returned state or operation.
 - Deletion acceptance is not proof that routing, allocation release, and
-  billing closure are all complete.
+  billing closure are all complete. `varity_delete_deployment` returns as soon
+  as the delete is accepted and does not wait: poll `varity_deploy_status` until
+  it shows status `deleted` and billing `stopped`. `varity_machines_delete`
+  waits up to 10 minutes for the machine's billing to read stopped.
 - A redeploy request reapplies saved configuration and can be a no-op. Do not
   describe it as a verified restart or image refresh without runtime evidence.
 - The deployment-log tool returns recent runtime logs of a live app. Use the
   local build tool for compilation diagnostics.
 - The environment tool accepts no values. It directs private configuration to
   a secret-safe interface, and no tool result echoes a secret.
-- The CPU machine tools list, create, and delete SSH-accessible machines. Create
-  takes your SSH public key, and a machine bills hourly until it is deleted.
+- The machine tools list, create, and delete SSH-accessible virtual machines.
+  Create takes your SSH public key, and a machine bills hourly until it is
+  deleted.
+- Templates are listed, inspected, and deployed through the Varity public API.
+  `varity_list_agents`, `varity_agent_info`, and `varity_deploy_agent` are older
+  names for the three template tools.
 
 ## Typical Workflow
 
-1. Run `varity_doctor` to check local prerequisites.
+1. Run `varity_doctor` to check authentication.
 2. Run `varity_login` if authentication is missing.
 3. Use `varity_cost_calculator` or a live quote before a billable action.
 4. Build locally and inspect the result.
@@ -126,27 +143,14 @@ guidance tied to its recorded release marker.
 
 ## Transports
 
-The package supports:
-
-- **stdio**, for local editor integrations; and
-- **self-hosted HTTP**, for a server you operate yourself.
-
-Start a local HTTP transport with:
-
-```bash
-npx -y @varity-labs/mcp --transport http --port 3100
-```
-
-It serves MCP at `http://localhost:3100/mcp`.
+The package runs over **stdio** only, for local editor integrations. It exits
+on any other transport argument.
 
 <Aside type="caution" title="No hosted MCP endpoint">
 `mcp.varity.so` is retired. Varity does not currently operate a hosted MCP
 transport. Browser-only clients that require a remote MCP URL cannot use the
 local stdio package directly.
 </Aside>
-
-Local-browser and local-dev-server tools require local execution, so use stdio
-for those workflows.
 
 ## LLM Context Without MCP
 
@@ -162,8 +166,11 @@ quotes, or operation receipts.
 
 - If npm cannot resolve the package, confirm `node --version` meets the
   published package requirement and retry `npx -y @varity-labs/mcp`.
-- If deploy tools cannot find varitykit, install it with pipx and run
-  `varitykit doctor`.
+- If `varity_doctor` reports missing authentication, set `VARITY_DEPLOY_KEY`
+  in the MCP process environment or run `varitykit login`, then restart the
+  editor.
+- If `varity_migrate` cannot find varitykit, install it with
+  `pipx install varitykit`.
 - If an editor does not show the server, validate its JSON configuration,
   restart the editor, and inspect the editor's MCP process log.
 - If a tool's behavior differs from this page, record the installed npm version
