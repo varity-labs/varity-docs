@@ -93,6 +93,12 @@ if (mcp) {
   }
   if (!Array.isArray(mcp.tools) || mcp.tools.length === 0) errors.push('MCP schema must declare tools');
   if (mcp.toolCount !== mcp.tools?.length) errors.push('MCP schema toolCount must equal tools.length');
+  // The published server is stdio only; any other transport argument exits.
+  if (!Array.isArray(mcp.server?.transports) || mcp.server.transports.length === 0) {
+    errors.push('MCP schema must declare its transports');
+  } else if (mcp.server.transports.some((transport) => transport !== 'stdio')) {
+    errors.push(`MCP schema transports must be stdio only, got ${JSON.stringify(mcp.server.transports)}`);
+  }
 
   const toolNames = (mcp.tools || []).map((tool) => tool.name);
   if (toolNames.some((name) => typeof name !== 'string' || !name.startsWith('varity_'))) {
@@ -198,6 +204,28 @@ if (!/compute host that runs your deployment can read its environment values/.te
   errors.push('deploy/env-variables.mdx must disclose that the compute host can read environment values');
 }
 if (/capability_disabled/.test(llmsFull)) errors.push('public/llms-full.txt documents capability_disabled, which no producer emits');
+
+// MCP facts the published package contradicts: a key pasted into chat, the
+// retired HTTP transport, an image-credentials input no tool accepts, and an
+// anchor no page defines.
+// A redeploy restarts the last successful release; only a new deploy with the
+// same app name builds pushed code, and the build reads the repository, not a
+// local checkout. These phrases taught the opposite.
+const RETIRED_MCP_TEXT = /with key|--transport http|image_credentials|llmstxt-alternative|Build and redeploy my Varity app|Each redeploy publishes a fresh build|`varity_redeploy`, or dashboard action|git checkout <known-good-commit>|fresh deploy from your local history/;
+function scanTree(relativeDir, skip) {
+  for (const entry of fs.readdirSync(path.join(root, relativeDir), { withFileTypes: true })) {
+    const relativePath = `${relativeDir}/${entry.name}`;
+    if (skip.includes(relativePath)) continue;
+    if (entry.isDirectory()) {
+      scanTree(relativePath, skip);
+    } else if (/\.(mdx?|txt|json|ya?ml)$/.test(entry.name)) {
+      const match = RETIRED_MCP_TEXT.exec(fs.readFileSync(path.join(root, relativePath), 'utf8'));
+      if (match) errors.push(`${relativePath} documents retired MCP text "${match[0]}"`);
+    }
+  }
+}
+scanTree('src', []);
+scanTree('public', []);
 
 if (process.env.VERIFY_DIST === '1') {
   for (const artifact of ['openapi.yaml', 'mcp-schema.json', 'llms.txt', 'llms-full.txt']) {

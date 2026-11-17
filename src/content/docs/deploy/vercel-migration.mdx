@@ -24,9 +24,9 @@ Move your existing Vercel app to Varity. The migration tool removes Vercel-speci
 
 All changes are backed up to `.vercel-migration-backup/` so you can roll back.
 
-## Migrate using AI (recommended)
+## Preview the migration with AI
 
-The fastest path is to ask your AI editor to migrate for you.
+Your AI editor can preview the migration before you apply it.
 
 <Aside type="tip" icon="approve-check">
 This works in Cursor, Claude Code, VS Code (Copilot), and any editor with the Varity MCP server installed. See [MCP Server Setup](/ai-tools/mcp-server-spec) to install.
@@ -34,17 +34,11 @@ This works in Cursor, Claude Code, VS Code (Copilot), and any editor with the Va
 
 Ask your AI editor:
 
-> "Migrate my Vercel app at https://github.com/username/my-app to Varity"
+> "Preview migrating my Vercel app at https://github.com/username/my-app to Varity"
 
-The `varity_migrate` MCP tool will:
-1. Clone your GitHub repository
-2. Remove Vercel-specific artifacts
-3. Build the transformed app to verify it compiles
-4. Deploy to Varity and return a live URL
+The `varity_migrate` MCP tool clones your GitHub repository into a temporary directory and shows the Vercel-specific changes the migration would make. It is preview-only: it does not change your repository and does not deploy. The MCP tool needs the `varitykit` CLI installed.
 
-To preview what would change without deploying:
-
-> "Do a dry run migration of https://github.com/username/my-app"
+To apply the migration and deploy, use the CLI below.
 
 ## Migrate using the CLI
 

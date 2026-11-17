@@ -151,7 +151,7 @@ The table has the columns ID, Name, Status, Runtime, URL, Outcome, and Updated. 
 
 ### Recover a Known-Good Version
 
-To recover after a bad deploy, redeploy a known-good version of your app. Check out the working commit and run `varitykit app deploy` again under the same `--name`. The app at that URL is updated when the deployment operation succeeds. See [updates and persistent data](/deploy/databases/#updates-and-persistent-data) for the storage protection and database-migration limits.
+To recover after a bad deploy, revert the bad commit, push it to your repository's default branch, and run `varitykit app deploy` again under the same `--name`; Varity builds from the repository, not your local checkout. The app at that URL is updated when the deployment operation succeeds. See [updates and persistent data](/deploy/databases/#updates-and-persistent-data) for the storage protection and database-migration limits.
 
 ### View Deployment Details
 

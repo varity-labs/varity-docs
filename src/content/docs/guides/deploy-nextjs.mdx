@@ -233,19 +233,20 @@ Show me the deployment status and live URL
 
 ## Updating your app
 
-After making changes, redeploy with the same command:
+Varity builds from your GitHub repository, so commit and push your changes first, then deploy again with the same app name:
 
 ```bash
+git push
 varitykit app deploy
 ```
 
 Or from your AI editor:
 
 ```
-Build and redeploy my Varity app
+Push my changes to GitHub and deploy them to Varity with the same app name
 ```
 
-Each redeploy publishes a fresh build at the same URL.
+Your AI editor runs `varity_deploy` with the same app name, which builds the pushed code and updates the app at the same URL. `varity_redeploy` does not ship new code: it only restarts the last successful release.
 
 ## Cost
 

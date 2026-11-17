@@ -20,25 +20,20 @@ If a deployment breaks your app, the way to recover today is to **redeploy a kno
 
 ## Recover by Redeploying a Known-Good Version
 
-The reliable recovery path is to rebuild and redeploy a version you know works, under the same app name. Varity updates the app at that URL with the version you just built.
+The reliable recovery path is to put the working code back on your repository's default branch and deploy again under the same app name. Varity updates the app at that URL with the code it builds.
 
 <Steps>
 
-1. **Check out the last working version of your code**
+1. **Undo the bad change in Git**
 
-   In your project, return to the commit (or tag/branch) you know was healthy:
-
-   ```bash
-   git checkout <known-good-commit>
-   ```
-
-2. **Build it**
+   Varity builds from your GitHub repository's default branch, not from your local checkout. Revert the commit that broke the app and push the result:
 
    ```bash
-   npm run build
+   git revert <bad-commit>
+   git push
    ```
 
-3. **Redeploy under the same name**
+2. **Deploy again under the same name**
 
    Use the same `--name` you deployed with originally so the app URL stays the same:
 
@@ -46,7 +41,7 @@ The reliable recovery path is to rebuild and redeploy a version you know works, 
    varitykit app deploy --name my-app
    ```
 
-   Your app at `https://varity.app/my-app/` (static) or `https://my-app.varity.app/` (dynamic) serves the version you just built when the deployment operation succeeds.
+   Your app at `https://varity.app/my-app/` (static) or `https://my-app.varity.app/` (dynamic) serves the reverted code when the deployment operation succeeds. `varitykit app redeploy` and `varity_redeploy` do not ship code: they restart the last successful release.
 
 </Steps>
 

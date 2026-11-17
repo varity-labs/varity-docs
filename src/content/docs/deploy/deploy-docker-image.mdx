@@ -61,7 +61,7 @@ Public and private Docker/OCI images are supported when the image starts a runna
   </TabItem>
   <TabItem label="MCP (AI coding tools)">
 
-  If you have the [Varity MCP server](/ai-tools/mcp-server-spec) installed in Claude Code, Cursor, or another AI coding tool, the `varity_deploy` tool accepts an `image` parameter (plus optional `port` and `image_credentials` for private registries). Ask:
+  If you have the [Varity MCP server](/ai-tools/mcp-server-spec) installed in Claude Code, Cursor, or another AI coding tool, the `varity_deploy` tool accepts an `image` parameter (plus an optional `port`). The MCP deploys public images only; deploy a private image from the CLI or the Developer Portal. Ask:
 
   > "Deploy the Docker image ghcr.io/acme/my-api:1.4.2 on Varity"
 
@@ -76,10 +76,9 @@ Public images from Docker Hub, GHCR, and similar registries are supported from t
 
 ### Private registries
 
-Private images are supported in all three deploy paths:
+Private images are supported from the CLI and the Developer Portal. The MCP server does not accept registry credentials, so deploy private images from one of these:
 
 - **CLI:** pass `--image-registry`, `--image-username`, and `--image-password`
-- **MCP:** set `image_credentials`
 - **Developer Portal:** fill in the registry credential fields
 
 ## What Happens After Deploy

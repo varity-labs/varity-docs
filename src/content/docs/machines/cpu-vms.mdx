@@ -23,7 +23,7 @@ Read them from the authenticated catalog immediately before requesting a quote:
 
 ```bash
 curl "https://varity.app/api/deployment-profiles?workload=virtual_machine&execution_class=cpu_virtual_machine" \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 ```
 
 Keep the selected `profile_id` and one `os_images[].id` returned on that same
@@ -50,14 +50,14 @@ request a new quote.
 
    ```bash
    curl "https://varity.app/api/deployment-profiles?workload=virtual_machine&execution_class=cpu_virtual_machine" \
-     -H "Authorization: Bearer $VARITY_API_KEY"
+     -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
    ```
 
 2. **Get a quote**
 
    ```bash
    curl -X POST https://varity.app/api/pricing/machine-quote \
-     -H "Authorization: Bearer $VARITY_API_KEY" \
+     -H "Authorization: Bearer $VARITY_DEPLOY_KEY" \
      -H "Content-Type: application/json" \
      -d '{
        "profile_id": "mp-0628f148846594bc2dd04c9c",
@@ -72,7 +72,7 @@ request a new quote.
 
    ```bash
    curl -X POST https://varity.app/api/machines \
-     -H "Authorization: Bearer $VARITY_API_KEY" \
+     -H "Authorization: Bearer $VARITY_DEPLOY_KEY" \
      -H "Idempotency-Key: my-vm-create-001" \
      -H "Content-Type: application/json" \
      -d '{
@@ -93,7 +93,7 @@ request a new quote.
 
    ```bash
    curl https://varity.app/api/machines/$MACHINE_ID \
-     -H "Authorization: Bearer $VARITY_API_KEY"
+     -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
    ```
 
    `access` is `null` until the machine is ready, then becomes `protocol: "ssh"` with `host`, `port`, and `username`. `lifecycle.status` moves through `accepted`, `running`, and `succeeded` or `failed`.
@@ -128,7 +128,7 @@ The machine's `billing` block reports:
 
 ```bash
 curl -X POST https://varity.app/api/machines/$MACHINE_ID/actions \
-  -H "Authorization: Bearer $VARITY_API_KEY" \
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY" \
   -H "Content-Type: application/json" \
   -d '{"action": "restart"}'
 ```
@@ -143,7 +143,7 @@ curl -X POST https://varity.app/api/machines/$MACHINE_ID/actions \
 
 ```bash
 curl -X DELETE https://varity.app/api/machines/$MACHINE_ID \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 ```
 
 Deletion is asynchronous, and acceptance is not proof of closure. Read the machine back and check `lifecycle.cleanup_state`. It reaches `complete` when release has actually finished. Deleting destroys the disk; there is no suspend state that keeps data while stopping charges.

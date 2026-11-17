@@ -34,8 +34,9 @@ Install the following (one-time setup):
 
 1. **Cursor** or **Claude Code** (AI editor with MCP support)
 2. **Node.js 22.11+**: [download here](https://nodejs.org)
-3. **Python 3.11+**: [download here](https://python.org)
-4. **Varity MCP**: install with:
+3. **A Varity deploy key** from the Developer Portal under **Settings > Deploy keys**
+4. **A GitHub account**, with the GitHub CLI signed in or a `GITHUB_TOKEN`
+5. **Varity MCP**: install with:
 
    ```bash
    claude mcp add varity -- npx -y @varity-labs/mcp
@@ -66,17 +67,7 @@ That's it. No complex infrastructure setup.
 
    > "Check if my Varity environment is set up correctly"
 
-   **What happens:** The AI runs `varity_doctor` to verify Node.js, npm, and varitykit are installed.
-
-   **Expected output:**
-   ```
-   ✓ Node.js version: 22.11.0
-   ✓ npm version: 10.0.0
-   ✓ varitykit CLI: installed
-   ✓ All checks passed!
-   ```
-
-   If any checks fail, the AI will guide you through fixing them.
+   **What happens:** The AI runs `varity_doctor`, which checks your Node.js version and whether a deploy key is configured. If the key is missing, create one in the Developer Portal under **Settings > Deploy keys** and set it as `VARITY_DEPLOY_KEY` in the MCP server's environment, or run `varitykit login` in a terminal. Never paste the key into the chat.
 
 2. **Build your app with your AI editor**
 
@@ -102,13 +93,7 @@ That's it. No complex infrastructure setup.
 
    > "Install the dependencies for my project"
 
-   **What happens:** The AI runs `varity_install_deps` to install all npm packages.
-
-   **Expected output:**
-   ```
-   ✓ Installing dependencies...
-   ✓ Installed 247 packages
-   ```
+   **What happens:** The AI runs `varity_install_deps`, which installs the project's packages with its package manager and reports whether the install succeeded.
 
 5. **Preview locally**
 
@@ -116,15 +101,9 @@ That's it. No complex infrastructure setup.
 
    > "Start the dev server and open it in my browser"
 
-   **What happens:** 
-   - AI runs `varity_dev_server` with `action: "start"`
-   - AI runs `varity_open_browser` with the localhost URL
-
-   **Expected output:**
-   ```
-   ✓ Dev server running at http://localhost:3000
-   ✓ Opening in default browser...
-   ```
+   **What happens:**
+   - AI runs `varity_dev_server` with `action: "start"`, which returns the local URL
+   - AI runs `varity_open_browser` with that URL
 
    Your app opens in the browser. You can:
    - Sign in with email (or Google/GitHub)
@@ -139,71 +118,47 @@ That's it. No complex infrastructure setup.
 
    > "Build my app for production"
 
-   **What happens:** The AI runs `varity_build` to compile and optimize the app.
+   **What happens:** The AI runs `varity_build`, which runs the production build locally and reports the detected framework and any build errors. This catches errors before you deploy.
 
-   **Expected output:**
-   ```
-   ✓ Detected framework: Next.js
-   ✓ Running build...
-   ✓ Build completed successfully
-   ✓ Output: 2.4 MB (optimized)
-   ```
+7. **Push to GitHub**
 
-7. **Deploy to production**
+   Prompt:
+
+   > "Create a private GitHub repo called invoice-manager and push my project to it"
+
+   **What happens:** The AI runs `varity_create_repo`, which creates the repository and pushes your code. Varity builds your app from this repository. It needs the GitHub CLI signed in or a `GITHUB_TOKEN`.
+
+8. **Deploy to production**
 
    Prompt:
 
    > "Deploy my app to production"
 
-   **What happens:** The AI runs `varity_deploy` to:
-   - Upload your app to distributed hosting
-   - Inject production credentials (auth, database)
-   - Generate a live URL
+   **What happens:** The AI runs `varity_deploy` with your repository. Varity builds the app in the cloud, provisions the database, and starts it. The tool returns the deployment and its status; your AI editor follows it until the app is live.
 
-   **Expected output:**
+   Because this app has a server and a database, it deploys as a dynamic app at:
+
    ```
-   ✓ Deploying invoice-manager...
-   ✓ Build: 100%
-   ✓ Upload: 100%
-   ✓ Live at: https://invoice-manager-abc123.varity.app/
+   https://invoice-manager.varity.app/
    ```
 
    Your app is now live on the internet. Anyone can access it.
 
-8. **Check deployment status**
+9. **Check deployment status**
 
    Prompt:
 
    > "Show me my deployment status"
 
-   **What happens:** The AI runs `varity_deploy_status` to show all deployments.
+   **What happens:** The AI runs `varity_deploy_status`, which lists your deployments with their URL, status, and creation time. If a build failed, the status shows why.
 
-   **Expected output:**
-   ```
-   Deployment: abc123
-     URL: https://invoice-manager-abc123.varity.app/
-     Status: active
-     Framework: Next.js
-     Size: 2.4 MB
-     Created: 2 minutes ago
-   ```
-
-9. **Estimate costs**
+10. **Estimate costs**
 
     Prompt:
 
     > "How much will this deployment profile cost per month on Varity?"
 
-    **What happens:** The AI runs `varity_cost_calculator` to estimate the monthly price for your deployment profile.
-
-    **Expected output:**
-    ```
-    Estimated monthly price:
-
-    Varity:
-      - Profile-based monthly cost (fixed by selected deployment profile)
-      - An unchanged profile keeps the same price as traffic grows
-    ```
+    **What happens:** The AI runs `varity_cost_calculator`, which reads the live price for the deployment profile: a fixed monthly maximum for the app's reserved hardware, prorated by running time.
 
 </Steps>
 
@@ -212,7 +167,7 @@ That's it. No complex infrastructure setup.
 1. **Built a production app**: Authentication, database, dashboard
 2. **Added a custom data model**: Invoices with create, read, update, and delete
 3. **Deployed to production**: Live URL with database and hosting configured automatically
-4. **Verified deployment status**: URL, framework, and runtime are visible in status output
+4. **Verified deployment status**: URL and status are visible in status output
 
 **Total time:** 10-15 minutes  
 **Total cost:** Up to a fixed monthly maximum for the app's reserved profile; an unchanged profile keeps the same price as traffic grows  
@@ -237,7 +192,7 @@ That's it. No complex infrastructure setup.
 > "Create a clients page and link each invoice to a client"
 
 **Deploy updates:**
-> "Deploy my latest changes to production"
+> "Push my latest changes to GitHub and deploy them to Varity"
 
 ## Behind the Scenes
 
@@ -249,7 +204,8 @@ When you prompt your AI editor, here's what happens:
 | "Add a data model" | Your AI editor adds the model and pages |
 | "Start dev server" | `varity_dev_server` runs `npm run dev`, returns localhost URL |
 | "Build for production" | `varity_build` compiles the app, optimizes the bundle |
-| "Deploy" | `varity_deploy` deploys the app and injects credentials |
+| "Push to GitHub" | `varity_create_repo` creates the repository and pushes your code |
+| "Deploy" | `varity_deploy` builds the pushed repository in the cloud and deploys it |
 | "Show status" | `varity_deploy_status` fetches deployment info |
 | "Estimate costs" | `varity_cost_calculator` estimates the monthly price for your deployment profile |
 
@@ -257,13 +213,9 @@ Every tool runs locally or via Varity's infrastructure. No manual configuration 
 
 ## Troubleshooting
 
-**"varitykit not found"**
+**"Authentication required"**
 
-Install the CLI:
-```bash
-pipx install varitykit
-varitykit doctor
-```
+Set your deploy key as `VARITY_DEPLOY_KEY` in the MCP server's environment, or run `varitykit login` in a terminal, then restart your editor.
 
 **"Cannot find module @varity-labs/mcp"**
 
@@ -279,9 +231,9 @@ Restart Cursor after adding `.cursor/mcp.json`. Verify the JSON is valid.
 **Deploy fails**
 
 Ask the AI:
-> "Show me the runtime logs for my last deployment"
+> "Show me the status of my last deployment"
 
-The AI runs `varity_deploy_logs` to debug.
+The AI runs `varity_deploy_status`, which shows why a build failed. For an app that deployed but misbehaves, ask for its runtime logs; the AI runs `varity_deploy_logs`.
 
 ## Why This Works
 

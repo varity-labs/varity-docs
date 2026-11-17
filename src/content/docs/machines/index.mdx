@@ -37,12 +37,12 @@ need host-level access or an exact accelerator configuration.
 
 ```bash
 curl "https://varity.app/api/deployment-profiles?workload=virtual_machine&execution_class=cpu_virtual_machine" \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 ```
 
 ```bash
 curl "https://varity.app/api/deployment-profiles?workload=gpu&execution_class=virtual_machine" \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 ```
 
 Use `execution_class=bare_metal` for the other GPU scope. Read the selected profile's identifier, resources, region, images,

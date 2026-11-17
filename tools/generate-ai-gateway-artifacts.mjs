@@ -198,7 +198,7 @@ function renderHeader(pages, schema) {
     schema.server.install.claudeCode,
     '```',
     '',
-    'MCP clients must discover executable tool definitions from the installed server\'s `tools/list` response. The Docs `/mcp-schema.json` artifact is a conservative safety reference, not the wire contract.',
+    'MCP clients must discover executable tool definitions from the installed server\'s `tools/list` response. The Docs `/mcp-schema.json` artifact copies the named release\'s `tools/list`; it is not the wire contract.',
     '',
   ];
   return lines.join('\n');
@@ -348,20 +348,32 @@ export function check(root) {
   return { ok: errors.length === 0, errors };
 }
 
-/** Network check: prove the checked-in mirror still equals its live upstream. */
+/**
+ * Network check: prove each checked-in mirror still equals its live upstream.
+ * Every check runs and reports on its own, so one stale or unreachable source
+ * never hides drift in another (an MCP release-marker mismatch stays visible
+ * while the AI Gateway mirror is stale).
+ */
 async function checkLive(root, fetchImpl = fetch) {
-  let response;
-  try {
-    response = await fetchImpl(CANONICAL_OPENAPI_URL, {
-      headers: { accept: 'application/json' },
-    });
-  } catch (error) {
-    return [`could not reach ${CANONICAL_OPENAPI_URL}: ${error.message}`];
+  const checks = [
+    () => checkPlatformOpenApiMirror(root, fetchImpl),
+    () => checkAiGatewayMirror(root, fetchImpl),
+    () => checkCreditPolicyMirror(root, fetchImpl),
+    () => checkMcpReleaseMarker(root, fetchImpl),
+  ];
+  const errors = [];
+  for (const run of checks) {
+    try {
+      errors.push(...(await run()));
+    } catch (error) {
+      errors.push(error.message);
+    }
   }
-  if (!response.ok) {
-    return [`${CANONICAL_OPENAPI_URL} returned HTTP ${response.status}`];
-  }
-  const live = JSON.parse(await response.text());
+  return errors;
+}
+
+async function checkPlatformOpenApiMirror(root, fetchImpl) {
+  const live = await fetchJson(CANONICAL_OPENAPI_URL, fetchImpl);
   let stored;
   try {
     stored = JSON.parse(readText(join(root, OPENAPI_MIRROR_PATH)));
@@ -373,43 +385,31 @@ async function checkLive(root, fetchImpl = fetch) {
       `${OPENAPI_MIRROR_PATH} is stale vs ${CANONICAL_OPENAPI_URL} (refresh with --refresh-mirror, then regenerate)`,
     ];
   }
+  return [];
+}
 
-  let aiGatewayLive;
-  try {
-    aiGatewayLive = await fetchAiGatewayMirror(fetchImpl);
-  } catch (error) {
-    return [error.message];
-  }
+async function checkAiGatewayMirror(root, fetchImpl) {
+  const aiGatewayLive = await fetchAiGatewayMirror(fetchImpl);
   if (aiGatewayLive !== readText(join(root, AI_GATEWAY_MIRROR_PATH))) {
     return [
       `${AI_GATEWAY_MIRROR_PATH} is stale vs ${AI_GATEWAY_OPENAPI_URL} + ${AI_GATEWAY_MODELS_URL} (refresh with --refresh-mirror)`,
     ];
   }
+  return [];
+}
 
-  let creditPolicyLive;
-  try {
-    creditPolicyLive = await fetchCreditPolicyMirror(fetchImpl);
-  } catch (error) {
-    return [error.message];
-  }
+async function checkCreditPolicyMirror(root, fetchImpl) {
+  const creditPolicyLive = await fetchCreditPolicyMirror(fetchImpl);
   const creditPolicyStored = readText(join(root, CREDIT_POLICY_MIRROR_PATH));
   const pending = JSON.parse(creditPolicyStored).status === 'pending_fixture';
   if (creditPolicyLive === null ? !pending : creditPolicyLive !== creditPolicyStored) {
     return [`${CREDIT_POLICY_MIRROR_PATH} is stale vs ${PRICING_URL} credit_policy (refresh with --refresh-mirror)`];
   }
+  return [];
+}
 
-  let packageResponse;
-  try {
-    packageResponse = await fetchImpl(MCP_PACKAGE_URL, {
-      headers: { accept: 'application/json' },
-    });
-  } catch (error) {
-    return [`could not reach ${MCP_PACKAGE_URL}: ${error.message}`];
-  }
-  if (!packageResponse.ok) {
-    return [`${MCP_PACKAGE_URL} returned HTTP ${packageResponse.status}`];
-  }
-  const publishedPackage = await packageResponse.json();
+async function checkMcpReleaseMarker(root, fetchImpl) {
+  const publishedPackage = await fetchJson(MCP_PACKAGE_URL, fetchImpl);
   const mcpProjection = JSON.parse(readText(join(root, MCP_SCHEMA_PATH)));
   if (publishedPackage.version !== mcpProjection.server?.version) {
     return [

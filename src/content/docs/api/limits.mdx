@@ -56,7 +56,7 @@ Retrying a create after a `429` is safe only if it is idempotent. Send an `Idemp
 
 ```bash
 curl -X POST https://varity.app/api/deployments \
-  -H "Authorization: Bearer $VARITY_API_KEY" \
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY" \
   -H "Content-Type: application/json" \
   -H "Idempotency-Key: deploy-my-app-001" \
   -d '{ "name": "my-app", "repository": { "url": "https://github.com/me/my-app" } }'

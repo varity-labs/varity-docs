@@ -18,6 +18,7 @@ const PAGE_CATALOG = Object.freeze({
   '/ai-tools/mcp-server-spec/': ['ai-tools-mcp-server-spec', 'ai-tools'],
   '/ai-tools/opencode/': ['ai-tools-opencode', 'ai-tools'],
   '/ai-tools/overview/': ['ai-tools-overview', 'ai-tools'],
+  '/ai-tools/plugin/': ['ai-tools-plugin', 'ai-tools'],
   '/ai-tools/prompts/': ['ai-tools-prompts', 'ai-tools'],
   '/api/errors/': ['api-errors', 'api'],
   '/api/limits/': ['api-limits', 'api'],

@@ -8,7 +8,7 @@ Use these docs as the public Varity documentation context. Current MCP install c
 claude mcp add varity -- npx -y @varity-labs/mcp
 ```
 
-MCP clients must discover executable tool definitions from the installed server's `tools/list` response. The Docs `/mcp-schema.json` artifact is a conservative safety reference, not the wire contract.
+MCP clients must discover executable tool definitions from the installed server's `tools/list` response. The Docs `/mcp-schema.json` artifact copies the named release's `tools/list`; it is not the wire contract.
 
 
 ## Varity Documentation Home
@@ -1623,12 +1623,12 @@ These are two different products with two different contracts:
 - **`/api/*` is the platform surface.** Resource CRUD for deployments, machines, templates, pricing, balance, keys, and webhooks. Everything on this page. Errors use the [Varity error envelope](/api/errors/).
 - **`/v1/*` is the OpenAI-compatible inference surface.** Chat completions, embeddings, images, audio, and model listing. Point any OpenAI client at it by setting the base URL. It has its own error shape and its own rate limits, documented in the [AI Gateway](/ai-gateway/) docs. Nothing on this page applies to it.
 
-A single Varity API key does not automatically work on both surfaces: keys are scoped per product, and using one out of scope returns `403 credential_scope_violation`. Create AI Gateway keys from the Developer Portal **Inference keys** tab, which calls `POST /v1/keys` on `https://ai.varity.app` with your Portal session; that is the only AI Gateway key issuer (see [Billing and Keys](/ai-gateway/billing-and-keys/#account-routes)).
+The two surfaces use different keys: a **deploy key** for `/api/*` (these examples read it from `VARITY_DEPLOY_KEY`) and an **AI Gateway key** for `/v1/*` (the AI Gateway examples read it from `VARITY_API_KEY`). Keys are scoped per product, and using one out of scope returns `403 credential_scope_violation`. Create AI Gateway keys from the Developer Portal **Inference keys** tab, which calls `POST /v1/keys` on `https://ai.varity.app` with your Portal session; that is the only AI Gateway key issuer (see [Billing and Keys](/ai-gateway/billing-and-keys/#account-routes)).
 
-For non-browser callers, send your Varity API key as a bearer credential:
+For non-browser callers, send your deploy key as a bearer credential:
 
 ```text
-Authorization: Bearer $VARITY_API_KEY
+Authorization: Bearer $VARITY_DEPLOY_KEY
 ```
 
 Create deploy keys in the [Developer Portal settings page](https://developer.store.varity.so/dashboard/settings?utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=api-reference-api-keys). Deploy key plaintext is shown once. Listing and revoking keys require an authenticated Developer Portal session; plaintext keys are never returned after creation.
@@ -1657,7 +1657,7 @@ Do not fire concurrent create requests with the same idempotency key; atomic con
 
     ```bash
     curl -X POST https://varity.app/api/deployments \
-      -H "Authorization: Bearer $VARITY_API_KEY" \
+      -H "Authorization: Bearer $VARITY_DEPLOY_KEY" \
       -H "Content-Type: application/json" \
       -H "Idempotency-Key: deploy-my-app-001" \
       -d '{
@@ -1673,7 +1673,7 @@ Do not fire concurrent create requests with the same idempotency key; atomic con
 
     ```bash
     curl -X POST https://varity.app/api/deployments \
-      -H "Authorization: Bearer $VARITY_API_KEY" \
+      -H "Authorization: Bearer $VARITY_DEPLOY_KEY" \
       -H "Content-Type: application/json" \
       -H "Idempotency-Key: deploy-my-api-001" \
       -d '{
@@ -1690,7 +1690,7 @@ Do not fire concurrent create requests with the same idempotency key; atomic con
 
     ```bash
     curl -X POST https://varity.app/api/templates/agent-zero/deploy \
-      -H "Authorization: Bearer $VARITY_API_KEY" \
+      -H "Authorization: Bearer $VARITY_DEPLOY_KEY" \
       -H "Content-Type: application/json" \
       -H "Idempotency-Key: deploy-agent-zero-001" \
       -d '{ "name": "my-agent" }'
@@ -1704,7 +1704,7 @@ Poll the run until it reaches `succeeded` or `failed`:
 
 ```bash
 curl "https://varity.app/api/deployments/runs/$RUN_ID?app=my-app" \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 ```
 
 ## Operate
@@ -1713,24 +1713,24 @@ List deployments:
 
 ```bash
 curl https://varity.app/api/deployments \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 ```
 
 Read one deployment:
 
 ```bash
 curl https://varity.app/api/deployments/$DEPLOYMENT_ID \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 ```
 
 Read logs and events:
 
 ```bash
 curl https://varity.app/api/deployments/$DEPLOYMENT_ID/logs \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 
 curl https://varity.app/api/deployments/$DEPLOYMENT_ID/events \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 ```
 
 Both responses include a `complete` flag and an `observed_at` timestamp. When
@@ -1751,7 +1751,7 @@ Read durable runtime and route health history:
 
 ```bash
 curl "https://varity.app/api/deployments/$DEPLOYMENT_ID/health-history?limit=100" \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 ```
 
 The response contains a `summary` with the latest runtime and route health
@@ -1766,29 +1766,29 @@ List environment variable keys. Values are write-only and are not returned:
 
 ```bash
 curl https://varity.app/api/deployments/$DEPLOYMENT_ID/env \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 ```
 
 Update environment variables and redeploy in place:
 
 ```bash
 curl -X PATCH https://varity.app/api/deployments/$DEPLOYMENT_ID/env \
-  -H "Authorization: Bearer $VARITY_API_KEY" \
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY" \
   -H "Content-Type: application/json" \
   -d '{ "env": { "FEATURE_FLAG": "on" } }'
 ```
 
-Redeploy, restart, or delete:
+Redeploy, restart, or delete. A redeploy restarts the last successful release; it does not build new commits. To ship pushed code, create the deployment again with the same name:
 
 ```bash
 curl -X POST https://varity.app/api/deployments/$DEPLOYMENT_ID/redeploy \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 
 curl -X POST https://varity.app/api/deployments/$DEPLOYMENT_ID/restart \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 
 curl -X DELETE https://varity.app/api/deployments/$DEPLOYMENT_ID \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 ```
 
 ## Templates, Pricing, And Balance
@@ -1797,13 +1797,13 @@ Templates are deployable app starters. Pricing is estimated from the live API, n
 
 ```bash
 curl https://varity.app/api/templates \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 
 curl "https://varity.app/api/pricing/estimate?profile=web-app" \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 
 curl https://varity.app/api/credits \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 ```
 
 ## Webhooks
@@ -1812,7 +1812,7 @@ Create a webhook:
 
 ```bash
 curl -X POST https://varity.app/api/webhooks \
-  -H "Authorization: Bearer $VARITY_API_KEY" \
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "url": "https://example.com/varity/webhook",
@@ -1840,14 +1840,14 @@ List webhooks and delivery status:
 
 ```bash
 curl "https://varity.app/api/webhooks?include_deliveries=true" \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 ```
 
 Delete a webhook:
 
 ```bash
 curl -X DELETE https://varity.app/api/webhooks/$WEBHOOK_ID \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 ```
 
 ## Machines
@@ -1856,12 +1856,12 @@ Self-managed machines are a separate resource from deployments: you get a machin
 
 ```bash
 curl -X POST https://varity.app/api/pricing/machine-quote \
-  -H "Authorization: Bearer $VARITY_API_KEY" \
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY" \
   -H "Content-Type: application/json" \
   -d '{ ... }'
 
 curl -X POST https://varity.app/api/machines \
-  -H "Authorization: Bearer $VARITY_API_KEY" \
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY" \
   -H "Content-Type: application/json" \
   -H "Idempotency-Key: machine-001" \
   -d '{ ... }'
@@ -1871,13 +1871,13 @@ Create and delete return `202`. List, read, and run bounded synchronous actions:
 
 ```bash
 curl https://varity.app/api/machines \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 
 curl https://varity.app/api/machines/$MACHINE_ID \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 
 curl -X POST https://varity.app/api/machines/$MACHINE_ID/actions \
-  -H "Authorization: Bearer $VARITY_API_KEY" \
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY" \
   -H "Content-Type: application/json" \
   -d '{ ... }'
 ```
@@ -1894,7 +1894,7 @@ Before deploying, discover what is actually available instead of assuming a cata
 
 ```bash
 curl "https://varity.app/api/deployment-profiles?workload=gpu&execution_class=virtual_machine" \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 ```
 
 `workload` is one of `gpu`, `virtual_machine`, `cpu`. `execution_class` is one of `container`, `virtual_machine`, `bare_metal`, `cpu_virtual_machine`. An invalid combination returns `422 deployment_profile_scope_invalid`.
@@ -1903,7 +1903,7 @@ Profiles carry availability, not a price commitment. For an exact hourly figure,
 
 ```bash
 curl -X POST https://varity.app/api/pricing/machine-quote \
-  -H "Authorization: Bearer $VARITY_API_KEY" \
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY" \
   -H "Content-Type: application/json" \
   -d '{ ... }'
 ```
@@ -1914,7 +1914,7 @@ Attaching the Varity AI Gateway to a Cloud deployment injects a scoped inference
 
 ```bash
 curl -X POST https://varity.app/api/ai-gateway/attachments \
-  -H "Authorization: Bearer $VARITY_API_KEY" \
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY" \
   -H "Content-Type: application/json" \
   -H "Idempotency-Key: attach-my-app-001" \
   -d '{ ... }'
@@ -1924,14 +1924,14 @@ curl -X POST https://varity.app/api/ai-gateway/attachments \
 
 ```bash
 curl https://varity.app/api/ai-gateway/attachments \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 
 curl -X POST https://varity.app/api/ai-gateway/attachments/$ATTACHMENT_ID/rotate \
-  -H "Authorization: Bearer $VARITY_API_KEY" \
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY" \
   -H "Idempotency-Key: rotate-my-app-001"
 ```
 
-These routes accept either an API key or a Developer Portal session.
+These routes accept either a deploy key or a Developer Portal session.
 
 ## Errors And Rate Limits
 
@@ -2109,8 +2109,8 @@ MCP-compatible editor access to Varity's published tools. The install command
 uses npm's current `latest` release; an unreleased source branch is not evidence
 of what that command installs.
 
-The machine-readable [`/mcp-schema.json`](/mcp-schema.json) is a conservative
-documentation reference tied to the named npm release. It is not the MCP wire
+The machine-readable [`/mcp-schema.json`](/mcp-schema.json) is a copy of the
+`tools/list` response of the named npm release. It is not the MCP wire
 contract. Your installed server's `tools/list` response is authoritative for
 executable definitions. The scheduled check fails when npm's `latest` version
 moves ahead of the reference's release marker.
@@ -2118,8 +2118,12 @@ moves ahead of the reference's release marker.
 ## Prerequisites
 
 - **Node.js 22.11 or newer**, as required by the package currently published to npm
-- **Python 3.11 or newer** for the current `varitykit` CLI
-- **varitykit**, installed with `pipx install varitykit`
+- **A deploy key** from the Developer Portal under **Settings > Deploy keys**
+
+Deploys, status, logs, templates, and machines go through the Varity public API
+and need only the deploy key. The `varitykit` CLI (Python 3.11 or newer,
+`pipx install varitykit`) is optional: `varity_migrate` uses it, and
+`varitykit login` is one way to store the deploy key.
 
 ## Setup
 
@@ -2151,7 +2155,7 @@ moves ahead of the reference's release marker.
 
     ```json
     {
-      "mcpServers": {
+      "servers": {
         "varity": {
           "command": "npx",
           "args": ["-y", "@varity-labs/mcp"]
@@ -2166,17 +2170,23 @@ moves ahead of the reference's release marker.
 
 ## Authentication
 
-Use `varity_login` for interactive setup. For a headless process, provide
-`VARITY_API_KEY` (or the package's compatibility name `VARITY_DEPLOY_KEY`) to
-the MCP process. Never put a real key in a checked-in editor configuration.
+The server reads your deploy key in this order:
 
-The server can also read the credential written by varitykit. API keys are
-account credentials; a project path is not an ownership boundary.
+1. `VARITY_DEPLOY_KEY` in the MCP process environment;
+2. the key stored by `varitykit login` in `~/.varitykit/config.json`;
+3. `VARITY_API_KEY`, accepted for deploys only as a legacy fallback.
+
+`VARITY_API_KEY` is the name of the [AI Gateway](/ai-gateway/)
+inference key, so name a deploy key `VARITY_DEPLOY_KEY`. `varity_login` checks
+whether a key is configured and opens the portal settings page; it never accepts
+a key as tool input, so never paste a key into the chat. Never put a real key in
+a checked-in editor configuration. Deploy keys are account credentials; a
+project path is not an ownership boundary.
 
 ## Tool Reference
 
-Use [`/mcp-schema.json`](/mcp-schema.json) for conservative usage guidance and
-the release identity reviewed by Docs. Discover names, input schemas, and
+Use [`/mcp-schema.json`](/mcp-schema.json) for the tool definitions and
+release identity reviewed by Docs. Discover names, input schemas, and
 annotations from the installed server before calling a tool. Do not copy a tool
 table into automation from this page. The platform HTTP routes wrapped by
 deployment tools are separately published at [`/openapi.yaml`](/openapi.yaml).
@@ -2186,19 +2196,28 @@ Important lifecycle semantics:
 - A deploy, environment update, redeploy, or delete request can return before
   every runtime effect has converged. Track the returned state or operation.
 - Deletion acceptance is not proof that routing, allocation release, and
-  billing closure are all complete.
+  billing closure are all complete. `varity_delete_deployment` returns as soon
+  as the delete is accepted and does not wait: poll `varity_deploy_status` until
+  it shows status `deleted` and billing `stopped`. `varity_machines_delete`
+  waits up to 10 minutes for the machine's billing to read stopped.
 - A redeploy request reapplies saved configuration and can be a no-op. Do not
   describe it as a verified restart or image refresh without runtime evidence.
+  It never builds newly pushed code: to ship pushed changes, call
+  `varity_deploy` again with the same `app_name`.
 - The deployment-log tool returns recent runtime logs of a live app. Use the
   local build tool for compilation diagnostics.
 - The environment tool accepts no values. It directs private configuration to
   a secret-safe interface, and no tool result echoes a secret.
-- The CPU machine tools list, create, and delete SSH-accessible machines. Create
-  takes your SSH public key, and a machine bills hourly until it is deleted.
+- The machine tools list, create, and delete SSH-accessible virtual machines.
+  Create takes your SSH public key, and a machine bills hourly until it is
+  deleted.
+- Templates are listed, inspected, and deployed through the Varity public API.
+  `varity_list_agents`, `varity_agent_info`, and `varity_deploy_agent` are older
+  names for the three template tools.
 
 ## Typical Workflow
 
-1. Run `varity_doctor` to check local prerequisites.
+1. Run `varity_doctor` to check authentication.
 2. Run `varity_login` if authentication is missing.
 3. Use `varity_cost_calculator` or a live quote before a billable action.
 4. Build locally and inspect the result.
@@ -2209,30 +2228,17 @@ Important lifecycle semantics:
 
 The package also exposes local-development and repository helpers. Discover
 their current schemas and annotations from the installed server's `tools/list`
-response before calling them. Use `/mcp-schema.json` only for conservative Docs
-guidance tied to its recorded release marker.
+response before calling them. Use `/mcp-schema.json` only as a Docs reference
+tied to its recorded release marker.
 
 ## Transports
 
-The package supports:
-
-- **stdio**, for local editor integrations; and
-- **self-hosted HTTP**, for a server you operate yourself.
-
-Start a local HTTP transport with:
-
-```bash
-npx -y @varity-labs/mcp --transport http --port 3100
-```
-
-It serves MCP at `http://localhost:3100/mcp`.
+The package runs over **stdio** only, for local editor integrations. It exits
+on any other transport argument.
 
 `mcp.varity.so` is retired. Varity does not currently operate a hosted MCP
 transport. Browser-only clients that require a remote MCP URL cannot use the
 local stdio package directly.
-
-Local-browser and local-dev-server tools require local execution, so use stdio
-for those workflows.
 
 ## LLM Context Without MCP
 
@@ -2248,8 +2254,11 @@ quotes, or operation receipts.
 
 - If npm cannot resolve the package, confirm `node --version` meets the
   published package requirement and retry `npx -y @varity-labs/mcp`.
-- If deploy tools cannot find varitykit, install it with pipx and run
-  `varitykit doctor`.
+- If `varity_doctor` reports missing authentication, set `VARITY_DEPLOY_KEY`
+  in the MCP process environment or run `varitykit login`, then restart the
+  editor.
+- If `varity_migrate` cannot find varitykit, install it with
+  `pipx install varitykit`.
 - If an editor does not show the server, validate its JSON configuration,
   restart the editor, and inspect the editor's MCP process log.
 - If a tool's behavior differs from this page, record the installed npm version
@@ -2404,7 +2413,7 @@ The Varity MCP server lets your AI editor create, deploy, and manage Varity apps
 claude mcp add varity -- npx -y @varity-labs/mcp
 ```
 
-Then ask your AI to "deploy this project" or "migrate this app from Vercel." The MCP server provides a full set of tools for deploying, monitoring, and managing your apps. See the [MCP Server Spec](/ai-tools/mcp-server-spec) for the complete tool reference, or check out the [Build with AI (No Code)](/tutorials/build-with-ai/) tutorial to get started.
+Then ask your AI to "deploy this project" or "preview migrating this app from Vercel." The MCP server provides a full set of tools for deploying, monitoring, and managing your apps. See the [MCP Server Spec](/ai-tools/mcp-server-spec) for the complete tool reference, or check out the [Build with AI (No Code)](/tutorials/build-with-ai/) tutorial to get started.
 
 ## LLM-Optimized Documentation
 
@@ -2443,6 +2452,106 @@ It also learns the real deploy flow: detect the framework, choose the hosting mo
 
 - **[MCP Server Spec](/ai-tools/mcp-server-spec)**: Setup guide and tool reference
 - **[Build with AI (No Code)](/tutorials/build-with-ai/)**: Deploy your first app from your AI editor
+
+---
+
+## Varity Plugin for AI Editors
+
+URL: https://docs.varity.so/ai-tools/plugin/
+Description: Install the Varity plugin in Claude Code, Gemini CLI and other agents to get the Varity MCP server and the deploy-with-varity skill in one step.
+
+The Varity plugin ([`varity-labs/varity-plugin`](https://github.com/varity-labs/varity-plugin))
+bundles two things for your AI editor:
+
+- the [Varity MCP server](/ai-tools/mcp-server-spec/), started over stdio at the
+  version the plugin pins; and
+- the `deploy-with-varity` skill, which tells the agent to check the cost first,
+  then deploy and report the live URL.
+
+Deploys need only a deploy key. Create one in the Developer Portal under
+**Settings > Deploy keys**, then set it as `VARITY_DEPLOY_KEY` in your shell or
+MCP configuration, or sign in with the Varity CLI. Never paste a key into the
+chat.
+
+## Claude Code
+
+```bash
+claude plugin marketplace add varity-labs/varity-plugin
+claude plugin install varity@varity-plugin
+```
+
+## Gemini CLI
+
+```bash
+gemini extensions install https://github.com/varity-labs/varity-plugin
+```
+
+## Qwen Code
+
+Qwen Code installs Gemini CLI extensions from a GitHub repository:
+
+```bash
+qwen extensions install varity-labs/varity-plugin
+```
+
+## Factory Droid
+
+Droid reads Claude Code plugin marketplaces. Add the repository, check the
+marketplace name it registers, then install the `varity` plugin from it:
+
+```bash
+droid plugin marketplace add varity-labs/varity-plugin
+droid plugin marketplace list
+droid plugin install varity@<marketplace name> --scope user
+```
+
+The Qwen Code and Factory Droid commands follow each client's own
+documentation. Varity has not yet tested them in those clients.
+
+## Cursor, GitHub Copilot CLI, VS Code, Codex and Kiro
+
+The repository carries a root Agent Plugins `plugin.json` and a root `mcp.json`,
+and Cursor also reads `.cursor-plugin/plugin.json`. Kiro can use the same
+repository as a power. Add it from your client's plugin or power UI with the
+repository URL `https://github.com/varity-labs/varity-plugin`.
+
+These clients have no marketplace listing yet, so this page gives no
+client-specific command for them, and Varity has not yet tested these installs. If your client cannot install from a
+repository URL, add the MCP server directly (below).
+
+## Skill only
+
+```bash
+npx skills add varity-labs/varity-plugin --skill deploy-with-varity
+```
+
+The skill needs the Varity MCP server: install the plugin, or add the server
+to your MCP configuration as shown below, and set `VARITY_DEPLOY_KEY`.
+
+## Any MCP client
+
+```json
+{
+  "mcpServers": {
+    "varity": {
+      "command": "npx",
+      "args": ["-y", "@varity-labs/mcp"],
+      "env": { "VARITY_DEPLOY_KEY": "<your deploy key>" }
+    }
+  }
+}
+```
+
+The `env` field is optional: you can export `VARITY_DEPLOY_KEY` in your shell
+instead. Never put a real key in a checked-in configuration file. Client
+specific setup is on the [MCP Server Reference](/ai-tools/mcp-server-spec/).
+
+## Check the install
+
+Ask your agent to "check my Varity environment". It runs `varity_doctor`, which
+reports whether a deploy key is configured and where it came from. The server's
+full tool list comes from its `tools/list` response; the Docs copy is
+[`/mcp-schema.json`](/mcp-schema.json).
 
 ---
 
@@ -2550,6 +2659,7 @@ Every error from the Varity platform API (`https://varity.app/api`) returns the 
 | <span id="docs_url"></span>`docs_url` | string (uri) | yes | Deep link to this page, anchored at the code. |
 | <span id="field"></span>`field` | string | no | The offending request field, on validation failures. |
 | <span id="correlation_id"></span>`correlation_id` | string | no | Request correlation identifier. See below. |
+| <span id="trace_id"></span>`trace_id` | string | no | Trace identifier for this failed request, 32 lowercase hex characters. Include it with `correlation_id` in support requests. |
 
 `message` and `action` are written for people and may be reworded at any time. Only `code`, `retryable`, and the HTTP status are contract. Treat an unrecognized `code` as its HTTP status class.
 
@@ -2722,7 +2832,7 @@ Every error carries a `correlation_id` when one is available. It is the single m
 
 ```bash
 curl https://varity.app/api/credits \
-  -H "Authorization: Bearer $VARITY_API_KEY" \
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY" \
   -H "X-Request-Id: my-service-20260822-0001"
 ```
 
@@ -2816,7 +2926,7 @@ Retrying a create after a `429` is safe only if it is idempotent. Send an `Idemp
 
 ```bash
 curl -X POST https://varity.app/api/deployments \
-  -H "Authorization: Bearer $VARITY_API_KEY" \
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY" \
   -H "Content-Type: application/json" \
   -H "Idempotency-Key: deploy-my-app-001" \
   -d '{ "name": "my-app", "repository": { "url": "https://github.com/me/my-app" } }'
@@ -3503,7 +3613,7 @@ Deploy full-stack applications with backend:
 varitykit app deploy --hosting dynamic
 ```
 
-- **Best for**: APIs, databases, server-side rendering, AI agents, LLMs
+- **Best for**: APIs, databases, server-side rendering, AI agents
 - **Cost**: Up to a fixed monthly maximum per app, prorated by running time, based on the resources you reserve. See [Pricing and Costs](/resources/pricing/).
 - **Features**: Containers, scaling, persistence
 
@@ -3808,7 +3918,7 @@ Attach a hostname with `PUT /deployments/{deployment_id}/domain`:
 
 ```bash
 curl -X PUT https://varity.app/api/deployments/$DEPLOYMENT_ID/domain \
-  -H "Authorization: Bearer $VARITY_API_KEY" \
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY" \
   -H "Content-Type: application/json" \
   -d '{"hostname": "app.example.com"}'
 ```
@@ -3817,7 +3927,7 @@ Read the current state at any time:
 
 ```bash
 curl https://varity.app/api/deployments/$DEPLOYMENT_ID/domain \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 ```
 
 The response tells you whether the deployment supports a custom domain, and returns the record it is waiting for:
@@ -3865,7 +3975,7 @@ After the records are live, ask Varity to observe DNS and confirm the domain ser
 
 ```bash
 curl -X POST https://varity.app/api/deployments/$DEPLOYMENT_ID/domain/verify \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 ```
 
 The domain moves through these states:
@@ -3889,7 +3999,7 @@ Detach the hostname to free it for another deployment:
 
 ```bash
 curl -X DELETE https://varity.app/api/deployments/$DEPLOYMENT_ID/domain \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 ```
 
 Your app stays reachable at its `varity.app` URL.
@@ -3904,7 +4014,7 @@ varitykit app list
 
 ## Redeploy Under the Same Name
 
-Redeploying with the same `--name` updates the existing deployment at that URL. Your domain stays the same:
+After you push your changes, deploying again with the same `--name` updates the existing deployment at that URL. Your domain stays the same:
 
 ```bash
 # First deploy
@@ -4044,7 +4154,7 @@ Public and private Docker/OCI images are supported when the image starts a runna
   
   
 
-  If you have the [Varity MCP server](/ai-tools/mcp-server-spec) installed in Claude Code, Cursor, or another AI coding tool, the `varity_deploy` tool accepts an `image` parameter (plus optional `port` and `image_credentials` for private registries). Ask:
+  If you have the [Varity MCP server](/ai-tools/mcp-server-spec) installed in Claude Code, Cursor, or another AI coding tool, the `varity_deploy` tool accepts an `image` parameter (plus an optional `port`). The MCP deploys public images only; deploy a private image from the CLI or the Developer Portal. Ask:
 
   > "Deploy the Docker image ghcr.io/acme/my-api:1.4.2 on Varity"
 
@@ -4058,10 +4168,9 @@ Public images from Docker Hub, GHCR, and similar registries are supported from t
 
 ### Private registries
 
-Private images are supported in all three deploy paths:
+Private images are supported from the CLI and the Developer Portal. The MCP server does not accept registry credentials, so deploy private images from one of these:
 
 - **CLI:** pass `--image-registry`, `--image-username`, and `--image-password`
-- **MCP:** set `image_credentials`
 - **Developer Portal:** fill in the registry credential fields
 
 ## What Happens After Deploy
@@ -4308,7 +4417,7 @@ The table has the columns ID, Name, Status, Runtime, URL, Outcome, and Updated. 
 
 ### Recover a Known-Good Version
 
-To recover after a bad deploy, redeploy a known-good version of your app. Check out the working commit and run `varitykit app deploy` again under the same `--name`. The app at that URL is updated when the deployment operation succeeds. See [updates and persistent data](/deploy/databases/#updates-and-persistent-data) for the storage protection and database-migration limits.
+To recover after a bad deploy, revert the bad commit, push it to your repository's default branch, and run `varitykit app deploy` again under the same `--name`; Varity builds from the repository, not your local checkout. The app at that URL is updated when the deployment operation succeeds. See [updates and persistent data](/deploy/databases/#updates-and-persistent-data) for the storage protection and database-migration limits.
 
 ### View Deployment Details
 
@@ -4614,11 +4723,11 @@ The deployment succeeded from Varity's perspective but the app isn't serving cor
 If you can't diagnose the issue quickly, restore service by redeploying a version you know works under the same app name:
 
 ```bash
-# Return to the last working version of your code
-git checkout <known-good-commit>
+# Varity builds your repository's default branch: put the working code back there
+git revert <bad-commit>
+git push
 
-# Rebuild and redeploy under the same name
-npm run build
+# Deploy again under the same name
 varitykit app deploy --name my-app
 ```
 
@@ -4822,7 +4931,7 @@ For supported source projects, Varity handles the build and runtime setup. For D
 | Port | CLI, dashboard, or MCP image deploy input | Required for some Docker images |
 | Docker credentials | Dashboard or MCP deploy input | Used for private registry images |
 | Image reference | `--image <ref>` or dashboard image field | Must be a runnable HTTP service image |
-| Redeploy behavior | `varitykit app deploy`, `varity_redeploy`, or dashboard action | Keeps the same app name when you deploy under the same name |
+| Shipping new code | Push to GitHub, then `varitykit app deploy` or `varity_deploy` with the same app name | Builds the pushed code and updates the app at the same URL. `varity_redeploy` only restarts the last successful release |
 
 ## Source Project Defaults
 
@@ -4953,23 +5062,18 @@ If a deployment breaks your app, the way to recover today is to **redeploy a kno
 
 ## Recover by Redeploying a Known-Good Version
 
-The reliable recovery path is to rebuild and redeploy a version you know works, under the same app name. Varity updates the app at that URL with the version you just built.
+The reliable recovery path is to put the working code back on your repository's default branch and deploy again under the same app name. Varity updates the app at that URL with the code it builds.
 
-1. **Check out the last working version of your code**
+1. **Undo the bad change in Git**
 
-   In your project, return to the commit (or tag/branch) you know was healthy:
-
-   ```bash
-   git checkout <known-good-commit>
-   ```
-
-2. **Build it**
+   Varity builds from your GitHub repository's default branch, not from your local checkout. Revert the commit that broke the app and push the result:
 
    ```bash
-   npm run build
+   git revert <bad-commit>
+   git push
    ```
 
-3. **Redeploy under the same name**
+2. **Deploy again under the same name**
 
    Use the same `--name` you deployed with originally so the app URL stays the same:
 
@@ -4977,7 +5081,7 @@ The reliable recovery path is to rebuild and redeploy a version you know works, 
    varitykit app deploy --name my-app
    ```
 
-   Your app at `https://varity.app/my-app/` (static) or `https://my-app.varity.app/` (dynamic) serves the version you just built when the deployment operation succeeds.
+   Your app at `https://varity.app/my-app/` (static) or `https://my-app.varity.app/` (dynamic) serves the reverted code when the deployment operation succeeds. `varitykit app redeploy` and `varity_redeploy` do not ship code: they restart the last successful release.
 
 ## See What's Currently Deployed
 
@@ -5045,7 +5149,7 @@ If your app is already packaged as a Docker image, framework detection does not 
 varitykit app deploy --image ghcr.io/acme/my-api:1.4.2 --port 8080
 ```
 
-Private registries are supported from the CLI, MCP, and Developer Portal. See [Deploy a Docker Image](/deploy/deploy-docker-image) for all three deploy paths.
+Public images deploy from the CLI, MCP, and Developer Portal; private registries are supported from the CLI and Developer Portal. See [Deploy a Docker Image](/deploy/deploy-docker-image) for each deploy path.
 
 ## Supported Frameworks
 
@@ -5303,25 +5407,19 @@ Move your existing Vercel app to Varity. The migration tool removes Vercel-speci
 
 All changes are backed up to `.vercel-migration-backup/` so you can roll back.
 
-## Migrate using AI (recommended)
+## Preview the migration with AI
 
-The fastest path is to ask your AI editor to migrate for you.
+Your AI editor can preview the migration before you apply it.
 
 This works in Cursor, Claude Code, VS Code (Copilot), and any editor with the Varity MCP server installed. See [MCP Server Setup](/ai-tools/mcp-server-spec) to install.
 
 Ask your AI editor:
 
-> "Migrate my Vercel app at https://github.com/username/my-app to Varity"
+> "Preview migrating my Vercel app at https://github.com/username/my-app to Varity"
 
-The `varity_migrate` MCP tool will:
-1. Clone your GitHub repository
-2. Remove Vercel-specific artifacts
-3. Build the transformed app to verify it compiles
-4. Deploy to Varity and return a live URL
+The `varity_migrate` MCP tool clones your GitHub repository into a temporary directory and shows the Vercel-specific changes the migration would make. It is preview-only: it does not change your repository and does not deploy. The MCP tool needs the `varitykit` CLI installed.
 
-To preview what would change without deploying:
-
-> "Do a dry run migration of https://github.com/username/my-app"
+To apply the migration and deploy, use the CLI below.
 
 ## Migrate using the CLI
 
@@ -5605,7 +5703,7 @@ For the exact framework matrix, use [Supported Frameworks](/deploy/supported-fra
 
 5. **Operate the app**
 
-   Check status and logs, update environment variables, redeploy under the same app name, or get support if the workload needs manual review.
+   Check status and logs, update environment variables, deploy pushed changes again under the same app name, or get support if the workload needs manual review.
 
 ## What Varity Reads
 
@@ -5630,7 +5728,7 @@ Every successful deploy returns the information you need to keep moving:
 - Deployment status
 - Logs and troubleshooting context
 - The fixed monthly price for that workload
-- Commands or MCP tools for redeploying and updating environment variables
+- Commands or MCP tools for redeploying. Set environment variables with the [CLI](/deploy/env-variables/) or in the Developer Portal; MCP tools never accept their values
 
 Use [CLI Reference](/cli/overview/) and [MCP Server](/ai-tools/mcp-server-spec/) for the exact command and tool names.
 
@@ -6134,6 +6232,10 @@ If you are using Claude Code or Cursor, the Varity MCP server lets your AI tool 
      
    
 
+   
+   The first deploy needs a deploy key. Create one in the developer portal under **Settings > Deploy keys**, then set it as `VARITY_DEPLOY_KEY` in the MCP server's environment, or run `varitykit login` in a terminal and paste it into the hidden prompt. Never paste a key into the chat: the MCP server does not accept credentials as tool input. See [MCP authentication](/ai-tools/mcp-server-spec/#authentication).
+   
+
 2. **Open your project and ask your AI tool to deploy**
 
    Inside Claude Code or Cursor, with your project open:
@@ -6142,17 +6244,11 @@ If you are using Claude Code or Cursor, the Varity MCP server lets your AI tool 
    Deploy my app to Varity
    ```
 
-   The MCP server detects your framework, builds your project, and deploys it automatically.
+   Varity builds from your GitHub repository in the cloud, so the project needs a GitHub remote first. If it has none, your AI tool can create one with `varity_create_repo`, which pushes your code to a new repository. A prebuilt container image deploys without a repository. Varity then detects your framework, builds the app, and deploys it.
 
 3. **Your app is live**
 
-   Once the deploy finishes, your app is available at:
-
-   ```
-   https://varity.app/your-app-name/
-   ```
-
-The first deploy needs a deploy key. Create one in the developer portal under **Settings > Deploy keys**, then ask your AI tool to "Log in to Varity with key `<your key>`", or set `VARITY_API_KEY` in the MCP server's environment.
+   Once the deploy finishes, your app is available at its URL. Static sites live at `https://varity.app/<app-name>/`; dynamic apps live at `https://<app-name>.varity.app/`.
 
 ---
 
@@ -6328,7 +6424,7 @@ Works with Claude Code, Cursor, Windsurf, VS Code (Copilot), and any other edito
 
     ```json
     {
-      "mcpServers": {
+      "servers": {
         "varity": {
           "command": "npx",
           "args": ["-y", "@varity-labs/mcp"]
@@ -6338,7 +6434,7 @@ Works with Claude Code, Cursor, Windsurf, VS Code (Copilot), and any other edito
     ```
   
 
-Node.js 22.11 or later and Python 3.11 or later are required. If you do not have `varitykit` installed, your AI editor will prompt you to install it: `pipx install varitykit`.
+Node.js 22.11 or later is required, plus a deploy key from the Developer Portal under **Settings > Deploy keys**. Set it as `VARITY_DEPLOY_KEY` in the MCP server's environment, or run `varitykit login` in a terminal; never paste it into the chat. The `varitykit` CLI (`pipx install varitykit`, Python 3.11 or later) is needed only for `varity_migrate`.
 
 ## Deploy with one prompt
 
@@ -6399,7 +6495,7 @@ Check my Varity environment, then build this project, deploy it, and open the li
 
 ## What the MCP server can do
 
-The Varity MCP server gives your AI editor a full set of tools. Here are the most useful ones for the build-to-deploy workflow:
+The Varity MCP server gives your AI editor 26 tools. Your installed server's `tools/list` response is the authoritative list:
 
 | Tool | What to ask your AI |
 |---|---|
@@ -6415,12 +6511,18 @@ The Varity MCP server gives your AI editor a full set of tools. Here are the mos
 | `varity_deploy_status` | "Show me my deployment status" |
 | `varity_deploy_logs` | "Show me the runtime logs" (dynamic apps only; static sites have no runtime logs) |
 | `varity_set_env` | Does not accept values; it points you to a secret-safe way to set them |
-| `varity_redeploy` | "Redeploy this app in place" |
-| `varity_delete_deployment` | "Tear down this deployment" |
-| `varity_migrate` | "Migrate my Vercel app to Varity" |
+| `varity_redeploy` | "Restart this app's last release" (does not ship new code; to ship pushed changes, ask to deploy again with the same app name) |
+| `varity_delete_deployment` | "Tear down this deployment" (returns once accepted; check `varity_deploy_status` until billing reads stopped) |
+| `varity_migrate` | "Preview migrating my Vercel app to Varity" |
 | `varity_cost_calculator` | "How much does the web-app profile cost?" |
 | `varity_list_templates` | "What templates can Varity deploy?" |
 | `varity_template_info` | "What does this template need?" |
+| `varity_deploy_template` | "Deploy the Uptime Kuma template" |
+| `varity_list_agents`, `varity_agent_info`, `varity_deploy_agent` | Older names for the three template tools above |
+| `varity_balance` | "How much Varity balance do I have left?" |
+| `varity_machines_list` | "List my Varity virtual machines" |
+| `varity_machines_create` | "Create a virtual machine I can SSH into with my public key" |
+| `varity_machines_delete` | "Delete that virtual machine" |
 
 Full reference at [MCP Server Spec](/ai-tools/mcp-server-spec).
 
@@ -6483,15 +6585,23 @@ Here is a complete session from idea to live app, using only your AI editor:
    Add a tasks data model with title (string), status (string), and dueDate (string) fields. Include a dashboard page with a list and a create form.
    ```
 
-5. **Deploy to production**
+5. **Push to GitHub**
+
+   ```
+   Create a private GitHub repo for this project and push it
+   ```
+
+   The AI calls `varity_create_repo`, which creates the repository and pushes your code. Varity builds from that repository.
+
+6. **Deploy to production**
 
    ```
    Build and deploy this to Varity
    ```
 
-   The AI calls `varity_build` and `varity_deploy`, then reports the live URL.
+   The AI calls `varity_build` to check the production build locally, then `varity_deploy` with the repository, and reports the live URL.
 
-6. **Share the link**
+7. **Share the link**
 
    ```
    Show me the live URL for my deployment
@@ -6501,17 +6611,17 @@ Here is a complete session from idea to live app, using only your AI editor:
 
 ## Migrating from Vercel
 
-If you already have a Vercel app, one prompt migrates it to Varity:
+If you already have a Vercel app, one prompt previews the migration:
 
 ```
-Migrate my Vercel app at https://github.com/your-org/your-app to Varity
+Preview migrating my Vercel app at https://github.com/your-org/your-app to Varity
 ```
 
-The AI calls `varity_migrate`, which clones the repository, removes Vercel-specific configuration, and deploys to Varity infrastructure. See [Migrate from Vercel](/deploy/vercel-migration) for details.
+The AI calls `varity_migrate`, which clones the repository into a temporary directory and shows the changes the migration would make. It does not change your repository or deploy. To apply the migration, use the `varitykit migrate` CLI command described in [Migrate from Vercel](/deploy/vercel-migration).
 
 ## Browser-based AI tools (Claude.ai, ChatGPT)
 
-The hosted endpoint `mcp.varity.so` is retired. Browser-based tools that only accept a remote MCP URL are not supported today; use the stdio package (`npx -y @varity-labs/mcp`) from Claude Code, Cursor, VS Code, or Windsurf, or the [llms.txt context files](#llmstxt-alternative) for LLMs without MCP support.
+The hosted endpoint `mcp.varity.so` is retired. Browser-based tools that only accept a remote MCP URL are not supported today; use the stdio package (`npx -y @varity-labs/mcp`) from Claude Code, Cursor, VS Code, or Windsurf, or the [llms.txt context files](/ai-tools/mcp-server-spec/#llm-context-without-mcp) for LLMs without MCP support.
 
 ## Troubleshooting
 
@@ -6526,7 +6636,7 @@ claude mcp add varity -- npx -y @varity-labs/mcp
 
 Verify with `claude mcp list`.
 
-**Deploy fails with "varitykit not found"**
+**Migration preview fails with "varitykit not found"**
 
 ```bash
 pipx install varitykit
@@ -6777,19 +6887,20 @@ Show me the deployment status and live URL
 
 ## Updating your app
 
-After making changes, redeploy with the same command:
+Varity builds from your GitHub repository, so commit and push your changes first, then deploy again with the same app name:
 
 ```bash
+git push
 varitykit app deploy
 ```
 
 Or from your AI editor:
 
 ```
-Build and redeploy my Varity app
+Push my changes to GitHub and deploy them to Varity with the same app name
 ```
 
-Each redeploy publishes a fresh build at the same URL.
+Your AI editor runs `varity_deploy` with the same app name, which builds the pushed code and updates the app at the same URL. `varity_redeploy` does not ship new code: it only restarts the last successful release.
 
 ## Cost
 
@@ -6865,12 +6976,12 @@ need host-level access or an exact accelerator configuration.
 
 ```bash
 curl "https://varity.app/api/deployment-profiles?workload=virtual_machine&execution_class=cpu_virtual_machine" \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 ```
 
 ```bash
 curl "https://varity.app/api/deployment-profiles?workload=gpu&execution_class=virtual_machine" \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 ```
 
 Use `execution_class=bare_metal` for the other GPU scope. Read the selected profile's identifier, resources, region, images,
@@ -6910,7 +7021,7 @@ Read them from the authenticated catalog immediately before requesting a quote:
 
 ```bash
 curl "https://varity.app/api/deployment-profiles?workload=virtual_machine&execution_class=cpu_virtual_machine" \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 ```
 
 Keep the selected `profile_id` and one `os_images[].id` returned on that same
@@ -6933,14 +7044,14 @@ request a new quote.
 
    ```bash
    curl "https://varity.app/api/deployment-profiles?workload=virtual_machine&execution_class=cpu_virtual_machine" \
-     -H "Authorization: Bearer $VARITY_API_KEY"
+     -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
    ```
 
 2. **Get a quote**
 
    ```bash
    curl -X POST https://varity.app/api/pricing/machine-quote \
-     -H "Authorization: Bearer $VARITY_API_KEY" \
+     -H "Authorization: Bearer $VARITY_DEPLOY_KEY" \
      -H "Content-Type: application/json" \
      -d '{
        "profile_id": "mp-0628f148846594bc2dd04c9c",
@@ -6955,7 +7066,7 @@ request a new quote.
 
    ```bash
    curl -X POST https://varity.app/api/machines \
-     -H "Authorization: Bearer $VARITY_API_KEY" \
+     -H "Authorization: Bearer $VARITY_DEPLOY_KEY" \
      -H "Idempotency-Key: my-vm-create-001" \
      -H "Content-Type: application/json" \
      -d '{
@@ -6976,7 +7087,7 @@ request a new quote.
 
    ```bash
    curl https://varity.app/api/machines/$MACHINE_ID \
-     -H "Authorization: Bearer $VARITY_API_KEY"
+     -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
    ```
 
    `access` is `null` until the machine is ready, then becomes `protocol: "ssh"` with `host`, `port`, and `username`. `lifecycle.status` moves through `accepted`, `running`, and `succeeded` or `failed`.
@@ -7007,7 +7118,7 @@ The machine's `billing` block reports:
 
 ```bash
 curl -X POST https://varity.app/api/machines/$MACHINE_ID/actions \
-  -H "Authorization: Bearer $VARITY_API_KEY" \
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY" \
   -H "Content-Type: application/json" \
   -d '{"action": "restart"}'
 ```
@@ -7020,7 +7131,7 @@ curl -X POST https://varity.app/api/machines/$MACHINE_ID/actions \
 
 ```bash
 curl -X DELETE https://varity.app/api/machines/$MACHINE_ID \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 ```
 
 Deletion is asynchronous, and acceptance is not proof of closure. Read the machine back and check `lifecycle.cleanup_state`. It reaches `complete` when release has actually finished. Deleting destroys the disk; there is no suspend state that keeps data while stopping charges.
@@ -7057,7 +7168,7 @@ Read the matching catalog first:
 
 ```bash
 curl "https://varity.app/api/deployment-profiles?workload=gpu&execution_class=virtual_machine" \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 ```
 
 Use `execution_class=bare_metal` for a physical host. Region, accelerator,
@@ -7068,7 +7179,7 @@ are not independent assumptions.
 
    ```bash
    curl -X POST https://varity.app/api/pricing/machine-quote \
-     -H "Authorization: Bearer $VARITY_API_KEY" \
+     -H "Authorization: Bearer $VARITY_DEPLOY_KEY" \
      -H "Content-Type: application/json" \
      -d '{
        "profile_id": "<profile id from the current catalog>",
@@ -7081,7 +7192,7 @@ are not independent assumptions.
 
    ```bash
    curl -X POST https://varity.app/api/machines \
-     -H "Authorization: Bearer $VARITY_API_KEY" \
+     -H "Authorization: Bearer $VARITY_DEPLOY_KEY" \
      -H "Idempotency-Key: gpu-machine-001" \
      -H "Content-Type: application/json" \
      -d '{
@@ -7101,7 +7212,7 @@ are not independent assumptions.
 
    ```bash
    curl https://varity.app/api/machines/$MACHINE_ID \
-     -H "Authorization: Bearer $VARITY_API_KEY"
+     -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
    ```
 
    `access` is `null` until ready, then carries the SSH host, port, and user.
@@ -7117,7 +7228,7 @@ are not independent assumptions.
 
 ```bash
 curl -X DELETE https://varity.app/api/machines/$MACHINE_ID \
-  -H "Authorization: Bearer $VARITY_API_KEY"
+  -H "Authorization: Bearer $VARITY_DEPLOY_KEY"
 ```
 
 Machine deletion is asynchronous. Acceptance is not closure proof: read the
@@ -7170,6 +7281,14 @@ page of the Developer Portal.
 - Free usage pays only for Chat, Build, and static apps.
   Everything else, including AI Gateway API key requests, needs a paid balance
   from a subscription or top-up.
+
+### Free Static Sites
+
+Every account, on every plan, runs its first
+3 static sites at no charge. The sites live on a
+given UTC day take the free slots in the order they were created, and each
+further static site is billed monthly at the price shown before you deploy.
+Deleting a site frees its slot from the next UTC day.
 
 ### One Free Starter App
 
@@ -7478,7 +7597,7 @@ The compiled output of your application (for example, the `dist/` or `.next/` fo
 
 ### Redeploy a Previous Version
 
-Varity reads your live deployments from the server, so the same list appears from any machine. To return to an earlier version, redeploy that version of your code. This is a fresh deploy from your local history, not a managed rollback.
+Varity reads your live deployments from the server, so the same list appears from any machine. To return to an earlier version, put that code back on your repository's default branch (for example with `git revert`), push it, and deploy again under the same app name. This is a fresh deploy, not a managed rollback.
 
 ## Hosting Terms
 
@@ -7847,8 +7966,9 @@ Install the following (one-time setup):
 
 1. **Cursor** or **Claude Code** (AI editor with MCP support)
 2. **Node.js 22.11+**: [download here](https://nodejs.org)
-3. **Python 3.11+**: [download here](https://python.org)
-4. **Varity MCP**: install with:
+3. **A Varity deploy key** from the Developer Portal under **Settings > Deploy keys**
+4. **A GitHub account**, with the GitHub CLI signed in or a `GITHUB_TOKEN`
+5. **Varity MCP**: install with:
 
    ```bash
    claude mcp add varity -- npx -y @varity-labs/mcp
@@ -7877,17 +7997,7 @@ That's it. No complex infrastructure setup.
 
    > "Check if my Varity environment is set up correctly"
 
-   **What happens:** The AI runs `varity_doctor` to verify Node.js, npm, and varitykit are installed.
-
-   **Expected output:**
-   ```
-   ✓ Node.js version: 22.11.0
-   ✓ npm version: 10.0.0
-   ✓ varitykit CLI: installed
-   ✓ All checks passed!
-   ```
-
-   If any checks fail, the AI will guide you through fixing them.
+   **What happens:** The AI runs `varity_doctor`, which checks your Node.js version and whether a deploy key is configured. If the key is missing, create one in the Developer Portal under **Settings > Deploy keys** and set it as `VARITY_DEPLOY_KEY` in the MCP server's environment, or run `varitykit login` in a terminal. Never paste the key into the chat.
 
 2. **Build your app with your AI editor**
 
@@ -7913,13 +8023,7 @@ That's it. No complex infrastructure setup.
 
    > "Install the dependencies for my project"
 
-   **What happens:** The AI runs `varity_install_deps` to install all npm packages.
-
-   **Expected output:**
-   ```
-   ✓ Installing dependencies...
-   ✓ Installed 247 packages
-   ```
+   **What happens:** The AI runs `varity_install_deps`, which installs the project's packages with its package manager and reports whether the install succeeded.
 
 5. **Preview locally**
 
@@ -7927,15 +8031,9 @@ That's it. No complex infrastructure setup.
 
    > "Start the dev server and open it in my browser"
 
-   **What happens:** 
-   - AI runs `varity_dev_server` with `action: "start"`
-   - AI runs `varity_open_browser` with the localhost URL
-
-   **Expected output:**
-   ```
-   ✓ Dev server running at http://localhost:3000
-   ✓ Opening in default browser...
-   ```
+   **What happens:**
+   - AI runs `varity_dev_server` with `action: "start"`, which returns the local URL
+   - AI runs `varity_open_browser` with that URL
 
    Your app opens in the browser. You can:
    - Sign in with email (or Google/GitHub)
@@ -7950,78 +8048,54 @@ That's it. No complex infrastructure setup.
 
    > "Build my app for production"
 
-   **What happens:** The AI runs `varity_build` to compile and optimize the app.
+   **What happens:** The AI runs `varity_build`, which runs the production build locally and reports the detected framework and any build errors. This catches errors before you deploy.
 
-   **Expected output:**
-   ```
-   ✓ Detected framework: Next.js
-   ✓ Running build...
-   ✓ Build completed successfully
-   ✓ Output: 2.4 MB (optimized)
-   ```
+7. **Push to GitHub**
 
-7. **Deploy to production**
+   Prompt:
+
+   > "Create a private GitHub repo called invoice-manager and push my project to it"
+
+   **What happens:** The AI runs `varity_create_repo`, which creates the repository and pushes your code. Varity builds your app from this repository. It needs the GitHub CLI signed in or a `GITHUB_TOKEN`.
+
+8. **Deploy to production**
 
    Prompt:
 
    > "Deploy my app to production"
 
-   **What happens:** The AI runs `varity_deploy` to:
-   - Upload your app to distributed hosting
-   - Inject production credentials (auth, database)
-   - Generate a live URL
+   **What happens:** The AI runs `varity_deploy` with your repository. Varity builds the app in the cloud, provisions the database, and starts it. The tool returns the deployment and its status; your AI editor follows it until the app is live.
 
-   **Expected output:**
+   Because this app has a server and a database, it deploys as a dynamic app at:
+
    ```
-   ✓ Deploying invoice-manager...
-   ✓ Build: 100%
-   ✓ Upload: 100%
-   ✓ Live at: https://invoice-manager-abc123.varity.app/
+   https://invoice-manager.varity.app/
    ```
 
    Your app is now live on the internet. Anyone can access it.
 
-8. **Check deployment status**
+9. **Check deployment status**
 
    Prompt:
 
    > "Show me my deployment status"
 
-   **What happens:** The AI runs `varity_deploy_status` to show all deployments.
+   **What happens:** The AI runs `varity_deploy_status`, which lists your deployments with their URL, status, and creation time. If a build failed, the status shows why.
 
-   **Expected output:**
-   ```
-   Deployment: abc123
-     URL: https://invoice-manager-abc123.varity.app/
-     Status: active
-     Framework: Next.js
-     Size: 2.4 MB
-     Created: 2 minutes ago
-   ```
-
-9. **Estimate costs**
+10. **Estimate costs**
 
     Prompt:
 
     > "How much will this deployment profile cost per month on Varity?"
 
-    **What happens:** The AI runs `varity_cost_calculator` to estimate the monthly price for your deployment profile.
-
-    **Expected output:**
-    ```
-    Estimated monthly price:
-
-    Varity:
-      - Profile-based monthly cost (fixed by selected deployment profile)
-      - An unchanged profile keeps the same price as traffic grows
-    ```
+    **What happens:** The AI runs `varity_cost_calculator`, which reads the live price for the deployment profile: a fixed monthly maximum for the app's reserved hardware, prorated by running time.
 
 ## What Just Happened?
 
 1. **Built a production app**: Authentication, database, dashboard
 2. **Added a custom data model**: Invoices with create, read, update, and delete
 3. **Deployed to production**: Live URL with database and hosting configured automatically
-4. **Verified deployment status**: URL, framework, and runtime are visible in status output
+4. **Verified deployment status**: URL and status are visible in status output
 
 **Total time:** 10-15 minutes  
 **Total cost:** Up to a fixed monthly maximum for the app's reserved profile; an unchanged profile keeps the same price as traffic grows  
@@ -8046,7 +8120,7 @@ That's it. No complex infrastructure setup.
 > "Create a clients page and link each invoice to a client"
 
 **Deploy updates:**
-> "Deploy my latest changes to production"
+> "Push my latest changes to GitHub and deploy them to Varity"
 
 ## Behind the Scenes
 
@@ -8058,7 +8132,8 @@ When you prompt your AI editor, here's what happens:
 | "Add a data model" | Your AI editor adds the model and pages |
 | "Start dev server" | `varity_dev_server` runs `npm run dev`, returns localhost URL |
 | "Build for production" | `varity_build` compiles the app, optimizes the bundle |
-| "Deploy" | `varity_deploy` deploys the app and injects credentials |
+| "Push to GitHub" | `varity_create_repo` creates the repository and pushes your code |
+| "Deploy" | `varity_deploy` builds the pushed repository in the cloud and deploys it |
 | "Show status" | `varity_deploy_status` fetches deployment info |
 | "Estimate costs" | `varity_cost_calculator` estimates the monthly price for your deployment profile |
 
@@ -8066,13 +8141,9 @@ Every tool runs locally or via Varity's infrastructure. No manual configuration 
 
 ## Troubleshooting
 
-**"varitykit not found"**
+**"Authentication required"**
 
-Install the CLI:
-```bash
-pipx install varitykit
-varitykit doctor
-```
+Set your deploy key as `VARITY_DEPLOY_KEY` in the MCP server's environment, or run `varitykit login` in a terminal, then restart your editor.
 
 **"Cannot find module @varity-labs/mcp"**
 
@@ -8088,9 +8159,9 @@ Restart Cursor after adding `.cursor/mcp.json`. Verify the JSON is valid.
 **Deploy fails**
 
 Ask the AI:
-> "Show me the runtime logs for my last deployment"
+> "Show me the status of my last deployment"
 
-The AI runs `varity_deploy_logs` to debug.
+The AI runs `varity_deploy_status`, which shows why a build failed. For an app that deployed but misbehaves, ask for its runtime logs; the AI runs `varity_deploy_logs`.
 
 ## Why This Works
 
@@ -8409,6 +8480,10 @@ $0.50
 
 Chat, Build, and static apps
 
+### free-static-sites
+
+3 static sites
+
 ### rollover-cycles
 
 1 billing cycle
@@ -8488,6 +8563,9 @@ Source: https://ai.varity.app/v1/openapi.json (Varity AI Gateway API 2026-09-17)
 - GET /v1/models: List freshness-bounded models admitted by Varity
 - GET /v1/models/{model}: Retrieve one admitted model
 - POST /v1/responses: Create a model response (OpenAI Responses contract)
+- POST /v1/messages: Create a message (Anthropic Messages contract)
+- POST /v1/web/search: Ground a question in a live web search and return its cited sources
+- POST /v1/web/fetch: Fetch a public page and return its readable text
 - POST /v1/chat/completions: Create a finite text chat completion
 - POST /v1/embeddings: Create embeddings with an admitted embedding model
 - POST /v1/images/generations: Generate images from a text prompt
@@ -8536,14 +8614,14 @@ Source: https://ai.varity.app/v1/openapi.json (Varity AI Gateway API 2026-09-17)
 - `refreshed_at`: no description in the contract
 - `evidence`: see #/components/schemas/CapabilityEvidenceMap
 
-### Models (210)
+### Models (216)
 
 - `abliterated-large-flash`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 131072; usd per_million_tokens input 1.3125 output 2.625 cached_input 0.13125 (price set 2026-10-18.ai-api.v5.1496abe25f3c5dde)
 - `abliterated-large-v2`: privacy anonymized; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 32768; usd per_million_tokens input 3.15 output 5.25 cached_input 0.315 (price set 2026-10-18.ai-api.v5.01822ec28ea991ab)
 - `aion-3-0`: privacy anonymized; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 128000; max completion 32768; usd per_million_tokens input 3.9375 output 7.875 cached_input 0.984375 (price set 2026-10-18.ai-api.v5.35914f9bc861f0aa)
 - `aion-3-0-mini`: privacy anonymized; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 128000; max completion 32768; usd per_million_tokens input 0.91875 output 1.8375 cached_input 0.23625 (price set 2026-10-18.ai-api.v5.e92e904345a76802)
 - `aion-3-5`: privacy anonymized; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 262144; max completion 32768; usd per_million_tokens input 3.9375 output 7.875 cached_input 0.984375 (price set 2026-10-18.ai-api.v5.35914f9bc861f0aa)
-- `aion-3-5-mini`: privacy anonymized; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls no; max_tools not known; context 262144; max completion 32768; usd per_million_tokens input 0.91875 output 1.8375 cached_input 0.23625 (price set 2026-10-18.ai-api.v5.e92e904345a76802)
+- `aion-3-5-mini`: privacy anonymized; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 262144; max completion 32768; usd per_million_tokens input 0.91875 output 1.8375 cached_input 0.23625 (price set 2026-10-18.ai-api.v5.e92e904345a76802)
 - `anime-wai`: privacy private; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.0105 (price set 2026-10-18.ai-api.v5.6e6ca6d2f98e1d62)
 - `bge-en-icl`: privacy private; in text -> out embedding; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 8192; max completion 0; usd per_million_tokens input 0.013125 output 0.013125 cached_input 0.013125 (price set 2026-10-18.ai-api.v5.2a1fb046663a92ff)
 - `bge-m3`: privacy private; in text -> out embedding; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 8192; max completion 0; usd per_million_tokens input 0.1575 output 0.63 cached_input 0.1575 (price set 2026-10-18.ai-api.v5.327a8d35ac94da9f)
@@ -8557,7 +8635,6 @@ Source: https://ai.varity.app/v1/openapi.json (Varity AI Gateway API 2026-09-17)
 - `claude-opus-4-6`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 5.25 output 26.25 cached_input 0.525 (price set 2026-10-18.ai-api.v5.d5bfe0981376551a)
 - `claude-opus-4-7`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 5.25 output 26.25 cached_input 0.525 (price set 2026-10-18.ai-api.v5.d5bfe0981376551a)
 - `claude-opus-4-8`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 5.25 output 26.25 cached_input 0.525 (price set 2026-10-18.ai-api.v5.d5bfe0981376551a)
-- `claude-opus-4-8-fast`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 10.5 output 52.5 cached_input 1.05 (price set 2026-10-18.ai-api.v5.d926b248b94dc542)
 - `claude-opus-5`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 5.25 output 26.25 cached_input 0.525 (price set 2026-10-18.ai-api.v5.d5bfe0981376551a)
 - `claude-opus-5-5`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 4.2 output 21 cached_input 0.21 (price set 2026-10-18.ai-api.v5.baf016340c475b5e)
 - `claude-opus-5-5-fast`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 128000; usd per_million_tokens input 8.4 output 42 cached_input 0.42 (price set 2026-10-18.ai-api.v5.2b867ca80218c90a)
@@ -8592,6 +8669,7 @@ Source: https://ai.varity.app/v1/openapi.json (Varity AI Gateway API 2026-09-17)
 - `gemini-3-flash-preview`: privacy anonymized; in text,document,audio,image,video -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 256000; max completion 65536; usd per_million_tokens input 0.735 output 3.9375 cached_input 0.0735 (price set 2026-10-18.ai-api.v5.6e117fab71fc6973)
 - `gemini-4-argon`: privacy anonymized; in text,document,audio,image,video -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 65536; usd per_million_tokens input 2.625 output 13.125 cached_input 0.13125 (price set 2026-10-18.ai-api.v5.dc92acc7b7ec7350)
 - `gemini-4-carbon`: privacy anonymized; in text,document,audio,image,video -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 65536; usd per_million_tokens input 2.625 output 13.125 cached_input 0.13125 (price set 2026-10-18.ai-api.v5.dc92acc7b7ec7350)
+- `gemini-4-hydrogen`: privacy anonymized; in text,document,audio,image,video -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 65536; usd per_million_tokens input 1.96875 output 9.84375 cached_input 0.0984375 (price set 2026-10-18.ai-api.v5.f8188b863e1e4927)
 - `gemini-embedding-2-preview`: privacy anonymized; in text -> out embedding; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 2048; max completion 0; usd per_million_tokens input 0.2625 output 0.2625 cached_input 0.2625 (price set 2026-10-18.ai-api.v5.a1bdf831fb0d3abf)
 - `gemma-4-uncensored`: privacy private; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools 20; context 256000; max completion 8192; usd per_million_tokens input 0.170625 output 0.525 cached_input 0.170625 (price set 2026-10-18.ai-api.v5.736c40f5faad41ee)
 - `glm-4-6`: privacy private; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 198000; max completion 16384; usd per_million_tokens input 0.4515 output 1.8375 cached_input 0.084 (price set 2026-10-18.ai-api.v5.c085e92bdab9d7ca)
@@ -8603,6 +8681,7 @@ Source: https://ai.varity.app/v1/openapi.json (Varity AI Gateway API 2026-09-17)
 - `glm-5-3`: privacy private; in text -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 131072; usd per_million_tokens input 1.8375 output 5.775 cached_input 0.34125 (price set 2026-10-18.ai-api.v5.9788b9ed03083e97)
 - `glm-5-3-flash`: privacy private; in text,document,image,video -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1048576; max completion 131072; usd per_million_tokens input 0.1575 output 0.525 cached_input 0.0315 (price set 2026-10-18.ai-api.v5.63329c6aee89fa37)
 - `glm-5-3-flash-confidential`: privacy tee; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 32768; usd per_million_tokens input 0.168 output 0.567 cached_input 0.0399 (price set 2026-10-18.ai-api.v5.a8ab2db65e1b4172)
+- `glm-5-3-flash-uncensored`: privacy private; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1048576; max completion 131072; usd per_million_tokens input 0.17325 output 0.5775 cached_input 0.03465 (price set 2026-10-18.ai-api.v5.611cba9741295b3e)
 - `glm-5-turbo`: privacy anonymized; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 200000; max completion 32768; usd per_million_tokens input 1.26 output 4.2 cached_input 0.252 (price set 2026-10-18.ai-api.v5.84a73d5bffe1c002)
 - `glm-5v-turbo`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 200000; max completion 32768; usd per_million_tokens input 1.575 output 5.25 cached_input 0.315 (price set 2026-10-18.ai-api.v5.839003934ef3e88c)
 - `google-gemma-3-27b-instruct`: privacy private; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 198000; max completion 16384; usd per_million_tokens input 0.126 output 0.21 cached_input 0.126 (price set 2026-10-18.ai-api.v5.6b989734988462ba)
@@ -8626,6 +8705,10 @@ Source: https://ai.varity.app/v1/openapi.json (Varity AI Gateway API 2026-09-17)
 - `gpt-6-1-sol`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1050000; max completion 128000; usd per_million_tokens input 2.1 output 10.5 cached_input 0.105 (price set 2026-10-18.ai-api.v5.fd2c41d792e4da57)
 - `gpt-6-1-sol-ultrafast`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1050000; max completion 128000; usd per_million_tokens input 12.6 output 63 cached_input 0.63 (price set 2026-10-18.ai-api.v5.b1c563d739a0e1da)
 - `gpt-6-1-terra`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1050000; max completion 128000; usd per_million_tokens input 1.05 output 5.25 cached_input 0.0525 (price set 2026-10-18.ai-api.v5.69502022b01bceaa)
+- `gpt-6-2-astra`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1050000; max completion 128000; usd per_million_tokens input 8.4 output 42 cached_input 0.42 (price set 2026-10-18.ai-api.v5.2b867ca80218c90a)
+- `gpt-6-2-astra-pro`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1050000; max completion 128000; usd per_million_tokens input 8.4 output 42 cached_input 0.42 (price set 2026-10-18.ai-api.v5.2b867ca80218c90a)
+- `gpt-6-2-sol`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1050000; max completion 128000; usd per_million_tokens input 2.1 output 10.5 cached_input 0.105 (price set 2026-10-18.ai-api.v5.fd2c41d792e4da57)
+- `gpt-6-2-sol-pro`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1050000; max completion 128000; usd per_million_tokens input 2.1 output 10.5 cached_input 0.105 (price set 2026-10-18.ai-api.v5.fd2c41d792e4da57)
 - `gpt-6-astra`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1050000; max completion 128000; usd per_million_tokens input 10.5 output 52.5 cached_input 1.05 (price set 2026-10-18.ai-api.v5.d926b248b94dc542)
 - `gpt-6-astra-pro`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1050000; max completion 128000; usd per_million_tokens input 10.5 output 52.5 cached_input 1.05 (price set 2026-10-18.ai-api.v5.d926b248b94dc542)
 - `gpt-6-luna`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1050000; max completion 128000; usd per_million_tokens input 0.105 output 0.525 cached_input 0.0105 (price set 2026-10-18.ai-api.v5.5a7b2cb5497016a5)
@@ -8717,6 +8800,7 @@ Source: https://ai.varity.app/v1/openapi.json (Varity AI Gateway API 2026-09-17)
 - `qwen-3-next-80b`: privacy private; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 256000; max completion 16384; usd per_million_tokens input 0.3675 output 1.995 cached_input 0.3675 (price set 2026-10-18.ai-api.v5.72e5cfc21ce27764)
 - `qwen-3-tts-0-6b`: privacy private; in text -> out audio; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_million_characters input 91.875 output 0 cached_input 0 (price set 2026-10-18.ai-api.v5.audio.148bf10eaf32d6a6)
 - `qwen-3-tts-1-7b`: privacy private; in text -> out audio; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_million_characters input 118.125 output 0 cached_input 0 (price set 2026-10-18.ai-api.v5.audio.d426ec703356f976)
+- `qwen-4-max`: privacy anonymized; in text,document,image,video -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 393216; usd per_million_tokens input 1.575 output 4.725 cached_input 0.07875 (price set 2026-10-18.ai-api.v5.f9e2737544f0a2a6)
 - `qwen-edit-uncensored`: privacy private; in text,image -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.042 (price set 2026-10-18.ai-api.v5.7a010657a70fec6a)
 - `qwen-image`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.0315 (price set 2026-10-18.ai-api.v5.35cc4c3cb8d4a1df)
 - `qwen-image-2`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.0525 (price set 2026-10-18.ai-api.v5.70c6fa31040b79ad)
