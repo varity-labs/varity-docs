@@ -161,7 +161,7 @@ The Varity MCP server gives your AI editor 26 tools. Your installed server's `to
 | `varity_deploy_status` | "Show me my deployment status" |
 | `varity_deploy_logs` | "Show me the runtime logs" (dynamic apps only; static sites have no runtime logs) |
 | `varity_set_env` | Does not accept values; it points you to a secret-safe way to set them |
-| `varity_redeploy` | "Redeploy this app in place" |
+| `varity_redeploy` | "Restart this app's last release" (does not ship new code; to ship pushed changes, ask to deploy again with the same app name) |
 | `varity_delete_deployment` | "Tear down this deployment" (returns once accepted; check `varity_deploy_status` until billing reads stopped) |
 | `varity_migrate` | "Preview migrating my Vercel app to Varity" |
 | `varity_cost_calculator` | "How much does the web-app profile cost?" |

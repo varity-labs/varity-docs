@@ -114,6 +114,8 @@ Important lifecycle semantics:
   waits up to 10 minutes for the machine's billing to read stopped.
 - A redeploy request reapplies saved configuration and can be a no-op. Do not
   describe it as a verified restart or image refresh without runtime evidence.
+  It never builds newly pushed code: to ship pushed changes, call
+  `varity_deploy` again with the same `app_name`.
 - The deployment-log tool returns recent runtime logs of a live app. Use the
   local build tool for compilation diagnostics.
 - The environment tool accepts no values. It directs private configuration to

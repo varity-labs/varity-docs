@@ -226,11 +226,11 @@ The deployment succeeded from Varity's perspective but the app isn't serving cor
 If you can't diagnose the issue quickly, restore service by redeploying a version you know works under the same app name:
 
 ```bash
-# Return to the last working version of your code
-git checkout <known-good-commit>
+# Varity builds your repository's default branch: put the working code back there
+git revert <bad-commit>
+git push
 
-# Rebuild and redeploy under the same name
-npm run build
+# Deploy again under the same name
 varitykit app deploy --name my-app
 ```
 

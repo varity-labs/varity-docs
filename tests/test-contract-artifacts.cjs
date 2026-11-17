@@ -203,7 +203,10 @@ if (/capability_disabled/.test(llmsFull)) errors.push('public/llms-full.txt docu
 // retired HTTP transport, an image-credentials input no tool accepts, and an
 // anchor no page defines. public/mcp-schema.json is regenerated from the
 // released tools/list in its own change, so it is not scanned here.
-const RETIRED_MCP_TEXT = /with key|--transport http|image_credentials|llmstxt-alternative/;
+// A redeploy restarts the last successful release; only a new deploy with the
+// same app name builds pushed code, and the build reads the repository, not a
+// local checkout. These phrases taught the opposite.
+const RETIRED_MCP_TEXT = /with key|--transport http|image_credentials|llmstxt-alternative|Build and redeploy my Varity app|Each redeploy publishes a fresh build|`varity_redeploy`, or dashboard action|git checkout <known-good-commit>|fresh deploy from your local history/;
 function scanTree(relativeDir, skip) {
   for (const entry of fs.readdirSync(path.join(root, relativeDir), { withFileTypes: true })) {
     const relativePath = `${relativeDir}/${entry.name}`;

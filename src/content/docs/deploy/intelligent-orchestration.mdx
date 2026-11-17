@@ -68,7 +68,7 @@ For supported source projects, Varity handles the build and runtime setup. For D
 | Port | CLI, dashboard, or MCP image deploy input | Required for some Docker images |
 | Docker credentials | Dashboard or MCP deploy input | Used for private registry images |
 | Image reference | `--image <ref>` or dashboard image field | Must be a runnable HTTP service image |
-| Redeploy behavior | `varitykit app deploy`, `varity_redeploy`, or dashboard action | Keeps the same app name when you deploy under the same name |
+| Shipping new code | Push to GitHub, then `varitykit app deploy` or `varity_deploy` with the same app name | Builds the pushed code and updates the app at the same URL. `varity_redeploy` only restarts the last successful release |
 
 ## Source Project Defaults
 

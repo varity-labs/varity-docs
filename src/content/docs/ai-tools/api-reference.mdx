@@ -203,7 +203,7 @@ curl -X PATCH https://varity.app/api/deployments/$DEPLOYMENT_ID/env \
   -d '{ "env": { "FEATURE_FLAG": "on" } }'
 ```
 
-Redeploy, restart, or delete:
+Redeploy, restart, or delete. A redeploy restarts the last successful release; it does not build new commits. To ship pushed code, create the deployment again with the same name:
 
 ```bash
 curl -X POST https://varity.app/api/deployments/$DEPLOYMENT_ID/redeploy \
