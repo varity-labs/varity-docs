@@ -755,6 +755,191 @@
           }
         }
       },
+      "/v1/messages": {
+        "post": {
+          "operationId": "createAnthropicMessage",
+          "summary": "Create a message (Anthropic Messages contract)",
+          "description": "The Anthropic Messages request translated onto the chat route for every model chat serves: same routing, privacy floor, limits and billing. system is a string or text blocks; messages carry text, image and tool_result/tool_use blocks; Anthropic tools map to OpenAI function tools. tool_choice accepts the string aliases and the object forms, including disable_parallel_tool_use. A non-streaming answer is an Anthropic message object. Stream true answers the Anthropic SSE sequence (message_start, content_block_start/delta/stop, message_delta, message_stop); message_start.model is the served model, not the requested alias. stop_sequences is refused 400 because the chat contract cannot report which sequence matched. The credential may be Authorization: Bearer or x-api-key. Errors use the Anthropic error body with the matching status.",
+          "security": [
+            {
+              "VarityApiKey": []
+            },
+            {
+              "AnthropicApiKey": []
+            }
+          ],
+          "parameters": [
+            {
+              "$ref": "#/components/parameters/IdempotencyKey"
+            },
+            {
+              "$ref": "#/components/parameters/Deadline"
+            },
+            {
+              "$ref": "#/components/parameters/Job"
+            },
+            {
+              "$ref": "#/components/parameters/EndUser"
+            },
+            {
+              "$ref": "#/components/parameters/EndUserBudget"
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnthropicMessagesRequest"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Anthropic message JSON, or Anthropic SSE events when stream is true",
+              "headers": {
+                "X-Request-Id": {
+                  "$ref": "#/components/headers/RequestId"
+                }
+              },
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/AnthropicMessage"
+                  }
+                },
+                "text/event-stream": {
+                  "schema": {
+                    "type": "string",
+                    "description": "Anthropic event frames in order: message_start, content_block_start, content_block_delta (text_delta or input_json_delta), content_block_stop, message_delta (stop_reason and usage), message_stop. A failure after the 200 is an error event."
+                  }
+                }
+              }
+            },
+            "default": {
+              "description": "Anthropic error envelope: invalid_request_error, authentication_error, rate_limit_error or api_error, with the matching HTTP status",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/AnthropicError"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/v1/web/search": {
+        "post": {
+          "operationId": "createWebSearch",
+          "summary": "Ground a question in a live web search and return its cited sources",
+          "description": "Runs one non-streaming grounded completion through the same chat engine, routing, privacy floor, admission and billing as /v1/chat/completions. The routed model is a published model whose capabilities.web_search is true. results contains exactly the provider-reported citations, truncated to count; an answer with no citations returns results: [], never an invented source. Provider, authentication and budget failures use the same error envelope as chat.",
+          "parameters": [
+            {
+              "$ref": "#/components/parameters/IdempotencyKey"
+            },
+            {
+              "$ref": "#/components/parameters/Deadline"
+            },
+            {
+              "$ref": "#/components/parameters/Job"
+            },
+            {
+              "$ref": "#/components/parameters/EndUser"
+            },
+            {
+              "$ref": "#/components/parameters/EndUserBudget"
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebSearchRequest"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Cited web search results",
+              "headers": {
+                "X-Request-Id": {
+                  "$ref": "#/components/headers/RequestId"
+                }
+              },
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/WebSearchResponse"
+                  }
+                }
+              }
+            },
+            "default": {
+              "description": "Normalized error envelope",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorEnvelope"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/v1/web/fetch": {
+        "post": {
+          "operationId": "createWebFetch",
+          "summary": "Fetch a public page and return its readable text",
+          "description": "A server-side fetch with no provider cost and no billing. Only http(s) URLs are accepted. A request-phase non-http(s) scheme, embedded credential or non-web port is 400 invalid_request; any target (including after every redirect) resolving to loopback, private, link-local, CGNAT, multicast, unspecified or IPv6 ULA addresses, and a redirect to a non-http(s) scheme, embedded credential or non-web port, is 403 web_fetch_blocked. At most three redirects, a 10 second total deadline and a 2,000,000 byte response cap apply; exceeding one is web_fetch_limit_exceeded (502 for the DNS/redirect/byte limit, 504 for the 10 second deadline) and is a Varity limit, not a supplier failure. The caller's own deadline is 504 deadline_exceeded and a caller disconnect is 499 request_cancelled. Only HTML/XHTML, plain text, Markdown and JSON are extracted; another media type is 415 web_fetch_unsupported_type. A target that answers an error, resets the connection or fails TLS is 502 web_fetch_failed. The route records url host, status, response bytes and duration only, never the query string or page body.",
+          "parameters": [
+            {
+              "$ref": "#/components/parameters/Deadline"
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebFetchRequest"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Readable page text",
+              "headers": {
+                "X-Request-Id": {
+                  "$ref": "#/components/headers/RequestId"
+                }
+              },
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/WebFetchResponse"
+                  }
+                }
+              }
+            },
+            "default": {
+              "description": "Normalized error envelope",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorEnvelope"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
       "/v1/chat/completions": {
         "post": {
           "operationId": "createChatCompletion",
@@ -1788,6 +1973,12 @@
           "scheme": "bearer",
           "bearerFormat": "JWT",
           "description": "An authenticated Developer Portal Privy access token for the account owner. API keys cannot authorize these key-management or billing operations."
+        },
+        "AnthropicApiKey": {
+          "type": "apiKey",
+          "in": "header",
+          "name": "x-api-key",
+          "description": "The same Varity inference key as the bearer token, sent in the header Anthropic SDKs use when configured with an API key. Accepted only on /v1/messages."
         }
       },
       "headers": {
@@ -4989,6 +5180,656 @@
               "description": "When true the response is chunked binary audio rather than one complete file. Not SSE."
             }
           }
+        },
+        "WebSearchRequest": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "query"
+          ],
+          "properties": {
+            "query": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500,
+              "description": "The question to ground in a live web search."
+            },
+            "count": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10,
+              "default": 5,
+              "description": "Maximum number of provider citations to return. It is a ceiling, never a quota: Varity never invents a source to reach it."
+            }
+          }
+        },
+        "WebSearchResult": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "title",
+            "url",
+            "snippet",
+            "date"
+          ],
+          "properties": {
+            "title": {
+              "type": "string"
+            },
+            "url": {
+              "type": "string"
+            },
+            "snippet": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "The provider-reported excerpt, or null when it reported none."
+            },
+            "date": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "The provider-reported source date, not normalized; null when absent."
+            }
+          }
+        },
+        "WebSearchResponse": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "object",
+            "query",
+            "results",
+            "model"
+          ],
+          "properties": {
+            "object": {
+              "const": "web_search"
+            },
+            "query": {
+              "type": "string"
+            },
+            "results": {
+              "type": "array",
+              "description": "Exactly the sources the provider reported. Empty when it reported no citations; that is a successful grounded answer with no sources, not an error.",
+              "items": {
+                "$ref": "#/components/schemas/WebSearchResult"
+              }
+            },
+            "model": {
+              "type": "string",
+              "description": "The routed model that performed the search and answer."
+            }
+          }
+        },
+        "WebFetchRequest": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "url"
+          ],
+          "properties": {
+            "url": {
+              "type": "string",
+              "format": "uri",
+              "description": "An absolute http(s) URL. Embedded credentials, non-http(s) schemes, and any host resolving to loopback, private, link-local, CGNAT, multicast, unspecified or IPv6 ULA addresses are refused."
+            }
+          }
+        },
+        "WebFetchResponse": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "object",
+            "url",
+            "title",
+            "text",
+            "truncated",
+            "images"
+          ],
+          "properties": {
+            "object": {
+              "const": "web_fetch"
+            },
+            "url": {
+              "type": "string",
+              "description": "The final URL after at most three redirects."
+            },
+            "title": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "The page title when it declares one; otherwise null."
+            },
+            "text": {
+              "type": "string",
+              "maxLength": 200000,
+              "description": "Readable text with scripts, styles, comments, tags and entities removed, whitespace collapsed, and HTML/plain text/Markdown/JSON accepted."
+            },
+            "truncated": {
+              "type": "boolean",
+              "description": "True when the readable text exceeded the published character cap and was cut."
+            },
+            "images": {
+              "type": "array",
+              "maxItems": 5,
+              "items": {
+                "type": "string",
+                "format": "uri"
+              },
+              "description": "Absolute http(s) image and icon references found in the page, in document order, de-duplicated, at most five, each no longer than 2048 characters."
+            }
+          }
+        },
+        "AnthropicTextBlock": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "text"
+          ],
+          "properties": {
+            "type": {
+              "const": "text"
+            },
+            "text": {
+              "type": "string"
+            }
+          }
+        },
+        "AnthropicToolUseBlock": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "id",
+            "name",
+            "input"
+          ],
+          "properties": {
+            "type": {
+              "const": "tool_use"
+            },
+            "id": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "input": {
+              "type": "object",
+              "description": "The tool input as a JSON object, exactly as the model produced it."
+            }
+          }
+        },
+        "AnthropicMessage": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "type",
+            "role",
+            "model",
+            "content",
+            "stop_reason",
+            "stop_sequence",
+            "usage"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "`msg_` followed by the gateway request id."
+            },
+            "type": {
+              "const": "message"
+            },
+            "role": {
+              "const": "assistant"
+            },
+            "model": {
+              "type": "string"
+            },
+            "content": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/AnthropicTextBlock"
+                  },
+                  {
+                    "$ref": "#/components/schemas/AnthropicToolUseBlock"
+                  }
+                ]
+              }
+            },
+            "stop_reason": {
+              "type": "string",
+              "enum": [
+                "end_turn",
+                "tool_use",
+                "max_tokens",
+                "refusal"
+              ]
+            },
+            "stop_sequence": {
+              "type": "null"
+            },
+            "usage": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "input_tokens",
+                "output_tokens"
+              ],
+              "properties": {
+                "input_tokens": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "output_tokens": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          }
+        },
+        "AnthropicImageBlock": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "source"
+          ],
+          "properties": {
+            "type": {
+              "const": "image"
+            },
+            "source": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "type",
+                    "media_type",
+                    "data"
+                  ],
+                  "properties": {
+                    "type": {
+                      "const": "base64"
+                    },
+                    "media_type": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "string",
+                      "description": "Base64 image bytes; translated to the existing image content part."
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "type",
+                    "url"
+                  ],
+                  "properties": {
+                    "type": {
+                      "const": "url"
+                    },
+                    "url": {
+                      "type": "string"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "AnthropicToolResultBlock": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "tool_use_id"
+          ],
+          "properties": {
+            "type": {
+              "const": "tool_result"
+            },
+            "tool_use_id": {
+              "type": "string"
+            },
+            "content": {
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AnthropicTextBlock"
+                  }
+                }
+              ],
+              "description": "Text only: a chat tool message has no image content part, so an image block is refused with a specific invalid_request_error rather than dropped."
+            },
+            "is_error": {
+              "type": "boolean",
+              "description": "Carried into the chat tool message text as an \"Error: \" prefix; a chat tool message has no error flag."
+            }
+          }
+        },
+        "AnthropicThinkingBlock": {
+          "type": "object",
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "thinking",
+                "redacted_thinking"
+              ]
+            }
+          },
+          "description": "Accepted on an assistant replay and dropped: no routed chat input carries provider reasoning back to a model."
+        },
+        "AnthropicRequestContentBlock": {
+          "oneOf": [
+            {
+              "$ref": "#/components/schemas/AnthropicTextBlock"
+            },
+            {
+              "$ref": "#/components/schemas/AnthropicImageBlock"
+            },
+            {
+              "$ref": "#/components/schemas/AnthropicToolResultBlock"
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "type",
+                "id",
+                "name",
+                "input"
+              ],
+              "properties": {
+                "type": {
+                  "const": "tool_use"
+                },
+                "id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "input": {
+                  "type": "object"
+                }
+              },
+              "description": "An assistant tool call replayed by the client; becomes an OpenAI assistant tool_calls entry."
+            },
+            {
+              "$ref": "#/components/schemas/AnthropicThinkingBlock"
+            }
+          ],
+          "description": "A user turn accepts text, image and tool_result; an assistant turn accepts text, tool_use and thinking. The server rejects a block on the wrong role."
+        },
+        "AnthropicMessagesRequest": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "model",
+            "max_tokens",
+            "messages"
+          ],
+          "properties": {
+            "model": {
+              "type": "string"
+            },
+            "max_tokens": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000000,
+              "description": "Maps onto the chat contract max_completion_tokens and the same balance hold."
+            },
+            "system": {
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AnthropicTextBlock"
+                  }
+                }
+              ]
+            },
+            "messages": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "role",
+                      "content"
+                    ],
+                    "properties": {
+                      "role": {
+                        "const": "system"
+                      },
+                      "content": {
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/components/schemas/AnthropicTextBlock"
+                            }
+                          }
+                        ],
+                        "description": "A mid-conversation system turn is text only."
+                      }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "role",
+                      "content"
+                    ],
+                    "properties": {
+                      "role": {
+                        "type": "string",
+                        "enum": [
+                          "user",
+                          "assistant"
+                        ]
+                      },
+                      "content": {
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/components/schemas/AnthropicRequestContentBlock"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            "stream": {
+              "type": "boolean",
+              "default": false,
+              "description": "When true the answer is Anthropic SSE events; message_start, content_block_* and message_delta precede message_stop. A non-boolean is refused 400."
+            },
+            "temperature": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 2
+            },
+            "top_p": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "top_k": {
+              "type": "integer",
+              "description": "Accepted for Anthropic client compatibility; ignored."
+            },
+            "thinking": {
+              "type": "object",
+              "description": "Accepted for Anthropic client compatibility; ignored. Replayed thinking blocks on assistant messages are dropped."
+            },
+            "output_config": {
+              "type": "object",
+              "description": "Accepted for Anthropic client compatibility; ignored."
+            },
+            "context_management": {
+              "type": "object",
+              "description": "Accepted for Anthropic client compatibility; ignored."
+            },
+            "service_tier": {
+              "type": "string",
+              "description": "Accepted for Anthropic client compatibility; ignored."
+            },
+            "tools": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "name",
+                  "input_schema"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "input_schema": {
+                    "type": "object"
+                  }
+                }
+              }
+            },
+            "tool_choice": {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "auto",
+                    "any",
+                    "none"
+                  ],
+                  "description": "Tolerated alias of the object forms."
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "type"
+                  ],
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "auto",
+                        "any",
+                        "none"
+                      ]
+                    },
+                    "disable_parallel_tool_use": {
+                      "type": "boolean"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "type",
+                    "name"
+                  ],
+                  "properties": {
+                    "type": {
+                      "const": "tool"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "disable_parallel_tool_use": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              ],
+              "description": "disable_parallel_tool_use:true maps onto the chat contract parallel_tool_calls:false."
+            },
+            "metadata": {
+              "type": "object",
+              "description": "Accepted for Anthropic client compatibility; opaque and never forwarded."
+            }
+          }
+        },
+        "AnthropicError": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "error"
+          ],
+          "properties": {
+            "type": {
+              "const": "error"
+            },
+            "error": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "type",
+                "message"
+              ],
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "invalid_request_error",
+                    "authentication_error",
+                    "rate_limit_error",
+                    "api_error"
+                  ]
+                },
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          }
         }
       }
     }
@@ -5282,7 +6123,7 @@
         "chat_completions": true,
         "streaming_text": true,
         "tool_calls": true,
-        "streaming_tool_calls": false,
+        "streaming_tool_calls": true,
         "structured_outputs": true,
         "json_schema": true,
         "streaming": true,
@@ -6021,61 +6862,6 @@
         "input": 5.25,
         "output": 26.25,
         "cached_input": 0.525
-      }
-    },
-    {
-      "id": "claude-opus-4-8-fast",
-      "privacy": "anonymized",
-      "context_window": 1000000,
-      "max_completion_tokens": 128000,
-      "capabilities": {
-        "version": 1,
-        "input_modalities": [
-          "text",
-          "document",
-          "image"
-        ],
-        "output_modalities": [
-          "text"
-        ],
-        "chat_completions": true,
-        "streaming_text": true,
-        "tool_calls": true,
-        "streaming_tool_calls": true,
-        "structured_outputs": true,
-        "json_schema": true,
-        "streaming": true,
-        "transcription": false,
-        "speech": false,
-        "speech_formats": [],
-        "parallel_tool_calls": true,
-        "max_documents_per_message": 5,
-        "reasoning_controls": true,
-        "reasoning_effort": true,
-        "web_search": true,
-        "x_search": false,
-        "optimized_for_code": true,
-        "uncensored": false,
-        "log_probs": false,
-        "temperature": true,
-        "top_p": true,
-        "seed": true,
-        "stop": true,
-        "context_window": 1000000,
-        "max_completion_tokens": 128000,
-        "privacy": "anonymized",
-        "privacy_routes": [
-          "anonymized"
-        ]
-      },
-      "customer_pricing": {
-        "status": "configured",
-        "version": "2026-10-18.ai-api.v5.d926b248b94dc542",
-        "currency": "usd",
-        "unit": "per_million_tokens",
-        "input": 10.5,
-        "output": 52.5,
-        "cached_input": 1.05
       }
     },
     {
@@ -7951,6 +8737,63 @@
       }
     },
     {
+      "id": "gemini-4-hydrogen",
+      "privacy": "anonymized",
+      "context_window": 1000000,
+      "max_completion_tokens": 65536,
+      "capabilities": {
+        "version": 1,
+        "input_modalities": [
+          "text",
+          "document",
+          "audio",
+          "image",
+          "video"
+        ],
+        "output_modalities": [
+          "text"
+        ],
+        "chat_completions": true,
+        "streaming_text": true,
+        "tool_calls": true,
+        "streaming_tool_calls": true,
+        "structured_outputs": true,
+        "json_schema": true,
+        "streaming": true,
+        "transcription": false,
+        "speech": false,
+        "speech_formats": [],
+        "parallel_tool_calls": true,
+        "max_documents_per_message": 5,
+        "reasoning_controls": true,
+        "reasoning_effort": false,
+        "web_search": true,
+        "x_search": false,
+        "optimized_for_code": false,
+        "uncensored": false,
+        "log_probs": false,
+        "temperature": true,
+        "top_p": true,
+        "seed": true,
+        "stop": true,
+        "context_window": 1000000,
+        "max_completion_tokens": 65536,
+        "privacy": "anonymized",
+        "privacy_routes": [
+          "anonymized"
+        ]
+      },
+      "customer_pricing": {
+        "status": "configured",
+        "version": "2026-10-18.ai-api.v5.f8188b863e1e4927",
+        "currency": "usd",
+        "unit": "per_million_tokens",
+        "input": 1.96875,
+        "output": 9.84375,
+        "cached_input": 0.0984375
+      }
+    },
+    {
       "id": "gemini-embedding-2-preview",
       "privacy": "anonymized",
       "context_window": 2048,
@@ -8544,6 +9387,61 @@
         "input": 0.168,
         "output": 0.567,
         "cached_input": 0.0399
+      }
+    },
+    {
+      "id": "glm-5-3-flash-uncensored",
+      "privacy": "private",
+      "context_window": 1048576,
+      "max_completion_tokens": 131072,
+      "capabilities": {
+        "version": 1,
+        "input_modalities": [
+          "text",
+          "document",
+          "image"
+        ],
+        "output_modalities": [
+          "text"
+        ],
+        "chat_completions": true,
+        "streaming_text": true,
+        "tool_calls": true,
+        "streaming_tool_calls": true,
+        "structured_outputs": true,
+        "json_schema": true,
+        "streaming": true,
+        "transcription": false,
+        "speech": false,
+        "speech_formats": [],
+        "parallel_tool_calls": true,
+        "max_documents_per_message": 5,
+        "reasoning_controls": true,
+        "reasoning_effort": true,
+        "web_search": true,
+        "x_search": false,
+        "optimized_for_code": true,
+        "uncensored": true,
+        "log_probs": false,
+        "temperature": true,
+        "top_p": true,
+        "seed": true,
+        "stop": true,
+        "context_window": 1048576,
+        "max_completion_tokens": 131072,
+        "privacy": "private",
+        "privacy_routes": [
+          "private"
+        ]
+      },
+      "customer_pricing": {
+        "status": "configured",
+        "version": "2026-10-18.ai-api.v5.611cba9741295b3e",
+        "currency": "usd",
+        "unit": "per_million_tokens",
+        "input": 0.17325,
+        "output": 0.5775,
+        "cached_input": 0.03465
       }
     },
     {
@@ -14746,6 +15644,62 @@
         "input": 118.125,
         "output": 0,
         "cached_input": 0
+      }
+    },
+    {
+      "id": "qwen-4-max",
+      "privacy": "anonymized",
+      "context_window": 1000000,
+      "max_completion_tokens": 393216,
+      "capabilities": {
+        "version": 1,
+        "input_modalities": [
+          "text",
+          "document",
+          "image",
+          "video"
+        ],
+        "output_modalities": [
+          "text"
+        ],
+        "chat_completions": true,
+        "streaming_text": true,
+        "tool_calls": true,
+        "streaming_tool_calls": true,
+        "structured_outputs": false,
+        "json_schema": false,
+        "streaming": true,
+        "transcription": false,
+        "speech": false,
+        "speech_formats": [],
+        "parallel_tool_calls": true,
+        "max_documents_per_message": 5,
+        "reasoning_controls": true,
+        "reasoning_effort": false,
+        "web_search": true,
+        "x_search": false,
+        "optimized_for_code": true,
+        "uncensored": false,
+        "log_probs": false,
+        "temperature": true,
+        "top_p": true,
+        "seed": true,
+        "stop": true,
+        "context_window": 1000000,
+        "max_completion_tokens": 393216,
+        "privacy": "anonymized",
+        "privacy_routes": [
+          "anonymized"
+        ]
+      },
+      "customer_pricing": {
+        "status": "configured",
+        "version": "2026-10-18.ai-api.v5.f9e2737544f0a2a6",
+        "currency": "usd",
+        "unit": "per_million_tokens",
+        "input": 1.575,
+        "output": 4.725,
+        "cached_input": 0.07875
       }
     },
     {

@@ -10,7 +10,7 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { createMarkdownProcessor } from '@astrojs/markdown-remark';
-import { check, fetchCreditPolicyMirror, projectModel } from '../tools/generate-ai-gateway-artifacts.mjs';
+import { check, checkLive, fetchCreditPolicyMirror, projectModel } from '../tools/generate-ai-gateway-artifacts.mjs';
 import { CREDIT_POLICY_FIELDS, creditPolicyMarkdown, creditPolicyField } from '../src/lib/credit-policy.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
@@ -180,6 +180,27 @@ const projected = projectModel({ id: 'm', privacy: 'private', context_window: 1,
 if (volatile.test(JSON.stringify(projected)) || projected.capabilities.tool_calls !== true
     || projected.customer_pricing.version !== 'v') {
   errors.push('projectModel must drop only the volatile fields');
+}
+// --check-live reports every drift, not only the first: a stale AI Gateway
+// mirror must not hide an MCP release-marker mismatch behind it.
+{
+  const stored = (path) => readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
+  const json = (body) => new Response(typeof body === 'string' ? body : JSON.stringify(body), { status: 200 });
+  const liveFetch = async (url) => {
+    if (url === 'https://varity.app/api/openapi.json') return json(stored('contracts/openapi.platform.mirror.json'));
+    if (url.startsWith('https://ai.varity.app/')) throw new Error('unreachable in test');
+    if (url === 'https://varity.app/api/pricing') return json({ credit_policy: creditPolicy.credit_policy });
+    if (url.startsWith('https://registry.npmjs.org/')) return json({ version: '0.0.0-live-check-test' });
+    throw new Error(`unexpected fetch ${url}`);
+  };
+  const liveErrors = await checkLive(root, liveFetch);
+  if (!liveErrors.some((e) => e.includes('ai.varity.app'))) {
+    errors.push(`checkLive must report the unreachable AI Gateway (got ${JSON.stringify(liveErrors)})`);
+  }
+  if (!liveErrors.some((e) => e.includes('public/mcp-schema.json release marker') && e.includes('0.0.0-live-check-test'))) {
+    errors.push(`checkLive must report the MCP release-marker mismatch even when the AI Gateway check fails (got ${JSON.stringify(liveErrors)})`);
+  }
+  if (liveErrors.length !== 2) errors.push(`checkLive must report exactly the two injected drifts (got ${JSON.stringify(liveErrors)})`);
 }
 
 if (!ok || errors.length) {
