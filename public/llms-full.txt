@@ -2051,6 +2051,9 @@ Description: Add the Varity MCP server to LM Studio with one link, then set your
 LM Studio can run the Varity MCP server (`@varity-labs/mcp`) as a local stdio
 server. You need LM Studio 0.3.17 or newer and Node.js 22.11 or newer.
 
+These steps follow LM Studio's own documentation. Varity has not yet tested
+them in LM Studio.
+
 ## Add to LM Studio
 
 With LM Studio installed, open this link:
@@ -2070,7 +2073,8 @@ The link adds this server entry, named `varity`:
 
 Create a deploy key in the Developer Portal under **Settings > Deploy keys**.
 In LM Studio, open the **Program** tab in the right-hand sidebar, choose
-**Install > Edit mcp.json**, and add an `env` field to the `varity` entry:
+**Install > Edit mcp.json**. LM Studio follows Cursor's `mcp.json` notation, so
+add an `env` field to the `varity` entry:
 
 ```json
 {
@@ -2084,8 +2088,7 @@ In LM Studio, open the **Program** tab in the right-hand sidebar, choose
 }
 ```
 
-Never paste a key into the chat. Keep it in `mcp.json` or in the environment
-that starts LM Studio.
+Never paste a key into the chat. Keep it in `mcp.json` on your own machine.
 
 ## Check the install
 
@@ -2269,6 +2272,9 @@ Description: Add the Varity MCP server to OpenCode so your agent can check the c
 OpenCode runs the Varity MCP server (`@varity-labs/mcp`) as a local stdio
 server. Once it is added, ask OpenCode to check the cost of a deployment,
 deploy a repository and report the live URL.
+
+These steps follow OpenCode's own documentation. Varity has not yet tested
+them in OpenCode.
 
 ## Before you start
 

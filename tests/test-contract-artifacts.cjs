@@ -110,6 +110,17 @@ if (mcp) {
   const lmStudio = read('src/content/docs/ai-tools/lm-studio.mdx');
   const links = [...lmStudio.matchAll(/lmstudio:\/\/add_mcp\?[^)\s]+/g)].map((m) => new URL(m[0]));
   const expected = { command: 'npx', args: ['-y', '@varity-labs/mcp@latest'] };
+  // The entry the page shows under the link must be the same command.
+  const shown = /## Add to LM Studio[\s\S]*?```json\n([\s\S]*?)```/.exec(lmStudio);
+  let shownEntry = null;
+  try {
+    shownEntry = shown && JSON.parse(shown[1]);
+  } catch {
+    shownEntry = null;
+  }
+  if (JSON.stringify(shownEntry) !== JSON.stringify(expected)) {
+    errors.push(`ai-tools/lm-studio.mdx must show the deeplink entry ${JSON.stringify(expected)} under "Add to LM Studio"`);
+  }
   if (links.length !== 1) errors.push(`ai-tools/lm-studio.mdx must carry exactly one LM Studio deeplink, found ${links.length}`);
   for (const link of links) {
     let config;

@@ -15,6 +15,11 @@ import PageMeta from '../../../components/PageMeta.astro';
 LM Studio can run the Varity MCP server (`@varity-labs/mcp`) as a local stdio
 server. You need LM Studio 0.3.17 or newer and Node.js 22.11 or newer.
 
+<Aside type="note">
+These steps follow LM Studio's own documentation. Varity has not yet tested
+them in LM Studio.
+</Aside>
+
 ## Add to LM Studio
 
 With LM Studio installed, open this link:
@@ -34,7 +39,8 @@ The link adds this server entry, named `varity`:
 
 Create a deploy key in the Developer Portal under **Settings > Deploy keys**.
 In LM Studio, open the **Program** tab in the right-hand sidebar, choose
-**Install > Edit mcp.json**, and add an `env` field to the `varity` entry:
+**Install > Edit mcp.json**. LM Studio follows Cursor's `mcp.json` notation, so
+add an `env` field to the `varity` entry:
 
 ```json
 {
@@ -49,8 +55,7 @@ In LM Studio, open the **Program** tab in the right-hand sidebar, choose
 ```
 
 <Aside type="caution">
-Never paste a key into the chat. Keep it in `mcp.json` or in the environment
-that starts LM Studio.
+Never paste a key into the chat. Keep it in `mcp.json` on your own machine.
 </Aside>
 
 ## Check the install
