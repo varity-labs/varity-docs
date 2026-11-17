@@ -2516,7 +2516,7 @@ repository as a power. Add it from your client's plugin or power UI with the
 repository URL `https://github.com/varity-labs/varity-plugin`.
 
 These clients have no marketplace listing yet, so this page gives no
-client-specific command for them. If your client cannot install from a
+client-specific command for them, and Varity has not yet tested these installs. If your client cannot install from a
 repository URL, add the MCP server directly (below).
 
 ## Skill only
