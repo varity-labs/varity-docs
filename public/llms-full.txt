@@ -2458,7 +2458,7 @@ It also learns the real deploy flow: detect the framework, choose the hosting mo
 ## Varity Plugin for AI Editors
 
 URL: https://docs.varity.so/ai-tools/plugin/
-Description: Install the Varity plugin in Claude Code or Gemini CLI to get the Varity MCP server and the deploy-with-varity skill in one step.
+Description: Install the Varity plugin in Claude Code, Gemini CLI and other agents to get the Varity MCP server and the deploy-with-varity skill in one step.
 
 The Varity plugin ([`varity-labs/varity-plugin`](https://github.com/varity-labs/varity-plugin))
 bundles two things for your AI editor:
@@ -2485,6 +2485,28 @@ claude plugin install varity@varity-plugin
 ```bash
 gemini extensions install https://github.com/varity-labs/varity-plugin
 ```
+
+## Qwen Code
+
+Qwen Code installs Gemini CLI extensions from a GitHub repository:
+
+```bash
+qwen extensions install varity-labs/varity-plugin
+```
+
+## Factory Droid
+
+Droid reads Claude Code plugin marketplaces. Add the repository, check the
+marketplace name it registers, then install the `varity` plugin from it:
+
+```bash
+droid plugin marketplace add varity-labs/varity-plugin
+droid plugin marketplace list
+droid plugin install varity@<marketplace name> --scope user
+```
+
+The Qwen Code and Factory Droid commands follow each client's own
+documentation. Varity has not yet tested them in those clients.
 
 ## Cursor, GitHub Copilot CLI, VS Code, Codex and Kiro
 
