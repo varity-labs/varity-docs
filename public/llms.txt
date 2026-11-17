@@ -8,7 +8,7 @@ Use these docs as the public Varity documentation context. Current MCP install c
 claude mcp add varity -- npx -y @varity-labs/mcp
 ```
 
-MCP clients must discover executable tool definitions from the installed server's `tools/list` response. The Docs `/mcp-schema.json` artifact is a conservative safety reference, not the wire contract.
+MCP clients must discover executable tool definitions from the installed server's `tools/list` response. The Docs `/mcp-schema.json` artifact copies the named release's `tools/list`; it is not the wire contract.
 
 
 ## Pages
@@ -27,6 +27,7 @@ MCP clients must discover executable tool definitions from the installed server'
 - [Varity MCP Server Reference](https://docs.varity.so/ai-tools/mcp-server-spec/): Install the published Varity MCP package, configure a supported editor, and use its machine-readable tool catalog without relying on unreleased source.
 - [Use Varity with OpenCode](https://docs.varity.so/ai-tools/opencode/): Add the Varity MCP server to OpenCode so your agent can check the cost of a deployment, deploy and follow its status from the terminal.
 - [AI Tools for Varity Deploys](https://docs.varity.so/ai-tools/overview/): Accelerate Varity development with AI tools. Copy-paste prompts, Cursor rules, MCP server integration, and LLM-optimized documentation.
+- [Varity Plugin for AI Editors](https://docs.varity.so/ai-tools/plugin/): Install the Varity plugin in Claude Code or Gemini CLI to get the Varity MCP server and the deploy-with-varity skill in one step.
 - [AI Prompts for Varity Deploys](https://docs.varity.so/ai-tools/prompts/): Ready-to-paste prompts for deploying to Varity from Claude Code, Cursor, Windsurf, or ChatGPT. No commands to memorize.
 - [API Errors](https://docs.varity.so/api/errors/): The Varity public API error envelope, the verified error codes, and which failures are safe to retry.
 - [Rate Limits](https://docs.varity.so/api/limits/): The two limits the Varity public API can answer with 429 (deployment queue backpressure and edge abuse protection) and how to retry creates safely.

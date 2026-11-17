@@ -4,16 +4,16 @@
   "projection": {
     "kind": "documentation-safety-reference",
     "authority": "MCP tools/list from the installed published package",
-    "limitations": "Release identity is live-checked. Descriptions are conservative documentation and intentionally do not reproduce unverified lifecycle guarantees from package prose."
+    "limitations": "Release identity is live-checked. Tool entries are copied verbatim from the tools/list response of the named release, captured over stdio; the installed server stays the authority."
   },
   "server": {
     "name": "varity",
     "package": "@varity-labs/mcp",
-    "version": "2.3.21",
+    "version": "2.3.27",
     "release": {
       "registry": "https://registry.npmjs.org/@varity-labs%2Fmcp/latest",
       "distTag": "latest",
-      "observedAt": "2026-09-27"
+      "observedAt": "2026-11-17"
     },
     "docs": "https://docs.varity.so/ai-tools/mcp-server-spec/",
     "install": {
@@ -31,17 +31,17 @@
       }
     },
     "transports": [
-      "stdio",
-      "http"
+      "stdio"
     ]
   },
-  "toolCount": 25,
+  "toolCount": 26,
   "tools": [
     {
       "name": "varity_search_docs",
       "title": "Search Varity Docs",
       "description": "Search the live Varity documentation for how-to guides, getting-started tutorials, deployment, supported stacks, pricing, and troubleshooting. Content is fetched from the live docs with a five-minute cache.",
       "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "query": {
@@ -49,19 +49,21 @@
             "description": "Search query (e.g., 'deploy a FastAPI app', 'custom domain', 'pricing')"
           },
           "maxResults": {
-            "type": "number",
             "default": 3,
-            "description": "Maximum number of results to return (default: 3)"
+            "description": "Maximum number of results to return (default: 3)",
+            "type": "number"
           }
         },
         "required": [
           "query"
         ],
-        "additionalProperties": false,
-        "$schema": "http://json-schema.org/draft-07/schema#"
+        "additionalProperties": false
       },
       "annotations": {
-        "readOnlyHint": true
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
       },
       "execution": {
         "taskSupport": "forbidden"
@@ -70,27 +72,50 @@
     {
       "name": "varity_cost_calculator",
       "title": "Cost Calculator",
-      "description": "Request a current deployment-price estimate from the Varity public pricing interface. Use whenever a developer asks what a Varity deployment costs. Pass `subdomain` for a live deployment's current billing projection, or `app_profile` for a pre-deploy estimate.",
+      "description": "Request a current deployment-price estimate from the Varity public pricing interface. Use whenever a developer asks what a Varity deployment costs. Pass `subdomain` for a live deployment's current billing projection (needs a deploy key), or `app_profile` for a pre-deploy estimate (no sign-in needed). Profiles: static-site (alias static), web-app, web-app-db, ai-agent-cpu; an unknown profile returns the current list. All amounts are USD.",
       "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "app_profile": {
+            "description": "Pricing profile: static-site (or static), web-app, web-app-db, ai-agent-cpu. Omit for the default (web-app).",
             "type": "string",
             "minLength": 1,
             "maxLength": 64,
-            "pattern": "^[a-z0-9][a-z0-9_-]*$",
-            "description": "Optional profile key understood by the live Varity pricing API. Omit to use the API's current default."
+            "pattern": "^[a-z0-9][a-z0-9_-]*$"
           },
           "subdomain": {
-            "type": "string",
-            "description": "A live deployment's subdomain; returns its current billing projection and overrides app_profile"
+            "description": "A live deployment's subdomain; returns its current billing projection and overrides app_profile",
+            "type": "string"
           }
         },
-        "additionalProperties": false,
-        "$schema": "http://json-schema.org/draft-07/schema#"
+        "additionalProperties": false
       },
       "annotations": {
-        "readOnlyHint": true
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "varity_balance",
+      "title": "Account Balance",
+      "description": "Read your Varity balance in USD: available, authorization maximum, and owed. reserved_usd is the served authorization maximum, not a measure of funded backing. Amounts are exact decimal USD strings. Use before deploying or when asked how much balance remains. An unavailable read is never reported as zero.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
       },
       "execution": {
         "taskSupport": "forbidden"
@@ -99,14 +124,18 @@
     {
       "name": "varity_doctor",
       "title": "Check Environment",
-      "description": "Check local-development and CLI-deployment readiness independently. Node.js and npm qualify local JavaScript tools; varitykit and authentication qualify deployment. Run this before varity_deploy to catch missing prerequisites early.",
+      "description": "Check local-development and deployment readiness independently. Node.js and npm qualify local JavaScript tools; a verified deploy key qualifies deployment, and the report names which source supplied the key. varitykit is needed only for varity_migrate. Run this before varity_deploy to catch missing prerequisites early.",
       "inputSchema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
-        "properties": {}
+        "properties": {},
+        "additionalProperties": false
       },
       "annotations": {
-        "readOnlyHint": true
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
       },
       "execution": {
         "taskSupport": "forbidden"
@@ -115,14 +144,18 @@
     {
       "name": "varity_login",
       "title": "Set Up Varity Login",
-      "description": "Check whether a deploy key is already configured and open the developer portal settings page when login is needed. Credentials are never accepted as MCP tool input; enter the deploy key only in the hidden prompt from `varitykit auth login` in a trusted terminal.",
+      "description": "Check whether a deploy key is already configured and open the developer portal settings page when login is needed. Credentials are never accepted as MCP tool input; set VARITY_DEPLOY_KEY in the MCP server environment, or enter the deploy key only in the hidden prompt of `varitykit auth login` in a trusted terminal, which saves it to ~/.varitykit/config.json.",
       "inputSchema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
-        "properties": {}
+        "properties": {},
+        "additionalProperties": false
       },
       "annotations": {
-        "readOnlyHint": true
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
       },
       "execution": {
         "taskSupport": "forbidden"
@@ -133,25 +166,28 @@
       "title": "Install Dependencies",
       "description": "Install npm dependencies in a Varity project. Use after creating a project or when adding new packages.",
       "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "path": {
-            "type": "string",
-            "description": "Project directory to install dependencies in (default: current directory)"
+            "description": "Project directory to install dependencies in (default: current directory)",
+            "type": "string"
           },
           "packages": {
+            "description": "Specific packages to install (e.g., ['axios', 'lodash']). If omitted, runs npm install for all dependencies.",
             "type": "array",
             "items": {
               "type": "string"
-            },
-            "description": "Specific packages to install (e.g., ['axios', 'lodash']). If omitted, runs npm install for all dependencies."
+            }
           }
         },
-        "additionalProperties": false,
-        "$schema": "http://json-schema.org/draft-07/schema#"
+        "additionalProperties": false
       },
       "annotations": {
-        "destructiveHint": true
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
       },
       "execution": {
         "taskSupport": "forbidden"
@@ -162,18 +198,21 @@
       "title": "Build Project",
       "description": "Build the project for production. Auto-detects framework from package.json. Run before deploying or to verify the project compiles.",
       "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "path": {
-            "type": "string",
-            "description": "Path to the project directory (default: current directory)"
+            "description": "Path to the project directory (default: current directory)",
+            "type": "string"
           }
         },
-        "additionalProperties": false,
-        "$schema": "http://json-schema.org/draft-07/schema#"
+        "additionalProperties": false
       },
       "annotations": {
-        "destructiveHint": true
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
       },
       "execution": {
         "taskSupport": "forbidden"
@@ -184,6 +223,7 @@
       "title": "Open in Browser",
       "description": "Open a URL in the user's default browser. Use after deploying to show the live app or after starting the dev server.",
       "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "url": {
@@ -195,8 +235,13 @@
         "required": [
           "url"
         ],
-        "additionalProperties": false,
-        "$schema": "http://json-schema.org/draft-07/schema#"
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
       },
       "execution": {
         "taskSupport": "forbidden"
@@ -207,6 +252,7 @@
       "title": "Development Server",
       "description": "Start, stop, or check the local development server. Returns the localhost URL for previewing the app.",
       "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "action": {
@@ -219,20 +265,25 @@
             "description": "Action to perform: start, stop, or check status of the dev server"
           },
           "path": {
-            "type": "string",
-            "description": "Project directory (default: current working directory)"
+            "description": "Project directory (default: current working directory)",
+            "type": "string"
           },
           "port": {
-            "type": "number",
             "default": 3000,
-            "description": "Port to run the dev server on (default: 3000). If this port is busy, the server auto-selects the next available port and persists it to varity.config.json so future starts use the same port automatically. You can also set this explicitly (e.g. port: 3031) to always start on a specific port."
+            "description": "Port to run the dev server on (default: 3000). If this port is busy, the server auto-selects the next available port and persists it to varity.config.json so future starts use the same port automatically. You can also set this explicitly (e.g. port: 3031) to always start on a specific port.",
+            "type": "number"
           }
         },
         "required": [
           "action"
         ],
-        "additionalProperties": false,
-        "$schema": "http://json-schema.org/draft-07/schema#"
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
       },
       "execution": {
         "taskSupport": "forbidden"
@@ -241,8 +292,9 @@
     {
       "name": "varity_create_repo",
       "title": "Create GitHub Repository",
-      "description": "Create a new GitHub repository and push your local project to it. Pass the 'path' parameter with the local project directory. This creates an empty repo and pushes your actual code to GitHub. The GitHub URL is required for dynamic deployments, so call this before varity_deploy when you have code locally but no repo yet. Requires GitHub CLI authentication or a GITHUB_TOKEN/GH_TOKEN environment variable with repository access.",
+      "description": "Create a new GitHub repository and push your local project to it. Pass the 'path' parameter with the local project directory. This creates an empty repo and pushes your actual code to GitHub. varity_deploy builds from a Git repository URL (or takes a prebuilt image), so call this before varity_deploy when you have code locally but no repository yet. Requires GitHub CLI authentication or a GITHUB_TOKEN/GH_TOKEN environment variable with repository access.",
       "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "name": {
@@ -253,31 +305,33 @@
             "description": "Repository name (lowercase, hyphens allowed, e.g. 'my-app')"
           },
           "description": {
-            "type": "string",
-            "description": "Short description of your app (optional)"
+            "description": "Short description of your app (optional)",
+            "type": "string"
           },
           "path": {
-            "type": "string",
-            "description": "Absolute path to the local project directory to push to GitHub (e.g. '/home/user/my-app'). Pushes the actual project code. Required for apps that will use varity_deploy with dynamic hosting."
+            "description": "Absolute path to the local project directory to push to GitHub (e.g. '/home/user/my-app'). Pushes the actual project code. Pass its returned repo_url to varity_deploy.",
+            "type": "string"
           },
           "visibility": {
+            "default": "private",
+            "description": "Repository visibility",
             "type": "string",
             "enum": [
               "public",
               "private"
-            ],
-            "default": "private",
-            "description": "Repository visibility"
+            ]
           }
         },
         "required": [
           "name"
         ],
-        "additionalProperties": false,
-        "$schema": "http://json-schema.org/draft-07/schema#"
+        "additionalProperties": false
       },
       "annotations": {
-        "destructiveHint": true
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true
       },
       "execution": {
         "taskSupport": "forbidden"
@@ -286,44 +340,51 @@
     {
       "name": "varity_deploy",
       "title": "Deploy to Production",
-      "description": "Submit a Git repository or a prebuilt container image to Varity's deployment owner. The control plane detects the framework, selects hosting, builds, and manages lifecycle state. Use this when a developer wants to deploy, publish, ship, or make their app live. If the developer wants to deploy a certified template rather than their own code, use varity_deploy_template instead. To stop a deployment and its billing, use varity_delete_deployment.",
+      "description": "Submit a Git repository or a prebuilt container image to Varity's deployment owner. The control plane detects the framework, selects hosting, builds, and manages lifecycle state. Use this when a developer wants to deploy, publish, ship, or make their app live. If the developer wants to deploy a certified template rather than their own code, use varity_deploy_template instead. To ship new code for an app that is already deployed, push it and call varity_deploy again with the same app_name: the same owner and workload shape updates that app in place at the latest commit (varity_redeploy does not pick up new commits). To stop a deployment and its billing, use varity_delete_deployment.",
       "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "path": {
-            "type": "string",
-            "description": "Absolute path to the project directory (e.g. '/home/user/my-app'). Used only to read the Git `origin` remote when repo_url and image are omitted. If omitted, the MCP server's working directory is used (which is rarely the correct project root)."
+            "description": "Absolute path to the project directory (e.g. '/home/user/my-app'). Used only to read the Git `origin` remote when repo_url and image are omitted. If omitted, the MCP server's working directory is used (which is rarely the correct project root).",
+            "type": "string"
           },
           "repo_url": {
-            "type": "string",
-            "description": "GitHub repository URL for the app (e.g. 'https://github.com/user/my-app'). If omitted, auto-detected from .git/config. Use the repo_url returned by varity_create_repo as the value here."
+            "description": "GitHub repository URL for the app (e.g. 'https://github.com/user/my-app'). If omitted, auto-detected from .git/config. Use the repo_url returned by varity_create_repo as the value here.",
+            "type": "string"
           },
           "app_name": {
-            "type": "string",
-            "description": "Custom app name that controls the deployment URL: https://varity.app/{app_name}/. Must be URL-safe (lowercase letters, numbers, hyphens). If omitted, the repository or image name is used. Use a different app_name to create named environments (staging, canary, etc.)."
+            "description": "Custom app name that controls the deployment URL. A static site is served at https://varity.app/{app_name}/ and an app with a server at https://{app_name}.varity.app; the platform picks which, so read the live URL from varity_deploy_status. Must be URL-safe (lowercase letters, numbers, hyphens). If omitted, the repository or image name is used. Use a different app_name to create named environments (staging, canary, etc.).",
+            "type": "string"
           },
           "image": {
-            "type": "string",
-            "description": "Deploy a prebuilt Docker/OCI image directly (e.g. 'ghcr.io/you/app:latest') instead of building from source. Use when the developer has a container image rather than a repo/project. Mutually exclusive with repo_url."
+            "description": "Deploy a prebuilt Docker/OCI image directly (e.g. 'ghcr.io/you/app:latest') instead of building from source. Use when the developer has a container image rather than a repo/project. Mutually exclusive with repo_url.",
+            "type": "string"
           },
           "port": {
+            "description": "Container listen port for an image deploy (default 80).",
             "type": "integer",
-            "description": "Container listen port for an image deploy (default 80)."
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
           },
           "volume_size": {
+            "description": "Persistent volume size in GB for the app container (survives restart/redeploy). Use for stateful apps (databases, n8n, Ghost, etc.). Requires volume_path.",
             "type": "integer",
-            "description": "Persistent volume size in GB for the app container (survives restart/redeploy). Use for stateful apps (databases, n8n, Ghost, etc.). Requires volume_path."
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
           },
           "volume_path": {
-            "type": "string",
-            "description": "Absolute container path to mount the persistent volume (e.g. '/data', '/home/node/.n8n'). Requires volume_size."
+            "description": "Absolute container path to mount the persistent volume (e.g. '/data', '/home/node/.n8n'). Requires volume_size.",
+            "type": "string"
           }
         },
-        "additionalProperties": false,
-        "$schema": "http://json-schema.org/draft-07/schema#"
+        "additionalProperties": false
       },
       "annotations": {
-        "destructiveHint": true
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true
       },
       "execution": {
         "taskSupport": "forbidden"
@@ -334,30 +395,33 @@
       "title": "Deployment Status",
       "description": "List deployments or get status of a specific deployment. Shows the owner-scoped fields returned by the Varity public interface, including URL, status, runtime when available, and creation time. A separate HTTP probe records reachability without overwriting the owner's lifecycle status; authenticated, POST-only, or transiently unavailable apps may return a non-2xx probe. Use this when a developer asks about their deployments, wants to check status, or needs to find a deployment URL.",
       "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "deployment_id": {
+            "description": "Specific deployment ID to check (optional, omit to list recent)",
             "type": "string",
-            "pattern": "^[a-zA-Z0-9_-]+$",
-            "description": "Specific deployment ID to check (optional, omit to list recent)"
+            "pattern": "^[a-zA-Z0-9_-]+$"
           },
           "path": {
-            "type": "string",
-            "description": "Compatibility hint from older clients. Deployment state is now account-scoped through the Varity public API."
+            "description": "Compatibility hint from older clients. Deployment state is now account-scoped through the Varity public API.",
+            "type": "string"
           },
           "limit": {
+            "default": 10,
+            "description": "Maximum number of deployments to return (default: 10, max: 50)",
             "type": "integer",
             "minimum": 1,
-            "maximum": 50,
-            "default": 10,
-            "description": "Maximum number of deployments to return (default: 10, max: 50)"
+            "maximum": 50
           }
         },
-        "additionalProperties": false,
-        "$schema": "http://json-schema.org/draft-07/schema#"
+        "additionalProperties": false
       },
       "annotations": {
-        "readOnlyHint": true
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
       },
       "execution": {
         "taskSupport": "forbidden"
@@ -368,6 +432,7 @@
       "title": "Deployment Info & Logs",
       "description": "Get recent runtime logs for a deployment from the Varity public API. Use this when a developer asks for logs from a live app. For local build errors before deployment, use varity_build.",
       "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "deployment": {
@@ -376,19 +441,21 @@
             "description": "The deployment id or app name to get logs for"
           },
           "limit": {
-            "type": "number",
             "default": 100,
-            "description": "Maximum number of log lines to return (default: 100)"
+            "description": "Maximum number of log lines to return (default: 100)",
+            "type": "number"
           }
         },
         "required": [
           "deployment"
         ],
-        "additionalProperties": false,
-        "$schema": "http://json-schema.org/draft-07/schema#"
+        "additionalProperties": false
       },
       "annotations": {
-        "readOnlyHint": true
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
       },
       "execution": {
         "taskSupport": "forbidden"
@@ -396,9 +463,10 @@
     },
     {
       "name": "varity_delete_deployment",
-      "title": "Delete a Deployment and Stop Its Billing",
-      "description": "Request deletion of an existing Varity deployment by id or app name and track it until billing stop is proven. Use this when a developer says 'stop my <name>', 'shut down my deployment', 'I'm done with <name>', 'delete <name>', or when they no longer need a running app or agent. The durable operation independently reconciles route removal, reserved hardware release, and billing stop. Use varity_deploy_status or list deployments at https://developer.store.varity.so/dashboard to confirm the deployment first if the developer is unsure.",
+      "title": "Request Deletion of a Deployment",
+      "description": "Request deletion of an existing Varity deployment by id or app name. Returns as soon as the delete is accepted, usually with status deleting; it does not wait. Billing stop is proven only when varity_deploy_status shows status deleted and billing.state stopped, so poll that tool before telling the developer billing has stopped. Use this when a developer says 'stop my <name>', 'shut down my deployment', 'I'm done with <name>', 'delete <name>', or when they no longer need a running app or agent. The durable operation independently reconciles route removal, reserved hardware release, and billing stop. Use varity_deploy_status or list deployments at https://developer.store.varity.so/dashboard to confirm the deployment first if the developer is unsure.",
       "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "deployment": {
@@ -410,11 +478,13 @@
         "required": [
           "deployment"
         ],
-        "additionalProperties": false,
-        "$schema": "http://json-schema.org/draft-07/schema#"
+        "additionalProperties": false
       },
       "annotations": {
-        "destructiveHint": true
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": true
       },
       "execution": {
         "taskSupport": "forbidden"
@@ -427,10 +497,14 @@
       "inputSchema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
-        "properties": {}
+        "properties": {},
+        "additionalProperties": false
       },
       "annotations": {
-        "readOnlyHint": true
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
       },
       "execution": {
         "taskSupport": "forbidden"
@@ -438,9 +512,10 @@
     },
     {
       "name": "varity_redeploy",
-      "title": "Reapply an Existing Deployment Configuration",
-      "description": "Reapply the saved configuration for an app that is ALREADY deployed. Use this when a developer explicitly asks to reapply or redeploy that saved configuration. The app keeps the same deployment and URL. An unchanged configuration may be a no-op, so this tool must not be presented as a verified restart for a stuck app. Configure secrets through an approved secret-safe interface. To create a NEW deployment instead, use varity_deploy.",
+      "title": "Restart an App's Last Release",
+      "description": "Restart an app that is ALREADY deployed from its last successful release, at that release's saved commit and configuration. The app keeps the same deployment and URL. It does not pick up new commits: to ship new code, push it and call varity_deploy again with the same app_name. An app with no successful release cannot be restarted. Redeploy restarts dynamic and container apps only; for a static site, push the change and call varity_deploy again with the same app_name. Configure secrets through an approved secret-safe interface. To create a NEW deployment instead, use varity_deploy.",
       "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "name": {
@@ -452,11 +527,13 @@
         "required": [
           "name"
         ],
-        "additionalProperties": false,
-        "$schema": "http://json-schema.org/draft-07/schema#"
+        "additionalProperties": false
       },
       "annotations": {
-        "destructiveHint": true
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
       },
       "execution": {
         "taskSupport": "forbidden"
@@ -464,21 +541,28 @@
     },
     {
       "name": "varity_machines_list",
-      "title": "List CPU Machines",
-      "description": "List the developer's Varity CPU virtual machines with their state, SSH access and billing. Set include_profiles to also get the CPU machine profiles and OS images (profile_id, os_image) that varity_machines_create accepts.",
+      "title": "List Machines",
+      "description": "List the developer's Varity CPU and GPU virtual machines with their state, SSH access and billing. Set include_profiles to also get the machine profiles and OS images (profile_id, os_image) that varity_machines_create accepts: CPU profiles by default, GPU VM profiles (with GPU model, VRAM, hourly price and default_os_image) when gpu is true.",
       "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "include_profiles": {
-            "type": "boolean",
-            "description": "Also return the CPU machine profile catalog."
+            "description": "Also return the machine profile catalog.",
+            "type": "boolean"
+          },
+          "gpu": {
+            "description": "With include_profiles, return GPU VM profiles instead of CPU ones.",
+            "type": "boolean"
           }
         },
-        "additionalProperties": false,
-        "$schema": "http://json-schema.org/draft-07/schema#"
+        "additionalProperties": false
       },
       "annotations": {
-        "readOnlyHint": true
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
       },
       "execution": {
         "taskSupport": "forbidden"
@@ -486,9 +570,10 @@
     },
     {
       "name": "varity_machines_create",
-      "title": "Create a CPU Machine",
-      "description": "Create a Varity CPU virtual machine the developer can SSH into. Requires the developer's own SSH PUBLIC key (e.g. the contents of ~/.ssh/id_ed25519.pub); never pass a private key. Get profile_id and os_image from varity_machines_list with include_profiles. The machine bills hourly until varity_machines_delete.",
+      "title": "Create a Machine",
+      "description": "Create a Varity CPU or GPU virtual machine the developer can SSH into. Requires the developer's own SSH PUBLIC key (e.g. the contents of ~/.ssh/id_ed25519.pub); never pass a private key. Get profile_id and os_image from varity_machines_list with include_profiles (and gpu: true for a GPU VM, then pass gpu: true here too). The machine bills hourly until varity_machines_delete.",
       "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "name": {
@@ -500,7 +585,7 @@
           "profile_id": {
             "type": "string",
             "minLength": 1,
-            "description": "CPU machine profile id (mp-...)."
+            "description": "Machine profile id (mp-...)."
           },
           "os_image": {
             "type": "string",
@@ -513,14 +598,19 @@
             "description": "The developer's SSH public key, e.g. 'ssh-ed25519 AAAA... user@host'."
           },
           "additional_storage_gb": {
+            "description": "Extra disk in GB (CPU machines only).",
             "type": "integer",
             "minimum": 0,
-            "description": "Extra disk in GB."
+            "maximum": 9007199254740991
+          },
+          "gpu": {
+            "description": "Create a GPU virtual machine from a GPU VM profile.",
+            "type": "boolean"
           },
           "idempotency_key": {
+            "description": "Reuse the same key to retry a create without creating a second machine.",
             "type": "string",
-            "pattern": "^[A-Za-z0-9._:-]{8,128}$",
-            "description": "Reuse the same key to retry a create without creating a second machine."
+            "pattern": "^[A-Za-z0-9._:-]{8,128}$"
           }
         },
         "required": [
@@ -529,8 +619,13 @@
           "os_image",
           "ssh_public_key"
         ],
-        "additionalProperties": false,
-        "$schema": "http://json-schema.org/draft-07/schema#"
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true
       },
       "execution": {
         "taskSupport": "forbidden"
@@ -538,30 +633,34 @@
     },
     {
       "name": "varity_machines_delete",
-      "title": "Delete a CPU Machine and Stop Its Billing",
-      "description": "Delete a Varity CPU virtual machine by id and wait (up to 10 minutes) until its billing reads stopped.",
+      "title": "Delete a Machine and Stop Its Billing",
+      "description": "Delete a Varity CPU or GPU virtual machine by id and wait (up to 10 minutes) until its billing reads stopped.",
       "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "machine_id": {
             "type": "string",
             "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$",
             "description": "The machine id from varity_machines_list."
           },
           "idempotency_key": {
+            "description": "Reuse the same key to retry a delete safely.",
             "type": "string",
-            "pattern": "^[A-Za-z0-9._:-]{8,128}$",
-            "description": "Reuse the same key to retry a delete safely."
+            "pattern": "^[A-Za-z0-9._:-]{8,128}$"
           }
         },
         "required": [
           "machine_id"
         ],
-        "additionalProperties": false,
-        "$schema": "http://json-schema.org/draft-07/schema#"
+        "additionalProperties": false
       },
       "annotations": {
-        "destructiveHint": true
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": true
       },
       "execution": {
         "taskSupport": "forbidden"
@@ -574,10 +673,14 @@
       "inputSchema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
-        "properties": {}
+        "properties": {},
+        "additionalProperties": false
       },
       "annotations": {
-        "readOnlyHint": true
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
       },
       "execution": {
         "taskSupport": "forbidden"
@@ -588,6 +691,7 @@
       "title": "Show Varity Template Details",
       "description": "Show full details for a certified Varity template: required env, resources, access mode, hardware profile, and certification state.",
       "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "template": {
@@ -598,11 +702,13 @@
         "required": [
           "template"
         ],
-        "additionalProperties": false,
-        "$schema": "http://json-schema.org/draft-07/schema#"
+        "additionalProperties": false
       },
       "annotations": {
-        "readOnlyHint": true
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
       },
       "execution": {
         "taskSupport": "forbidden"
@@ -613,6 +719,7 @@
       "title": "Deploy a Varity Template",
       "description": "Deploy a public certified Varity template that declares no required environment variables. Private or secret-bearing templates are refused; call varity_template_info first.",
       "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "template": {
@@ -620,18 +727,20 @@
             "description": "Template ID from varity_list_templates."
           },
           "name": {
-            "type": "string",
-            "description": "Memorable deployment name. Defaults to <template>-derived name if omitted."
+            "description": "Memorable deployment name. Defaults to <template>-derived name if omitted.",
+            "type": "string"
           }
         },
         "required": [
           "template"
         ],
-        "additionalProperties": false,
-        "$schema": "http://json-schema.org/draft-07/schema#"
+        "additionalProperties": false
       },
       "annotations": {
-        "destructiveHint": true
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true
       },
       "execution": {
         "taskSupport": "forbidden"
@@ -644,10 +753,14 @@
       "inputSchema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
-        "properties": {}
+        "properties": {},
+        "additionalProperties": false
       },
       "annotations": {
-        "readOnlyHint": true
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
       },
       "execution": {
         "taskSupport": "forbidden"
@@ -658,6 +771,7 @@
       "title": "Show AI Agent Template Details",
       "description": "Backward-compatible alias for varity_template_info. Pass a certified template ID from varity_list_templates.",
       "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "name": {
@@ -668,11 +782,13 @@
         "required": [
           "name"
         ],
-        "additionalProperties": false,
-        "$schema": "http://json-schema.org/draft-07/schema#"
+        "additionalProperties": false
       },
       "annotations": {
-        "readOnlyHint": true
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
       },
       "execution": {
         "taskSupport": "forbidden"
@@ -683,6 +799,7 @@
       "title": "Deploy an AI Agent Template",
       "description": "Backward-compatible alias for varity_deploy_template. Deploys only public certified templates with no required environment variables; private or secret-bearing templates are refused.",
       "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "agent": {
@@ -690,18 +807,20 @@
             "description": "Template ID from varity_list_templates."
           },
           "name": {
-            "type": "string",
-            "description": "Memorable deployment name. Defaults to <template>-derived name if omitted."
+            "description": "Memorable deployment name. Defaults to <template>-derived name if omitted.",
+            "type": "string"
           }
         },
         "required": [
           "agent"
         ],
-        "additionalProperties": false,
-        "$schema": "http://json-schema.org/draft-07/schema#"
+        "additionalProperties": false
       },
       "annotations": {
-        "destructiveHint": true
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true
       },
       "execution": {
         "taskSupport": "forbidden"
@@ -712,6 +831,7 @@
       "title": "Preview a Vercel Migration",
       "description": "Clone a GitHub repository into a disposable directory and preview the transformations the current varitykit migration owner would apply. This tool does not mutate the source repository or deploy. Applying a migration requires a user-controlled local checkout so the transformed source can be reviewed, committed, and pushed before deployment.",
       "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "github_url": {
@@ -719,19 +839,21 @@
             "description": "GitHub repository URL to inspect, for example https://github.com/user/app."
           },
           "dry_run": {
-            "type": "boolean",
             "default": true,
-            "description": "Must remain true. URL-based migration is preview-only until transformed-source custody is explicit."
+            "description": "Must remain true. URL-based migration is preview-only until transformed-source custody is explicit.",
+            "type": "boolean"
           }
         },
         "required": [
           "github_url"
         ],
-        "additionalProperties": false,
-        "$schema": "http://json-schema.org/draft-07/schema#"
+        "additionalProperties": false
       },
       "annotations": {
-        "readOnlyHint": true
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
       },
       "execution": {
         "taskSupport": "forbidden"

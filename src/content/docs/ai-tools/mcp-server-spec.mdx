@@ -18,8 +18,8 @@ uses npm's current `latest` release; an unreleased source branch is not evidence
 of what that command installs.
 
 <Aside type="note">
-The machine-readable [`/mcp-schema.json`](/mcp-schema.json) is a conservative
-documentation reference tied to the named npm release. It is not the MCP wire
+The machine-readable [`/mcp-schema.json`](/mcp-schema.json) is a copy of the
+`tools/list` response of the named npm release. It is not the MCP wire
 contract. Your installed server's `tools/list` response is authoritative for
 executable definitions. The scheduled check fails when npm's `latest` version
 moves ahead of the reference's release marker.
@@ -97,8 +97,8 @@ project path is not an ownership boundary.
 
 ## Tool Reference
 
-Use [`/mcp-schema.json`](/mcp-schema.json) for conservative usage guidance and
-the release identity reviewed by Docs. Discover names, input schemas, and
+Use [`/mcp-schema.json`](/mcp-schema.json) for the tool definitions and
+release identity reviewed by Docs. Discover names, input schemas, and
 annotations from the installed server before calling a tool. Do not copy a tool
 table into automation from this page. The platform HTTP routes wrapped by
 deployment tools are separately published at [`/openapi.yaml`](/openapi.yaml).
@@ -140,8 +140,8 @@ Important lifecycle semantics:
 
 The package also exposes local-development and repository helpers. Discover
 their current schemas and annotations from the installed server's `tools/list`
-response before calling them. Use `/mcp-schema.json` only for conservative Docs
-guidance tied to its recorded release marker.
+response before calling them. Use `/mcp-schema.json` only as a Docs reference
+tied to its recorded release marker.
 
 ## Transports
 

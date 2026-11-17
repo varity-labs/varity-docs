@@ -1,0 +1,86 @@
+---
+title: Varity Plugin for AI Editors
+description: Install the Varity plugin in Claude Code or Gemini CLI to get the Varity MCP server and the deploy-with-varity skill in one step.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+import PageMeta from '../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  stability="stable"
+/>
+
+The Varity plugin ([`varity-labs/varity-plugin`](https://github.com/varity-labs/varity-plugin))
+bundles two things for your AI editor:
+
+- the [Varity MCP server](/ai-tools/mcp-server-spec/), started over stdio at the
+  version the plugin pins; and
+- the `deploy-with-varity` skill, which tells the agent to check the cost first,
+  then deploy and report the live URL.
+
+Deploys need only a deploy key. Create one in the Developer Portal under
+**Settings > Deploy keys**, then set it as `VARITY_DEPLOY_KEY` in your shell or
+MCP configuration, or sign in with the Varity CLI. Never paste a key into the
+chat.
+
+## Claude Code
+
+```bash
+claude plugin marketplace add varity-labs/varity-plugin
+claude plugin install varity@varity-plugin
+```
+
+## Gemini CLI
+
+```bash
+gemini extensions install https://github.com/varity-labs/varity-plugin
+```
+
+## Cursor, GitHub Copilot CLI, VS Code, Codex and Kiro
+
+The repository carries a root Agent Plugins `plugin.json` and a root `mcp.json`,
+and Cursor also reads `.cursor-plugin/plugin.json`. Kiro can use the same
+repository as a power. Add it from your client's plugin or power UI with the
+repository URL `https://github.com/varity-labs/varity-plugin`.
+
+<Aside type="note">
+These clients have no marketplace listing yet, so this page gives no
+client-specific command for them. If your client cannot install from a
+repository URL, add the MCP server directly (below).
+</Aside>
+
+## Skill only
+
+```bash
+npx skills add varity-labs/varity-plugin --skill deploy-with-varity
+```
+
+The skill needs the Varity MCP server: install the plugin, or add the server
+to your MCP configuration as shown below, and set `VARITY_DEPLOY_KEY`.
+
+## Any MCP client
+
+```json
+{
+  "mcpServers": {
+    "varity": {
+      "command": "npx",
+      "args": ["-y", "@varity-labs/mcp"],
+      "env": { "VARITY_DEPLOY_KEY": "<your deploy key>" }
+    }
+  }
+}
+```
+
+The `env` field is optional: you can export `VARITY_DEPLOY_KEY` in your shell
+instead. Never put a real key in a checked-in configuration file. Client
+specific setup is on the [MCP Server Reference](/ai-tools/mcp-server-spec/).
+
+## Check the install
+
+Ask your agent to "check my Varity environment". It runs `varity_doctor`, which
+reports whether a deploy key is configured and where it came from. The server's
+full tool list comes from its `tools/list` response; the Docs copy is
+[`/mcp-schema.json`](/mcp-schema.json).

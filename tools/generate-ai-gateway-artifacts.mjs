@@ -198,7 +198,7 @@ function renderHeader(pages, schema) {
     schema.server.install.claudeCode,
     '```',
     '',
-    'MCP clients must discover executable tool definitions from the installed server\'s `tools/list` response. The Docs `/mcp-schema.json` artifact is a conservative safety reference, not the wire contract.',
+    'MCP clients must discover executable tool definitions from the installed server\'s `tools/list` response. The Docs `/mcp-schema.json` artifact copies the named release\'s `tools/list`; it is not the wire contract.',
     '',
   ];
   return lines.join('\n');

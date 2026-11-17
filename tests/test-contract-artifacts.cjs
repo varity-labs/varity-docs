@@ -93,6 +93,12 @@ if (mcp) {
   }
   if (!Array.isArray(mcp.tools) || mcp.tools.length === 0) errors.push('MCP schema must declare tools');
   if (mcp.toolCount !== mcp.tools?.length) errors.push('MCP schema toolCount must equal tools.length');
+  // The published server is stdio only; any other transport argument exits.
+  if (!Array.isArray(mcp.server?.transports) || mcp.server.transports.length === 0) {
+    errors.push('MCP schema must declare its transports');
+  } else if (mcp.server.transports.some((transport) => transport !== 'stdio')) {
+    errors.push(`MCP schema transports must be stdio only, got ${JSON.stringify(mcp.server.transports)}`);
+  }
 
   const toolNames = (mcp.tools || []).map((tool) => tool.name);
   if (toolNames.some((name) => typeof name !== 'string' || !name.startsWith('varity_'))) {
@@ -201,8 +207,7 @@ if (/capability_disabled/.test(llmsFull)) errors.push('public/llms-full.txt docu
 
 // MCP facts the published package contradicts: a key pasted into chat, the
 // retired HTTP transport, an image-credentials input no tool accepts, and an
-// anchor no page defines. public/mcp-schema.json is regenerated from the
-// released tools/list in its own change, so it is not scanned here.
+// anchor no page defines.
 // A redeploy restarts the last successful release; only a new deploy with the
 // same app name builds pushed code, and the build reads the repository, not a
 // local checkout. These phrases taught the opposite.
@@ -220,7 +225,7 @@ function scanTree(relativeDir, skip) {
   }
 }
 scanTree('src', []);
-scanTree('public', ['public/mcp-schema.json']);
+scanTree('public', []);
 
 if (process.env.VERIFY_DIST === '1') {
   for (const artifact of ['openapi.yaml', 'mcp-schema.json', 'llms.txt', 'llms-full.txt']) {

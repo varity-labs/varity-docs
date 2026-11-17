@@ -8,7 +8,7 @@ Use these docs as the public Varity documentation context. Current MCP install c
 claude mcp add varity -- npx -y @varity-labs/mcp
 ```
 
-MCP clients must discover executable tool definitions from the installed server's `tools/list` response. The Docs `/mcp-schema.json` artifact is a conservative safety reference, not the wire contract.
+MCP clients must discover executable tool definitions from the installed server's `tools/list` response. The Docs `/mcp-schema.json` artifact copies the named release's `tools/list`; it is not the wire contract.
 
 
 ## Varity Documentation Home
@@ -2109,8 +2109,8 @@ MCP-compatible editor access to Varity's published tools. The install command
 uses npm's current `latest` release; an unreleased source branch is not evidence
 of what that command installs.
 
-The machine-readable [`/mcp-schema.json`](/mcp-schema.json) is a conservative
-documentation reference tied to the named npm release. It is not the MCP wire
+The machine-readable [`/mcp-schema.json`](/mcp-schema.json) is a copy of the
+`tools/list` response of the named npm release. It is not the MCP wire
 contract. Your installed server's `tools/list` response is authoritative for
 executable definitions. The scheduled check fails when npm's `latest` version
 moves ahead of the reference's release marker.
@@ -2185,8 +2185,8 @@ project path is not an ownership boundary.
 
 ## Tool Reference
 
-Use [`/mcp-schema.json`](/mcp-schema.json) for conservative usage guidance and
-the release identity reviewed by Docs. Discover names, input schemas, and
+Use [`/mcp-schema.json`](/mcp-schema.json) for the tool definitions and
+release identity reviewed by Docs. Discover names, input schemas, and
 annotations from the installed server before calling a tool. Do not copy a tool
 table into automation from this page. The platform HTTP routes wrapped by
 deployment tools are separately published at [`/openapi.yaml`](/openapi.yaml).
@@ -2228,8 +2228,8 @@ Important lifecycle semantics:
 
 The package also exposes local-development and repository helpers. Discover
 their current schemas and annotations from the installed server's `tools/list`
-response before calling them. Use `/mcp-schema.json` only for conservative Docs
-guidance tied to its recorded release marker.
+response before calling them. Use `/mcp-schema.json` only as a Docs reference
+tied to its recorded release marker.
 
 ## Transports
 
@@ -2452,6 +2452,84 @@ It also learns the real deploy flow: detect the framework, choose the hosting mo
 
 - **[MCP Server Spec](/ai-tools/mcp-server-spec)**: Setup guide and tool reference
 - **[Build with AI (No Code)](/tutorials/build-with-ai/)**: Deploy your first app from your AI editor
+
+---
+
+## Varity Plugin for AI Editors
+
+URL: https://docs.varity.so/ai-tools/plugin/
+Description: Install the Varity plugin in Claude Code or Gemini CLI to get the Varity MCP server and the deploy-with-varity skill in one step.
+
+The Varity plugin ([`varity-labs/varity-plugin`](https://github.com/varity-labs/varity-plugin))
+bundles two things for your AI editor:
+
+- the [Varity MCP server](/ai-tools/mcp-server-spec/), started over stdio at the
+  version the plugin pins; and
+- the `deploy-with-varity` skill, which tells the agent to check the cost first,
+  then deploy and report the live URL.
+
+Deploys need only a deploy key. Create one in the Developer Portal under
+**Settings > Deploy keys**, then set it as `VARITY_DEPLOY_KEY` in your shell or
+MCP configuration, or sign in with the Varity CLI. Never paste a key into the
+chat.
+
+## Claude Code
+
+```bash
+claude plugin marketplace add varity-labs/varity-plugin
+claude plugin install varity@varity-plugin
+```
+
+## Gemini CLI
+
+```bash
+gemini extensions install https://github.com/varity-labs/varity-plugin
+```
+
+## Cursor, GitHub Copilot CLI, VS Code, Codex and Kiro
+
+The repository carries a root Agent Plugins `plugin.json` and a root `mcp.json`,
+and Cursor also reads `.cursor-plugin/plugin.json`. Kiro can use the same
+repository as a power. Add it from your client's plugin or power UI with the
+repository URL `https://github.com/varity-labs/varity-plugin`.
+
+These clients have no marketplace listing yet, so this page gives no
+client-specific command for them. If your client cannot install from a
+repository URL, add the MCP server directly (below).
+
+## Skill only
+
+```bash
+npx skills add varity-labs/varity-plugin --skill deploy-with-varity
+```
+
+The skill needs the Varity MCP server: install the plugin, or add the server
+to your MCP configuration as shown below, and set `VARITY_DEPLOY_KEY`.
+
+## Any MCP client
+
+```json
+{
+  "mcpServers": {
+    "varity": {
+      "command": "npx",
+      "args": ["-y", "@varity-labs/mcp"],
+      "env": { "VARITY_DEPLOY_KEY": "<your deploy key>" }
+    }
+  }
+}
+```
+
+The `env` field is optional: you can export `VARITY_DEPLOY_KEY` in your shell
+instead. Never put a real key in a checked-in configuration file. Client
+specific setup is on the [MCP Server Reference](/ai-tools/mcp-server-spec/).
+
+## Check the install
+
+Ask your agent to "check my Varity environment". It runs `varity_doctor`, which
+reports whether a deploy key is configured and where it came from. The server's
+full tool list comes from its `tools/list` response; the Docs copy is
+[`/mcp-schema.json`](/mcp-schema.json).
 
 ---
 
@@ -3513,7 +3591,7 @@ Deploy full-stack applications with backend:
 varitykit app deploy --hosting dynamic
 ```
 
-- **Best for**: APIs, databases, server-side rendering, AI agents, LLMs
+- **Best for**: APIs, databases, server-side rendering, AI agents
 - **Cost**: Up to a fixed monthly maximum per app, prorated by running time, based on the resources you reserve. See [Pricing and Costs](/resources/pricing/).
 - **Features**: Containers, scaling, persistence
 
