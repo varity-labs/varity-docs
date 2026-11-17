@@ -66,6 +66,10 @@ const FIELDS = {
   'free-monthly-usage': (p) => creditsAsUsd(p, p.free?.monthlyCredits, 'free.monthlyCredits'),
   'free-daily-ai-usage': (p) => creditsAsUsd(p, p.free?.dailyAiCredits, 'free.dailyAiCredits'),
   'free-promo-categories': (p) => list(required(p.free?.promoCategories, 'free.promoCategories').map(categoryName)),
+  'free-static-sites': (p) => {
+    const sites = required(p.static?.freeSites, 'static.freeSites');
+    return `${count(sites)} static site${sites === 1 ? '' : 's'}`;
+  },
   'rollover-cycles': (p) => {
     const cycles = required(p.rollover?.subscriptionCycles, 'rollover.subscriptionCycles');
     return `${count(cycles)} billing cycle${cycles === 1 ? '' : 's'}`;

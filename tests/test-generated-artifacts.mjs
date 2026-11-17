@@ -125,6 +125,9 @@ failsClosed((p) => { p.errorCodes.push('new_billing_code'); }, 'a billing code w
 failsClosed((p) => { p.errorCodes.pop(); }, 'a meaning whose code left the contract');
 failsClosed((p) => { delete p.free.dailyAiCredits; }, 'a missing field');
 failsClosed((p) => { p.free.promoCategories.push('new_category'); }, 'an unnamed spend category');
+failsClosed((p) => { delete p.static.freeSites; }, 'a missing free static-site allowance');
+if (!CREDIT_POLICY_FIELDS.includes('free-static-sites')) errors.push('credit policy must render the free static-site allowance (free-static-sites)');
+else if (creditPolicyField({ credit_policy: { ...creditPolicy.credit_policy, static: { freeSites: 3 } } }, 'free-static-sites') !== '3 static sites') errors.push('free-static-sites must render "3 static sites" for freeSites 3');
 // An absent or unreadable (null) live credit_policy must never be mirrored.
 for (const body of [{}, { credit_policy: null }]) {
   const fakeFetch = async () => new Response(JSON.stringify(body), { status: 200 });
