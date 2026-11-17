@@ -1,0 +1,106 @@
+---
+title: Use Varity with OpenCode
+description: Add the Varity MCP server to OpenCode so your agent can check the cost of a deployment, deploy and follow its status from the terminal.
+---
+
+import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+import PageMeta from '../../../components/PageMeta.astro';
+
+<PageMeta
+  author="Varity Team"
+  authorRole="Core Contributors"
+  stability="stable"
+/>
+
+OpenCode runs the Varity MCP server (`@varity-labs/mcp`) as a local stdio
+server. Once it is added, ask OpenCode to check the cost of a deployment,
+deploy a repository and report the live URL.
+
+<Aside type="note">
+These steps follow OpenCode's own documentation. Varity has not yet tested
+them in OpenCode.
+</Aside>
+
+## Before you start
+
+- **Node.js 22.11 or newer**, so OpenCode can start the server with `npx`.
+- **A deploy key** from the Developer Portal under **Settings > Deploy keys**.
+  Export it as `VARITY_DEPLOY_KEY` in the shell that starts OpenCode. Never
+  paste a key into the chat.
+
+```bash
+export VARITY_DEPLOY_KEY="<your deploy key>"
+```
+
+## Add the server
+
+```bash
+opencode mcp add varity -- npx -y @varity-labs/mcp@latest
+opencode mcp list
+```
+
+OpenCode 1.x writes the server to your global config. OpenCode 2 writes it to
+the project config; add `--global` there to use it in every project. A local
+server inherits OpenCode's environment, so it reads the `VARITY_DEPLOY_KEY` you
+exported.
+
+## Or edit the config file
+
+To configure the server by hand, add it to `opencode.json` in your project, or
+to `~/.config/opencode/opencode.json` for every project. The
+`{env:VARITY_DEPLOY_KEY}` value reads the key from your environment, so the key
+itself never sits in the file.
+
+<Tabs>
+  <TabItem label="OpenCode 1.x">
+    ```json
+    {
+      "$schema": "https://opencode.ai/config.json",
+      "mcp": {
+        "varity": {
+          "type": "local",
+          "command": ["npx", "-y", "@varity-labs/mcp@latest"],
+          "enabled": true,
+          "environment": {
+            "VARITY_DEPLOY_KEY": "{env:VARITY_DEPLOY_KEY}"
+          }
+        }
+      }
+    }
+    ```
+  </TabItem>
+  <TabItem label="OpenCode 2">
+    OpenCode 2 places servers under `mcp.servers` and has no `enabled` field:
+
+    ```json
+    {
+      "$schema": "https://opencode.ai/config.json",
+      "mcp": {
+        "servers": {
+          "varity": {
+            "type": "local",
+            "command": ["npx", "-y", "@varity-labs/mcp@latest"],
+            "environment": {
+              "VARITY_DEPLOY_KEY": "{env:VARITY_DEPLOY_KEY}"
+            }
+          }
+        }
+      }
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+<Aside type="caution">
+Never put a real key in a checked-in configuration file. Use
+`{env:VARITY_DEPLOY_KEY}` as shown.
+</Aside>
+
+## Check the install
+
+Ask OpenCode to "check my Varity environment". It runs `varity_doctor`, which
+reports whether a deploy key is configured. Then ask it to "estimate the cost of
+deploying this project to Varity" before you deploy.
+
+The full tool list and client setup for other editors are on the
+[MCP Server Reference](/ai-tools/mcp-server-spec/).

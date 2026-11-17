@@ -257,6 +257,8 @@ export default defineConfig({
               label: "MCP Server (Claude Code / Cursor)",
               slug: "ai-tools/mcp-server-spec",
             },
+            { label: "Use with OpenCode", slug: "ai-tools/opencode" },
+            { label: "Use with LM Studio", slug: "ai-tools/lm-studio" },
             { label: "API Reference", slug: "ai-tools/api-reference" },
             { label: "AI Prompts", slug: "ai-tools/prompts" },
             { label: "CLI (varitykit)", slug: "cli/overview" },
