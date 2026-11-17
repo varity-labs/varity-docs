@@ -10710,6 +10710,226 @@
       }
     },
     {
+      "id": "gpt-6-2-astra",
+      "privacy": "anonymized",
+      "context_window": 1050000,
+      "max_completion_tokens": 128000,
+      "capabilities": {
+        "version": 1,
+        "input_modalities": [
+          "text",
+          "document",
+          "image"
+        ],
+        "output_modalities": [
+          "text"
+        ],
+        "chat_completions": true,
+        "streaming_text": true,
+        "tool_calls": true,
+        "streaming_tool_calls": true,
+        "structured_outputs": true,
+        "json_schema": true,
+        "streaming": true,
+        "transcription": false,
+        "speech": false,
+        "speech_formats": [],
+        "parallel_tool_calls": true,
+        "max_documents_per_message": 5,
+        "reasoning_controls": true,
+        "reasoning_effort": true,
+        "web_search": true,
+        "x_search": false,
+        "optimized_for_code": false,
+        "uncensored": false,
+        "log_probs": false,
+        "temperature": true,
+        "top_p": true,
+        "seed": true,
+        "stop": true,
+        "context_window": 1050000,
+        "max_completion_tokens": 128000,
+        "privacy": "anonymized",
+        "privacy_routes": [
+          "anonymized"
+        ]
+      },
+      "customer_pricing": {
+        "status": "configured",
+        "version": "2026-10-18.ai-api.v5.2b867ca80218c90a",
+        "currency": "usd",
+        "unit": "per_million_tokens",
+        "input": 8.4,
+        "output": 42,
+        "cached_input": 0.42
+      }
+    },
+    {
+      "id": "gpt-6-2-astra-pro",
+      "privacy": "anonymized",
+      "context_window": 1050000,
+      "max_completion_tokens": 128000,
+      "capabilities": {
+        "version": 1,
+        "input_modalities": [
+          "text",
+          "document",
+          "image"
+        ],
+        "output_modalities": [
+          "text"
+        ],
+        "chat_completions": true,
+        "streaming_text": true,
+        "tool_calls": true,
+        "streaming_tool_calls": true,
+        "structured_outputs": true,
+        "json_schema": true,
+        "streaming": true,
+        "transcription": false,
+        "speech": false,
+        "speech_formats": [],
+        "parallel_tool_calls": true,
+        "max_documents_per_message": 5,
+        "reasoning_controls": true,
+        "reasoning_effort": true,
+        "web_search": true,
+        "x_search": false,
+        "optimized_for_code": false,
+        "uncensored": false,
+        "log_probs": false,
+        "temperature": true,
+        "top_p": true,
+        "seed": true,
+        "stop": true,
+        "context_window": 1050000,
+        "max_completion_tokens": 128000,
+        "privacy": "anonymized",
+        "privacy_routes": [
+          "anonymized"
+        ]
+      },
+      "customer_pricing": {
+        "status": "configured",
+        "version": "2026-10-18.ai-api.v5.2b867ca80218c90a",
+        "currency": "usd",
+        "unit": "per_million_tokens",
+        "input": 8.4,
+        "output": 42,
+        "cached_input": 0.42
+      }
+    },
+    {
+      "id": "gpt-6-2-sol",
+      "privacy": "anonymized",
+      "context_window": 1050000,
+      "max_completion_tokens": 128000,
+      "capabilities": {
+        "version": 1,
+        "input_modalities": [
+          "text",
+          "document",
+          "image"
+        ],
+        "output_modalities": [
+          "text"
+        ],
+        "chat_completions": true,
+        "streaming_text": true,
+        "tool_calls": true,
+        "streaming_tool_calls": true,
+        "structured_outputs": true,
+        "json_schema": true,
+        "streaming": true,
+        "transcription": false,
+        "speech": false,
+        "speech_formats": [],
+        "parallel_tool_calls": true,
+        "max_documents_per_message": 5,
+        "reasoning_controls": true,
+        "reasoning_effort": true,
+        "web_search": true,
+        "x_search": false,
+        "optimized_for_code": false,
+        "uncensored": false,
+        "log_probs": false,
+        "temperature": true,
+        "top_p": true,
+        "seed": true,
+        "stop": true,
+        "context_window": 1050000,
+        "max_completion_tokens": 128000,
+        "privacy": "anonymized",
+        "privacy_routes": [
+          "anonymized"
+        ]
+      },
+      "customer_pricing": {
+        "status": "configured",
+        "version": "2026-10-18.ai-api.v5.fd2c41d792e4da57",
+        "currency": "usd",
+        "unit": "per_million_tokens",
+        "input": 2.1,
+        "output": 10.5,
+        "cached_input": 0.105
+      }
+    },
+    {
+      "id": "gpt-6-2-sol-pro",
+      "privacy": "anonymized",
+      "context_window": 1050000,
+      "max_completion_tokens": 128000,
+      "capabilities": {
+        "version": 1,
+        "input_modalities": [
+          "text",
+          "document",
+          "image"
+        ],
+        "output_modalities": [
+          "text"
+        ],
+        "chat_completions": true,
+        "streaming_text": true,
+        "tool_calls": true,
+        "streaming_tool_calls": true,
+        "structured_outputs": true,
+        "json_schema": true,
+        "streaming": true,
+        "transcription": false,
+        "speech": false,
+        "speech_formats": [],
+        "parallel_tool_calls": true,
+        "max_documents_per_message": 5,
+        "reasoning_controls": true,
+        "reasoning_effort": true,
+        "web_search": true,
+        "x_search": false,
+        "optimized_for_code": false,
+        "uncensored": false,
+        "log_probs": false,
+        "temperature": true,
+        "top_p": true,
+        "seed": true,
+        "stop": true,
+        "context_window": 1050000,
+        "max_completion_tokens": 128000,
+        "privacy": "anonymized",
+        "privacy_routes": [
+          "anonymized"
+        ]
+      },
+      "customer_pricing": {
+        "status": "configured",
+        "version": "2026-10-18.ai-api.v5.fd2c41d792e4da57",
+        "currency": "usd",
+        "unit": "per_million_tokens",
+        "input": 2.1,
+        "output": 10.5,
+        "cached_input": 0.105
+      }
+    },
+    {
       "id": "gpt-6-astra",
       "privacy": "anonymized",
       "context_window": 1050000,
