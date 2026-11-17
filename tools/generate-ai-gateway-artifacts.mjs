@@ -354,7 +354,7 @@ export function check(root) {
  * never hides drift in another (an MCP release-marker mismatch stays visible
  * while the AI Gateway mirror is stale).
  */
-export async function checkLive(root, fetchImpl = fetch) {
+async function checkLive(root, fetchImpl = fetch) {
   const checks = [
     () => checkPlatformOpenApiMirror(root, fetchImpl),
     () => checkAiGatewayMirror(root, fetchImpl),

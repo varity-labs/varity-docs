@@ -8,13 +8,22 @@
 //
 // Check name: generated AI gateway artifacts match their sources
 import { readFileSync, readdirSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { createMarkdownProcessor } from '@astrojs/markdown-remark';
-import { check, checkLive, fetchCreditPolicyMirror, projectModel } from '../tools/generate-ai-gateway-artifacts.mjs';
+import { check, fetchCreditPolicyMirror, projectModel } from '../tools/generate-ai-gateway-artifacts.mjs';
 import { CREDIT_POLICY_FIELDS, creditPolicyMarkdown, creditPolicyField } from '../src/lib/credit-policy.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
-const { ok, errors } = check(root);
+// A page naming a field the renderer lacks throws inside generation; report it
+// and keep running, so every later assertion still names its own failure.
+let ok = false;
+let errors;
+try {
+  ({ ok, errors } = check(root));
+} catch (error) {
+  errors = [`generating artifacts failed: ${error.message}`];
+}
 
 // llms-full.txt must carry the live AI Gateway catalog, not prose about it:
 // before 2026-09-24 it named 9 of 183 model ids and none of the funding terms,
@@ -185,18 +194,28 @@ if (volatile.test(JSON.stringify(projected)) || projected.capabilities.tool_call
   errors.push('projectModel must drop only the volatile fields');
 }
 // --check-live reports every drift, not only the first: a stale AI Gateway
-// mirror must not hide an MCP release-marker mismatch behind it.
+// mirror must not hide an MCP release-marker mismatch behind it. The public
+// entry point runs with a stubbed fetch: the platform OpenAPI and credit policy
+// match their mirrors, the AI Gateway is unreachable, and npm names another version.
 {
-  const stored = (path) => readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
-  const json = (body) => new Response(typeof body === 'string' ? body : JSON.stringify(body), { status: 200 });
-  const liveFetch = async (url) => {
-    if (url === 'https://varity.app/api/openapi.json') return json(stored('contracts/openapi.platform.mirror.json'));
-    if (url.startsWith('https://ai.varity.app/')) throw new Error('unreachable in test');
-    if (url === 'https://varity.app/api/pricing') return json({ credit_policy: creditPolicy.credit_policy });
-    if (url.startsWith('https://registry.npmjs.org/')) return json({ version: '0.0.0-live-check-test' });
-    throw new Error(`unexpected fetch ${url}`);
-  };
-  const liveErrors = await checkLive(root, liveFetch);
+  const stubFetch = `
+    import { readFileSync } from 'node:fs';
+    const stored = (path) => readFileSync(new URL(path, ${JSON.stringify(new URL('../', import.meta.url).href)}), 'utf8');
+    const json = (body) => new Response(body, { status: 200 });
+    globalThis.fetch = async (url) => {
+      url = String(url);
+      if (url === 'https://varity.app/api/openapi.json') return json(stored('contracts/openapi.platform.mirror.json'));
+      if (url.startsWith('https://ai.varity.app/')) throw new Error('unreachable in test');
+      if (url === 'https://varity.app/api/pricing') return json(JSON.stringify({ credit_policy: JSON.parse(stored('contracts/credit-policy.mirror.json')).credit_policy }));
+      if (url.startsWith('https://registry.npmjs.org/')) return json(JSON.stringify({ version: '0.0.0-live-check-test' }));
+      throw new Error('unexpected fetch ' + url);
+    };`;
+  const run = spawnSync(process.execPath, [
+    '--import', `data:text/javascript,${encodeURIComponent(stubFetch)}`,
+    fileURLToPath(new URL('../tools/generate-ai-gateway-artifacts.mjs', import.meta.url)), '--check-live',
+  ], { encoding: 'utf8' });
+  const liveErrors = run.stderr.split('\n').filter((line) => line.startsWith('  ')).map((line) => line.trim());
+  if (run.status !== 1) errors.push(`--check-live must exit 1 on injected drift (got ${run.status}: ${run.stderr})`);
   if (!liveErrors.some((e) => e.includes('ai.varity.app'))) {
     errors.push(`checkLive must report the unreachable AI Gateway (got ${JSON.stringify(liveErrors)})`);
   }
