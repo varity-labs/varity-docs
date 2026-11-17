@@ -110,6 +110,10 @@ If you are using Claude Code or Cursor, the Varity MCP server lets your AI tool 
      </TabItem>
    </Tabs>
 
+   <Aside type="tip" icon="approve-check" title="First deploy?">
+   The first deploy needs a deploy key. Create one in the developer portal under **Settings > Deploy keys**, then set it as `VARITY_DEPLOY_KEY` in the MCP server's environment, or run `varitykit login` in a terminal and paste it into the hidden prompt. Never paste a key into the chat: the MCP server does not accept credentials as tool input. See [MCP authentication](/ai-tools/mcp-server-spec/#authentication).
+   </Aside>
+
 2. **Open your project and ask your AI tool to deploy**
 
    Inside Claude Code or Cursor, with your project open:
@@ -125,10 +129,6 @@ If you are using Claude Code or Cursor, the Varity MCP server lets your AI tool 
    Once the deploy finishes, your app is available at its URL. Static sites live at `https://varity.app/<app-name>/`; dynamic apps live at `https://<app-name>.varity.app/`.
 
 </Steps>
-
-<Aside type="tip" icon="approve-check" title="First deploy?">
-The first deploy needs a deploy key. Create one in the developer portal under **Settings > Deploy keys**, then set it as `VARITY_DEPLOY_KEY` in the MCP server's environment, or run `varitykit login` in a terminal and paste it into the hidden prompt. Never paste a key into the chat: the MCP server does not accept credentials as tool input.
-</Aside>
 
 ---
 

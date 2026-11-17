@@ -37,6 +37,7 @@ Every error from the Varity platform API (`https://varity.app/api`) returns the 
 | <span id="docs_url"></span>`docs_url` | string (uri) | yes | Deep link to this page, anchored at the code. |
 | <span id="field"></span>`field` | string | no | The offending request field, on validation failures. |
 | <span id="correlation_id"></span>`correlation_id` | string | no | Request correlation identifier. See below. |
+| <span id="trace_id"></span>`trace_id` | string | no | Trace identifier for this failed request, 32 lowercase hex characters. Include it with `correlation_id` in support requests. |
 
 <Aside type="caution">
 `message` and `action` are written for people and may be reworded at any time. Only `code`, `retryable`, and the HTTP status are contract. Treat an unrecognized `code` as its HTTP status class.
