@@ -2283,16 +2283,15 @@ export VARITY_DEPLOY_KEY="<your deploy key>"
 
 ## Add the server
 
-Run this from the project that should use Varity:
-
 ```bash
 opencode mcp add varity -- npx -y @varity-labs/mcp@latest
 opencode mcp list
 ```
 
-Add `--global` to `opencode mcp add` to make the server available in every
-project. A local server inherits OpenCode's environment, so it reads the
-`VARITY_DEPLOY_KEY` you exported.
+OpenCode 1.x writes the server to your global config. OpenCode 2 writes it to
+the project config; add `--global` there to use it in every project. A local
+server inherits OpenCode's environment, so it reads the `VARITY_DEPLOY_KEY` you
+exported.
 
 ## Or edit the config file
 
