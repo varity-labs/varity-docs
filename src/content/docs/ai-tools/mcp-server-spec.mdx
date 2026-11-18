@@ -89,7 +89,7 @@ In Claude Code, add the server with the key in one command, replacing `<key>`
 with your key. If you already added the server without a key, run `claude mcp remove varity` first.
 
 ```bash
-claude mcp add -e VARITY_DEPLOY_KEY=<key> varity -- npx -y @varity-labs/mcp@latest
+claude mcp add varity -e VARITY_DEPLOY_KEY=<key> -- npx -y @varity-labs/mcp@latest
 ```
 
 In other clients, set `VARITY_DEPLOY_KEY` in the server's `env` or in the shell

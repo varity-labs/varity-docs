@@ -191,6 +191,8 @@ for (const file of require('child_process').execFileSync('git', ['ls-files', 'sr
   for (const [hit] of read(file).matchAll(/(?:npx (?:-y )?|(?<!"package": )["'])@varity-labs\/mcp(?:@[^\s"`']*)?/g)) {
     if (!hit.endsWith('@varity-labs/mcp@latest')) errors.push(`${file}: install command must use @varity-labs/mcp@latest, found ${hit}`);
   }
+  // `claude mcp add` reads -e as a list, so a name after -e is taken as one more variable and the add fails.
+  if (/claude mcp add (?:[^\n]* )?-e [^\n]*? varity --/.test(read(file))) errors.push(`${file}: put the server name before -e in claude mcp add`);
 }
 
 const apiReference = read('src/content/docs/ai-tools/api-reference.mdx');
