@@ -354,6 +354,9 @@ Send the key as a bearer credential on every inference request:
 Authorization: Bearer $VARITY_API_KEY
 ```
 
+An app deployed with the [AI Gateway add-on](/deploy/env-variables/#ai-gateway-add-on)
+already has a key in `VARITY_AI_API_KEY`.
+
 ## Account Routes
 
 The portal tabs are built on these routes on `https://ai.varity.app`. They take
@@ -4230,7 +4233,7 @@ This is the path most people use. If you prefer the terminal, see [Deploy Your A
 ## Before You Start
 
 - A Varity account. Sign in at [developer.store.varity.so](https://developer.store.varity.so/?utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=dashboard-account).
-- A payment method on file for paid products. Varity asks for a card before your first paid deploy so your app can go live and stay live; you are billed up to a fixed monthly maximum for the hardware your app reserves, prorated by running time, not for traffic. Free static sites need a verified account only. See [Billing](/resources/billing/).
+- No card is needed for your first static sites or your one free Starter app, as long as your account's email address is not a disposable mailbox. Paid apps, CPU machines and GPUs are paid from your Varity balance (a subscription or added funds), which Varity checks before your first paid deploy; you are billed up to a fixed monthly maximum for the hardware your app reserves, prorated by running time, not for traffic. See [Billing](/resources/billing/).
 - Your app's source: a public GitHub repo, a connected GitHub account, or a public Docker image.
 
 ## Deploy in a Few Steps
@@ -4853,6 +4856,30 @@ There is no automatic `NEXT_PUBLIC_VARITY_APP_ID`, shared local credential, or
 application `VARITY_API_KEY`. If your application itself calls a Varity API,
 create and scope that credential explicitly, store it as a server-side secret,
 and never expose it through a browser-public prefix.
+
+## AI Gateway Add-on
+
+An application can get its own AI Gateway key without you creating or pasting
+one. When the add-on is on, the deployment receives three environment
+variables from a key scoped to that deployment:
+
+- `VARITY_AI_API_KEY`: the key, sent as `Authorization: Bearer $VARITY_AI_API_KEY`.
+- `VARITY_AI_BASE_URL`: the AI Gateway address for the OpenAI-format API.
+- `VARITY_AI_MODEL`: the model the add-on was set up with.
+
+Turn it on in any of these ways:
+
+1. On the Deploy page, choose **Attach Varity AI Gateway** before you deploy.
+   The key is added once the deployment is live.
+2. On a live deployment's page, choose **Add AI Gateway**.
+3. Build can include it in the plan it deploys.
+4. Through the API, send `ai_gateway: { "model": "<model id>" }` in the
+   deployment create request. See the [API reference](/ai-tools/api-reference/).
+
+The add-on is for applications deployed from a repository or a Docker image.
+Static sites and templates do not support it. Do not set these
+three names yourself. Requests made with
+the key are paid from your Varity balance, like any AI Gateway key.
 
 ## Public Versus Server-only Values
 
@@ -7306,15 +7333,16 @@ page of the Developer Portal.
 ### Free Static Sites
 
 Every account, on every plan, runs its first
-3 static sites at no charge. The sites live on a
+3 static sites at no charge. No card is needed
+when your account's email address is not a disposable mailbox. The sites live on a
 given UTC day take the free slots in the order they were created, and each
 further static site is billed monthly at the price shown before you deploy.
 Deleting a site frees its slot from the next UTC day.
 
 ### One Free Starter App
 
-Free accounts can run one **Starter** app at no charge after saving a card
-that passes verification. Each card can back only one free app.
+Free accounts can run one **Starter** app at no charge. No card is needed.
+Accounts that sign up with a disposable email address do not get the free app.
 
 - The free app does not spend your Free plan usage. Paid plans keep it too.
 - It keeps running while you sign in at least once every 30 days. If you do

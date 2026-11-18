@@ -71,6 +71,30 @@ application `VARITY_API_KEY`. If your application itself calls a Varity API,
 create and scope that credential explicitly, store it as a server-side secret,
 and never expose it through a browser-public prefix.
 
+## AI Gateway Add-on
+
+An application can get its own AI Gateway key without you creating or pasting
+one. When the add-on is on, the deployment receives three environment
+variables from a key scoped to that deployment:
+
+- `VARITY_AI_API_KEY`: the key, sent as `Authorization: Bearer $VARITY_AI_API_KEY`.
+- `VARITY_AI_BASE_URL`: the AI Gateway address for the OpenAI-format API.
+- `VARITY_AI_MODEL`: the model the add-on was set up with.
+
+Turn it on in any of these ways:
+
+1. On the Deploy page, choose **Attach Varity AI Gateway** before you deploy.
+   The key is added once the deployment is live.
+2. On a live deployment's page, choose **Add AI Gateway**.
+3. Build can include it in the plan it deploys.
+4. Through the API, send `ai_gateway: { "model": "<model id>" }` in the
+   deployment create request. See the [API reference](/ai-tools/api-reference/).
+
+The add-on is for applications deployed from a repository or a Docker image.
+Static sites and templates do not support it. Do not set these
+three names yourself. Requests made with
+the key are paid from your Varity balance, like any AI Gateway key.
+
 ## Public Versus Server-only Values
 
 Framework prefixes such as `NEXT_PUBLIC_`, `VITE_`, and `REACT_APP_` usually
