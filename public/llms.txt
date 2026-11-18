@@ -32,7 +32,7 @@ MCP clients must discover executable tool definitions from the installed server'
 - [API Errors](https://docs.varity.so/api/errors/): The Varity public API error envelope, the verified error codes, and which failures are safe to retry.
 - [Rate Limits](https://docs.varity.so/api/limits/): The two limits the Varity public API can answer with 429 (deployment queue backpressure and edge abuse protection) and how to retry creates safely.
 - [Command Line App Deploy with Varity CLI](https://docs.varity.so/cli/): Use the Varity CLI for command line app deploys, setup checks, and terminal workflows with varitykit.
-- [varitykit login and auth command](https://docs.varity.so/cli/commands/auth/): Log in to Varity from the CLI with varitykit login. Uses deploy keys from the developer portal for app deployment and domain management.
+- [varitykit login and auth command](https://docs.varity.so/cli/commands/auth/): Log in to Varity from the CLI with varitykit login. Signs in through your browser; deploy keys from the developer portal are for CI and agents.
 - [varitykit app deploy command](https://docs.varity.so/cli/commands/deploy/): Deploy static sites and dynamic apps with varitykit app deploy. Supports static and dynamic hosting with automatic framework detection.
 - [varitykit doctor command](https://docs.varity.so/cli/commands/doctor/): Run varitykit doctor to validate your development environment. Checks required tools (Node.js, npm, git), system resources, project config, and network.
 - [VarityKit CLI Overview Guide](https://docs.varity.so/cli/overview/): VarityKit CLI overview: deploy apps, run diagnostics, and manage domains. A familiar Python-based deploy CLI.

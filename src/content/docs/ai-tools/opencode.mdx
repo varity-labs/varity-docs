@@ -24,13 +24,16 @@ them in OpenCode.
 ## Before you start
 
 - **Node.js 22.11 or newer**, so OpenCode can start the server with `npx`.
-- **A deploy key** from the Developer Portal under **Settings > Deploy keys**.
-  Export it as `VARITY_DEPLOY_KEY` in the shell that starts OpenCode. Never
+- **A Varity account.** On the first deploy, the Varity server asks you to
+  confirm in a browser tab to connect Varity. There is no key to copy. Never
   paste a key into the chat.
+- **For CI or scripts only:** a deploy key from the Developer Portal under
+  **Settings > Deploy keys**, exported as `VARITY_DEPLOY_KEY` in the shell that
+  starts OpenCode:
 
-```bash
-export VARITY_DEPLOY_KEY="<your deploy key>"
-```
+  ```bash
+  export VARITY_DEPLOY_KEY="<your deploy key>"
+  ```
 
 ## Add the server
 
@@ -41,7 +44,7 @@ opencode mcp list
 
 OpenCode 1.x writes the server to your global config. OpenCode 2 writes it to
 the project config; add `--global` there to use it in every project. A local
-server inherits OpenCode's environment, so it reads the `VARITY_DEPLOY_KEY` you
+server inherits OpenCode's environment, so it reads a `VARITY_DEPLOY_KEY` you
 exported.
 
 ## Or edit the config file
@@ -49,7 +52,8 @@ exported.
 To configure the server by hand, add it to `opencode.json` in your project, or
 to `~/.config/opencode/opencode.json` for every project. The
 `{env:VARITY_DEPLOY_KEY}` value reads the key from your environment, so the key
-itself never sits in the file.
+itself never sits in the file. The `environment` entry is only for a deploy key
+in CI or scripts; without it, the server connects through the browser sign-in.
 
 <Tabs>
   <TabItem label="OpenCode 1.x">
