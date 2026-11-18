@@ -195,6 +195,17 @@ for (const file of require('child_process').execFileSync('git', ['ls-files', 'sr
   if (/claude mcp add (?:[^\n]* )?-e [^\n]*? varity --/.test(read(file))) errors.push(`${file}: put the server name before -e in claude mcp add`);
 }
 
+// Every MCP tool a page names must exist in the release named by /mcp-schema.json.
+{
+  const known = new Set((mcp.tools || []).map((tool) => tool.name));
+  for (const file of require('child_process').execFileSync('git', ['ls-files', 'src/content'], { cwd: root, encoding: 'utf8' }).split('\n').filter(Boolean)) {
+    if (file.startsWith('src/content/docs/ai-gateway/')) continue; // varity_* there are AI Gateway response fields, not MCP tools
+    for (const [, name] of read(file).matchAll(/`(varity_[a-z]+(?:_[a-z]+)*)`/g)) {
+      if (!known.has(name)) errors.push(`${file}: names MCP tool ${name}, which /mcp-schema.json ${mcp.server?.version} does not have`);
+    }
+  }
+}
+
 const apiReference = read('src/content/docs/ai-tools/api-reference.mdx');
 const mcpReference = read('src/content/docs/ai-tools/mcp-server-spec.mdx');
 const aiOverview = read('src/content/docs/ai-tools/overview.mdx');

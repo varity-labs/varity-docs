@@ -20,10 +20,11 @@ bundles two things for your AI editor:
 - the `deploy-with-varity` skill, which tells the agent to check the cost first,
   then deploy and report the live URL.
 
-Deploys need only a deploy key. Create one on the
-[Deploy keys page of the developer portal](https://developer.store.varity.so/dashboard/settings?tab=api-keys&utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=plugin-api-keys), then set it as `VARITY_DEPLOY_KEY` in your shell or
-MCP configuration, or sign in with the Varity CLI. Never paste a key into the
-chat.
+The first time you deploy, the agent opens a browser tab where you confirm to
+connect Varity; there is no key to copy. For CI or scripts, create a deploy key
+on the [Deploy keys page of the developer portal](https://developer.store.varity.so/dashboard/settings?tab=api-keys&utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=plugin-api-keys)
+and set it as `VARITY_DEPLOY_KEY` in your shell or MCP configuration. Never
+paste a key into the chat.
 
 ## Claude Code
 
@@ -31,6 +32,14 @@ chat.
 claude plugin marketplace add varity-labs/varity-plugin
 claude plugin install varity@varity-plugin
 ```
+
+In Claude Code the plugin also adds four commands:
+
+- `/varity:deploy` deploys the current project, with the cost shown first.
+- `/varity:status` shows whether your apps are live, and the build error if one failed.
+- `/varity:env <project folder> <SETTING_NAME ...>` sets settings and secrets
+  from the project's `.env` file. Pass names only; values stay on your computer.
+- `/varity:logs <app>` shows recent runtime logs.
 
 ## Gemini CLI
 

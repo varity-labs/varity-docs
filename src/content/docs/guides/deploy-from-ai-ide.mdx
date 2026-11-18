@@ -83,7 +83,7 @@ Works with Claude Code, Cursor, Windsurf, VS Code (Copilot), and any other edito
 </Tabs>
 
 <Aside type="note">
-Node.js 22.11 or later is required, plus a deploy key from the Developer Portal under **Settings > Deploy keys**. Set it as `VARITY_DEPLOY_KEY` in the MCP server's environment, or run `varitykit login` in a terminal; never paste it into the chat. The `varitykit` CLI (`pipx install varitykit`, Python 3.11 or later) is needed only for `varity_migrate`.
+Node.js 22.11 or later is required. On the first deploy, your AI tool connects Varity through a browser tab (`varity_login`). For CI or scripts, use a deploy key from the Developer Portal under **Settings > Deploy keys**, set as `VARITY_DEPLOY_KEY` in the MCP server's environment; never paste it into the chat. The `varitykit` CLI (`pipx install varitykit`, Python 3.11 or later) is needed only for `varity_migrate`.
 </Aside>
 
 ## Deploy with one prompt
@@ -145,12 +145,13 @@ Check my Varity environment, then build this project, deploy it, and open the li
 
 ## What the MCP server can do
 
-The Varity MCP server gives your AI editor 26 tools. Your installed server's `tools/list` response is the authoritative list:
+The Varity MCP server gives your AI editor 30 tools. Your installed server's `tools/list` response is the authoritative list:
 
 | Tool | What to ask your AI |
 |---|---|
 | `varity_doctor` | "Check if my environment is set up for Varity" |
-| `varity_login` | "Log in to Varity" |
+| `varity_login` | "Connect Varity" (opens a browser tab where you confirm) |
+| `varity_logout` | "Sign this computer out of Varity" |
 | `varity_search_docs` | "Search the Varity docs for Docker image deploys" |
 | `varity_install_deps` | "Install dependencies for this project" |
 | `varity_dev_server` | "Start the dev server and open it in my browser" |
@@ -158,9 +159,9 @@ The Varity MCP server gives your AI editor 26 tools. Your installed server's `to
 | `varity_build` | "Build this project for production" |
 | `varity_create_repo` | "Create a GitHub repo and push this project" |
 | `varity_deploy` | "Deploy this to Varity" |
-| `varity_deploy_status` | "Show me my deployment status" |
+| `varity_deploy_status` | "Show me my deployment status" (includes the build error if a build failed) |
 | `varity_deploy_logs` | "Show me the runtime logs" (dynamic apps only; static sites have no runtime logs) |
-| `varity_set_env` | Does not accept values; it points you to a secret-safe way to set them |
+| `varity_set_env` | "Set OPENAI_API_KEY on my app from my .env file" (names only, from a project folder your editor has open; you confirm before it sends, values stay on your computer, and the app restarts) |
 | `varity_redeploy` | "Restart this app's last release" (does not ship new code; to ship pushed changes, ask to deploy again with the same app name) |
 | `varity_delete_deployment` | "Tear down this deployment" (returns once accepted; check `varity_deploy_status` until billing reads stopped) |
 | `varity_migrate` | "Preview migrating my Vercel app to Varity" |
@@ -173,6 +174,7 @@ The Varity MCP server gives your AI editor 26 tools. Your installed server's `to
 | `varity_machines_list` | "List my Varity virtual machines" |
 | `varity_machines_create` | "Create a virtual machine I can SSH into with my public key" |
 | `varity_machines_delete` | "Delete that virtual machine" |
+| `varity_domain_add`, `varity_domain_verify`, `varity_domain_remove` | "Use app.example.com for my app" (returns the DNS records to add, then checks them) |
 
 Full reference at [MCP Server Spec](/ai-tools/mcp-server-spec).
 
