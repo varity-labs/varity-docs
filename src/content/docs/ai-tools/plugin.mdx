@@ -20,8 +20,8 @@ bundles two things for your AI editor:
 - the `deploy-with-varity` skill, which tells the agent to check the cost first,
   then deploy and report the live URL.
 
-Deploys need only a deploy key. Create one in the Developer Portal under
-**Settings > Deploy keys**, then set it as `VARITY_DEPLOY_KEY` in your shell or
+Deploys need only a deploy key. Create one on the
+[Deploy keys page of the developer portal](https://developer.store.varity.so/dashboard/settings?tab=api-keys&utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=plugin-api-keys), then set it as `VARITY_DEPLOY_KEY` in your shell or
 MCP configuration, or sign in with the Varity CLI. Never paste a key into the
 chat.
 
@@ -91,14 +91,15 @@ to your MCP configuration as shown below, and set `VARITY_DEPLOY_KEY`.
   "mcpServers": {
     "varity": {
       "command": "npx",
-      "args": ["-y", "@varity-labs/mcp"],
+      "args": ["-y", "@varity-labs/mcp@latest"],
       "env": { "VARITY_DEPLOY_KEY": "<your deploy key>" }
     }
   }
 }
 ```
 
-The `env` field is optional: you can export `VARITY_DEPLOY_KEY` in your shell
+The plugin itself pins a tested server release; this manual entry runs the
+current release. The `env` field is optional: you can export `VARITY_DEPLOY_KEY` in your shell
 instead. Never put a real key in a checked-in configuration file. Client
 specific setup is on the [MCP Server Reference](/ai-tools/mcp-server-spec/).
 

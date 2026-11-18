@@ -142,6 +142,57 @@ if (mcp) {
   }
 }
 
+// One-click install links decode to the same stdio command at @latest, with no
+// env and no key placeholder. Formats: cursor.com/docs/context/mcp/install-links
+// (name + base64 JSON of the server object) and
+// code.visualstudio.com/api/extension-guides/ai/mcp (URL-encoded JSON with name).
+{
+  const expected = { command: 'npx', args: ['-y', '@varity-labs/mcp@latest'] };
+  const pages = ['src/content/docs/ai-tools/mcp-server-spec.mdx', 'src/content/docs/getting-started/quickstart.mdx'];
+  const decoders = {
+    cursor: (url) => {
+      if (url.host !== 'anysphere.cursor-deeplink' || url.pathname !== '/mcp/install') return null;
+      if (url.searchParams.get('name') !== 'varity') return null;
+      return JSON.parse(Buffer.from(url.searchParams.get('config') || '', 'base64').toString('utf8'));
+    },
+    vscode: (url) => (url.pathname === 'mcp/install' ? JSON.parse(decodeURIComponent(url.search.slice(1))) : null),
+  };
+  decoders['vscode-insiders'] = decoders.vscode;
+  const found = { cursor: 0, vscode: 0, 'vscode-insiders': 0 };
+  for (const page of pages) {
+    for (const [raw] of read(page).matchAll(/\b(?:cursor|vscode|vscode-insiders):[^)\s]+/g)) {
+      const url = new URL(raw);
+      const scheme = url.protocol.slice(0, -1);
+      if (!(scheme in decoders)) continue;
+      found[scheme] += 1;
+      let config;
+      try {
+        config = decoders[scheme](url);
+      } catch {
+        config = null;
+      }
+      if (scheme !== 'cursor' && config) {
+        if (config.name !== 'varity') errors.push(`${page}: ${scheme} install link must name the server varity`);
+        delete config.name;
+      }
+      if (JSON.stringify(config) !== JSON.stringify(expected)) {
+        errors.push(`${page}: ${scheme} install link must decode to ${JSON.stringify(expected)} (no env, no key), got ${JSON.stringify(config)}`);
+      }
+    }
+  }
+  if (found.cursor < 2 || found.vscode < 1 || found['vscode-insiders'] < 1) {
+    errors.push(`MCP install links missing: ${JSON.stringify(found)}`);
+  }
+}
+
+// Every install command and config entry in the docs runs @varity-labs/mcp@latest.
+for (const file of require('child_process').execFileSync('git', ['ls-files', 'src', 'public/llms.txt', 'public/llms-full.txt', 'public/mcp-schema.json'], { cwd: root, encoding: 'utf8' }).split('\n').filter(Boolean)) {
+  if (!/\.(?:mdx?|astro|txt|json)$/.test(file)) continue;
+  for (const [hit] of read(file).matchAll(/(?:npx (?:-y )?|(?<!"package": )["'])@varity-labs\/mcp(?:@[^\s"`']*)?/g)) {
+    if (!hit.endsWith('@varity-labs/mcp@latest')) errors.push(`${file}: install command must use @varity-labs/mcp@latest, found ${hit}`);
+  }
+}
+
 const apiReference = read('src/content/docs/ai-tools/api-reference.mdx');
 const mcpReference = read('src/content/docs/ai-tools/mcp-server-spec.mdx');
 const aiOverview = read('src/content/docs/ai-tools/overview.mdx');

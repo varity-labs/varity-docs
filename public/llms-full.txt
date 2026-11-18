@@ -5,7 +5,7 @@
 Use these docs as the public Varity documentation context. Current MCP install command:
 
 ```bash
-claude mcp add varity -- npx -y @varity-labs/mcp
+claude mcp add varity -- npx -y @varity-labs/mcp@latest
 ```
 
 MCP clients must discover executable tool definitions from the installed server's `tools/list` response. The Docs `/mcp-schema.json` artifact copies the named release's `tools/list`; it is not the wire contract.
@@ -2128,14 +2128,14 @@ and need only the deploy key. The `varitykit` CLI (Python 3.11 or newer,
 ## Setup
 
   
-    Add this to `.cursor/mcp.json` in your project:
+    With Cursor installed, open [Add Varity to Cursor](cursor://anysphere.cursor-deeplink/mcp/install?name=varity&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB2YXJpdHktbGFicy9tY3BAbGF0ZXN0Il19). Or add this to `.cursor/mcp.json` in your project:
 
     ```json
     {
       "mcpServers": {
         "varity": {
           "command": "npx",
-          "args": ["-y", "@varity-labs/mcp"]
+          "args": ["-y", "@varity-labs/mcp@latest"]
         }
       }
     }
@@ -2147,18 +2147,20 @@ and need only the deploy key. The `varitykit` CLI (Python 3.11 or newer,
     Run once:
 
     ```bash
-    claude mcp add varity -- npx -y @varity-labs/mcp
+    claude mcp add varity -- npx -y @varity-labs/mcp@latest
     ```
   
   
-    Add this to `.vscode/mcp.json`:
+    With VS Code installed, open [Add Varity to VS Code](vscode:mcp/install?%7B%22name%22%3A%22varity%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40varity-labs%2Fmcp%40latest%22%5D%7D)
+    ([VS Code Insiders](vscode-insiders:mcp/install?%7B%22name%22%3A%22varity%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40varity-labs%2Fmcp%40latest%22%5D%7D)). VS Code shows the
+    server entry for you to review before it installs. Or add this to `.vscode/mcp.json`:
 
     ```json
     {
       "servers": {
         "varity": {
           "command": "npx",
-          "args": ["-y", "@varity-labs/mcp"]
+          "args": ["-y", "@varity-labs/mcp@latest"]
         }
       }
     }
@@ -2169,6 +2171,18 @@ and need only the deploy key. The `varitykit` CLI (Python 3.11 or newer,
   
 
 ## Authentication
+
+Create a deploy key on the [Deploy keys page of the developer portal](https://developer.store.varity.so/dashboard/settings?tab=api-keys&utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=mcp-server-spec-api-keys).
+In Claude Code, add the server with the key in one command, replacing `<key>`
+with your key. If you already added the server without a key, run `claude mcp remove varity` first.
+
+```bash
+claude mcp add -e VARITY_DEPLOY_KEY=<key> varity -- npx -y @varity-labs/mcp@latest
+```
+
+In other clients, set `VARITY_DEPLOY_KEY` in the server's `env` or in the shell
+that starts the client, then restart the client. Signing in from the browser,
+with no key to copy, is coming.
 
 The server reads your deploy key in this order:
 
@@ -2253,7 +2267,7 @@ quotes, or operation receipts.
 ## Troubleshooting
 
 - If npm cannot resolve the package, confirm `node --version` meets the
-  published package requirement and retry `npx -y @varity-labs/mcp`.
+  published package requirement and retry `npx -y @varity-labs/mcp@latest`.
 - If `varity_doctor` reports missing authentication, set `VARITY_DEPLOY_KEY`
   in the MCP process environment or run `varitykit login`, then restart the
   editor.
@@ -2401,7 +2415,7 @@ The Varity MCP server lets your AI editor create, deploy, and manage Varity apps
   "mcpServers": {
     "varity": {
       "command": "npx",
-      "args": ["-y", "@varity-labs/mcp"]
+      "args": ["-y", "@varity-labs/mcp@latest"]
     }
   }
 }
@@ -2410,7 +2424,7 @@ The Varity MCP server lets your AI editor create, deploy, and manage Varity apps
 **For Claude Code:**
 
 ```bash
-claude mcp add varity -- npx -y @varity-labs/mcp
+claude mcp add varity -- npx -y @varity-labs/mcp@latest
 ```
 
 Then ask your AI to "deploy this project" or "preview migrating this app from Vercel." The MCP server provides a full set of tools for deploying, monitoring, and managing your apps. See the [MCP Server Spec](/ai-tools/mcp-server-spec) for the complete tool reference, or check out the [Build with AI (No Code)](/tutorials/build-with-ai/) tutorial to get started.
@@ -2468,8 +2482,8 @@ bundles two things for your AI editor:
 - the `deploy-with-varity` skill, which tells the agent to check the cost first,
   then deploy and report the live URL.
 
-Deploys need only a deploy key. Create one in the Developer Portal under
-**Settings > Deploy keys**, then set it as `VARITY_DEPLOY_KEY` in your shell or
+Deploys need only a deploy key. Create one on the
+[Deploy keys page of the developer portal](https://developer.store.varity.so/dashboard/settings?tab=api-keys&utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=plugin-api-keys), then set it as `VARITY_DEPLOY_KEY` in your shell or
 MCP configuration, or sign in with the Varity CLI. Never paste a key into the
 chat.
 
@@ -2535,14 +2549,15 @@ to your MCP configuration as shown below, and set `VARITY_DEPLOY_KEY`.
   "mcpServers": {
     "varity": {
       "command": "npx",
-      "args": ["-y", "@varity-labs/mcp"],
+      "args": ["-y", "@varity-labs/mcp@latest"],
       "env": { "VARITY_DEPLOY_KEY": "<your deploy key>" }
     }
   }
 }
 ```
 
-The `env` field is optional: you can export `VARITY_DEPLOY_KEY` in your shell
+The plugin itself pins a tested server release; this manual entry runs the
+current release. The `env` field is optional: you can export `VARITY_DEPLOY_KEY` in your shell
 instead. Never put a real key in a checked-in configuration file. Client
 specific setup is on the [MCP Server Reference](/ai-tools/mcp-server-spec/).
 
@@ -2569,7 +2584,7 @@ You connect the Varity MCP once.
 Claude Code:
 
 ```bash
-claude mcp add varity -- npx -y @varity-labs/mcp
+claude mcp add varity -- npx -y @varity-labs/mcp@latest
 ```
 
 Cursor (`.cursor/mcp.json`):
@@ -2579,7 +2594,7 @@ Cursor (`.cursor/mcp.json`):
   "mcpServers": {
     "varity": {
       "command": "npx",
-      "args": ["-y", "@varity-labs/mcp"]
+      "args": ["-y", "@varity-labs/mcp@latest"]
     }
   }
 }
@@ -5779,7 +5794,7 @@ The MCP server connects Varity to your AI coding tool. It gives you a full set o
 
   
     ```bash
-    claude mcp add varity -- npx -y @varity-labs/mcp
+    claude mcp add varity -- npx -y @varity-labs/mcp@latest
     ```
 
     Restart Claude Code after running this command. You will see Varity tools available in your session.
@@ -5792,7 +5807,7 @@ The MCP server connects Varity to your AI coding tool. It gives you a full set o
       "mcpServers": {
         "varity": {
           "command": "npx",
-          "args": ["-y", "@varity-labs/mcp"]
+          "args": ["-y", "@varity-labs/mcp@latest"]
         }
       }
     }
@@ -5806,7 +5821,7 @@ The MCP server connects Varity to your AI coding tool. It gives you a full set o
     ```json
     {
       "command": "npx",
-      "args": ["-y", "@varity-labs/mcp"]
+      "args": ["-y", "@varity-labs/mcp@latest"]
     }
     ```
 
@@ -5939,7 +5954,7 @@ shipped developer interfaces and current limits.
     Add the MCP server to Claude Code, Cursor, Windsurf, or VS Code.
 
     ```bash
-    claude mcp add varity -- npx -y @varity-labs/mcp
+    claude mcp add varity -- npx -y @varity-labs/mcp@latest
     ```
 
     [Set up MCP](/ai-tools/mcp-server-spec/)
@@ -6213,18 +6228,18 @@ If you are using Claude Code or Cursor, the Varity MCP server lets your AI tool 
    
      
        ```bash
-       claude mcp add varity -- npx -y @varity-labs/mcp
+       claude mcp add varity -- npx -y @varity-labs/mcp@latest
        ```
      
      
-       Add this to your Cursor MCP config (`~/.cursor/mcp.json`):
+       With Cursor installed, open [Add Varity to Cursor](cursor://anysphere.cursor-deeplink/mcp/install?name=varity&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB2YXJpdHktbGFicy9tY3BAbGF0ZXN0Il19), or add this to your Cursor MCP config (`~/.cursor/mcp.json`):
 
        ```json
        {
          "mcpServers": {
            "varity": {
              "command": "npx",
-             "args": ["-y", "@varity-labs/mcp"]
+             "args": ["-y", "@varity-labs/mcp@latest"]
            }
          }
        }
@@ -6233,7 +6248,13 @@ If you are using Claude Code or Cursor, the Varity MCP server lets your AI tool 
    
 
    
-   The first deploy needs a deploy key. Create one in the developer portal under **Settings > Deploy keys**, then set it as `VARITY_DEPLOY_KEY` in the MCP server's environment, or run `varitykit login` in a terminal and paste it into the hidden prompt. Never paste a key into the chat: the MCP server does not accept credentials as tool input. See [MCP authentication](/ai-tools/mcp-server-spec/#authentication).
+   The first deploy needs a deploy key. Create one on the [Deploy keys page of the developer portal](https://developer.store.varity.so/dashboard/settings?tab=api-keys&utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=quickstart-api-keys), then give it to the MCP server. In Claude Code, add the server with the key in one command, replacing `<key>` with your key. If you already added the server without a key, run `claude mcp remove varity` first.
+
+   ```bash
+   claude mcp add -e VARITY_DEPLOY_KEY=<key> varity -- npx -y @varity-labs/mcp@latest
+   ```
+
+   In other editors, set `VARITY_DEPLOY_KEY` in the MCP server's environment. Never paste a key into the chat: the MCP server does not accept credentials as tool input. Signing in from the browser, with no key to copy, is coming. See [MCP authentication](/ai-tools/mcp-server-spec/#authentication).
    
 
 2. **Open your project and ask your AI tool to deploy**
@@ -6376,7 +6397,7 @@ Works with Claude Code, Cursor, Windsurf, VS Code (Copilot), and any other edito
     Run this once from any directory:
 
     ```bash
-    claude mcp add varity -- npx -y @varity-labs/mcp
+    claude mcp add varity -- npx -y @varity-labs/mcp@latest
     ```
 
     Claude Code picks up the server automatically on the next conversation. Confirm it is registered:
@@ -6395,7 +6416,7 @@ Works with Claude Code, Cursor, Windsurf, VS Code (Copilot), and any other edito
       "mcpServers": {
         "varity": {
           "command": "npx",
-          "args": ["-y", "@varity-labs/mcp"]
+          "args": ["-y", "@varity-labs/mcp@latest"]
         }
       }
     }
@@ -6411,7 +6432,7 @@ Works with Claude Code, Cursor, Windsurf, VS Code (Copilot), and any other edito
       "mcpServers": {
         "varity": {
           "command": "npx",
-          "args": ["-y", "@varity-labs/mcp"]
+          "args": ["-y", "@varity-labs/mcp@latest"]
         }
       }
     }
@@ -6427,7 +6448,7 @@ Works with Claude Code, Cursor, Windsurf, VS Code (Copilot), and any other edito
       "servers": {
         "varity": {
           "command": "npx",
-          "args": ["-y", "@varity-labs/mcp"]
+          "args": ["-y", "@varity-labs/mcp@latest"]
         }
       }
     }
@@ -6621,7 +6642,7 @@ The AI calls `varity_migrate`, which clones the repository into a temporary dire
 
 ## Browser-based AI tools (Claude.ai, ChatGPT)
 
-The hosted endpoint `mcp.varity.so` is retired. Browser-based tools that only accept a remote MCP URL are not supported today; use the stdio package (`npx -y @varity-labs/mcp`) from Claude Code, Cursor, VS Code, or Windsurf, or the [llms.txt context files](/ai-tools/mcp-server-spec/#llm-context-without-mcp) for LLMs without MCP support.
+The hosted endpoint `mcp.varity.so` is retired. Browser-based tools that only accept a remote MCP URL are not supported today; use the stdio package (`npx -y @varity-labs/mcp@latest`) from Claude Code, Cursor, VS Code, or Windsurf, or the [llms.txt context files](/ai-tools/mcp-server-spec/#llm-context-without-mcp) for LLMs without MCP support.
 
 ## Troubleshooting
 
@@ -6631,7 +6652,7 @@ Re-add the server and restart:
 
 ```bash
 # Claude Code
-claude mcp add varity -- npx -y @varity-labs/mcp
+claude mcp add varity -- npx -y @varity-labs/mcp@latest
 ```
 
 Verify with `claude mcp list`.
@@ -6693,7 +6714,7 @@ You can deploy from your AI editor using the Varity MCP server (the fastest path
     
       
         ```bash
-        claude mcp add varity -- npx -y @varity-labs/mcp
+        claude mcp add varity -- npx -y @varity-labs/mcp@latest
         ```
       
       
@@ -6704,7 +6725,7 @@ You can deploy from your AI editor using the Varity MCP server (the fastest path
           "mcpServers": {
             "varity": {
               "command": "npx",
-              "args": ["-y", "@varity-labs/mcp"]
+              "args": ["-y", "@varity-labs/mcp@latest"]
             }
           }
         }
@@ -6720,7 +6741,7 @@ You can deploy from your AI editor using the Varity MCP server (the fastest path
           "mcpServers": {
             "varity": {
               "command": "npx",
-              "args": ["-y", "@varity-labs/mcp"]
+              "args": ["-y", "@varity-labs/mcp@latest"]
             }
           }
         }
@@ -7971,7 +7992,7 @@ Install the following (one-time setup):
 5. **Varity MCP**: install with:
 
    ```bash
-   claude mcp add varity -- npx -y @varity-labs/mcp
+   claude mcp add varity -- npx -y @varity-labs/mcp@latest
    ```
 
    Or for Cursor, add to `.cursor/mcp.json`:
@@ -7981,7 +8002,7 @@ Install the following (one-time setup):
      "mcpServers": {
        "varity": {
          "command": "npx",
-        "args": ["-y", "@varity-labs/mcp"]
+        "args": ["-y", "@varity-labs/mcp@latest"]
        }
      }
    }

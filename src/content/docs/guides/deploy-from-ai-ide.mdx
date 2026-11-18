@@ -23,7 +23,7 @@ Works with Claude Code, Cursor, Windsurf, VS Code (Copilot), and any other edito
     Run this once from any directory:
 
     ```bash
-    claude mcp add varity -- npx -y @varity-labs/mcp
+    claude mcp add varity -- npx -y @varity-labs/mcp@latest
     ```
 
     Claude Code picks up the server automatically on the next conversation. Confirm it is registered:
@@ -42,7 +42,7 @@ Works with Claude Code, Cursor, Windsurf, VS Code (Copilot), and any other edito
       "mcpServers": {
         "varity": {
           "command": "npx",
-          "args": ["-y", "@varity-labs/mcp"]
+          "args": ["-y", "@varity-labs/mcp@latest"]
         }
       }
     }
@@ -58,7 +58,7 @@ Works with Claude Code, Cursor, Windsurf, VS Code (Copilot), and any other edito
       "mcpServers": {
         "varity": {
           "command": "npx",
-          "args": ["-y", "@varity-labs/mcp"]
+          "args": ["-y", "@varity-labs/mcp@latest"]
         }
       }
     }
@@ -74,7 +74,7 @@ Works with Claude Code, Cursor, Windsurf, VS Code (Copilot), and any other edito
       "servers": {
         "varity": {
           "command": "npx",
-          "args": ["-y", "@varity-labs/mcp"]
+          "args": ["-y", "@varity-labs/mcp@latest"]
         }
       }
     }
@@ -275,7 +275,7 @@ The AI calls `varity_migrate`, which clones the repository into a temporary dire
 
 ## Browser-based AI tools (Claude.ai, ChatGPT)
 
-The hosted endpoint `mcp.varity.so` is retired. Browser-based tools that only accept a remote MCP URL are not supported today; use the stdio package (`npx -y @varity-labs/mcp`) from Claude Code, Cursor, VS Code, or Windsurf, or the [llms.txt context files](/ai-tools/mcp-server-spec/#llm-context-without-mcp) for LLMs without MCP support.
+The hosted endpoint `mcp.varity.so` is retired. Browser-based tools that only accept a remote MCP URL are not supported today; use the stdio package (`npx -y @varity-labs/mcp@latest`) from Claude Code, Cursor, VS Code, or Windsurf, or the [llms.txt context files](/ai-tools/mcp-server-spec/#llm-context-without-mcp) for LLMs without MCP support.
 
 ## Troubleshooting
 
@@ -285,7 +285,7 @@ Re-add the server and restart:
 
 ```bash
 # Claude Code
-claude mcp add varity -- npx -y @varity-labs/mcp
+claude mcp add varity -- npx -y @varity-labs/mcp@latest
 ```
 
 Verify with `claude mcp list`.
