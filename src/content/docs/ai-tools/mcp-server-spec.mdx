@@ -39,14 +39,14 @@ and need only the deploy key. The `varitykit` CLI (Python 3.11 or newer,
 
 <Tabs>
   <TabItem label="Cursor">
-    Add this to `.cursor/mcp.json` in your project:
+    With Cursor installed, open [Add Varity to Cursor](cursor://anysphere.cursor-deeplink/mcp/install?name=varity&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB2YXJpdHktbGFicy9tY3BAbGF0ZXN0Il19). Or add this to `.cursor/mcp.json` in your project:
 
     ```json
     {
       "mcpServers": {
         "varity": {
           "command": "npx",
-          "args": ["-y", "@varity-labs/mcp"]
+          "args": ["-y", "@varity-labs/mcp@latest"]
         }
       }
     }
@@ -58,18 +58,20 @@ and need only the deploy key. The `varitykit` CLI (Python 3.11 or newer,
     Run once:
 
     ```bash
-    claude mcp add varity -- npx -y @varity-labs/mcp
+    claude mcp add varity -- npx -y @varity-labs/mcp@latest
     ```
   </TabItem>
   <TabItem label="VS Code">
-    Add this to `.vscode/mcp.json`:
+    With VS Code installed, open [Add Varity to VS Code](vscode:mcp/install?%7B%22name%22%3A%22varity%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40varity-labs%2Fmcp%40latest%22%5D%7D)
+    ([VS Code Insiders](vscode-insiders:mcp/install?%7B%22name%22%3A%22varity%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40varity-labs%2Fmcp%40latest%22%5D%7D)). VS Code shows the
+    server entry for you to review before it installs. Or add this to `.vscode/mcp.json`:
 
     ```json
     {
       "servers": {
         "varity": {
           "command": "npx",
-          "args": ["-y", "@varity-labs/mcp"]
+          "args": ["-y", "@varity-labs/mcp@latest"]
         }
       }
     }
@@ -81,6 +83,18 @@ and need only the deploy key. The `varitykit` CLI (Python 3.11 or newer,
 </Tabs>
 
 ## Authentication
+
+Create a deploy key on the [Deploy keys page of the developer portal](https://developer.store.varity.so/dashboard/settings?tab=api-keys&utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=mcp-server-spec-api-keys).
+In Claude Code, add the server with the key in one command, replacing `<key>`
+with your key. If you already added the server without a key, run `claude mcp remove varity` first.
+
+```bash
+claude mcp add varity -e VARITY_DEPLOY_KEY=<key> -- npx -y @varity-labs/mcp@latest
+```
+
+In other clients, set `VARITY_DEPLOY_KEY` in the server's `env` or in the shell
+that starts the client, then restart the client. Signing in from the browser,
+with no key to copy, is coming.
 
 The server reads your deploy key in this order:
 
@@ -167,7 +181,7 @@ quotes, or operation receipts.
 ## Troubleshooting
 
 - If npm cannot resolve the package, confirm `node --version` meets the
-  published package requirement and retry `npx -y @varity-labs/mcp`.
+  published package requirement and retry `npx -y @varity-labs/mcp@latest`.
 - If `varity_doctor` reports missing authentication, set `VARITY_DEPLOY_KEY`
   in the MCP process environment or run `varitykit login`, then restart the
   editor.

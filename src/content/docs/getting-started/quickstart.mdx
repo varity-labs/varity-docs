@@ -91,18 +91,18 @@ If you are using Claude Code or Cursor, the Varity MCP server lets your AI tool 
    <Tabs>
      <TabItem label="Claude Code">
        ```bash
-       claude mcp add varity -- npx -y @varity-labs/mcp
+       claude mcp add varity -- npx -y @varity-labs/mcp@latest
        ```
      </TabItem>
      <TabItem label="Cursor">
-       Add this to your Cursor MCP config (`~/.cursor/mcp.json`):
+       With Cursor installed, open [Add Varity to Cursor](cursor://anysphere.cursor-deeplink/mcp/install?name=varity&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB2YXJpdHktbGFicy9tY3BAbGF0ZXN0Il19), or add this to your Cursor MCP config (`~/.cursor/mcp.json`):
 
        ```json
        {
          "mcpServers": {
            "varity": {
              "command": "npx",
-             "args": ["-y", "@varity-labs/mcp"]
+             "args": ["-y", "@varity-labs/mcp@latest"]
            }
          }
        }
@@ -111,7 +111,13 @@ If you are using Claude Code or Cursor, the Varity MCP server lets your AI tool 
    </Tabs>
 
    <Aside type="tip" icon="approve-check" title="First deploy?">
-   The first deploy needs a deploy key. Create one in the developer portal under **Settings > Deploy keys**, then set it as `VARITY_DEPLOY_KEY` in the MCP server's environment, or run `varitykit login` in a terminal and paste it into the hidden prompt. Never paste a key into the chat: the MCP server does not accept credentials as tool input. See [MCP authentication](/ai-tools/mcp-server-spec/#authentication).
+   The first deploy needs a deploy key. Create one on the [Deploy keys page of the developer portal](https://developer.store.varity.so/dashboard/settings?tab=api-keys&utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=quickstart-api-keys), then give it to the MCP server. In Claude Code, add the server with the key in one command, replacing `<key>` with your key. If you already added the server without a key, run `claude mcp remove varity` first.
+
+   ```bash
+   claude mcp add varity -e VARITY_DEPLOY_KEY=<key> -- npx -y @varity-labs/mcp@latest
+   ```
+
+   In other editors, set `VARITY_DEPLOY_KEY` in the MCP server's environment. Never paste a key into the chat: the MCP server does not accept credentials as tool input. Signing in from the browser, with no key to copy, is coming. See [MCP authentication](/ai-tools/mcp-server-spec/#authentication).
    </Aside>
 
 2. **Open your project and ask your AI tool to deploy**

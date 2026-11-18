@@ -5,7 +5,7 @@
 Use these docs as the public Varity documentation context. Current MCP install command:
 
 ```bash
-claude mcp add varity -- npx -y @varity-labs/mcp
+claude mcp add varity -- npx -y @varity-labs/mcp@latest
 ```
 
 MCP clients must discover executable tool definitions from the installed server's `tools/list` response. The Docs `/mcp-schema.json` artifact copies the named release's `tools/list`; it is not the wire contract.

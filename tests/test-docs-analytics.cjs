@@ -355,7 +355,11 @@ function routeForSource(file) {
       portalLinks.push(href);
     }
   }
-  assert.equal(portalLinks.length, 9, 'expected every authored Portal hyperlink to be governed');
+  assert.equal(portalLinks.length, 12, 'expected every authored Portal hyperlink to be governed');
+  const utm = 'utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=quickstart-api-keys';
+  assert.ok(portalHandoff(`https://developer.store.varity.so/dashboard/settings?tab=api-keys&${utm}`, 'quickstart'));
+  assert.equal(portalHandoff(`https://developer.store.varity.so/dashboard/settings?tab=billing&${utm}`, 'quickstart'), null);
+  assert.equal(portalHandoff(`https://developer.store.varity.so/dashboard/deploy?tab=api-keys&${utm}`, 'quickstart'), null);
 
   const analyticsSource = fs.readFileSync(path.join(ROOT, 'src/components/DocsAnalytics.astro'), 'utf8');
   for (const attribute of [
