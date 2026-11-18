@@ -111,13 +111,13 @@ If you are using Claude Code or Cursor, the Varity MCP server lets your AI tool 
    </Tabs>
 
    <Aside type="tip" icon="approve-check" title="First deploy?">
-   The first deploy needs a deploy key. Create one on the [Deploy keys page of the developer portal](https://developer.store.varity.so/dashboard/settings?tab=api-keys&utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=quickstart-api-keys), then give it to the MCP server. In Claude Code, add the server with the key in one command, replacing `<key>` with your key. If you already added the server without a key, run `claude mcp remove varity` first.
+   The first deploy needs a deploy key. Create one on the [Deploy keys page of the developer portal](https://developer.store.varity.so/dashboard/settings?tab=api-keys&utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=quickstart-api-keys), then give it to the MCP server. The Portal asks for a payment method before it creates a deploy key. Without a card, you can still put a site online with [Chat and Build](https://developer.store.varity.so/dashboard/ai-gateway?tab=chat&mode=build&utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=quickstart-chat-build). In Claude Code, add the server with the key in one command, replacing `<key>` with your key. If you already added the server without a key, run `claude mcp remove varity` first.
 
    ```bash
    claude mcp add varity -e VARITY_DEPLOY_KEY=<key> -- npx -y @varity-labs/mcp@latest
    ```
 
-   In other editors, set `VARITY_DEPLOY_KEY` in the MCP server's environment. Never paste a key into the chat: the MCP server does not accept credentials as tool input. Signing in from the browser, with no key to copy, is coming. See [MCP authentication](/ai-tools/mcp-server-spec/#authentication).
+   In other editors, set `VARITY_DEPLOY_KEY` in the MCP server's environment. Never paste a key into the chat: the MCP server does not accept credentials as tool input. Where browser sign-in is available, you confirm in a browser tab instead, with no key to copy; it is not switched on yet. See [MCP authentication](/ai-tools/mcp-server-spec/#authentication).
    </Aside>
 
 2. **Open your project and ask your AI tool to deploy**

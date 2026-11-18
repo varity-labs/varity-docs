@@ -2121,7 +2121,10 @@ moves ahead of the reference's release marker.
 ## Prerequisites
 
 - **Node.js 22.11 or newer**, as required by the package currently published to npm
-- **A deploy key** from the Developer Portal under **Settings > Deploy keys**
+- **A deploy key** from the Developer Portal under **Settings > Deploy keys**.
+  The Portal asks for a payment method before it creates a deploy key. Without
+  a card, you can still put a site online with
+  [Chat and Build](https://developer.store.varity.so/dashboard/ai-gateway?tab=chat&mode=build&utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=mcp-server-spec-chat-build).
 
 Deploys, status, logs, templates, and machines go through the Varity public API
 and need only the deploy key. The `varitykit` CLI (Python 3.11 or newer,
@@ -2184,8 +2187,11 @@ claude mcp add varity -e VARITY_DEPLOY_KEY=<key> -- npx -y @varity-labs/mcp@late
 ```
 
 In other clients, set `VARITY_DEPLOY_KEY` in the server's `env` or in the shell
-that starts the client, then restart the client. Signing in from the browser,
-with no key to copy, is coming.
+that starts the client, then restart the client.
+
+Where browser sign-in is available, `varity_login` connects you in a browser
+tab instead, with no key to copy. It is not switched on yet: today
+`varity_login` answers `SIGN_IN_UNAVAILABLE` and points you to the deploy key.
 
 The server reads your deploy key in this order:
 
@@ -2195,8 +2201,8 @@ The server reads your deploy key in this order:
 
 `VARITY_API_KEY` is the name of the [AI Gateway](/ai-gateway/)
 inference key, so name a deploy key `VARITY_DEPLOY_KEY`. `varity_login` checks
-whether a key is configured and opens the portal settings page; it never accepts
-a key as tool input, so never paste a key into the chat. Never put a real key in
+whether a key is configured; it never accepts a key as tool input, so never
+paste a key into the chat. Never put a real key in
 a checked-in editor configuration. Deploy keys are account credentials; a
 project path is not an ownership boundary.
 
@@ -2235,7 +2241,8 @@ Important lifecycle semantics:
 ## Typical Workflow
 
 1. Run `varity_doctor` to check authentication.
-2. Run `varity_login` if authentication is missing.
+2. Run `varity_login` if authentication is missing. Until browser sign-in is
+   switched on, it points you to the deploy key.
 3. Use `varity_cost_calculator` or a live quote before a billable action.
 4. Build locally and inspect the result.
 5. Deploy the project or a certified template.
@@ -6275,13 +6282,13 @@ If you are using Claude Code or Cursor, the Varity MCP server lets your AI tool 
    
 
    
-   The first deploy needs a deploy key. Create one on the [Deploy keys page of the developer portal](https://developer.store.varity.so/dashboard/settings?tab=api-keys&utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=quickstart-api-keys), then give it to the MCP server. In Claude Code, add the server with the key in one command, replacing `<key>` with your key. If you already added the server without a key, run `claude mcp remove varity` first.
+   The first deploy needs a deploy key. Create one on the [Deploy keys page of the developer portal](https://developer.store.varity.so/dashboard/settings?tab=api-keys&utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=quickstart-api-keys), then give it to the MCP server. The Portal asks for a payment method before it creates a deploy key. Without a card, you can still put a site online with [Chat and Build](https://developer.store.varity.so/dashboard/ai-gateway?tab=chat&mode=build&utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=quickstart-chat-build). In Claude Code, add the server with the key in one command, replacing `<key>` with your key. If you already added the server without a key, run `claude mcp remove varity` first.
 
    ```bash
    claude mcp add varity -e VARITY_DEPLOY_KEY=<key> -- npx -y @varity-labs/mcp@latest
    ```
 
-   In other editors, set `VARITY_DEPLOY_KEY` in the MCP server's environment. Never paste a key into the chat: the MCP server does not accept credentials as tool input. Signing in from the browser, with no key to copy, is coming. See [MCP authentication](/ai-tools/mcp-server-spec/#authentication).
+   In other editors, set `VARITY_DEPLOY_KEY` in the MCP server's environment. Never paste a key into the chat: the MCP server does not accept credentials as tool input. Where browser sign-in is available, you confirm in a browser tab instead, with no key to copy; it is not switched on yet. See [MCP authentication](/ai-tools/mcp-server-spec/#authentication).
    
 
 2. **Open your project and ask your AI tool to deploy**
@@ -6543,12 +6550,13 @@ Check my Varity environment, then build this project, deploy it, and open the li
 
 ## What the MCP server can do
 
-The Varity MCP server gives your AI editor 26 tools. Your installed server's `tools/list` response is the authoritative list:
+The Varity MCP server gives your AI editor 30 tools. Your installed server's `tools/list` response is the authoritative list:
 
 | Tool | What to ask your AI |
 |---|---|
 | `varity_doctor` | "Check if my environment is set up for Varity" |
 | `varity_login` | "Log in to Varity" |
+| `varity_logout` | "Sign this computer out of Varity" |
 | `varity_search_docs` | "Search the Varity docs for Docker image deploys" |
 | `varity_install_deps` | "Install dependencies for this project" |
 | `varity_dev_server` | "Start the dev server and open it in my browser" |
@@ -6571,6 +6579,7 @@ The Varity MCP server gives your AI editor 26 tools. Your installed server's `to
 | `varity_machines_list` | "List my Varity virtual machines" |
 | `varity_machines_create` | "Create a virtual machine I can SSH into with my public key" |
 | `varity_machines_delete` | "Delete that virtual machine" |
+| `varity_domain_add`, `varity_domain_verify`, `varity_domain_remove` | "Use app.example.com for my app" (returns the DNS records to add, then checks them) |
 
 Full reference at [MCP Server Spec](/ai-tools/mcp-server-spec).
 

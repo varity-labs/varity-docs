@@ -143,12 +143,12 @@ const SEARCH_OBSERVER_LIFETIME_MS = 10_000;
 const PORTAL_CONTENT_BY_PAGE = Object.freeze({
   'ai-gateway': new Set(['ai-gateway-api-keys']),
   'ai-tools-api-reference': new Set(['api-reference-api-keys']),
-  'ai-tools-mcp-server-spec': new Set(['mcp-server-spec-api-keys']),
+  'ai-tools-mcp-server-spec': new Set(['mcp-server-spec-api-keys', 'mcp-server-spec-chat-build']),
   'ai-tools-plugin': new Set(['plugin-api-keys']),
   'cli-auth': new Set(['cli-auth-api-keys']),
   'deploy-docker-image': new Set(['docker-image-dashboard']),
   'deploy-from-dashboard': new Set(['dashboard-account', 'dashboard-deploy']),
-  quickstart: new Set(['quickstart-api-keys']),
+  quickstart: new Set(['quickstart-api-keys', 'quickstart-chat-build']),
   'resources-glossary': new Set(['glossary-api-keys']),
   'resources-pricing': new Set(['pricing-portal']),
   'tutorial-deploy-ai-agent': new Set(['ai-agent-templates']),
@@ -300,8 +300,13 @@ export function portalHandoff(href, page) {
   if (!target || !allowedContent || !content || !allowedContent.has(content)) return null;
   // The settings page may open on its Deploy keys tab (the same link the MCP server gives).
   const tab = url.pathname === '/dashboard/settings' && url.searchParams.get('tab') === 'api-keys' ? { tab: 'api-keys' } : {};
+  // The AI Gateway page may open on Chat and Build (the no-card path the MCP server gives).
+  const chatAndBuild = url.pathname === '/dashboard/ai-gateway' && url.searchParams.get('tab') === 'chat' && url.searchParams.get('mode') === 'build'
+    ? { tab: 'chat', mode: 'build' }
+    : {};
   const expected = new URLSearchParams({
     ...tab,
+    ...chatAndBuild,
     utm_source: 'docs',
     utm_medium: 'content',
     utm_campaign: 'docs-to-portal',

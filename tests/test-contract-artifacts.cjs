@@ -269,6 +269,16 @@ for (const name of ['VARITY_AI_API_KEY', 'VARITY_AI_BASE_URL', 'VARITY_AI_MODEL'
   }
 }
 if (/capability_disabled/.test(llmsFull)) errors.push('public/llms-full.txt documents capability_disabled, which no producer emits');
+// The Portal asks for a payment method before it creates a deploy key, and
+// Chat and Build puts a site online without one (@varity-labs/mcp 2.3.29
+// README "Prerequisites"). Browser sign-in is not switched on: varity_login
+// says so and points to the deploy key, so sign-in copy stays conditional.
+for (const page of ['src/content/docs/ai-tools/mcp-server-spec.mdx', 'src/content/docs/getting-started/quickstart.mdx']) {
+  const content = read(page);
+  if (!/payment method/.test(content)) errors.push(`${page} must say the Portal asks for a payment method before it creates a deploy key`);
+  if (!content.includes('dashboard/ai-gateway?tab=chat&mode=build')) errors.push(`${page} must link Chat and Build for a site without a card`);
+  if (!/where browser sign-in is available/i.test(content)) errors.push(`${page} must make browser sign-in conditional ("where browser sign-in is available")`);
+}
 
 // MCP facts the published package contradicts: a key pasted into chat, the
 // retired HTTP transport, an image-credentials input no tool accepts, and an
@@ -276,7 +286,7 @@ if (/capability_disabled/.test(llmsFull)) errors.push('public/llms-full.txt docu
 // A redeploy restarts the last successful release; only a new deploy with the
 // same app name builds pushed code, and the build reads the repository, not a
 // local checkout. These phrases taught the opposite.
-const RETIRED_MCP_TEXT = /with key|--transport http|image_credentials|llmstxt-alternative|Build and redeploy my Varity app|Each redeploy publishes a fresh build|`varity_redeploy`, or dashboard action|git checkout <known-good-commit>|fresh deploy from your local history/;
+const RETIRED_MCP_TEXT = /with key|--transport http|image_credentials|llmstxt-alternative|Build and redeploy my Varity app|Each redeploy publishes a fresh build|`varity_redeploy`, or dashboard action|git checkout <known-good-commit>|fresh deploy from your local history|opens the portal settings page|with no key to copy, is coming/;
 function scanTree(relativeDir, skip) {
   for (const entry of fs.readdirSync(path.join(root, relativeDir), { withFileTypes: true })) {
     const relativePath = `${relativeDir}/${entry.name}`;
