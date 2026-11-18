@@ -83,7 +83,7 @@ Works with Claude Code, Cursor, Windsurf, VS Code (Copilot), and any other edito
 </Tabs>
 
 <Aside type="note">
-Node.js 22.11 or later is required, plus a deploy key from the Developer Portal under **Settings > Deploy keys**. Set it as `VARITY_DEPLOY_KEY` in the MCP server's environment, or run `varitykit login` in a terminal; never paste it into the chat. The `varitykit` CLI (`pipx install varitykit`, Python 3.11 or later) is needed only for `varity_migrate`.
+Node.js 22.11 or later is required. On the first deploy, your AI tool connects Varity through a browser tab (`varity_login`). For CI or scripts, use a deploy key from the Developer Portal under **Settings > Deploy keys**, set as `VARITY_DEPLOY_KEY` in the MCP server's environment; never paste it into the chat. The `varitykit` CLI (`pipx install varitykit`, Python 3.11 or later) is needed only for `varity_migrate`.
 </Aside>
 
 ## Deploy with one prompt

@@ -90,7 +90,8 @@ code to confirm on any device. The sign-in is saved on your computer in
 `~/.varitykit/config.json`; `varity_logout` revokes it on Varity and removes it.
 
 For CI or scripts, create a deploy key on the [Deploy keys page of the developer portal](https://developer.store.varity.so/dashboard/settings?tab=api-keys&utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=mcp-server-spec-api-keys)
-and set it as `VARITY_DEPLOY_KEY` in the server's environment. In Claude Code,
+and set it as `VARITY_DEPLOY_KEY` in the server's environment, then restart the
+client. In Claude Code,
 replacing `<key>` with your key (if you already added the server, run
 `claude mcp remove varity` first):
 
@@ -140,7 +141,8 @@ Important lifecycle semantics:
   must be one your editor has open, and you confirm the setting names and the
   restart before anything is sent. Example files such as `.env.example` are
   refused as a value source. The change restarts the app, and a restart sets
-  aside another monthly maximum until it settles.
+  aside another monthly maximum until billing next settles, usually within 20
+  minutes.
 - `varity_domain_add`, `varity_domain_verify`, and `varity_domain_remove`
   connect a custom domain to an app. Add returns the exact DNS records to create
   at your domain provider; verify checks them.
