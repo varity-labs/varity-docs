@@ -267,6 +267,18 @@ for (const page of docsPages('src/content/docs')) {
 if (!/compute host that runs your deployment can read its environment values/.test(read('src/content/docs/deploy/env-variables.mdx'))) {
   errors.push('deploy/env-variables.mdx must disclose that the compute host can read environment values');
 }
+// The free Starter app and free static sites need no card (gateway
+// routes/deployments.ts free-app and free-static admission read no card).
+const billingDoc = read('src/content/docs/resources/billing.mdx');
+if (/after saving a card|Each card can back only one free app/.test(billingDoc) || !/No card is needed/.test(billingDoc)) {
+  errors.push('resources/billing.mdx must say the free Starter app and free static sites need no card');
+}
+// The AI Gateway add-on injects these names (gateway ai-cloud-attachments.ts).
+for (const name of ['VARITY_AI_API_KEY', 'VARITY_AI_BASE_URL', 'VARITY_AI_MODEL']) {
+  if (!read('src/content/docs/deploy/env-variables.mdx').includes(name)) {
+    errors.push(`deploy/env-variables.mdx must name ${name}, injected by the AI Gateway add-on`);
+  }
+}
 if (/capability_disabled/.test(llmsFull)) errors.push('public/llms-full.txt documents capability_disabled, which no producer emits');
 
 // MCP facts the published package contradicts: a key pasted into chat, the
