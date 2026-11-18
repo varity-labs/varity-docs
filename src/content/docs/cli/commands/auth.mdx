@@ -1,6 +1,6 @@
 ---
 title: "varitykit login and auth command"
-description: "Log in to Varity from the CLI with varitykit login. Uses deploy keys from the developer portal for app deployment and domain management."
+description: "Log in to Varity from the CLI with varitykit login. Signs in through your browser; deploy keys from the developer portal are for CI and agents."
 ---
 
 import { Steps } from '@astrojs/starlight/components';
@@ -12,7 +12,7 @@ import PageMeta from '../../../../components/PageMeta.astro';
   stability="stable"
 />
 
-Log in to Varity from the CLI using a deploy key from the developer portal. Authentication is required for deploying apps and managing domains.
+Log in to Varity from the CLI. `varitykit login` opens your browser: confirm there and the CLI saves a deploy key for this machine. There is no key to copy. Authentication is required for deploying apps and managing domains.
 
 ## Usage
 
@@ -24,31 +24,19 @@ varitykit login
 varitykit auth login
 ```
 
-Both commands do the same thing: prompt you for a deploy key and save it locally.
-
-## Prerequisites
-
-You need a deploy key from the Varity developer portal:
+Both commands do the same thing.
 
 <Steps>
 
-1. **Go to the developer portal**
-
-   Open [developer.store.varity.so/dashboard/settings](https://developer.store.varity.so/dashboard/settings?utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=cli-auth-api-keys) in your browser.
-
-2. **Copy your deploy key**
-
-   Open the **Deploy keys** tab and click **Create deploy key**, then copy the key. Either `varitykit login` or the `VARITY_DEPLOY_KEY` environment variable supplies it.
-
-3. **Run the login command**
+1. **Run the login command**
 
    ```bash
    varitykit login
    ```
 
-   In an interactive terminal the CLI opens the settings page in your browser and asks you to paste the key (input is hidden for security). In CI or any non-interactive shell, pass the key instead: `varitykit login --key <key>`.
+   The CLI opens a browser tab. Sign in to the developer portal if asked, then confirm to connect the CLI. The CLI saves the deploy key Varity creates for this machine.
 
-4. **Verify you are logged in**
+2. **Verify you are logged in**
 
    ```bash
    varitykit auth status
@@ -60,32 +48,15 @@ You need a deploy key from the Varity developer portal:
 
 ### login
 
-Log in with your deploy key. The CLI opens the developer portal in your browser, then prompts you to paste the key.
-
 ```bash
-varitykit login
-# or
-varitykit auth login
+varitykit login            # sign in through the browser
+varitykit login --device   # sign in with a code on another device
+varitykit login --key <key>
 ```
 
-Example output:
-
-```
-  ╭─────────────────────────────────────────────────────╮
-  │  Get your deploy key from the developer portal:     │
-  │  https://developer.store.varity.so/dashboard/settings│
-  ╰─────────────────────────────────────────────────────╯
-
-  Opening https://developer.store.varity.so/dashboard/settings in your browser...
-  (input will be hidden for security)
-
-  Paste your deploy key: ********
-
-  Deploy key saved securely.
-  Logged in successfully!
-  Configured: deploy key
-  Run 'varitykit app deploy' to deploy.
-```
+- **Browser (default):** opens a browser tab to confirm.
+- **`--device`:** for SSH sessions and machines without a browser. The CLI shows a link and a code: open the link in a browser on any device and confirm the code. A headless machine uses this automatically.
+- **`--key <key>`:** for CI and agents. Create a deploy key in the developer portal under [Settings > Deploy keys](https://developer.store.varity.so/dashboard/settings?tab=api-keys&utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=cli-auth-api-keys) and pass it here, or set it as `VARITY_DEPLOY_KEY`.
 
 If you are already logged in, the CLI will show your current key (masked) and ask if you want to replace it.
 
@@ -97,7 +68,7 @@ Remove your saved credentials from this machine.
 varitykit auth logout
 ```
 
-This removes the deploy key from your local config file. You will need to run `varitykit login` again to deploy.
+This revokes the deploy key on Varity, so it stops working everywhere you use it, then removes it from this computer. A key you saved with `--key` is revoked too. You will need to run `varitykit login` again to deploy.
 
 ### status
 
@@ -148,11 +119,11 @@ The config file holds one credential:
 
 ### "Not logged in" when deploying
 
-Run `varitykit login` and paste your deploy key from the developer portal.
+Run `varitykit login` and confirm in the browser tab. In CI, pass a deploy key with `varitykit login --key <key>` or set `VARITY_DEPLOY_KEY`.
 
 ### "Invalid deploy key"
 
-Make sure you copied the full key from the developer portal Settings page. The key must be at least 10 characters long.
+If you passed a key with `--key` or `VARITY_DEPLOY_KEY`, make sure you copied the full key from the developer portal Settings page. The key must be at least 10 characters long.
 
 ### Credentials not persisting
 

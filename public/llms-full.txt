@@ -2072,7 +2072,12 @@ The link adds this server entry, named `varity`:
 }
 ```
 
-## Set your deploy key
+## Sign in
+
+On the first deploy, the Varity server asks you to confirm in a browser tab to
+connect Varity. There is no key to copy.
+
+### For CI or scripts: a deploy key
 
 Create a deploy key in the Developer Portal under **Settings > Deploy keys**.
 In LM Studio, open the **Program** tab in the right-hand sidebar, choose
@@ -2305,13 +2310,16 @@ them in OpenCode.
 ## Before you start
 
 - **Node.js 22.11 or newer**, so OpenCode can start the server with `npx`.
-- **A deploy key** from the Developer Portal under **Settings > Deploy keys**.
-  Export it as `VARITY_DEPLOY_KEY` in the shell that starts OpenCode. Never
+- **A Varity account.** On the first deploy, the Varity server asks you to
+  confirm in a browser tab to connect Varity. There is no key to copy. Never
   paste a key into the chat.
+- **For CI or scripts only:** a deploy key from the Developer Portal under
+  **Settings > Deploy keys**, exported as `VARITY_DEPLOY_KEY` in the shell that
+  starts OpenCode:
 
-```bash
-export VARITY_DEPLOY_KEY="<your deploy key>"
-```
+  ```bash
+  export VARITY_DEPLOY_KEY="<your deploy key>"
+  ```
 
 ## Add the server
 
@@ -2322,7 +2330,7 @@ opencode mcp list
 
 OpenCode 1.x writes the server to your global config. OpenCode 2 writes it to
 the project config; add `--global` there to use it in every project. A local
-server inherits OpenCode's environment, so it reads the `VARITY_DEPLOY_KEY` you
+server inherits OpenCode's environment, so it reads a `VARITY_DEPLOY_KEY` you
 exported.
 
 ## Or edit the config file
@@ -2330,7 +2338,8 @@ exported.
 To configure the server by hand, add it to `opencode.json` in your project, or
 to `~/.config/opencode/opencode.json` for every project. The
 `{env:VARITY_DEPLOY_KEY}` value reads the key from your environment, so the key
-itself never sits in the file.
+itself never sits in the file. The `environment` entry is only for a deploy key
+in CI or scripts; without it, the server connects through the browser sign-in.
 
   
     ```json
@@ -2990,9 +2999,9 @@ Description: Use the Varity CLI for command line app deploys, setup checks, and 
 ## varitykit login and auth command
 
 URL: https://docs.varity.so/cli/commands/auth/
-Description: Log in to Varity from the CLI with varitykit login. Uses deploy keys from the developer portal for app deployment and domain management.
+Description: Log in to Varity from the CLI with varitykit login. Signs in through your browser; deploy keys from the developer portal are for CI and agents.
 
-Log in to Varity from the CLI using a deploy key from the developer portal. Authentication is required for deploying apps and managing domains.
+Log in to Varity from the CLI. `varitykit login` opens your browser: confirm there and the CLI saves a deploy key for this machine. There is no key to copy. Authentication is required for deploying apps and managing domains.
 
 ## Usage
 
@@ -3004,29 +3013,17 @@ varitykit login
 varitykit auth login
 ```
 
-Both commands do the same thing: prompt you for a deploy key and save it locally.
+Both commands do the same thing.
 
-## Prerequisites
-
-You need a deploy key from the Varity developer portal:
-
-1. **Go to the developer portal**
-
-   Open [developer.store.varity.so/dashboard/settings](https://developer.store.varity.so/dashboard/settings?utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=cli-auth-api-keys) in your browser.
-
-2. **Copy your deploy key**
-
-   Open the **Deploy keys** tab and click **Create deploy key**, then copy the key. Either `varitykit login` or the `VARITY_DEPLOY_KEY` environment variable supplies it.
-
-3. **Run the login command**
+1. **Run the login command**
 
    ```bash
    varitykit login
    ```
 
-   In an interactive terminal the CLI opens the settings page in your browser and asks you to paste the key (input is hidden for security). In CI or any non-interactive shell, pass the key instead: `varitykit login --key <key>`.
+   The CLI opens a browser tab. Sign in to the developer portal if asked, then confirm to connect the CLI. The CLI saves the deploy key Varity creates for this machine.
 
-4. **Verify you are logged in**
+2. **Verify you are logged in**
 
    ```bash
    varitykit auth status
@@ -3036,32 +3033,15 @@ You need a deploy key from the Varity developer portal:
 
 ### login
 
-Log in with your deploy key. The CLI opens the developer portal in your browser, then prompts you to paste the key.
-
 ```bash
-varitykit login
-# or
-varitykit auth login
+varitykit login            # sign in through the browser
+varitykit login --device   # sign in with a code on another device
+varitykit login --key <key>
 ```
 
-Example output:
-
-```
-  ╭─────────────────────────────────────────────────────╮
-  │  Get your deploy key from the developer portal:     │
-  │  https://developer.store.varity.so/dashboard/settings│
-  ╰─────────────────────────────────────────────────────╯
-
-  Opening https://developer.store.varity.so/dashboard/settings in your browser...
-  (input will be hidden for security)
-
-  Paste your deploy key: ********
-
-  Deploy key saved securely.
-  Logged in successfully!
-  Configured: deploy key
-  Run 'varitykit app deploy' to deploy.
-```
+- **Browser (default):** opens a browser tab to confirm.
+- **`--device`:** for SSH sessions and machines without a browser. The CLI shows a link and a code: open the link in a browser on any device and confirm the code. A headless machine uses this automatically.
+- **`--key <key>`:** for CI and agents. Create a deploy key in the developer portal under [Settings > Deploy keys](https://developer.store.varity.so/dashboard/settings?tab=api-keys&utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=cli-auth-api-keys) and pass it here, or set it as `VARITY_DEPLOY_KEY`.
 
 If you are already logged in, the CLI will show your current key (masked) and ask if you want to replace it.
 
@@ -3073,7 +3053,7 @@ Remove your saved credentials from this machine.
 varitykit auth logout
 ```
 
-This removes the deploy key from your local config file. You will need to run `varitykit login` again to deploy.
+This revokes the deploy key on Varity, so it stops working everywhere you use it, then removes it from this computer. A key you saved with `--key` is revoked too. You will need to run `varitykit login` again to deploy.
 
 ### status
 
@@ -3124,11 +3104,11 @@ The config file holds one credential:
 
 ### "Not logged in" when deploying
 
-Run `varitykit login` and paste your deploy key from the developer portal.
+Run `varitykit login` and confirm in the browser tab. In CI, pass a deploy key with `varitykit login --key <key>` or set `VARITY_DEPLOY_KEY`.
 
 ### "Invalid deploy key"
 
-Make sure you copied the full key from the developer portal Settings page. The key must be at least 10 characters long.
+If you passed a key with `--key` or `VARITY_DEPLOY_KEY`, make sure you copied the full key from the developer portal Settings page. The key must be at least 10 characters long.
 
 ### Credentials not persisting
 
@@ -8015,7 +7995,7 @@ Install the following (one-time setup):
 
 1. **Cursor** or **Claude Code** (AI editor with MCP support)
 2. **Node.js 22.11+**: [download here](https://nodejs.org)
-3. **A Varity deploy key** from the Developer Portal under **Settings > Deploy keys**
+3. **A Varity account**: your AI editor asks you to confirm in a browser tab to connect Varity, with no key to copy
 4. **A GitHub account**, with the GitHub CLI signed in or a `GITHUB_TOKEN`
 5. **Varity MCP**: install with:
 
@@ -8046,7 +8026,7 @@ That's it. No complex infrastructure setup.
 
    > "Check if my Varity environment is set up correctly"
 
-   **What happens:** The AI runs `varity_doctor`, which checks your Node.js version and whether a deploy key is configured. If the key is missing, create one in the Developer Portal under **Settings > Deploy keys** and set it as `VARITY_DEPLOY_KEY` in the MCP server's environment, or run `varitykit login` in a terminal. Never paste the key into the chat.
+   **What happens:** The AI runs `varity_doctor`, which checks your Node.js version and whether a deploy key is configured. If Varity is not connected yet, the AI runs `varity_login`, which opens a browser tab: confirm there to connect. For CI or scripts, set a deploy key from **Settings > Deploy keys** as `VARITY_DEPLOY_KEY` in the MCP server's environment instead. Never paste a key into the chat.
 
 2. **Build your app with your AI editor**
 
@@ -8192,7 +8172,7 @@ Every tool runs locally or via Varity's infrastructure. No manual configuration 
 
 **"Authentication required"**
 
-Set your deploy key as `VARITY_DEPLOY_KEY` in the MCP server's environment, or run `varitykit login` in a terminal, then restart your editor.
+Ask your AI editor to sign in to Varity: it runs `varity_login` and opens a browser tab to confirm. You can also run `varitykit login` in a terminal. For CI, set a deploy key as `VARITY_DEPLOY_KEY` in the MCP server's environment, then restart your editor.
 
 **"Cannot find module @varity-labs/mcp"**
 

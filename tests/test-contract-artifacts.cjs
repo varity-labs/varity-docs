@@ -268,6 +268,14 @@ for (const name of ['VARITY_AI_API_KEY', 'VARITY_AI_BASE_URL', 'VARITY_AI_MODEL'
     errors.push(`deploy/env-variables.mdx must name ${name}, injected by the AI Gateway add-on`);
   }
 }
+// Browser sign-in leads; a deploy key is for CI (MCP varity_login, varitykit
+// browser/device login in platform cli/varitykit/services/oauth_login.py).
+if (/Paste your deploy key|prompt you for a deploy key/.test(read('src/content/docs/cli/commands/auth.mdx'))) {
+  errors.push('cli/commands/auth.mdx must lead with browser sign-in, not pasting a deploy key');
+}
+for (const page of ['ai-tools/opencode.mdx', 'ai-tools/lm-studio.mdx', 'tutorials/build-with-ai.mdx']) {
+  if (!/browser tab/.test(read(`src/content/docs/${page}`))) errors.push(`${page} must say the first deploy signs in through a browser tab`);
+}
 if (/capability_disabled/.test(llmsFull)) errors.push('public/llms-full.txt documents capability_disabled, which no producer emits');
 
 // MCP facts the published package contradicts: a key pasted into chat, the

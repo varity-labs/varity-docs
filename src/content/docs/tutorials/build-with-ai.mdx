@@ -34,7 +34,7 @@ Install the following (one-time setup):
 
 1. **Cursor** or **Claude Code** (AI editor with MCP support)
 2. **Node.js 22.11+**: [download here](https://nodejs.org)
-3. **A Varity deploy key** from the Developer Portal under **Settings > Deploy keys**
+3. **A Varity account**: your AI editor asks you to confirm in a browser tab to connect Varity, with no key to copy
 4. **A GitHub account**, with the GitHub CLI signed in or a `GITHUB_TOKEN`
 5. **Varity MCP**: install with:
 
@@ -67,7 +67,7 @@ That's it. No complex infrastructure setup.
 
    > "Check if my Varity environment is set up correctly"
 
-   **What happens:** The AI runs `varity_doctor`, which checks your Node.js version and whether a deploy key is configured. If the key is missing, create one in the Developer Portal under **Settings > Deploy keys** and set it as `VARITY_DEPLOY_KEY` in the MCP server's environment, or run `varitykit login` in a terminal. Never paste the key into the chat.
+   **What happens:** The AI runs `varity_doctor`, which checks your Node.js version and whether a deploy key is configured. If Varity is not connected yet, the AI runs `varity_login`, which opens a browser tab: confirm there to connect. For CI or scripts, set a deploy key from **Settings > Deploy keys** as `VARITY_DEPLOY_KEY` in the MCP server's environment instead. Never paste a key into the chat.
 
 2. **Build your app with your AI editor**
 
@@ -215,7 +215,7 @@ Every tool runs locally or via Varity's infrastructure. No manual configuration 
 
 **"Authentication required"**
 
-Set your deploy key as `VARITY_DEPLOY_KEY` in the MCP server's environment, or run `varitykit login` in a terminal, then restart your editor.
+Ask your AI editor to sign in to Varity: it runs `varity_login` and opens a browser tab to confirm. You can also run `varitykit login` in a terminal. For CI, set a deploy key as `VARITY_DEPLOY_KEY` in the MCP server's environment, then restart your editor.
 
 **"Cannot find module @varity-labs/mcp"**
 
