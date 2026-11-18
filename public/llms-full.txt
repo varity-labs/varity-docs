@@ -2118,12 +2118,11 @@ moves ahead of the reference's release marker.
 ## Prerequisites
 
 - **Node.js 22.11 or newer**, as required by the package currently published to npm
-- **A deploy key** from the Developer Portal under **Settings > Deploy keys**
+- **A Varity account**, connected with a browser sign-in (see [Authentication](#authentication)), or a deploy key for CI
 
-Deploys, status, logs, templates, and machines go through the Varity public API
-and need only the deploy key. The `varitykit` CLI (Python 3.11 or newer,
-`pipx install varitykit`) is optional: `varity_migrate` uses it, and
-`varitykit login` is one way to store the deploy key.
+Deploys, status, logs, settings, domains, templates, and machines go through the
+Varity public API and need only that sign-in. The `varitykit` CLI (Python 3.11
+or newer, `pipx install varitykit`) is optional: only `varity_migrate` uses it.
 
 ## Setup
 
@@ -2172,30 +2171,32 @@ and need only the deploy key. The `varitykit` CLI (Python 3.11 or newer,
 
 ## Authentication
 
-Create a deploy key on the [Deploy keys page of the developer portal](https://developer.store.varity.so/dashboard/settings?tab=api-keys&utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=mcp-server-spec-api-keys).
-In Claude Code, add the server with the key in one command, replacing `<key>`
-with your key. If you already added the server without a key, run `claude mcp remove varity` first.
+Ask your agent to connect Varity. `varity_login` opens a browser tab where you
+confirm the connection: there is no key to type or copy, and nothing needs
+restarting. On a computer without a browser, it gives you a link and a short
+code to confirm on any device. The sign-in is saved on your computer in
+`~/.varitykit/config.json`; `varity_logout` revokes it on Varity and removes it.
+
+For CI or scripts, create a deploy key on the [Deploy keys page of the developer portal](https://developer.store.varity.so/dashboard/settings?tab=api-keys&utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=mcp-server-spec-api-keys)
+and set it as `VARITY_DEPLOY_KEY` in the server's environment. In Claude Code,
+replacing `<key>` with your key (if you already added the server, run
+`claude mcp remove varity` first):
 
 ```bash
 claude mcp add varity -e VARITY_DEPLOY_KEY=<key> -- npx -y @varity-labs/mcp@latest
 ```
 
-In other clients, set `VARITY_DEPLOY_KEY` in the server's `env` or in the shell
-that starts the client, then restart the client. Signing in from the browser,
-with no key to copy, is coming.
-
-The server reads your deploy key in this order:
+The server reads your key in this order:
 
 1. `VARITY_DEPLOY_KEY` in the MCP process environment;
-2. the key stored by `varitykit login` in `~/.varitykit/config.json`;
+2. the sign-in saved in `~/.varitykit/config.json` (by `varity_login` or `varitykit login`);
 3. `VARITY_API_KEY`, accepted for deploys only as a legacy fallback.
 
 `VARITY_API_KEY` is the name of the [AI Gateway](/ai-gateway/)
-inference key, so name a deploy key `VARITY_DEPLOY_KEY`. `varity_login` checks
-whether a key is configured and opens the portal settings page; it never accepts
-a key as tool input, so never paste a key into the chat. Never put a real key in
-a checked-in editor configuration. Deploy keys are account credentials; a
-project path is not an ownership boundary.
+inference key, so name a deploy key `VARITY_DEPLOY_KEY`. No tool accepts a key
+as input, so never paste a key into the chat. Never put a real key in a
+checked-in editor configuration. Deploy keys are account credentials; a project
+path is not an ownership boundary.
 
 ## Tool Reference
 
@@ -2218,10 +2219,19 @@ Important lifecycle semantics:
   describe it as a verified restart or image refresh without runtime evidence.
   It never builds newly pushed code: to ship pushed changes, call
   `varity_deploy` again with the same `app_name`.
-- The deployment-log tool returns recent runtime logs of a live app. Use the
-  local build tool for compilation diagnostics.
-- The environment tool accepts no values. It directs private configuration to
-  a secret-safe interface, and no tool result echoes a secret.
+- The deployment-log tool returns recent runtime logs of a live app. When a
+  build fails, `varity_deploy_status` for that deployment returns the last lines
+  of the build error in `build_error.lines`.
+- `varity_set_env` sets an app's settings and secrets from the project's own
+  `.env` file. You pass the setting names; the values are read on your computer
+  and never go through the chat or appear in a tool result. The project folder
+  must be one your editor has open, and you confirm the setting names and the
+  restart before anything is sent. Example files such as `.env.example` are
+  refused as a value source. The change restarts the app, and a restart sets
+  aside another monthly maximum until it settles.
+- `varity_domain_add`, `varity_domain_verify`, and `varity_domain_remove`
+  connect a custom domain to an app. Add returns the exact DNS records to create
+  at your domain provider; verify checks them.
 - The machine tools list, create, and delete SSH-accessible virtual machines.
   Create takes your SSH public key, and a machine bills hourly until it is
   deleted.
@@ -2232,7 +2242,7 @@ Important lifecycle semantics:
 ## Typical Workflow
 
 1. Run `varity_doctor` to check authentication.
-2. Run `varity_login` if authentication is missing.
+2. Run `varity_login` if Varity is not connected, and confirm in the browser.
 3. Use `varity_cost_calculator` or a live quote before a billable action.
 4. Build locally and inspect the result.
 5. Deploy the project or a certified template.
@@ -2268,9 +2278,8 @@ quotes, or operation receipts.
 
 - If npm cannot resolve the package, confirm `node --version` meets the
   published package requirement and retry `npx -y @varity-labs/mcp@latest`.
-- If `varity_doctor` reports missing authentication, set `VARITY_DEPLOY_KEY`
-  in the MCP process environment or run `varitykit login`, then restart the
-  editor.
+- If `varity_doctor` reports that Varity is not connected, ask your agent to
+  connect Varity (`varity_login`) and confirm in the browser tab.
 - If `varity_migrate` cannot find varitykit, install it with
   `pipx install varitykit`.
 - If an editor does not show the server, validate its JSON configuration,
@@ -2482,10 +2491,11 @@ bundles two things for your AI editor:
 - the `deploy-with-varity` skill, which tells the agent to check the cost first,
   then deploy and report the live URL.
 
-Deploys need only a deploy key. Create one on the
-[Deploy keys page of the developer portal](https://developer.store.varity.so/dashboard/settings?tab=api-keys&utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=plugin-api-keys), then set it as `VARITY_DEPLOY_KEY` in your shell or
-MCP configuration, or sign in with the Varity CLI. Never paste a key into the
-chat.
+The first time you deploy, the agent opens a browser tab where you confirm to
+connect Varity; there is no key to copy. For CI or scripts, create a deploy key
+on the [Deploy keys page of the developer portal](https://developer.store.varity.so/dashboard/settings?tab=api-keys&utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=plugin-api-keys)
+and set it as `VARITY_DEPLOY_KEY` in your shell or MCP configuration. Never
+paste a key into the chat.
 
 ## Claude Code
 
@@ -2493,6 +2503,14 @@ chat.
 claude plugin marketplace add varity-labs/varity-plugin
 claude plugin install varity@varity-plugin
 ```
+
+In Claude Code the plugin also adds four commands:
+
+- `/varity:deploy` deploys the current project, with the cost shown first.
+- `/varity:status` shows whether your apps are live, and the build error if one failed.
+- `/varity:env <project folder> <SETTING_NAME ...>` sets settings and secrets
+  from the project's `.env` file. Pass names only; values stay on your computer.
+- `/varity:logs <app>` shows recent runtime logs.
 
 ## Gemini CLI
 
@@ -3926,6 +3944,10 @@ A deployment must serve a public web endpoint to take a custom domain, and each 
 2. Enter the hostname you want to use and attach it. Varity responds with the exact DNS records to create.
 
 3. Create those records at your DNS provider, then return to the card and run the verification check.
+
+### From your AI editor
+
+With the [Varity MCP server](/ai-tools/mcp-server-spec/), ask your agent to use your domain for the app. `varity_domain_add` returns the DNS records to create, `varity_domain_verify` checks them, and `varity_domain_remove` detaches the domain.
 
 ### From the API
 
@@ -6248,13 +6270,7 @@ If you are using Claude Code or Cursor, the Varity MCP server lets your AI tool 
    
 
    
-   The first deploy needs a deploy key. Create one on the [Deploy keys page of the developer portal](https://developer.store.varity.so/dashboard/settings?tab=api-keys&utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=quickstart-api-keys), then give it to the MCP server. In Claude Code, add the server with the key in one command, replacing `<key>` with your key. If you already added the server without a key, run `claude mcp remove varity` first.
-
-   ```bash
-   claude mcp add varity -e VARITY_DEPLOY_KEY=<key> -- npx -y @varity-labs/mcp@latest
-   ```
-
-   In other editors, set `VARITY_DEPLOY_KEY` in the MCP server's environment. Never paste a key into the chat: the MCP server does not accept credentials as tool input. Signing in from the browser, with no key to copy, is coming. See [MCP authentication](/ai-tools/mcp-server-spec/#authentication).
+   On the first deploy, your AI tool asks you to confirm in a browser tab to connect Varity. Confirm in the tab and the deploy continues: there is no key to copy. For CI or scripts, use a deploy key from the [Deploy keys page of the developer portal](https://developer.store.varity.so/dashboard/settings?tab=api-keys&utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=quickstart-api-keys) instead; see [MCP authentication](/ai-tools/mcp-server-spec/#authentication). Never paste a key into the chat.
    
 
 2. **Open your project and ask your AI tool to deploy**
@@ -6516,12 +6532,13 @@ Check my Varity environment, then build this project, deploy it, and open the li
 
 ## What the MCP server can do
 
-The Varity MCP server gives your AI editor 26 tools. Your installed server's `tools/list` response is the authoritative list:
+The Varity MCP server gives your AI editor 30 tools. Your installed server's `tools/list` response is the authoritative list:
 
 | Tool | What to ask your AI |
 |---|---|
 | `varity_doctor` | "Check if my environment is set up for Varity" |
-| `varity_login` | "Log in to Varity" |
+| `varity_login` | "Connect Varity" (opens a browser tab where you confirm) |
+| `varity_logout` | "Sign this computer out of Varity" |
 | `varity_search_docs` | "Search the Varity docs for Docker image deploys" |
 | `varity_install_deps` | "Install dependencies for this project" |
 | `varity_dev_server` | "Start the dev server and open it in my browser" |
@@ -6529,9 +6546,9 @@ The Varity MCP server gives your AI editor 26 tools. Your installed server's `to
 | `varity_build` | "Build this project for production" |
 | `varity_create_repo` | "Create a GitHub repo and push this project" |
 | `varity_deploy` | "Deploy this to Varity" |
-| `varity_deploy_status` | "Show me my deployment status" |
+| `varity_deploy_status` | "Show me my deployment status" (includes the build error if a build failed) |
 | `varity_deploy_logs` | "Show me the runtime logs" (dynamic apps only; static sites have no runtime logs) |
-| `varity_set_env` | Does not accept values; it points you to a secret-safe way to set them |
+| `varity_set_env` | "Set OPENAI_API_KEY on my app from my .env file" (names only, from a project folder your editor has open; you confirm before it sends, values stay on your computer, and the app restarts) |
 | `varity_redeploy` | "Restart this app's last release" (does not ship new code; to ship pushed changes, ask to deploy again with the same app name) |
 | `varity_delete_deployment` | "Tear down this deployment" (returns once accepted; check `varity_deploy_status` until billing reads stopped) |
 | `varity_migrate` | "Preview migrating my Vercel app to Varity" |
@@ -6544,6 +6561,7 @@ The Varity MCP server gives your AI editor 26 tools. Your installed server's `to
 | `varity_machines_list` | "List my Varity virtual machines" |
 | `varity_machines_create` | "Create a virtual machine I can SSH into with my public key" |
 | `varity_machines_delete` | "Delete that virtual machine" |
+| `varity_domain_add`, `varity_domain_verify`, `varity_domain_remove` | "Use app.example.com for my app" (returns the DNS records to add, then checks them) |
 
 Full reference at [MCP Server Spec](/ai-tools/mcp-server-spec).
 

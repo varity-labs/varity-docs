@@ -77,6 +77,10 @@ A deployment must serve a public web endpoint to take a custom domain, and each 
 
 </Steps>
 
+### From your AI editor
+
+With the [Varity MCP server](/ai-tools/mcp-server-spec/), ask your agent to use your domain for the app. `varity_domain_add` returns the DNS records to create, `varity_domain_verify` checks them, and `varity_domain_remove` detaches the domain.
+
 ### From the API
 
 Attach a hostname with `PUT /deployments/{deployment_id}/domain`:
