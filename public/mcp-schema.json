@@ -9,7 +9,7 @@
   "server": {
     "name": "varity",
     "package": "@varity-labs/mcp",
-    "version": "2.3.28",
+    "version": "2.3.29",
     "release": {
       "registry": "https://registry.npmjs.org/@varity-labs%2Fmcp/latest",
       "distTag": "latest",
@@ -144,7 +144,7 @@
     {
       "name": "varity_login",
       "title": "Connect Varity",
-      "description": "Connect Varity on this computer with a browser sign-in, so deploys work. Before calling, tell the user: \"I'll open a browser tab: confirm there to connect Varity.\" Confirming in the browser is the only step: there is no key to type or copy, and nothing needs restarting. The call waits up to 2 minutes; if it returns status \"pending\", relay its message to the user and call varity_login again to finish the same sign-in. On a machine without a browser it returns a link and a short code for the user to confirm on any device. Never ask the user for a key; credentials are never accepted as tool input.",
+      "description": "Connect Varity on this computer, so deploys work. When browser sign-in is switched on, tell the user before calling: \"I'll open a browser tab: confirm there to connect Varity.\" and confirming in the browser is the only step. When it is not, the call answers SIGN_IN_UNAVAILABLE: then relay its message, which connects with a deploy key added to the editor's MCP settings, never typed into chat. The call waits up to 2 minutes; if it returns status \"pending\", relay its message to the user and call varity_login again to finish the same sign-in. On a machine without a browser it returns a link and a short code for the user to confirm on any device. Never ask the user for a key; credentials are never accepted as tool input.",
       "inputSchema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -360,14 +360,21 @@
     {
       "name": "varity_deploy",
       "title": "Deploy to Production",
-      "description": "Submit a Git repository or a prebuilt container image to Varity's deployment owner. The control plane detects the framework, selects hosting, builds, and manages lifecycle state. Use this when a developer wants to deploy, publish, ship, or make their app live. If the developer wants to deploy a certified template rather than their own code, use varity_deploy_template instead. To ship new code for an app that is already deployed, push it and call varity_deploy again with the same app_name: the same owner and workload shape updates that app in place at the latest commit (varity_redeploy does not pick up new commits). To stop a deployment and its billing, use varity_delete_deployment.",
+      "description": "Submit a Git repository, a local project folder, or a prebuilt container image to Varity's deployment owner. A folder with no public GitHub repository is tried as a direct upload, which Varity may not have switched on yet: never promise the upload or private code before it succeeds; if it answers UPLOAD_UNAVAILABLE, Varity can't take a folder from this computer yet. The control plane detects the framework, selects hosting, builds, and manages lifecycle state. Use this when a developer wants to deploy, publish, ship, or make their app live. If the developer wants to deploy a certified template rather than their own code, use varity_deploy_template instead. To ship new code for an app that is already deployed, push it and call varity_deploy again with the same app_name: the same owner and workload shape updates that app in place at the latest commit (varity_redeploy does not pick up new commits). For an uploaded folder, call varity_deploy again with the same path and app_name: it uploads the folder again. To stop a deployment and its billing, use varity_delete_deployment.",
       "inputSchema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "path": {
-            "description": "Absolute path to the project directory (e.g. '/home/user/my-app'). Used only to read the Git `origin` remote when repo_url and image are omitted. If omitted, the MCP server's working directory is used (which is rarely the correct project root).",
+            "description": "Absolute path to the project directory (e.g. '/home/user/my-app'). Used to read the Git `origin` remote when repo_url and image are omitted, and as the folder to try uploading when the project has no public GitHub repository. If omitted, the MCP server's working directory is used (which is rarely the correct project root).",
             "type": "string"
+          },
+          "source": {
+            "description": "Set to \"upload\" to try sending the project folder at path straight to Varity. Tried automatically when the folder has no Git origin remote or its repository is private. Folder upload may not be switched on yet: then nothing is uploaded or charged and the answer says so.",
+            "type": "string",
+            "enum": [
+              "upload"
+            ]
           },
           "repo_url": {
             "description": "GitHub repository URL for the app (e.g. 'https://github.com/user/my-app'). If omitted, auto-detected from .git/config. Use the repo_url returned by varity_create_repo as the value here.",
@@ -456,9 +463,14 @@
         "type": "object",
         "properties": {
           "deployment": {
+            "description": "The deployment id or app name to get logs for",
             "type": "string",
-            "pattern": "^[a-zA-Z0-9_-]+$",
-            "description": "The deployment id or app name to get logs for"
+            "pattern": "^[a-zA-Z0-9_-]+$"
+          },
+          "deployment_id": {
+            "description": "Same as deployment (the name varity_deploy_status uses); pass either one.",
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_-]+$"
           },
           "limit": {
             "default": 100,
@@ -466,9 +478,6 @@
             "type": "number"
           }
         },
-        "required": [
-          "deployment"
-        ],
         "additionalProperties": false
       },
       "annotations": {
@@ -513,7 +522,7 @@
     {
       "name": "varity_set_env",
       "title": "Set App Settings From .env",
-      "description": "Set environment variables (settings such as API keys) on a deployed app from the project's own .env file. Pass the app, the project folder and the setting NAMES; the values are read from the file on this computer and never go through chat. Never ask the user to type a value into chat: ask them to put it in .env. This restarts the app, and a restart sets aside another monthly maximum until it settles, so tell the user before calling. The user is asked to confirm the names and the restart before anything is sent. Call it once; do not repeat it on a timeout (check varity_deploy_status instead).",
+      "description": "Set environment variables (settings such as API keys) on a deployed app from the project's own .env file. Pass the app, the project folder and the setting NAMES; the values are read from the file on this computer and never go through chat. Never ask the user to type a value into chat: ask them to put it in .env. This restarts the app, and restarting holds one more month's maximum, released when billing next settles, usually within 20 minutes, so tell the user before calling. The user is asked to confirm the names and the restart before anything is sent. Call it once; do not repeat it on a timeout (check varity_deploy_status instead).",
       "inputSchema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -690,7 +699,7 @@
     {
       "name": "varity_machines_list",
       "title": "List Machines",
-      "description": "List the developer's Varity CPU and GPU virtual machines with their state, SSH access and billing. Set include_profiles to also get the machine profiles and OS images (profile_id, os_image) that varity_machines_create accepts: CPU profiles by default, GPU VM profiles (with GPU model, VRAM, hourly price and default_os_image) when gpu is true.",
+      "description": "List the developer's Varity CPU and GPU virtual machines with their state, SSH access and billing. Set include_profiles to also get the machine profiles and OS images (profile_id, os_image) that varity_machines_create accepts: CPU profiles by default, GPU VM profiles (with GPU model, VRAM, hourly price and default_os_image) when gpu is true. By default only machines still running or billing are listed; set include_stopped to list machines whose billing has stopped too, at most limit of them.",
       "inputSchema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -702,6 +711,16 @@
           "gpu": {
             "description": "With include_profiles, return GPU VM profiles instead of CPU ones.",
             "type": "boolean"
+          },
+          "include_stopped": {
+            "description": "Also list machines whose billing has stopped (deleted machines).",
+            "type": "boolean"
+          },
+          "limit": {
+            "description": "Most machines to list (default 20, up to 100).",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
           }
         },
         "additionalProperties": false
