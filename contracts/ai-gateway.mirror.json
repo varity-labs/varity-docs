@@ -12494,61 +12494,6 @@
       }
     },
     {
-      "id": "kimi-k2-5",
-      "privacy": "private",
-      "context_window": 256000,
-      "max_completion_tokens": 65536,
-      "capabilities": {
-        "version": 1,
-        "input_modalities": [
-          "text",
-          "document",
-          "image"
-        ],
-        "output_modalities": [
-          "text"
-        ],
-        "chat_completions": true,
-        "streaming_text": true,
-        "tool_calls": true,
-        "streaming_tool_calls": true,
-        "structured_outputs": true,
-        "json_schema": true,
-        "streaming": true,
-        "transcription": false,
-        "speech": false,
-        "speech_formats": [],
-        "parallel_tool_calls": true,
-        "max_documents_per_message": 5,
-        "reasoning_controls": true,
-        "reasoning_effort": true,
-        "web_search": true,
-        "x_search": false,
-        "optimized_for_code": true,
-        "uncensored": false,
-        "log_probs": true,
-        "temperature": true,
-        "top_p": true,
-        "seed": true,
-        "stop": true,
-        "context_window": 256000,
-        "max_completion_tokens": 65536,
-        "privacy": "private",
-        "privacy_routes": [
-          "private"
-        ]
-      },
-      "customer_pricing": {
-        "status": "configured",
-        "version": "2026-10-18.ai-api.v5.6c905d9374df7aa3",
-        "currency": "usd",
-        "unit": "per_million_tokens",
-        "input": 0.588,
-        "output": 3.675,
-        "cached_input": 0.231
-      }
-    },
-    {
       "id": "kimi-k2-6",
       "privacy": "private",
       "context_window": 256000,
@@ -12874,6 +12819,59 @@
         "input": 4.725,
         "output": 23.625,
         "cached_input": 0.4725
+      }
+    },
+    {
+      "id": "kling-image-4-0",
+      "privacy": "anonymized",
+      "context_window": 0,
+      "max_completion_tokens": 0,
+      "capabilities": {
+        "version": 1,
+        "input_modalities": [
+          "text"
+        ],
+        "output_modalities": [
+          "image"
+        ],
+        "chat_completions": false,
+        "streaming_text": false,
+        "tool_calls": false,
+        "streaming_tool_calls": false,
+        "structured_outputs": false,
+        "json_schema": false,
+        "streaming": false,
+        "transcription": false,
+        "speech": false,
+        "speech_formats": [],
+        "parallel_tool_calls": false,
+        "reasoning_controls": false,
+        "reasoning_effort": false,
+        "web_search": false,
+        "x_search": false,
+        "optimized_for_code": false,
+        "uncensored": false,
+        "log_probs": false,
+        "temperature": false,
+        "top_p": false,
+        "seed": false,
+        "stop": false,
+        "context_window": 0,
+        "max_completion_tokens": 0,
+        "privacy": "anonymized",
+        "privacy_routes": [
+          "anonymized"
+        ]
+      },
+      "customer_pricing": {
+        "status": "configured",
+        "version": "2026-10-18.ai-api.v5.a074afb145190881",
+        "currency": "usd",
+        "unit": "per_image",
+        "input": 0,
+        "output": 0,
+        "cached_input": 0,
+        "request": 0.084
       }
     },
     {
@@ -13517,6 +13515,112 @@
         "output": 0,
         "cached_input": 0,
         "request": 0.0105
+      }
+    },
+    {
+      "id": "mai-image-2-7",
+      "privacy": "anonymized",
+      "context_window": 0,
+      "max_completion_tokens": 0,
+      "capabilities": {
+        "version": 1,
+        "input_modalities": [
+          "text"
+        ],
+        "output_modalities": [
+          "image"
+        ],
+        "chat_completions": false,
+        "streaming_text": false,
+        "tool_calls": false,
+        "streaming_tool_calls": false,
+        "structured_outputs": false,
+        "json_schema": false,
+        "streaming": false,
+        "transcription": false,
+        "speech": false,
+        "speech_formats": [],
+        "parallel_tool_calls": false,
+        "reasoning_controls": false,
+        "reasoning_effort": false,
+        "web_search": false,
+        "x_search": false,
+        "optimized_for_code": false,
+        "uncensored": false,
+        "log_probs": false,
+        "temperature": false,
+        "top_p": false,
+        "seed": false,
+        "stop": false,
+        "context_window": 0,
+        "max_completion_tokens": 0,
+        "privacy": "anonymized",
+        "privacy_routes": [
+          "anonymized"
+        ]
+      },
+      "customer_pricing": {
+        "status": "configured",
+        "version": "2026-10-18.ai-api.v5.70c6fa31040b79ad",
+        "currency": "usd",
+        "unit": "per_image",
+        "input": 0,
+        "output": 0,
+        "cached_input": 0,
+        "request": 0.0525
+      }
+    },
+    {
+      "id": "mai-image-2-7-flash",
+      "privacy": "anonymized",
+      "context_window": 0,
+      "max_completion_tokens": 0,
+      "capabilities": {
+        "version": 1,
+        "input_modalities": [
+          "text"
+        ],
+        "output_modalities": [
+          "image"
+        ],
+        "chat_completions": false,
+        "streaming_text": false,
+        "tool_calls": false,
+        "streaming_tool_calls": false,
+        "structured_outputs": false,
+        "json_schema": false,
+        "streaming": false,
+        "transcription": false,
+        "speech": false,
+        "speech_formats": [],
+        "parallel_tool_calls": false,
+        "reasoning_controls": false,
+        "reasoning_effort": false,
+        "web_search": false,
+        "x_search": false,
+        "optimized_for_code": false,
+        "uncensored": false,
+        "log_probs": false,
+        "temperature": false,
+        "top_p": false,
+        "seed": false,
+        "stop": false,
+        "context_window": 0,
+        "max_completion_tokens": 0,
+        "privacy": "anonymized",
+        "privacy_routes": [
+          "anonymized"
+        ]
+      },
+      "customer_pricing": {
+        "status": "configured",
+        "version": "2026-10-18.ai-api.v5.838e61c5e205152a",
+        "currency": "usd",
+        "unit": "per_image",
+        "input": 0,
+        "output": 0,
+        "cached_input": 0,
+        "request": 0.021
       }
     },
     {

@@ -145,12 +145,13 @@ Check my Varity environment, then build this project, deploy it, and open the li
 
 ## What the MCP server can do
 
-The Varity MCP server gives your AI editor 26 tools. Your installed server's `tools/list` response is the authoritative list:
+The Varity MCP server gives your AI editor 30 tools. Your installed server's `tools/list` response is the authoritative list:
 
 | Tool | What to ask your AI |
 |---|---|
 | `varity_doctor` | "Check if my environment is set up for Varity" |
 | `varity_login` | "Log in to Varity" |
+| `varity_logout` | "Sign this computer out of Varity" |
 | `varity_search_docs` | "Search the Varity docs for Docker image deploys" |
 | `varity_install_deps` | "Install dependencies for this project" |
 | `varity_dev_server` | "Start the dev server and open it in my browser" |
@@ -173,6 +174,7 @@ The Varity MCP server gives your AI editor 26 tools. Your installed server's `to
 | `varity_machines_list` | "List my Varity virtual machines" |
 | `varity_machines_create` | "Create a virtual machine I can SSH into with my public key" |
 | `varity_machines_delete` | "Delete that virtual machine" |
+| `varity_domain_add`, `varity_domain_verify`, `varity_domain_remove` | "Use app.example.com for my app" (returns the DNS records to add, then checks them) |
 
 Full reference at [MCP Server Spec](/ai-tools/mcp-server-spec).
 

@@ -9,11 +9,11 @@
   "server": {
     "name": "varity",
     "package": "@varity-labs/mcp",
-    "version": "2.3.27",
+    "version": "2.3.29",
     "release": {
       "registry": "https://registry.npmjs.org/@varity-labs%2Fmcp/latest",
       "distTag": "latest",
-      "observedAt": "2026-11-17"
+      "observedAt": "2026-11-18"
     },
     "docs": "https://docs.varity.so/ai-tools/mcp-server-spec/",
     "install": {
@@ -34,7 +34,7 @@
       "stdio"
     ]
   },
-  "toolCount": 26,
+  "toolCount": 30,
   "tools": [
     {
       "name": "varity_search_docs",
@@ -104,7 +104,7 @@
     {
       "name": "varity_balance",
       "title": "Account Balance",
-      "description": "Read your Varity balance in USD: available, authorization maximum, and owed. reserved_usd is the served authorization maximum, not a measure of funded backing. Amounts are exact decimal USD strings. Use before deploying or when asked how much balance remains. An unavailable read is never reported as zero.",
+      "description": "Read your Varity balance in USD: available, set aside for running apps, and owed. reserved_usd is the amount set aside for the user's running apps (their monthly maximums), not a measure of funded backing. The data carries exact decimal USD strings; the message rounds to cents. Use before deploying or when asked how much balance remains. An unavailable read is never reported as zero.",
       "inputSchema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -143,8 +143,8 @@
     },
     {
       "name": "varity_login",
-      "title": "Set Up Varity Login",
-      "description": "Check whether a deploy key is already configured and open the developer portal settings page when login is needed. Credentials are never accepted as MCP tool input; set VARITY_DEPLOY_KEY in the MCP server environment, or enter the deploy key only in the hidden prompt of `varitykit auth login` in a trusted terminal, which saves it to ~/.varitykit/config.json.",
+      "title": "Connect Varity",
+      "description": "Connect Varity on this computer, so deploys work. When browser sign-in is switched on, tell the user before calling: \"I'll open a browser tab: confirm there to connect Varity.\" and confirming in the browser is the only step. When it is not, the call answers SIGN_IN_UNAVAILABLE: then relay its message, which connects with a deploy key added to the editor's MCP settings, never typed into chat. The call waits up to 2 minutes; if it returns status \"pending\", relay its message to the user and call varity_login again to finish the same sign-in. On a machine without a browser it returns a link and a short code for the user to confirm on any device. Never ask the user for a key; credentials are never accepted as tool input.",
       "inputSchema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -154,6 +154,26 @@
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "varity_logout",
+      "title": "Sign Out of Varity",
+      "description": "Sign this computer out of Varity: the saved sign-in is revoked on Varity, so it stops working everywhere, then removed from this computer. Use only when the user asks to sign out or disconnect. A key set in the MCP server environment is not changed.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
         "idempotentHint": true,
         "openWorldHint": false
       },
@@ -340,14 +360,21 @@
     {
       "name": "varity_deploy",
       "title": "Deploy to Production",
-      "description": "Submit a Git repository or a prebuilt container image to Varity's deployment owner. The control plane detects the framework, selects hosting, builds, and manages lifecycle state. Use this when a developer wants to deploy, publish, ship, or make their app live. If the developer wants to deploy a certified template rather than their own code, use varity_deploy_template instead. To ship new code for an app that is already deployed, push it and call varity_deploy again with the same app_name: the same owner and workload shape updates that app in place at the latest commit (varity_redeploy does not pick up new commits). To stop a deployment and its billing, use varity_delete_deployment.",
+      "description": "Submit a Git repository, a local project folder, or a prebuilt container image to Varity's deployment owner. A folder with no public GitHub repository is tried as a direct upload, which Varity may not have switched on yet: never promise the upload or private code before it succeeds; if it answers UPLOAD_UNAVAILABLE, Varity can't take a folder from this computer yet. The control plane detects the framework, selects hosting, builds, and manages lifecycle state. Use this when a developer wants to deploy, publish, ship, or make their app live. If the developer wants to deploy a certified template rather than their own code, use varity_deploy_template instead. To ship new code for an app that is already deployed, push it and call varity_deploy again with the same app_name: the same owner and workload shape updates that app in place at the latest commit (varity_redeploy does not pick up new commits). For an uploaded folder, call varity_deploy again with the same path and app_name: it uploads the folder again. To stop a deployment and its billing, use varity_delete_deployment.",
       "inputSchema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "path": {
-            "description": "Absolute path to the project directory (e.g. '/home/user/my-app'). Used only to read the Git `origin` remote when repo_url and image are omitted. If omitted, the MCP server's working directory is used (which is rarely the correct project root).",
+            "description": "Absolute path to the project directory (e.g. '/home/user/my-app'). Used to read the Git `origin` remote when repo_url and image are omitted, and as the folder to try uploading when the project has no public GitHub repository. If omitted, the MCP server's working directory is used (which is rarely the correct project root).",
             "type": "string"
+          },
+          "source": {
+            "description": "Set to \"upload\" to try sending the project folder at path straight to Varity. Tried automatically when the folder has no Git origin remote or its repository is private. Folder upload may not be switched on yet: then nothing is uploaded or charged and the answer says so.",
+            "type": "string",
+            "enum": [
+              "upload"
+            ]
           },
           "repo_url": {
             "description": "GitHub repository URL for the app (e.g. 'https://github.com/user/my-app'). If omitted, auto-detected from .git/config. Use the repo_url returned by varity_create_repo as the value here.",
@@ -393,7 +420,7 @@
     {
       "name": "varity_deploy_status",
       "title": "Deployment Status",
-      "description": "List deployments or get status of a specific deployment. Shows the owner-scoped fields returned by the Varity public interface, including URL, status, runtime when available, and creation time. A separate HTTP probe records reachability without overwriting the owner's lifecycle status; authenticated, POST-only, or transiently unavailable apps may return a non-2xx probe. Use this when a developer asks about their deployments, wants to check status, or needs to find a deployment URL.",
+      "description": "List deployments or get status of a specific deployment. Shows the owner-scoped fields returned by the Varity public interface, including URL, status, runtime when available, and creation time. A separate HTTP probe records reachability without overwriting the owner's lifecycle status; authenticated, POST-only, or transiently unavailable apps may return a non-2xx probe. Use this when a developer asks about their deployments, wants to check status, or needs to find a deployment URL. For one deployment it also says, in plain words, the current stage and time so far while deploying, how long it took once live, and, when a build failed, the last lines of the build error (build_error.lines) so the cause can be fixed in the code.",
       "inputSchema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -430,15 +457,20 @@
     {
       "name": "varity_deploy_logs",
       "title": "Deployment Info & Logs",
-      "description": "Get recent runtime logs for a deployment from the Varity public API. Use this when a developer asks for logs from a live app. For local build errors before deployment, use varity_build.",
+      "description": "Get recent runtime logs for a deployment from the Varity public API. Use this when a developer asks for logs from a live app. If a deploy failed while building, call varity_deploy_status with the deployment: it returns the build error lines.",
       "inputSchema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "deployment": {
+            "description": "The deployment id or app name to get logs for",
             "type": "string",
-            "pattern": "^[a-zA-Z0-9_-]+$",
-            "description": "The deployment id or app name to get logs for"
+            "pattern": "^[a-zA-Z0-9_-]+$"
+          },
+          "deployment_id": {
+            "description": "Same as deployment (the name varity_deploy_status uses); pass either one.",
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_-]+$"
           },
           "limit": {
             "default": 100,
@@ -446,9 +478,6 @@
             "type": "number"
           }
         },
-        "required": [
-          "deployment"
-        ],
         "additionalProperties": false
       },
       "annotations": {
@@ -492,19 +521,147 @@
     },
     {
       "name": "varity_set_env",
-      "title": "Route Environment Configuration Safely",
-      "description": "Compatibility route for environment configuration. It never accepts values and directs private configuration to an approved secret-safe interface.",
+      "title": "Set App Settings From .env",
+      "description": "Set environment variables (settings such as API keys) on a deployed app from the project's own .env file. Pass the app, the project folder and the setting NAMES; the values are read from the file on this computer and never go through chat. Never ask the user to type a value into chat: ask them to put it in .env. This restarts the app, and restarting holds one more month's maximum, released when billing next settles, usually within 20 minutes, so tell the user before calling. The user is asked to confirm the names and the restart before anything is sent. Call it once; do not repeat it on a timeout (check varity_deploy_status instead).",
       "inputSchema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
-        "properties": {},
+        "properties": {
+          "deployment": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_-]+$",
+            "description": "The deployment id or app name to change."
+          },
+          "path": {
+            "type": "string",
+            "description": "Absolute path to the app's project folder (the folder that holds its .env file)."
+          },
+          "keys": {
+            "minItems": 1,
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Z_][A-Z0-9_]*$"
+            },
+            "description": "Names of the settings to send, e.g. [\"OPENAI_API_KEY\"]. Names only, never values."
+          },
+          "env_file": {
+            "default": ".env",
+            "description": "The settings file's name in the project folder (default .env; e.g. .env.production). A name, not a path. Example files such as .env.example hold names only and are refused as a value source.",
+            "type": "string"
+          },
+          "confirm": {
+            "description": "Set to true only after the user agreed to the setting names and the restart (needed when this editor cannot ask the user itself).",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "deployment",
+          "path",
+          "keys"
+        ],
         "additionalProperties": false
       },
       "annotations": {
-        "readOnlyHint": true,
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "varity_domain_add",
+      "title": "Add a Custom Domain",
+      "description": "Point the user's own domain (e.g. app.example.com or example.com) at a deployed app. Returns the exact DNS record to add at their domain registrar, in plain words. Then call varity_domain_verify.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "deployment": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_-]+$",
+            "description": "The deployment id or app name."
+          },
+          "hostname": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 253,
+            "description": "The domain or subdomain, e.g. app.example.com."
+          }
+        },
+        "required": [
+          "deployment",
+          "hostname"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
         "destructiveHint": false,
         "idempotentHint": true,
-        "openWorldHint": false
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "varity_domain_verify",
+      "title": "Check a Custom Domain",
+      "description": "Check whether the DNS record for an app's custom domain is in place and whether the domain is live.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "deployment": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_-]+$",
+            "description": "The deployment id or app name."
+          }
+        },
+        "required": [
+          "deployment"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "varity_domain_remove",
+      "title": "Remove a Custom Domain",
+      "description": "Stop serving an app at its custom domain. The app keeps its Varity web address; the DNS record can then be deleted at the registrar.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "deployment": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_-]+$",
+            "description": "The deployment id or app name."
+          }
+        },
+        "required": [
+          "deployment"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": true
       },
       "execution": {
         "taskSupport": "forbidden"
@@ -542,7 +699,7 @@
     {
       "name": "varity_machines_list",
       "title": "List Machines",
-      "description": "List the developer's Varity CPU and GPU virtual machines with their state, SSH access and billing. Set include_profiles to also get the machine profiles and OS images (profile_id, os_image) that varity_machines_create accepts: CPU profiles by default, GPU VM profiles (with GPU model, VRAM, hourly price and default_os_image) when gpu is true.",
+      "description": "List the developer's Varity CPU and GPU virtual machines with their state, SSH access and billing. Set include_profiles to also get the machine profiles and OS images (profile_id, os_image) that varity_machines_create accepts: CPU profiles by default, GPU VM profiles (with GPU model, VRAM, hourly price and default_os_image) when gpu is true. By default only machines still running or billing are listed; set include_stopped to list machines whose billing has stopped too, at most limit of them.",
       "inputSchema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -554,6 +711,16 @@
           "gpu": {
             "description": "With include_profiles, return GPU VM profiles instead of CPU ones.",
             "type": "boolean"
+          },
+          "include_stopped": {
+            "description": "Also list machines whose billing has stopped (deleted machines).",
+            "type": "boolean"
+          },
+          "limit": {
+            "description": "Most machines to list (default 20, up to 100).",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
           }
         },
         "additionalProperties": false
@@ -717,7 +884,7 @@
     {
       "name": "varity_deploy_template",
       "title": "Deploy a Varity Template",
-      "description": "Deploy a public certified Varity template that declares no required environment variables. Private or secret-bearing templates are refused; call varity_template_info first.",
+      "description": "Deploy a public certified Varity template. Call varity_template_info first: if it lists required env vars, ask the user to put them in a .env file in their project folder and pass that folder as path (values never go through chat). Private templates are refused.",
       "inputSchema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -729,6 +896,18 @@
           "name": {
             "description": "Memorable deployment name. Defaults to <template>-derived name if omitted.",
             "type": "string"
+          },
+          "path": {
+            "description": "Absolute path to the project folder whose .env file holds the template's required settings (only for templates that need them).",
+            "type": "string"
+          },
+          "env_file": {
+            "description": "The settings file's name in that folder (default .env). Values are read on this computer and never go through chat.",
+            "type": "string"
+          },
+          "confirm": {
+            "description": "Set to true only after the user agreed to send the listed setting names (needed when this editor cannot ask the user itself).",
+            "type": "boolean"
           }
         },
         "required": [

@@ -28,7 +28,10 @@ moves ahead of the reference's release marker.
 ## Prerequisites
 
 - **Node.js 22.11 or newer**, as required by the package currently published to npm
-- **A deploy key** from the Developer Portal under **Settings > Deploy keys**
+- **A deploy key** from the Developer Portal under **Settings > Deploy keys**.
+  The Portal asks for a payment method before it creates a deploy key. Without
+  a card, you can still put a site online with
+  [Chat and Build](https://developer.store.varity.so/dashboard/ai-gateway?tab=chat&mode=build&utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=mcp-server-spec-chat-build).
 
 Deploys, status, logs, templates, and machines go through the Varity public API
 and need only the deploy key. The `varitykit` CLI (Python 3.11 or newer,
@@ -93,8 +96,11 @@ claude mcp add varity -e VARITY_DEPLOY_KEY=<key> -- npx -y @varity-labs/mcp@late
 ```
 
 In other clients, set `VARITY_DEPLOY_KEY` in the server's `env` or in the shell
-that starts the client, then restart the client. Signing in from the browser,
-with no key to copy, is coming.
+that starts the client, then restart the client.
+
+Where browser sign-in is available, `varity_login` connects you in a browser
+tab instead, with no key to copy. It is not switched on yet: today
+`varity_login` answers `SIGN_IN_UNAVAILABLE` and points you to the deploy key.
 
 The server reads your deploy key in this order:
 
@@ -104,8 +110,8 @@ The server reads your deploy key in this order:
 
 `VARITY_API_KEY` is the name of the [AI Gateway](/ai-gateway/)
 inference key, so name a deploy key `VARITY_DEPLOY_KEY`. `varity_login` checks
-whether a key is configured and opens the portal settings page; it never accepts
-a key as tool input, so never paste a key into the chat. Never put a real key in
+whether a key is configured; it never accepts a key as tool input, so never
+paste a key into the chat. Never put a real key in
 a checked-in editor configuration. Deploy keys are account credentials; a
 project path is not an ownership boundary.
 
@@ -144,7 +150,8 @@ Important lifecycle semantics:
 ## Typical Workflow
 
 1. Run `varity_doctor` to check authentication.
-2. Run `varity_login` if authentication is missing.
+2. Run `varity_login` if authentication is missing. Until browser sign-in is
+   switched on, it points you to the deploy key.
 3. Use `varity_cost_calculator` or a live quote before a billable action.
 4. Build locally and inspect the result.
 5. Deploy the project or a certified template.

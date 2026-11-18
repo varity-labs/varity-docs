@@ -2121,7 +2121,10 @@ moves ahead of the reference's release marker.
 ## Prerequisites
 
 - **Node.js 22.11 or newer**, as required by the package currently published to npm
-- **A deploy key** from the Developer Portal under **Settings > Deploy keys**
+- **A deploy key** from the Developer Portal under **Settings > Deploy keys**.
+  The Portal asks for a payment method before it creates a deploy key. Without
+  a card, you can still put a site online with
+  [Chat and Build](https://developer.store.varity.so/dashboard/ai-gateway?tab=chat&mode=build&utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=mcp-server-spec-chat-build).
 
 Deploys, status, logs, templates, and machines go through the Varity public API
 and need only the deploy key. The `varitykit` CLI (Python 3.11 or newer,
@@ -2184,8 +2187,11 @@ claude mcp add varity -e VARITY_DEPLOY_KEY=<key> -- npx -y @varity-labs/mcp@late
 ```
 
 In other clients, set `VARITY_DEPLOY_KEY` in the server's `env` or in the shell
-that starts the client, then restart the client. Signing in from the browser,
-with no key to copy, is coming.
+that starts the client, then restart the client.
+
+Where browser sign-in is available, `varity_login` connects you in a browser
+tab instead, with no key to copy. It is not switched on yet: today
+`varity_login` answers `SIGN_IN_UNAVAILABLE` and points you to the deploy key.
 
 The server reads your deploy key in this order:
 
@@ -2195,8 +2201,8 @@ The server reads your deploy key in this order:
 
 `VARITY_API_KEY` is the name of the [AI Gateway](/ai-gateway/)
 inference key, so name a deploy key `VARITY_DEPLOY_KEY`. `varity_login` checks
-whether a key is configured and opens the portal settings page; it never accepts
-a key as tool input, so never paste a key into the chat. Never put a real key in
+whether a key is configured; it never accepts a key as tool input, so never
+paste a key into the chat. Never put a real key in
 a checked-in editor configuration. Deploy keys are account credentials; a
 project path is not an ownership boundary.
 
@@ -2235,7 +2241,8 @@ Important lifecycle semantics:
 ## Typical Workflow
 
 1. Run `varity_doctor` to check authentication.
-2. Run `varity_login` if authentication is missing.
+2. Run `varity_login` if authentication is missing. Until browser sign-in is
+   switched on, it points you to the deploy key.
 3. Use `varity_cost_calculator` or a live quote before a billable action.
 4. Build locally and inspect the result.
 5. Deploy the project or a certified template.
@@ -6275,13 +6282,13 @@ If you are using Claude Code or Cursor, the Varity MCP server lets your AI tool 
    
 
    
-   The first deploy needs a deploy key. Create one on the [Deploy keys page of the developer portal](https://developer.store.varity.so/dashboard/settings?tab=api-keys&utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=quickstart-api-keys), then give it to the MCP server. In Claude Code, add the server with the key in one command, replacing `<key>` with your key. If you already added the server without a key, run `claude mcp remove varity` first.
+   The first deploy needs a deploy key. Create one on the [Deploy keys page of the developer portal](https://developer.store.varity.so/dashboard/settings?tab=api-keys&utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=quickstart-api-keys), then give it to the MCP server. The Portal asks for a payment method before it creates a deploy key. Without a card, you can still put a site online with [Chat and Build](https://developer.store.varity.so/dashboard/ai-gateway?tab=chat&mode=build&utm_source=docs&utm_medium=content&utm_campaign=docs-to-portal&utm_content=quickstart-chat-build). In Claude Code, add the server with the key in one command, replacing `<key>` with your key. If you already added the server without a key, run `claude mcp remove varity` first.
 
    ```bash
    claude mcp add varity -e VARITY_DEPLOY_KEY=<key> -- npx -y @varity-labs/mcp@latest
    ```
 
-   In other editors, set `VARITY_DEPLOY_KEY` in the MCP server's environment. Never paste a key into the chat: the MCP server does not accept credentials as tool input. Signing in from the browser, with no key to copy, is coming. See [MCP authentication](/ai-tools/mcp-server-spec/#authentication).
+   In other editors, set `VARITY_DEPLOY_KEY` in the MCP server's environment. Never paste a key into the chat: the MCP server does not accept credentials as tool input. Where browser sign-in is available, you confirm in a browser tab instead, with no key to copy; it is not switched on yet. See [MCP authentication](/ai-tools/mcp-server-spec/#authentication).
    
 
 2. **Open your project and ask your AI tool to deploy**
@@ -6543,12 +6550,13 @@ Check my Varity environment, then build this project, deploy it, and open the li
 
 ## What the MCP server can do
 
-The Varity MCP server gives your AI editor 26 tools. Your installed server's `tools/list` response is the authoritative list:
+The Varity MCP server gives your AI editor 30 tools. Your installed server's `tools/list` response is the authoritative list:
 
 | Tool | What to ask your AI |
 |---|---|
 | `varity_doctor` | "Check if my environment is set up for Varity" |
 | `varity_login` | "Log in to Varity" |
+| `varity_logout` | "Sign this computer out of Varity" |
 | `varity_search_docs` | "Search the Varity docs for Docker image deploys" |
 | `varity_install_deps` | "Install dependencies for this project" |
 | `varity_dev_server` | "Start the dev server and open it in my browser" |
@@ -6571,6 +6579,7 @@ The Varity MCP server gives your AI editor 26 tools. Your installed server's `to
 | `varity_machines_list` | "List my Varity virtual machines" |
 | `varity_machines_create` | "Create a virtual machine I can SSH into with my public key" |
 | `varity_machines_delete` | "Delete that virtual machine" |
+| `varity_domain_add`, `varity_domain_verify`, `varity_domain_remove` | "Use app.example.com for my app" (returns the DNS records to add, then checks them) |
 
 Full reference at [MCP Server Spec](/ai-tools/mcp-server-spec).
 
@@ -8663,7 +8672,7 @@ Source: https://ai.varity.app/v1/openapi.json (Varity AI Gateway API 2026-09-17)
 - `refreshed_at`: no description in the contract
 - `evidence`: see #/components/schemas/CapabilityEvidenceMap
 
-### Models (216)
+### Models (218)
 
 - `abliterated-large-flash`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 131072; usd per_million_tokens input 1.3125 output 2.625 cached_input 0.13125 (price set 2026-10-18.ai-api.v5.1496abe25f3c5dde)
 - `abliterated-large-v2`: privacy anonymized; in text,document -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 32768; usd per_million_tokens input 3.15 output 5.25 cached_input 0.315 (price set 2026-10-18.ai-api.v5.01822ec28ea991ab)
@@ -8787,13 +8796,13 @@ Source: https://ai.varity.app/v1/openapi.json (Varity AI Gateway API 2026-09-17)
 - `ideogram-v4`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.063 (price set 2026-10-18.ai-api.v5.406a22765091bada)
 - `ideogram-v4-5`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.273 (price set 2026-10-18.ai-api.v5.f476409646596531)
 - `inworld-tts-1-5-max`: privacy anonymized; in text -> out audio; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_million_characters input 13.125 output 0 cached_input 0 (price set 2026-10-18.ai-api.v5.audio.28eef1505a3d6b57)
-- `kimi-k2-5`: privacy private; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 256000; max completion 65536; usd per_million_tokens input 0.588 output 3.675 cached_input 0.231 (price set 2026-10-18.ai-api.v5.6c905d9374df7aa3)
 - `kimi-k2-6`: privacy private; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 256000; max completion 65536; usd per_million_tokens input 0.7875 output 3.675 cached_input 0.168 (price set 2026-10-18.ai-api.v5.d9f5619923d0fe0e)
 - `kimi-k2-7-code`: privacy private; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 256000; max completion 65536; usd per_million_tokens input 0.7875 output 3.675 cached_input 0.168 (price set 2026-10-18.ai-api.v5.d9f5619923d0fe0e)
 - `kimi-k3`: privacy private; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 131072; usd per_million_tokens input 3.9375 output 19.6875 cached_input 0.39375 (price set 2026-10-18.ai-api.v5.baf7b6084985ad01)
 - `kimi-k3-1-pro`: privacy private; in text -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 131072; usd per_million_tokens input 2.1 output 10.5 cached_input 0.21 (price set 2026-10-18.ai-api.v5.19daeab245314f4f)
 - `kimi-k3-1-pro-highspeed`: privacy anonymized; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 131072; usd per_million_tokens input 5.25 output 26.25 cached_input 0.39375 (price set 2026-10-18.ai-api.v5.7d4339e3039b0975)
 - `kimi-k3-fast`: privacy private; in text,document,image -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 131072; usd per_million_tokens input 4.725 output 23.625 cached_input 0.4725 (price set 2026-10-18.ai-api.v5.76adc35e241bb225)
+- `kling-image-4-0`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.084 (price set 2026-10-18.ai-api.v5.a074afb145190881)
 - `kokoro-text-to-speech`: privacy private; in text -> out audio; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_million_characters input 3.675 output 0 cached_input 0 (price set 2026-10-18.ai-api.v5.audio.851b965eae8dcb12)
 - `krea-2-turbo`: privacy private; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.042 (price set 2026-10-18.ai-api.v5.7a010657a70fec6a)
 - `krea-3`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.0735 (price set 2026-10-18.ai-api.v5.548cacbc51378b99)
@@ -8806,6 +8815,8 @@ Source: https://ai.varity.app/v1/openapi.json (Varity AI Gateway API 2026-09-17)
 - `lustify-sdxl`: privacy private; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.0105 (price set 2026-10-18.ai-api.v5.6e6ca6d2f98e1d62)
 - `lustify-v7`: privacy private; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.0105 (price set 2026-10-18.ai-api.v5.6e6ca6d2f98e1d62)
 - `lustify-v8`: privacy private; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.0105 (price set 2026-10-18.ai-api.v5.6e6ca6d2f98e1d62)
+- `mai-image-2-7`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.0525 (price set 2026-10-18.ai-api.v5.70c6fa31040b79ad)
+- `mai-image-2-7-flash`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.021 (price set 2026-10-18.ai-api.v5.838e61c5e205152a)
 - `mimo-v2-5`: privacy private; in text,document,audio,image,video -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 65536; usd per_million_tokens input 0.42 output 2.1 cached_input 0.084 (price set 2026-10-18.ai-api.v5.cb73aad7507ce980)
 - `mimo-v2-6-flash`: privacy private; in text,document,audio,image,video -> out text; chat yes; tool_calls yes; streaming_tool_calls yes; max_tools not known; context 1000000; max completion 131072; usd per_million_tokens input 0.18375 output 0.3675 cached_input 0.0039375 (price set 2026-10-18.ai-api.v5.782c022678885647)
 - `minimax-h3-image`: privacy anonymized; in text -> out image; chat no; tool_calls no; streaming_tool_calls no; max_tools not known; context 0; max completion 0; usd per_image input 0 output 0 cached_input 0 request 0.042 (price set 2026-10-18.ai-api.v5.7a010657a70fec6a)
